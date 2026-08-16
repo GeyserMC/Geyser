@@ -8,6 +8,49 @@ Geyser is a bridge between Minecraft: Bedrock Edition and Minecraft: Java Editio
 
 Geyser is an [Open Collaboration](https://opencollaboration.dev/) project.
 
+## MCXboxBroadcast NetherNet ingress
+
+This fork includes a portal-style NetherNet ingress designed to pair with the
+[MCXboxBroadcast standalone publisher](https://github.com/arti-inc/Broadcaster).
+Geyser owns the Bedrock/NetherNet gameplay connection; MCXboxBroadcast only
+publishes the Xbox session. Do not run a second Bedrock relay for the same
+session.
+
+### Minimal paired configuration
+
+Install this fork as `Geyser-Spigot.jar` alongside Floodgate and ViaVersion on
+Paper. In `config.yml`, set the portal bridge under
+`advanced.bedrock.portal-bridge`:
+
+```yaml
+advanced:
+  bedrock:
+    portal-bridge:
+      enabled: true
+      xbox-auth-header-file: /absolute/path/to/mcxbox-standalone/cache/cache.json
+      nether-net-network-id: ''
+      shard-count: 1
+      debug-logging: false
+```
+
+The auth-file must be the MCXboxBroadcast cache on the same trusted machine.
+It is read without logging the token. Leave `nether-net-network-id` empty;
+Geyser generates/persists the active ID and writes an atomic
+`portal-session-status.json`. MCXboxBroadcast discovers that file and verifies
+the ID before publishing a session.
+
+Use `external-hosted: true` and an empty `external-network-id` in the
+MCXboxBroadcast config. Start Paper/Geyser before the publisher, or use the
+paired local launcher. The publisher waits for Geyser readiness, so manual
+NetherNet ID copying is unnecessary.
+
+For complete directory layout, friend-safety defaults, joining instructions,
+and stage-by-stage troubleshooting, see the companion
+[setup guide](https://github.com/arti-inc/Broadcaster#reliable-geyser--mcxboxbroadcast-setup).
+
+The tested companion artifact is available from the
+[NetherNet ingress release](https://github.com/arti-inc/Geyser-Nethernet-for-mcxb/releases/tag/nethernet-ingress-2).
+
 ## What is Geyser?
 Geyser is a proxy, bridging the gap between Minecraft: Bedrock Edition and Minecraft: Java Edition servers.
 The ultimate goal of this project is to allow Minecraft: Bedrock Edition users to join Minecraft: Java Edition servers as seamlessly as possible. However, due to the nature of Geyser translating packets over the network of two different games, *do not expect everything to work perfectly!*
@@ -44,9 +87,6 @@ There are a few things Geyser is unable to support due to various differences be
 2. Navigate to the Geyser root directory and run `git submodule update --init --recursive`. This command downloads all the needed submodules for Geyser and is a crucial step in this process.
 3. Run `gradlew build` and locate to `bootstrap/build` folder.
 
-## Contributing
-Any contributions are appreciated. Please feel free to reach out to us on [Discord](https://discord.gg/geysermc) if
-you're interested in helping out with Geyser.
 
 ## Libraries Used:
 - [Adventure Text Library](https://github.com/KyoriPowered/adventure)

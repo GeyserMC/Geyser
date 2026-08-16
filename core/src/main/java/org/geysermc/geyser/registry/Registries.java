@@ -241,7 +241,7 @@ public final class Registries {
         // They generally have in common that they either depend on loading a resource file directly or indirectly
         // (by using the Items or Blocks class, which loads all the blocks)
 
-        DataComponentRegistryPopulator.load();
+        DataComponentRegistryPopulator.populate();
 
         BEDROCK_ENTITY_IDENTIFIERS.load();
         BIOMES_NBT.load();

@@ -15,6 +15,15 @@ plugins {
     id("dev.architectury.loom-companion")
 }
 
+val nativePlatforms = listOf(
+    "windows-x86_64",
+    "windows-aarch64",
+    "linux-x86_64",
+    "linux-aarch64",
+    "macos-x86_64",
+    "macos-aarch64"
+)
+
 dependencies {
     constraints {
         implementation(libs.raknet) // Ensure protocol does not override the RakNet version
@@ -38,6 +47,15 @@ dependencies {
 
     // Network libraries
     implementation(libs.websocket)
+    api(libs.netty.transport.nethernet)
+    api(libs.webrtc)
+    nativePlatforms.forEach { platform ->
+        runtimeOnly(libs.webrtc) {
+            artifact {
+                classifier = platform
+            }
+        }
+    }
 
     api(libs.bundles.protocol) {
         exclude("com.fasterxml.jackson.core", "jackson-annotations")

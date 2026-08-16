@@ -747,9 +747,13 @@ public class ItemRegistryPopulator {
                     .build(), itemData.getNetId(), itemData.getGroupId()));
             }
 
+            List<ItemMapping> finalizedMappings = mappings.stream()
+                    .filter(Objects::nonNull)
+                    .toList();
+
             ItemMappings itemMappings = ItemMappings.builder()
-                    .items(mappings.toArray(new ItemMapping[0]))
-                    .zeroBlockDefinitionRuntimeId(mappings.stream()
+                    .items(finalizedMappings.toArray(new ItemMapping[0]))
+                    .zeroBlockDefinitionRuntimeId(finalizedMappings.stream()
                         .filter(entry -> entry.isBlock() && entry.getBedrockBlockDefinition().getRuntimeId() == 0)
                         .map(itemMapping -> itemMapping.getBedrockDefinition().getRuntimeId())
                         .toArray(Integer[]::new))

@@ -86,6 +86,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.TimeUnit;
 
 public class UpstreamPacketHandler extends LoggingPacketHandler {
+    private static final boolean PROXY_BRIDGE_DEBUG = Boolean.parseBoolean(System.getProperty("Geyser.ProxyBridgeDebug", "false"));
 
     private boolean networkSettingsRequested = false;
     private boolean receivedLoginPacket = false;
@@ -151,6 +152,9 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
 
     @Override
     public void onDisconnect(CharSequence reason) {
+        if (PROXY_BRIDGE_DEBUG) {
+            geyser.getLogger().info("[proxy-bridge] upstream disconnect remote=" + session.getUpstream().getAddress() + " reason=" + reason);
+        }
         // Use our own disconnect messages for these reasons
         if (BedrockDisconnectReasons.CLOSED.contentEquals(reason)) {
             this.session.getUpstream().getSession().setDisconnectReason(GeyserLocale.getLocaleStringLog("geyser.network.disconnect.closed_by_remote_peer"));
@@ -162,6 +166,9 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
 
     @Override
     public PacketSignal handle(RequestNetworkSettingsPacket packet) {
+        if (PROXY_BRIDGE_DEBUG) {
+            geyser.getLogger().info("[proxy-bridge] request_network_settings remote=" + session.getUpstream().getAddress() + " protocol=" + packet.getProtocolVersion());
+        }
         if (!setCorrectCodec(packet.getProtocolVersion())) {
             return PacketSignal.HANDLED;
         }
@@ -179,6 +186,12 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
 
     @Override
     public PacketSignal handle(LoginPacket loginPacket) {
+        if (PROXY_BRIDGE_DEBUG) {
+            geyser.getLogger().info("[proxy-bridge] login packet remote=" + session.getUpstream().getAddress()
+                    + " protocol=" + loginPacket.getProtocolVersion()
+                    + " authType=" + (loginPacket.getAuthPayload() != null ? loginPacket.getAuthPayload().getAuthType() : "null")
+                    + " clientJwtLength=" + (loginPacket.getClientJwt() != null ? loginPacket.getClientJwt().length() : -1));
+        }
         if (geyser.isShuttingDown() || geyser.isReloading()) {
             // Don't allow new players in if we're no longer operating
             session.disconnect(GeyserLocale.getLocaleStringLog("geyser.core.shutdown.kick.message"));
@@ -198,9 +211,20 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
         receivedLoginPacket = true;
 
         LoginEncryptionUtils.encryptPlayerConnection(session, loginPacket);
+        if (session.isProxyBridgeIngress()) {
+            geyser.getLogger().info("[proxy-bridge] Bedrock authentication completed; Floodgate handoff ready for "
+                + session.bedrockUsername());
+        }
+        if (PROXY_BRIDGE_DEBUG) {
+            geyser.getLogger().info("[proxy-bridge] login encryption complete remote=" + session.getUpstream().getAddress()
+                    + " xuid=" + session.xuid() + " username=" + session.bedrockUsername());
+        }
 
         if (session.isClosed()) {
             // Can happen if Xbox validation fails
+            if (PROXY_BRIDGE_DEBUG) {
+                geyser.getLogger().info("[proxy-bridge] session closed during login remote=" + session.getUpstream().getAddress());
+            }
             session.forciblyCloseUpstream();
             return PacketSignal.HANDLED;
         }
@@ -222,6 +246,10 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
         PlayStatusPacket playStatus = new PlayStatusPacket();
         playStatus.setStatus(PlayStatusPacket.Status.LOGIN_SUCCESS);
         session.sendUpstreamPacket(playStatus);
+        if (PROXY_BRIDGE_DEBUG) {
+            geyser.getLogger().info("[proxy-bridge] login success sent remote=" + session.getUpstream().getAddress()
+                    + " username=" + session.bedrockUsername());
+        }
 
         this.resourcePackLoadEvent = new SessionLoadResourcePacksEventImpl(session);
         this.geyser.eventBus().fireEventElseKick(this.resourcePackLoadEvent, session);
@@ -261,6 +289,10 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
             case COMPLETED -> {
                 finishedResourcePackSending = true;
                 if (geyser.config().java().authType() != AuthType.ONLINE) {
+                    if (session.isProxyBridgeIngress()) {
+                        geyser.getLogger().info("[proxy-bridge] Floodgate authentication completed for "
+                            + session.bedrockUsername());
+                    }
                     session.authenticate(session.getAuthData().name());
                 } else if (!couldLoginUserByName(session.getAuthData().name())) {
                     // We must spawn the white world

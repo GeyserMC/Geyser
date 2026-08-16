@@ -76,7 +76,7 @@ public class GeyserSessionAdapter extends SessionAdapter {
                 byte[] encryptedData;
 
                 try {
-                    FloodgateSkinUploader skinUploader = geyser.getSkinUploader();
+                    FloodgateSkinUploader skinUploader = session.isTrustedProxySelfSignedLogin() ? null : geyser.getSkinUploader();
                     FloodgateCipher cipher = geyser.getCipher();
 
                     String bedrockAddress = session.getUpstream().getAddress().getAddress().getHostAddress();
@@ -97,6 +97,8 @@ public class GeyserSessionAdapter extends SessionAdapter {
                         clientData.getUiProfile().ordinal(),
                         clientData.getCurrentInputMode().ordinal(),
                         bedrockAddress,
+                        null,
+                        session.isTrustedProxySelfSignedLogin(),
                         shouldSkinConnect ? skinUploader.getId() : -1,
                         shouldSkinConnect ? skinUploader.getVerifyCode() : null
                     ).toString());
@@ -126,6 +128,11 @@ public class GeyserSessionAdapter extends SessionAdapter {
     public void connected(ConnectedEvent event) {
         session.loggingIn = false;
         session.loggedIn = true;
+
+        if (session.isProxyBridgeIngress()) {
+            geyser.getLogger().info("[proxy-bridge] Java/Paper connection established for "
+                + session.bedrockUsername());
+        }
 
         if (session.getDownstream().getSession() instanceof LocalSession) {
             // Connected directly to the server
@@ -165,6 +172,13 @@ public class GeyserSessionAdapter extends SessionAdapter {
     @Override
     public void disconnected(DisconnectedEvent event) {
         session.loggingIn = false;
+
+        if (session.isProxyBridgeIngress()) {
+            String stage = session.loggedIn ? "java_connected" : "java_login";
+            String reason = event.getReason() == null ? "unspecified" : event.getReason().toString();
+            geyser.getLogger().info("[proxy-bridge] Java/Paper disconnected for "
+                + session.bedrockUsername() + " stage=" + stage + " reason=" + reason);
+        }
 
         String disconnectMessage, customDisconnectMessage = null;
         Throwable cause = event.getCause();

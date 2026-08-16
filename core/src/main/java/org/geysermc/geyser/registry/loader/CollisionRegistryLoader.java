@@ -92,7 +92,8 @@ public class CollisionRegistryLoader extends MultiResourceRegistryLoader<String,
                 continue;
             }
 
-            BlockCollision newCollision = instantiateCollision(state, annotationMap, indices[i], collisionList);
+            int collisionIndex = i < indices.length ? indices[i] : 0;
+            BlockCollision newCollision = instantiateCollision(state, annotationMap, collisionIndex, collisionList);
 
             if (newCollision != null) {
                 // If there's an existing instance equal to this one, use that instead
@@ -122,7 +123,7 @@ public class CollisionRegistryLoader extends MultiResourceRegistryLoader<String,
                 try {
                     if (annotation.passDefaultBoxes()) {
                         // Create an OtherCollision instance and get the bounding boxes
-                        BoundingBox[] defaultBoxes = collisionList.get(collisionIndex);
+                        BoundingBox[] defaultBoxes = collisionIndex >= 0 && collisionIndex < collisionList.size() ? collisionList.get(collisionIndex) : new BoundingBox[0];
                         return (BlockCollision) type.getDeclaredConstructor(BlockState.class, BoundingBox[].class).newInstance(state, defaultBoxes);
                     } else {
                         return (BlockCollision) type.getDeclaredConstructor(BlockState.class).newInstance(state);
@@ -141,6 +142,10 @@ public class CollisionRegistryLoader extends MultiResourceRegistryLoader<String,
         // Unless some of the low IDs are changed, which is unlikely, the second item should always be full collision
         if (collisionIndex == 1) {
             return new SolidCollision(state);
+        }
+        if (collisionIndex < 0 || collisionIndex >= collisionList.size()) {
+            GeyserImpl.getInstance().getLogger().warning("Missing collision mapping for " + blockName + " at index " + collisionIndex + "; using empty collision.");
+            return null;
         }
         return new OtherCollision(collisionList.get(collisionIndex));
     }

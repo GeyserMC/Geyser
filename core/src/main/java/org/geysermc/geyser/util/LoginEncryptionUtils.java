@@ -41,6 +41,7 @@ import org.geysermc.cumulus.response.SimpleFormResponse;
 import org.geysermc.cumulus.response.result.FormResponseResult;
 import org.geysermc.cumulus.response.result.ValidFormResponseResult;
 import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.network.portal.PortalBridgeBootstrap;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.auth.AuthData;
 import org.geysermc.geyser.session.auth.BedrockClientData;
@@ -51,6 +52,9 @@ import javax.crypto.SecretKey;
 import java.net.InetSocketAddress;
 import java.security.KeyPair;
 import java.security.PublicKey;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.function.BiConsumer;
 
 public class LoginEncryptionUtils {
@@ -71,11 +75,16 @@ public class LoginEncryptionUtils {
             }
 
             ChainValidationResult result = EncryptionUtils.validatePayload(authPayload);
+            boolean trustedProxySelfSigned = isTrustedProxySelfSigned(session, authPayload);
+            session.setTrustedProxySelfSignedLogin(trustedProxySelfSigned);
 
             geyser.getLogger().debug("Is player data signed? %s", result.signed());
-            if (!result.signed() && session.getGeyser().config().advanced().bedrock().validateBedrockLogin()) {
+            if (!result.signed() && session.getGeyser().config().advanced().bedrock().validateBedrockLogin() && !trustedProxySelfSigned) {
                 session.disconnect(GeyserLocale.getLocaleStringLog("geyser.network.remote.invalid_xbox_account"));
                 return;
+            }
+            if (trustedProxySelfSigned) {
+                geyser.getLogger().info("[proxy-bridge] accepting trusted SELF_SIGNED login from " + session.getUpstream().getAddress());
             }
 
             // Should always be present, but hey, why not make it safe :D
@@ -150,6 +159,39 @@ public class LoginEncryptionUtils {
             geyser.getLogger().warning(GeyserLocale.getLocaleStringLog("geyser.network.encryption.line_2", "https://geysermc.org/supported_java"));
             HAS_SENT_ENCRYPTION_MESSAGE = true;
         }
+    }
+
+    private static boolean isTrustedProxySelfSigned(GeyserSession session, AuthPayload authPayload) {
+        if (authPayload.getAuthType() != AuthType.SELF_SIGNED) {
+            return false;
+        }
+
+        InetSocketAddress address = session.getUpstream().getAddress();
+        if (address == null) {
+            return false;
+        }
+
+        if (address.getAddress() != null && address.getAddress().isLoopbackAddress()) {
+            return true;
+        }
+
+        PortalBridgeBootstrap portalBridgeBootstrap = session.getGeyser().getPortalBridgeBootstrap();
+        if (portalBridgeBootstrap != null && portalBridgeBootstrap.isTrustedProxy(address)) {
+            return true;
+        }
+
+        String configured = System.getProperty("Geyser.ProxyBridgeTrustedIps", "");
+        if (configured.isBlank()) {
+            return false;
+        }
+
+        String host = address.getAddress() != null ? address.getAddress().getHostAddress() : address.getHostString();
+        Set<String> trustedIps = new HashSet<>();
+        Arrays.stream(configured.split(","))
+                .map(String::trim)
+                .filter(entry -> !entry.isEmpty())
+                .forEach(trustedIps::add);
+        return trustedIps.contains(host);
     }
 
     public static void buildAndShowLoginWindow(GeyserSession session) {

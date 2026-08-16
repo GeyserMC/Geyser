@@ -285,6 +285,12 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     private List<String> certChainData;
     @Setter
     private String token;
+    @Setter
+    private boolean trustedProxySelfSignedLogin;
+
+    /** True when this session entered through the NetherNet portal bridge. */
+    @Setter
+    private boolean proxyBridgeIngress;
 
     @NonNull
     @Setter

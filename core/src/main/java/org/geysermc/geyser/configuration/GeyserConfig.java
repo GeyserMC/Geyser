@@ -411,6 +411,11 @@ public interface GeyserConfig {
             All Floodgate functionality (including skin uploading and account linking) will also not work when this option is disabled.""")
         @DefaultBoolean(true)
         boolean validateBedrockLogin();
+
+        @Comment("""
+            Portal-style NetherNet ingress settings.
+            A paired MCXboxBroadcast publisher advertises this ingress as the Xbox session's gameplay target.""")
+        PortalBridgeConfig portalBridge();
     }
 
     @ConfigSerializable

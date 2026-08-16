@@ -179,6 +179,7 @@ public final class BlockRegistryPopulator {
             // New since 1.16.100 - find the block runtime ID by the order given to us in the block palette,
             // as we no longer send a block palette
             Object2ObjectMap<NbtMap, GeyserBedrockBlock> blockStateOrderedMap = new Object2ObjectOpenHashMap<>(blockStates.size());
+            Object2ObjectMap<String, GeyserBedrockBlock> blockStateByName = new Object2ObjectOpenHashMap<>();
             GeyserBedrockBlock[] bedrockRuntimeMap = new GeyserBedrockBlock[blockStates.size()];
             for (int i = 0; i < blockStates.size(); i++) {
                 NbtMap tag = blockStates.get(i);
@@ -186,6 +187,7 @@ public final class BlockRegistryPopulator {
                 if (blockStateOrderedMap.put(tag, block) != null) {
                     throw new AssertionError("Duplicate block states in Bedrock palette: " + tag);
                 }
+                blockStateByName.putIfAbsent(tag.getString("name"), block);
                 bedrockRuntimeMap[i] = block;
             }
 
@@ -260,8 +262,26 @@ public final class BlockRegistryPopulator {
                 if (blockStateOverride == null) {
                     bedrockDefinition = vanillaBedrockDefinition;
                     if (bedrockDefinition == null) {
-                        throw new RuntimeException("""
-                            Unable to find %s Bedrock runtime ID for %s! Original block tag:
+                        bedrockDefinition = blockStateByName.get(bedrockTag.getString("name"));
+                        if (bedrockDefinition == null) {
+                            bedrockDefinition = blockStateByName.get(originalBedrockTag.getString("name"));
+                        }
+                        if (bedrockDefinition == null) {
+                            bedrockDefinition = blockStateByName.get("minecraft:air");
+                        }
+                        if (bedrockDefinition == null) {
+                            bedrockDefinition = bedrockRuntimeMap.length > 0 ? bedrockRuntimeMap[0] : null;
+                        }
+                        if (bedrockDefinition == null) {
+                            throw new RuntimeException("""
+                                Unable to find %s Bedrock runtime ID for %s and no safe fallback block was available! Original block tag:
+                                %s
+                                Updated block tag:
+                                %s""".formatted(javaId, palette.key(), originalBedrockTag, bedrockTag));
+                        }
+                        GeyserImpl.getInstance().getLogger().warning("""
+                            Falling back to a safe Bedrock block for %s in %s.
+                            Original block tag:
                             %s
                             Updated block tag:
                             %s""".formatted(javaId, palette.key(), originalBedrockTag, bedrockTag));
