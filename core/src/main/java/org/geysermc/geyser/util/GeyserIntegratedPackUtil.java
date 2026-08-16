@@ -34,8 +34,8 @@ import org.geysermc.geyser.api.pack.UrlPackCodec;
 import org.geysermc.geyser.api.pack.exception.ResourcePackException;
 import org.geysermc.geyser.api.pack.option.PriorityOption;
 import org.geysermc.geyser.event.type.GeyserDefineResourcePacksEventImpl;
-import org.geysermc.geyser.pack.GeyserResourcePack;
-import org.geysermc.geyser.pack.ResourcePackHolder;
+import org.geysermc.geyser.pack.bedrock.GeyserResourcePack;
+import org.geysermc.geyser.pack.bedrock.ResourcePackHolder;
 import org.geysermc.geyser.registry.loader.ResourcePackLoader;
 
 import java.nio.file.Files;

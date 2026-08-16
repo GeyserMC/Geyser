@@ -23,41 +23,44 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.pack;
+package org.geysermc.geyser.pack.bedrock.option;
 
-import lombok.With;
 import org.checkerframework.checker.nullness.qual.NonNull;
-import org.geysermc.geyser.api.pack.PackCodec;
 import org.geysermc.geyser.api.pack.ResourcePack;
 import org.geysermc.geyser.api.pack.ResourcePackManifest;
-import org.geysermc.geyser.api.pack.option.PriorityOption;
-import org.geysermc.geyser.pack.option.OptionHolder;
+import org.geysermc.geyser.api.pack.exception.ResourcePackException;
+import org.geysermc.geyser.api.pack.option.SubpackOption;
 
-import java.util.UUID;
+import java.util.Objects;
 
-@With
-public record ResourcePackHolder(
-    @NonNull GeyserResourcePack pack,
-    @NonNull OptionHolder optionHolder
-) {
+/**
+ * Can be used to specify which subpack from a resource pack a player should load.
+ * Available subpacks can be seen in a resource pack manifest {@link ResourcePackManifest#subpacks()}
+ */
+public record GeyserSubpackOption(String subpackName) implements SubpackOption {
 
-    public static ResourcePackHolder of(GeyserResourcePack pack) {
-        return new ResourcePackHolder(pack, new OptionHolder(PriorityOption.NORMAL));
+    @Override
+    public @NonNull Type type() {
+        return Type.SUBPACK;
     }
 
-    public ResourcePack resourcePack() {
-        return this.pack;
+    @Override
+    public @NonNull String value() {
+        return subpackName;
     }
 
-    public PackCodec codec() {
-        return this.pack.codec();
-    }
+    @Override
+    public void validate(@NonNull ResourcePack pack) {
+        Objects.requireNonNull(pack);
 
-    public UUID uuid() {
-        return this.pack.uuid();
-    }
+        // Allow empty subpack names - they're the same as "none"
+        if (subpackName.isEmpty()) {
+            return;
+        }
 
-    public ResourcePackManifest.Version version() {
-        return pack.manifest().header().version();
+        if (pack.manifest().subpacks().stream().noneMatch(subpack -> subpack.name().equals(subpackName))) {
+            throw new ResourcePackException(ResourcePackException.Cause.INVALID_PACK_OPTION,
+                "No subpack with the name %s found!".formatted(subpackName));
+        }
     }
 }

@@ -23,14 +23,14 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.pack.option;
+package org.geysermc.geyser.pack.bedrock.option;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.api.pack.ResourcePack;
 import org.geysermc.geyser.api.pack.option.PriorityOption;
 import org.geysermc.geyser.api.pack.option.ResourcePackOption;
-import org.geysermc.geyser.pack.GeyserResourcePack;
+import org.geysermc.geyser.pack.bedrock.GeyserResourcePack;
 
 import java.util.Collection;
 import java.util.Collections;

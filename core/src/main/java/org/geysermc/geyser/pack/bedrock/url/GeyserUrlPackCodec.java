@@ -23,7 +23,7 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.pack.url;
+package org.geysermc.geyser.pack.bedrock.url;
 
 import java.io.IOException;
 import java.nio.channels.SeekableByteChannel;
@@ -33,8 +33,8 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.pack.PathPackCodec;
 import org.geysermc.geyser.api.pack.UrlPackCodec;
-import org.geysermc.geyser.pack.GeyserResourcePack;
-import org.geysermc.geyser.pack.ResourcePackHolder;
+import org.geysermc.geyser.pack.bedrock.GeyserResourcePack;
+import org.geysermc.geyser.pack.bedrock.ResourcePackHolder;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.registry.loader.ResourcePackLoader;
 import org.geysermc.geyser.text.GeyserLocale;

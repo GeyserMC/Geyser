@@ -32,8 +32,8 @@ import org.geysermc.geyser.api.event.lifecycle.GeyserDefineResourcePacksEvent;
 import org.geysermc.geyser.api.pack.ResourcePack;
 import org.geysermc.geyser.api.pack.exception.ResourcePackException;
 import org.geysermc.geyser.api.pack.option.ResourcePackOption;
-import org.geysermc.geyser.pack.GeyserResourcePack;
-import org.geysermc.geyser.pack.ResourcePackHolder;
+import org.geysermc.geyser.pack.bedrock.GeyserResourcePack;
+import org.geysermc.geyser.pack.bedrock.ResourcePackHolder;
 import org.geysermc.geyser.util.GeyserIntegratedPackUtil;
 
 import java.util.Collection;
