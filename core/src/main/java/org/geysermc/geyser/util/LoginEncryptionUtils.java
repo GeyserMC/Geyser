@@ -43,6 +43,7 @@ import org.geysermc.cumulus.response.SimpleFormResponse;
 import org.geysermc.cumulus.response.result.FormResponseResult;
 import org.geysermc.cumulus.response.result.ValidFormResponseResult;
 import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.network.CodecProcessor;
 import org.geysermc.geyser.network.GameProtocol;
 import org.geysermc.geyser.network.netty.BedrockEncryptionControl;
 import org.geysermc.geyser.session.GeyserSession;
@@ -208,6 +209,9 @@ public class LoginEncryptionUtils {
             }
 
             session.setAuthData(new AuthData(displayName, identity, xuid, issuedAt, extraData.minecraftId));
+
+            // Thanks 26.44, we love protocol bumps without protocol version bumps
+            CodecProcessor.updateCodec(session.getUpstream(), data.getGameVersion());
 
             try {
                 boolean enableEncryption = !BedrockEncryptionControl.isEncryptionDisabled(

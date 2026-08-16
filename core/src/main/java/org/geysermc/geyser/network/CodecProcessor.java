@@ -32,6 +32,7 @@ import org.cloudburstmc.protocol.bedrock.codec.BedrockPacketSerializer;
 import org.cloudburstmc.protocol.bedrock.codec.v1001.serializer.BossEventSerializer_v1001;
 import org.cloudburstmc.protocol.bedrock.codec.v1001.serializer.InventoryContentSerializer_v1001;
 import org.cloudburstmc.protocol.bedrock.codec.v1001.serializer.MobArmorEquipmentSerializer_v1001;
+import org.cloudburstmc.protocol.bedrock.codec.v2168.Bedrock_v2168;
 import org.cloudburstmc.protocol.bedrock.codec.v2168.serializer.MovePlayerSerializer_v2168;
 import org.cloudburstmc.protocol.bedrock.codec.v2168.serializer.PlayerSkinSerializer_v2168;
 import org.cloudburstmc.protocol.bedrock.codec.v291.serializer.MobEquipmentSerializer_v291;
@@ -92,12 +93,13 @@ import org.cloudburstmc.protocol.bedrock.packet.SubChunkRequestPacket;
 import org.cloudburstmc.protocol.bedrock.packet.SubClientLoginPacket;
 import org.cloudburstmc.protocol.common.util.VarInts;
 import org.geysermc.geyser.network.netty.IllegalPacketException;
+import org.geysermc.geyser.session.UpstreamSession;
 
 /**
  * Processes the Bedrock codec to remove or modify unused or unsafe packets and fields.
  */
 @SuppressWarnings("deprecation")
-class CodecProcessor {
+public class CodecProcessor {
     
     /**
      * Generic serializer that throws an exception when trying to serialize or deserialize a packet, leading to client disconnection.
@@ -295,6 +297,15 @@ class CodecProcessor {
             packet.setContainerId(buffer.readByte());
         }
     };
+
+    public static void updateCodec(UpstreamSession upstreamSession, String version) {
+        // Support all older 1.26.4x builds
+        switch (version) {
+            case "1.26.40", "1.26.41", "1.26.42", "1.26.43" -> {
+                upstreamSession.getSession().setCodec(processCodec(Bedrock_v2168.CODEC));
+            }
+        }
+    }
 
     @SuppressWarnings("unchecked")
     static BedrockCodec processCodec(BedrockCodec codec) {
