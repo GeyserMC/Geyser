@@ -291,4 +291,75 @@ public class ScoreboardIssueTests {
             assertNoNextPacket(context);
         });
     }
+
+    /**
+     * There used to be an issue where if the session player was on a team without color
+     * then a display slot that has no team color (e.g. below name) could be used instead.
+     */
+    @Test
+    void sidebarColorDetectionIssue() {
+        mockContextScoreboard(context -> {
+            var setObjectiveTranslator = new JavaSetObjectiveTranslator();
+            var setDisplayObjectiveTranslator = new JavaSetDisplayObjectiveTranslator();
+            var setPlayerTeamTranslator = new JavaSetPlayerTeamTranslator();
+
+            context.translate(
+                setPlayerTeamTranslator,
+                new ClientboundSetPlayerTeamPacket(
+                    "team",
+                    Component.empty(),
+                    Component.empty(),
+                    Component.empty(),
+                    false,
+                    false,
+                    NameTagVisibility.NEVER,
+                    CollisionRule.NEVER,
+                    null,
+                    new String[] {"Tim203"}
+                )
+            );
+
+            context.translate(
+                setObjectiveTranslator,
+                new ClientboundSetObjectivePacket(
+                    "objective1",
+                    ObjectiveAction.ADD,
+                    Component.text("objective"),
+                    ScoreType.INTEGER,
+                    null
+                )
+            );
+
+            context.translate(
+                setDisplayObjectiveTranslator,
+                new ClientboundSetDisplayObjectivePacket(ScoreboardPosition.BELOW_NAME, "objective1")
+            );
+
+            context.translate(
+                setObjectiveTranslator,
+                new ClientboundSetObjectivePacket(
+                    "objective2",
+                    ObjectiveAction.ADD,
+                    Component.text("objective"),
+                    ScoreType.INTEGER,
+                    null
+                )
+            );
+            assertNoNextPacket(context);
+
+            context.translate(
+                setDisplayObjectiveTranslator,
+                new ClientboundSetDisplayObjectivePacket(ScoreboardPosition.SIDEBAR, "objective2")
+            );
+            assertNextPacket(context, () -> {
+                var packet = new SetDisplayObjectivePacket();
+                packet.setObjectiveId("1");
+                packet.setDisplayName("objective");
+                packet.setCriteria("dummy");
+                packet.setDisplaySlot("sidebar");
+                packet.setSortOrder(1);
+                return packet;
+            });
+        });
+    }
 }

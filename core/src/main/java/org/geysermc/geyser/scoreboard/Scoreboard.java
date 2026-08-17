@@ -206,14 +206,15 @@ public final class Scoreboard {
         Team playerTeam = getTeamFor(session.getPlayerEntity().getUsername());
         DisplaySlot correctSidebarSlot = null;
 
-        for (DisplaySlot slot : objectiveSlots.values()) {
-            // slot has been removed
-            if (slot.updateType() == REMOVE) {
-                continue;
-            }
+        if (playerTeam != null) {
+            for (DisplaySlot slot : objectiveSlots.values()) {
+                if (slot.updateType() == REMOVE || DisplaySlot.slotCategory(slot.position()) != ScoreboardPosition.SIDEBAR) {
+                    continue;
+                }
 
-            if (playerTeam != null && playerTeam.color() == slot.teamColor()) {
-                correctSidebarSlot = slot;
+                if (playerTeam.color() == slot.teamColor()) {
+                    correctSidebarSlot = slot;
+                }
             }
         }
 
