@@ -111,11 +111,7 @@ public interface EntityData {
      */
     @Deprecated(since = "2.9.3")
     void showEmote(GeyserPlayerEntity emoter, String emoteId);
-
-    /**
-     * @deprecated Use {@link GeyserConnection#showEmote(AvatarEntity, String, boolean)} instead.
-     */
-    @Deprecated
+    
     void showEmote(AvatarEntity emoter, String emoteId, boolean silent);
 
     /**
