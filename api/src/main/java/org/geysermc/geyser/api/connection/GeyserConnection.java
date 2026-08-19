@@ -31,7 +31,9 @@ import org.geysermc.geyser.api.bedrock.camera.CameraData;
 import org.geysermc.geyser.api.bedrock.camera.CameraShake;
 import org.geysermc.geyser.api.command.CommandSource;
 import org.geysermc.geyser.api.entity.EntityData;
+import org.geysermc.geyser.api.entity.type.player.AvatarEntity;
 import org.geysermc.geyser.api.entity.type.player.GeyserPlayerEntity;
+import org.geysermc.geyser.api.entity.type.player.MannequinEntity;
 import org.geysermc.geyser.api.skin.SkinData;
 import org.jspecify.annotations.Nullable;
 
@@ -166,8 +168,20 @@ public interface GeyserConnection extends Connection, CommandSource {
      *
      * @param emoter the player entity emoting.
      * @param emoteId the emote ID to send to this client.
+     *
+     * @deprecated Use {@link GeyserConnection#showEmote(AvatarEntity, String, boolean)} instead.
      */
+    @Deprecated
     void showEmote(GeyserPlayerEntity emoter, String emoteId);
+
+    /**
+     * Displays a player or mannequin entity as emoting to this client.
+     *
+     * @param emoter the player entity emoting.
+     * @param emoteId the emote ID to send to this client.
+     * @param silent whether to silence the emote chat announcement.
+     */
+    void showEmote(AvatarEntity emoter, String emoteId, boolean silent);
 
     /**
      * Shakes the client's camera.

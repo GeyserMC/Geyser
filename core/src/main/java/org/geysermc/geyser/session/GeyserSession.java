@@ -117,7 +117,9 @@ import org.geysermc.geyser.api.bedrock.camera.CameraData;
 import org.geysermc.geyser.api.bedrock.camera.CameraShake;
 import org.geysermc.geyser.api.connection.GeyserConnection;
 import org.geysermc.geyser.api.entity.EntityData;
+import org.geysermc.geyser.api.entity.type.player.AvatarEntity;
 import org.geysermc.geyser.api.entity.type.player.GeyserPlayerEntity;
+import org.geysermc.geyser.api.entity.type.player.MannequinEntity;
 import org.geysermc.geyser.api.event.bedrock.SessionDisconnectEvent;
 import org.geysermc.geyser.api.event.bedrock.SessionLoginEvent;
 import org.geysermc.geyser.api.network.RemoteServer;
@@ -2613,7 +2615,12 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
 
     @Override
     public void showEmote(@NonNull GeyserPlayerEntity emoter, @NonNull String emoteId) {
-        entities().showEmote(emoter, emoteId);
+        entities().showEmote(emoter, emoteId, false);
+    }
+
+    @Override
+    public void showEmote(@NonNull AvatarEntity emoter, @NonNull String emoteId, boolean silent) {
+        entities().showEmote(emoter, emoteId, silent);
     }
 
     @Override

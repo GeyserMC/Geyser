@@ -28,6 +28,7 @@ package org.geysermc.geyser.api.entity;
 import org.checkerframework.checker.index.qual.NonNegative;
 import org.geysermc.geyser.api.connection.GeyserConnection;
 import org.geysermc.geyser.api.entity.type.GeyserEntity;
+import org.geysermc.geyser.api.entity.type.player.AvatarEntity;
 import org.geysermc.geyser.api.entity.type.player.GeyserPlayerEntity;
 import org.jetbrains.annotations.ApiStatus;
 import org.jspecify.annotations.Nullable;
@@ -106,10 +107,16 @@ public interface EntityData {
     void switchHands();
 
     /**
-     * @deprecated Use {@link GeyserConnection#showEmote(GeyserPlayerEntity, String)} instead.
+     * @deprecated Use {@link GeyserConnection#showEmote(AvatarEntity, String, boolean)} instead.
      */
     @Deprecated(since = "2.9.3")
     void showEmote(GeyserPlayerEntity emoter, String emoteId);
+
+    /**
+     * @deprecated Use {@link GeyserConnection#showEmote(AvatarEntity, String, boolean)} instead.
+     */
+    @Deprecated
+    void showEmote(AvatarEntity emoter, String emoteId, boolean silent);
 
     /**
      * @deprecated Use {@link GeyserConnection#playerEntity()} instead.
