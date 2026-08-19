@@ -190,6 +190,10 @@ public final class SidebarDisplaySlot extends DisplaySlot {
 
     }
 
+    public void setUpdateTypeAdd() {
+        updateType = UpdateType.ADD;
+    }
+
     public void setTeamFor(Team team, Set<String> entities) {
         // we only have to worry about scores that are currently displayed,
         // because the constructor of the display score fetches the team

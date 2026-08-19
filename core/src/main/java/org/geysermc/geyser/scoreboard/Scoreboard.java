@@ -31,6 +31,7 @@ import net.kyori.adventure.text.Component;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.protocol.bedrock.data.ScoreInfo;
 import org.cloudburstmc.protocol.bedrock.data.command.CommandEnumConstraint;
+import org.cloudburstmc.protocol.bedrock.packet.RemoveObjectivePacket;
 import org.cloudburstmc.protocol.bedrock.packet.SetScorePacket;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.GeyserLogger;
@@ -106,6 +107,9 @@ public final class Scoreboard {
     private int lastAddScoreCount = 0;
     private int lastRemoveScoreCount = 0;
 
+    private @Nullable TeamColor lastDisplayedSidebarColor = null;
+    private @Nullable String lastDisplayedSidebarId = null;
+
     public Scoreboard(GeyserSession session) {
         this.session = session;
         this.logger = GeyserImpl.getInstance().getLogger();
@@ -171,7 +175,6 @@ public final class Scoreboard {
     public void registerNewTeam(
         String teamName,
         String[] players,
-        Component name,
         Component prefix,
         Component suffix,
         NameTagVisibility visibility,
@@ -185,7 +188,7 @@ public final class Scoreboard {
             return;
         }
 
-        team = new Team(this, teamName, players, name, prefix, suffix, visibility, color);
+        team = new Team(this, teamName, players, prefix, suffix, visibility, color);
         teams.put(teamName, team);
 
         // Update command parameters - is safe to send even if the command enum doesn't exist on the client (as of 1.19.51)
@@ -203,12 +206,14 @@ public final class Scoreboard {
         List<ScoreInfo> addScores = new ArrayList<>(lastAddScoreCount);
         List<ScoreInfo> removeScores = new ArrayList<>(lastRemoveScoreCount);
 
+
         Team playerTeam = getTeamFor(session.getPlayerEntity().getUsername());
         DisplaySlot correctSidebarSlot = null;
 
-        if (playerTeam != null) {
+        // If the player is on a team and that team has a color, find the sidebar for that color if there's any.
+        if (playerTeam != null && playerTeam.color() != null) {
             for (DisplaySlot slot : objectiveSlots.values()) {
-                if (slot.updateType() == REMOVE || DisplaySlot.slotCategory(slot.position()) != ScoreboardPosition.SIDEBAR) {
+                if (slot.updateType() == REMOVE) {
                     continue;
                 }
 
@@ -221,6 +226,35 @@ public final class Scoreboard {
         if (correctSidebarSlot == null) {
             correctSidebarSlot = objectiveSlots.get(ScoreboardPosition.SIDEBAR);
         }
+
+        TeamColor sidebarColor = null;
+        String sidebarObjectiveId = null;
+
+        if (correctSidebarSlot != null) {
+            sidebarColor = correctSidebarSlot.teamColor();
+            // Note that this is not the objective name, as then we'd have to store yet another variable.
+            // Technically this leads to redundant clearing when the same objective has multiple display slots, but who does that?
+            // And it'll only waste bandwidth, it doesn't make the end result incorrect.
+            sidebarObjectiveId = correctSidebarSlot.objectiveId();
+        }
+
+        // If we're changing sidebar slots, ensure that we're displaying a clean slate (if it's not the same underlying objective)
+        if (lastDisplayedSidebarColor != sidebarColor) {
+            // Remove the old objective if there's one
+            if (lastDisplayedSidebarId != null && !lastDisplayedSidebarId.equals(sidebarObjectiveId)) {
+                RemoveObjectivePacket packet = new RemoveObjectivePacket();
+                packet.setObjectiveId(lastDisplayedSidebarId);
+                session.sendUpstreamPacket(packet);
+            }
+
+            if (correctSidebarSlot instanceof SidebarDisplaySlot slot) {
+                slot.setUpdateTypeAdd();
+            }
+        }
+
+        this.lastDisplayedSidebarColor = sidebarColor;
+        this.lastDisplayedSidebarId = sidebarObjectiveId;
+
 
         var actualRemovedSlots = new ArrayList<>(removedSlots);
         for (var slot : actualRemovedSlots) {

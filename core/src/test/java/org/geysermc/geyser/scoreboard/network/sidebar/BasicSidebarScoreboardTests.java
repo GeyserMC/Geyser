@@ -40,13 +40,18 @@ import org.cloudburstmc.protocol.bedrock.packet.SetDisplayObjectivePacket;
 import org.cloudburstmc.protocol.bedrock.packet.SetScorePacket;
 import org.geysermc.geyser.translator.protocol.java.scoreboard.JavaSetDisplayObjectiveTranslator;
 import org.geysermc.geyser.translator.protocol.java.scoreboard.JavaSetObjectiveTranslator;
+import org.geysermc.geyser.translator.protocol.java.scoreboard.JavaSetPlayerTeamTranslator;
 import org.geysermc.geyser.translator.protocol.java.scoreboard.JavaSetScoreTranslator;
 import org.geysermc.mcprotocollib.protocol.data.game.chat.numbers.FixedFormat;
+import org.geysermc.mcprotocollib.protocol.data.game.scoreboard.CollisionRule;
+import org.geysermc.mcprotocollib.protocol.data.game.scoreboard.NameTagVisibility;
 import org.geysermc.mcprotocollib.protocol.data.game.scoreboard.ObjectiveAction;
 import org.geysermc.mcprotocollib.protocol.data.game.scoreboard.ScoreType;
 import org.geysermc.mcprotocollib.protocol.data.game.scoreboard.ScoreboardPosition;
+import org.geysermc.mcprotocollib.protocol.data.game.scoreboard.TeamColor;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.scoreboard.ClientboundSetDisplayObjectivePacket;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.scoreboard.ClientboundSetObjectivePacket;
+import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.scoreboard.ClientboundSetPlayerTeamPacket;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.scoreboard.ClientboundSetScorePacket;
 import org.junit.jupiter.api.Test;
 
@@ -257,6 +262,135 @@ public class BasicSidebarScoreboardTests {
                 packet.setInfos(List.of(new ScoreInfo(3, "2", 1, "Tim203")));
                 return packet;
             });
+        });
+    }
+
+    @Test
+    void scoreShouldUpdateWhenTeamChanges() {
+        mockContextScoreboard(context -> {
+            var setObjectiveTranslator = new JavaSetObjectiveTranslator();
+            var setDisplayObjectiveTranslator = new JavaSetDisplayObjectiveTranslator();
+            var setPlayerTeamTranslator = new JavaSetPlayerTeamTranslator();
+            var setScoreTranslator = new JavaSetScoreTranslator();
+
+            context.translate(
+                setObjectiveTranslator,
+                new ClientboundSetObjectivePacket(
+                    "objective",
+                    ObjectiveAction.ADD,
+                    Component.text("objective"),
+                    ScoreType.INTEGER,
+                    null
+                )
+            );
+            context.translate(setScoreTranslator, new ClientboundSetScorePacket("team-player", "objective", 1));
+            assertNoNextPacket(context);
+
+            context.translate(
+                setDisplayObjectiveTranslator,
+                new ClientboundSetDisplayObjectivePacket(ScoreboardPosition.SIDEBAR, "objective")
+            );
+            assertNextPacket(context, () -> {
+                var packet = new SetDisplayObjectivePacket();
+                packet.setObjectiveId("0");
+                packet.setDisplayName("objective");
+                packet.setCriteria("dummy");
+                packet.setDisplaySlot("sidebar");
+                packet.setSortOrder(1);
+                return packet;
+            });
+            assertNextPacket(context, () -> {
+                var packet = new SetScorePacket();
+                packet.setAction(SetScorePacket.Action.SET);
+                packet.setInfos(List.of(new ScoreInfo(1, "0", 1, "team-player")));
+                return packet;
+            });
+            assertNoNextPacket(context);
+
+            context.translate(
+                setPlayerTeamTranslator,
+                new ClientboundSetPlayerTeamPacket(
+                    "team",
+                    Component.empty(),
+                    Component.empty(),
+                    Component.empty(),
+                    false,
+                    false,
+                    NameTagVisibility.NEVER,
+                    CollisionRule.NEVER,
+                    null,
+                    new String[] {"team-player"}
+                )
+            );
+            assertNextPacket(context, () -> {
+                var packet = new SetScorePacket();
+                packet.setAction(SetScorePacket.Action.REMOVE);
+                packet.setInfos(List.of(new ScoreInfo(1, "0", 0)));
+                return packet;
+            });
+            assertNextPacket(context, () -> {
+                var packet = new SetScorePacket();
+                packet.setAction(SetScorePacket.Action.SET);
+                packet.setInfos(List.of(new ScoreInfo(1, "0", 1, "§rteam-player§r")));
+                return packet;
+            });
+            assertNoNextPacket(context);
+
+            context.translate(
+                setPlayerTeamTranslator,
+                new ClientboundSetPlayerTeamPacket(
+                    "team",
+                    Component.empty(),
+                    Component.empty(),
+                    Component.empty(),
+                    false,
+                    false,
+                    NameTagVisibility.NEVER,
+                    CollisionRule.NEVER,
+                    TeamColor.BLACK
+                )
+            );
+            assertNextPacket(context, () -> {
+                var packet = new SetScorePacket();
+                packet.setAction(SetScorePacket.Action.REMOVE);
+                packet.setInfos(List.of(new ScoreInfo(1, "0", 0)));
+                return packet;
+            });
+            assertNextPacket(context, () -> {
+                var packet = new SetScorePacket();
+                packet.setAction(SetScorePacket.Action.SET);
+                packet.setInfos(List.of(new ScoreInfo(1, "0", 1, "§0§r§0team-player§r§0")));
+                return packet;
+            });
+            assertNoNextPacket(context);
+
+            context.translate(
+                setPlayerTeamTranslator,
+                new ClientboundSetPlayerTeamPacket(
+                    "team",
+                    Component.empty(),
+                    Component.text("hi"),
+                    Component.empty(),
+                    false,
+                    false,
+                    NameTagVisibility.NEVER,
+                    CollisionRule.NEVER,
+                    TeamColor.BLACK
+                )
+            );
+            assertNextPacket(context, () -> {
+                var packet = new SetScorePacket();
+                packet.setAction(SetScorePacket.Action.REMOVE);
+                packet.setInfos(List.of(new ScoreInfo(1, "0", 0)));
+                return packet;
+            });
+            assertNextPacket(context, () -> {
+                var packet = new SetScorePacket();
+                packet.setAction(SetScorePacket.Action.SET);
+                packet.setInfos(List.of(new ScoreInfo(1, "0", 1, "§0hi§r§0team-player§r§0")));
+                return packet;
+            });
+            assertNoNextPacket(context);
         });
     }
 

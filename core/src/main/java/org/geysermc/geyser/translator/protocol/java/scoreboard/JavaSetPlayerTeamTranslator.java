@@ -60,7 +60,6 @@ public class JavaSetPlayerTeamTranslator extends PacketTranslator<ClientboundSet
             scoreboard.registerNewTeam(
                 packet.getTeamName(),
                 packet.getPlayers(),
-                packet.getDisplayName(),
                 packet.getPlayerPrefix(),
                 packet.getPlayerSuffix(),
                 packet.getNameTagVisibility(),
@@ -80,7 +79,6 @@ public class JavaSetPlayerTeamTranslator extends PacketTranslator<ClientboundSet
             switch (packet.getAction()) {
                 case UPDATE -> {
                     team.updateProperties(
-                        packet.getDisplayName(),
                         packet.getPlayerPrefix(),
                         packet.getPlayerSuffix(),
                         packet.getNameTagVisibility(),
