@@ -107,11 +107,13 @@ public interface EntityData {
     void switchHands();
 
     /**
+     * This is the equivalent of {@link GeyserConnection#showEmote(AvatarEntity, String, boolean)}
+     * with the emote chat announcement silencing set to false
      * @deprecated Use {@link GeyserConnection#showEmote(AvatarEntity, String, boolean)} instead.
      */
     @Deprecated(since = "2.9.3")
     void showEmote(GeyserPlayerEntity emoter, String emoteId);
-    
+
     void showEmote(AvatarEntity emoter, String emoteId, boolean silent);
 
     /**

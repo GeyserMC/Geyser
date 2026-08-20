@@ -32,7 +32,7 @@ import org.geysermc.mcprotocollib.protocol.data.game.entity.player.ResolvablePro
 
 import java.util.Optional;
 
-public class MannequinEntity extends AvatarEntity {
+public class MannequinEntity extends AvatarEntity implements org.geysermc.geyser.api.entity.type.player.MannequinEntity {
 
     public MannequinEntity(EntitySpawnContext context) {
         super(context, "");
