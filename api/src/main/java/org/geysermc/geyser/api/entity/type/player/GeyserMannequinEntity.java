@@ -25,7 +25,5 @@
 
 package org.geysermc.geyser.api.entity.type.player;
 
-import org.geysermc.geyser.api.entity.type.GeyserEntity;
-
-public interface MannequinEntity extends AvatarEntity {
+public interface GeyserMannequinEntity extends GeyserAvatarEntity {
 }

@@ -32,7 +32,7 @@ import org.cloudburstmc.protocol.bedrock.data.EmoteFlag;
 import org.cloudburstmc.protocol.bedrock.packet.EmotePacket;
 import org.geysermc.geyser.api.entity.EntityData;
 import org.geysermc.geyser.api.entity.type.GeyserEntity;
-import org.geysermc.geyser.api.entity.type.player.AvatarEntity;
+import org.geysermc.geyser.api.entity.type.player.GeyserAvatarEntity;
 import org.geysermc.geyser.api.entity.type.player.GeyserPlayerEntity;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.input.InputLocksFlag;
@@ -90,7 +90,7 @@ public class GeyserEntityData implements EntityData {
     }
 
     @Override
-    public void showEmote(@NonNull AvatarEntity emoter, @NonNull String emoteId, boolean silent) {
+    public void showEmote(@NonNull GeyserAvatarEntity emoter, @NonNull String emoteId, boolean silent) {
         Objects.requireNonNull(emoter, "emoter must not be null!");
         Entity entity = (Entity) emoter;
         if (entity.getSession() != session) {
