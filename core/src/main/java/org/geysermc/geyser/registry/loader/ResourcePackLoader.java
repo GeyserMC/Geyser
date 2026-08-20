@@ -30,12 +30,14 @@ import com.google.common.cache.CacheBuilder;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.api.biome.custom.CustomBiomeDefinition;
 import org.geysermc.geyser.api.event.lifecycle.GeyserLoadResourcePacksEvent;
 import org.geysermc.geyser.api.pack.PathPackCodec;
 import org.geysermc.geyser.api.pack.ResourcePack;
 import org.geysermc.geyser.api.pack.ResourcePackManifest;
 import org.geysermc.geyser.api.pack.UrlPackCodec;
 import org.geysermc.geyser.api.pack.option.PriorityOption;
+import org.geysermc.geyser.biome.custom.GeyserCustomBiomeDefinition;
 import org.geysermc.geyser.event.type.GeyserDefineResourcePacksEventImpl;
 import org.geysermc.geyser.pack.CustomBiomeResourcePackManager;
 import org.geysermc.geyser.pack.GeyserResourcePack;
@@ -58,9 +60,11 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.PathMatcher;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
@@ -151,6 +155,22 @@ public class ResourcePackLoader implements RegistryLoader<Path, Map<UUID, Resour
         // Load all remote resource packs from the config before firing the new event
         loadRemotePacks(defineEvent);
         GeyserImpl.getInstance().eventBus().fire(defineEvent);
+
+        // Biome mappings can name a provided resource pack that styles their biomes; a
+        // pack_uuid typo would otherwise only show as unstyled biomes in game
+        Set<UUID> expectedBiomePacks = new HashSet<>();
+        for (CustomBiomeDefinition definition : Registries.CUSTOM_BIOMES.get().values()) {
+            if (definition instanceof GeyserCustomBiomeDefinition custom && custom.packUuid() != null) {
+                expectedBiomePacks.add(custom.packUuid());
+            }
+        }
+        if (!expectedBiomePacks.isEmpty()) {
+            defineEvent.resourcePacks().forEach(pack -> expectedBiomePacks.remove(pack.manifest().header().uuid()));
+            for (UUID uuid : expectedBiomePacks) {
+                GeyserImpl.getInstance().getLogger().warning(
+                    "Custom biome mappings expect resource pack " + uuid + ", but no pack with that UUID is registered");
+            }
+        }
 
         // After loading the new resource packs: let's clean up the old url packs
         cleanupRemotePacks();

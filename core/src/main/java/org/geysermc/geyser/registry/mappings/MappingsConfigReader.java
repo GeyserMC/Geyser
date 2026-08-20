@@ -109,7 +109,7 @@ public final class MappingsConfigReader {
             GeyserImpl.getInstance().getLogger().error("Mappings file " + file + " has an unsupported format version (" + formatVersion + ") for " + type.name() + " mappings");
             return;
         }
-        reader.read(file, mappings.getAsJsonObject(), consumer);
+        reader.read(file, mappingsRoot, mappings.getAsJsonObject(), consumer);
     }
 
     private static @Nullable JsonObject getMappingsRoot(Path file) {

@@ -34,4 +34,12 @@ import java.util.function.BiConsumer;
 public interface MappingsReader<K, V> {
 
     void read(Path file, JsonObject mappings, BiConsumer<K, V> consumer);
+
+    /**
+     * Reads a mappings file with access to its root object, for readers that consume
+     * file-level keys next to {@code format_version}. Defaults to ignoring the root.
+     */
+    default void read(Path file, JsonObject root, JsonObject mappings, BiConsumer<K, V> consumer) {
+        read(file, mappings, consumer);
+    }
 }

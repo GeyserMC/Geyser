@@ -42,6 +42,7 @@ import org.geysermc.geyser.registry.mappings.util.NodeReader;
 
 import java.nio.file.Path;
 import java.util.Map;
+import java.util.UUID;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
@@ -49,12 +50,25 @@ public class BiomeMappingsReader_v1 implements MappingsReader<Identifier, Custom
 
     @Override
     public void read(Path file, JsonObject mappings, BiConsumer<Identifier, CustomBiomeDefinition> consumer) {
+        read(file, new JsonObject(), mappings, consumer);
+    }
+
+    @Override
+    public void read(Path file, JsonObject root, JsonObject mappings, BiConsumer<Identifier, CustomBiomeDefinition> consumer) {
+        UUID packUuid;
+        try {
+            // A file can name a provided resource pack that styles its biomes in place of the generated one
+            packUuid = MappingsUtil.readOrDefault(root, "pack_uuid", NodeReader.UUID, null, "custom biome mappings");
+        } catch (InvalidCustomMappingsFileException exception) {
+            GeyserImpl.getInstance().getLogger().error("Error reading pack_uuid in custom mappings file: " + file, exception);
+            return;
+        }
         // Sorted so registration conflicts don't depend on the file's property order
         mappings.entrySet().stream().sorted(Map.Entry.comparingByKey()).forEach(entry -> {
             if (entry.getValue().isJsonObject()) {
                 try {
                     Identifier javaIdentifier = Identifier.of(entry.getKey());
-                    consumer.accept(javaIdentifier, readDefinition(javaIdentifier, entry.getValue().getAsJsonObject(), "biome " + javaIdentifier));
+                    consumer.accept(javaIdentifier, readDefinition(javaIdentifier, entry.getValue().getAsJsonObject(), packUuid, "biome " + javaIdentifier));
                 } catch (InvalidCustomMappingsFileException | IllegalArgumentException | CustomBiomeDefinitionRegisterException exception) {
                     GeyserImpl.getInstance().getLogger().error("Error reading custom biome " + entry.getKey() + " in custom mappings file: " + file.toString(), exception);
                 }
@@ -68,9 +82,11 @@ public class BiomeMappingsReader_v1 implements MappingsReader<Identifier, Custom
      * Reads one biome. Colors are read from the same {@code effects} and {@code attributes}
      * keys a Java biome uses, so the plain values of a Java biome definition can be copied
      * in as-is; the optional {@code geyser} object holds what Bedrock needs on top of that.
-     * When no Bedrock identifier is named, one is derived from the Java identifier.
+     * When no Bedrock identifier is named, one is derived from the Java identifier. In a
+     * file that names a {@code pack_uuid}, that pack provides the visuals, so appearance
+     * values are rejected.
      */
-    private CustomBiomeDefinition readDefinition(Identifier javaIdentifier, JsonObject object, String... context) throws InvalidCustomMappingsFileException {
+    private CustomBiomeDefinition readDefinition(Identifier javaIdentifier, JsonObject object, @Nullable UUID packUuid, String... context) throws InvalidCustomMappingsFileException {
         JsonObject geyser = readObject(object, "geyser", context);
         GeyserCustomBiomeDefinition.Builder builder;
         if (geyser != null && geyser.has("bedrock_identifier")) {
@@ -85,7 +101,13 @@ public class BiomeMappingsReader_v1 implements MappingsReader<Identifier, Custom
 
         CustomBiomeAppearance.Builder appearance = CustomBiomeAppearance.builder();
         if (readAppearance(appearance, readObject(object, "effects", context), readObject(object, "attributes", context), geyser, context)) {
+            if (packUuid != null) {
+                throw new InvalidCustomMappingsFileException("reading appearance values", "the file names a pack_uuid that provides the visuals; remove them", context);
+            }
             builder.appearance(appearance);
+        }
+        if (packUuid != null) {
+            builder.packUuid(packUuid);
         }
         return builder.build();
     }

@@ -46,6 +46,7 @@ import java.util.Arrays;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
+import java.util.UUID;
 import java.util.function.Predicate;
 
 @FunctionalInterface
@@ -145,6 +146,14 @@ public interface NodeReader<T> {
     // Biome readers
 
     NodeReader<CustomBiomePrecipitation.Type> PRECIPITATION_TYPE = ofEnum(CustomBiomePrecipitation.Type.class);
+
+    NodeReader<UUID> UUID = NON_EMPTY_STRING.andThen(s -> {
+        try {
+            return java.util.UUID.fromString(s);
+        } catch (IllegalArgumentException exception) {
+            throw new InvalidCustomMappingsFileException("expected a UUID such as 01234567-89ab-cdef-0123-456789abcdef");
+        }
+    });
 
     // The alpha in #aarrggbb values is accepted and ignored, as biome colors are RGB only
     NodeReader<Color> COLOR = node -> {

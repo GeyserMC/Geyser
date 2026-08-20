@@ -29,6 +29,7 @@ import org.geysermc.geyser.api.biome.custom.CustomBiomeAppearance;
 import org.geysermc.geyser.api.biome.custom.CustomBiomeDefinition;
 import org.geysermc.geyser.api.biome.custom.CustomBiomePrecipitation;
 import org.geysermc.geyser.api.util.Identifier;
+import org.geysermc.geyser.biome.custom.GeyserCustomBiomeDefinition;
 import org.geysermc.geyser.scoreboard.network.util.GeyserMockContext;
 import org.junit.jupiter.api.Test;
 
@@ -40,6 +41,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -47,6 +49,34 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class CustomBiomesLoaderTest {
+
+    @Test
+    void packBoundFileAttachesThePackAndRejectsAppearances() throws URISyntaxException {
+        Path biomeConfigPath = getConfigResource("configuration/custom-biomes-packed.json");
+        Map<Identifier, CustomBiomeDefinition> biomes = new HashMap<>();
+        GeyserMockContext.mockContext(() -> {
+            MappingsConfigReader.readCustomMappings(MappingsType.BIOMES, biomeConfigPath, biomes::put);
+
+            // The styled biome fails: the named pack provides the visuals
+            assertNull(biomes.get(Identifier.of("example:packed_styled")));
+            assertEquals(2, biomes.size());
+            UUID packUuid = UUID.fromString("8caa1b2a-0b23-4d55-9b46-8a3c2d9f0e11");
+            for (CustomBiomeDefinition definition : biomes.values()) {
+                assertNull(definition.appearance());
+                assertEquals(packUuid, ((GeyserCustomBiomeDefinition) definition).packUuid());
+            }
+        });
+    }
+
+    @Test
+    void malformedPackUuidFailsTheWholeFile() throws URISyntaxException {
+        Path biomeConfigPath = getConfigResource("configuration/custom-biomes-bad-pack.json");
+        Map<Identifier, CustomBiomeDefinition> biomes = new HashMap<>();
+        GeyserMockContext.mockContext(() -> {
+            MappingsConfigReader.readCustomMappings(MappingsType.BIOMES, biomeConfigPath, biomes::put);
+            assertTrue(biomes.isEmpty());
+        });
+    }
 
     @Test
     void readMappings() throws URISyntaxException {

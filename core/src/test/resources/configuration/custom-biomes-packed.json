@@ -1,0 +1,18 @@
+{
+  "format_version": 1,
+  "pack_uuid": "8caa1b2a-0b23-4d55-9b46-8a3c2d9f0e11",
+  "biomes": {
+    "example:packed": {
+      "geyser": {
+        "bedrock_identifier": "example:packed_bedrock",
+        "tags": ["overworld"]
+      }
+    },
+    "example:packed_derived": {},
+    "example:packed_styled": {
+      "effects": {
+        "grass_color": "#5f9f45"
+      }
+    }
+  }
+}

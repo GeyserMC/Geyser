@@ -41,6 +41,7 @@ import java.util.HexFormat;
 import java.util.Objects;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.UUID;
 import java.util.regex.Pattern;
 
 @EqualsAndHashCode
@@ -53,6 +54,7 @@ public final class GeyserCustomBiomeDefinition implements CustomBiomeDefinition 
     private final Identifier bedrockIdentifier;
     private final Set<String> tags;
     private final @Nullable CustomBiomeAppearance appearance;
+    private final @Nullable UUID packUuid;
 
     public GeyserCustomBiomeDefinition(Builder builder) {
         String identifier = builder.bedrockIdentifier.toString();
@@ -87,6 +89,7 @@ public final class GeyserCustomBiomeDefinition implements CustomBiomeDefinition 
         // Sorted so tag order doesn't change how a definition serializes
         this.tags = Collections.unmodifiableSortedSet(new TreeSet<>(builder.tags));
         this.appearance = builder.appearance;
+        this.packUuid = builder.packUuid;
     }
 
     /**
@@ -134,10 +137,19 @@ public final class GeyserCustomBiomeDefinition implements CustomBiomeDefinition 
         return appearance;
     }
 
+    /**
+     * The provided resource pack that the biome's mappings file bound it to, or null when
+     * none was named. Only mappings files set this.
+     */
+    public @Nullable UUID packUuid() {
+        return packUuid;
+    }
+
     public static class Builder implements CustomBiomeDefinition.Builder {
         private final Identifier bedrockIdentifier;
         private final Set<String> tags = new HashSet<>();
         private @Nullable CustomBiomeAppearance appearance;
+        private @Nullable UUID packUuid;
         private boolean derived;
 
         public Builder(Identifier bedrockIdentifier) {
@@ -153,6 +165,11 @@ public final class GeyserCustomBiomeDefinition implements CustomBiomeDefinition 
         @Override
         public Builder appearance(CustomBiomeAppearance appearance) {
             this.appearance = Objects.requireNonNull(appearance, "appearance may not be null");
+            return this;
+        }
+
+        public Builder packUuid(UUID packUuid) {
+            this.packUuid = Objects.requireNonNull(packUuid, "packUuid may not be null");
             return this;
         }
 
