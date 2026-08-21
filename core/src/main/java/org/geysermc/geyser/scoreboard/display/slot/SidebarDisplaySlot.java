@@ -80,7 +80,7 @@ public final class SidebarDisplaySlot extends DisplaySlot {
                     }
 
                     // new score, so it should be added
-                    return new SidebarDisplayScore(this, objective.getScoreboard().nextId(), reference);
+                    return new SidebarDisplayScore(this, objective.getScoreboard().nextDisplayId(), reference);
                 }).collect(Collectors.toList());
 
         // Make sure that we set the displayScores as early as possible, because setTeamFor relies on these potential

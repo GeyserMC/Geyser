@@ -87,7 +87,8 @@ public final class Scoreboard {
 
     private final GeyserSession session;
     private final GeyserLogger logger;
-    private final AtomicLong nextId = new AtomicLong(0);
+    private final AtomicLong nextDisplaySlotId = new AtomicLong(0);
+    private final AtomicLong nextUpdateId = new AtomicLong(0);
 
     private final Map<String, Objective> objectives = new ConcurrentHashMap<>();
     @Getter
@@ -370,8 +371,12 @@ public final class Scoreboard {
         }
     }
 
-    public long nextId() {
-        return nextId.getAndIncrement();
+    public long nextDisplayId() {
+        return nextDisplaySlotId.getAndIncrement();
+    }
+
+    public long nextUpdateId() {
+        return nextUpdateId.getAndIncrement();
     }
 
     public GeyserSession session() {

@@ -147,7 +147,7 @@ public class BelownameDisplaySlot extends DisplaySlot {
     }
 
     private BelownameDisplayScore addDisplayScore(PlayerEntity player, ScoreReference reference) {
-        var score = new BelownameDisplayScore(this, objective.getScoreboard().nextId(), reference, player);
+        var score = new BelownameDisplayScore(this, objective.getScoreboard().nextDisplayId(), reference, player);
         synchronized (displayScores) {
             displayScores.put(player.geyserId(), score);
         }

@@ -133,7 +133,7 @@ public class PlayerlistDisplaySlot extends DisplaySlot {
 
         synchronized (displayScores) {
             for (PlayerEntity player : players) {
-                var score = new PlayerlistDisplayScore(this, objective.getScoreboard().nextId(), reference, player.geyserId());
+                var score = new PlayerlistDisplayScore(this, objective.getScoreboard().nextDisplayId(), reference, player.geyserId());
                 displayScores.put(player.geyserId(), score);
             }
         }
@@ -151,7 +151,7 @@ public class PlayerlistDisplaySlot extends DisplaySlot {
             return;
         }
 
-        var score = new PlayerlistDisplayScore(this, objective.getScoreboard().nextId(), reference, player.geyserId());
+        var score = new PlayerlistDisplayScore(this, objective.getScoreboard().nextDisplayId(), reference, player.geyserId());
         synchronized (displayScores) {
             displayScores.put(player.geyserId(), score);
         }

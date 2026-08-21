@@ -69,7 +69,7 @@ public final class Objective {
     public void setScore(String id, int score, Component displayName, NumberFormat numberFormat) {
         ScoreReference stored = scores.get(id);
         if (stored != null) {
-            stored.updateProperties(scoreboard, score, displayName, numberFormat);
+            stored.updateProperties(score, displayName, numberFormat);
             return;
         }
         registerScore(id, score, displayName, numberFormat);

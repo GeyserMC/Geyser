@@ -184,7 +184,7 @@ public final class Team {
         if (lastUpdate == LAST_UPDATE_REMOVE) {
             return;
         }
-        lastUpdate = System.currentTimeMillis();
+        lastUpdate = scoreboard.nextUpdateId();
     }
 
     public void remove() {
