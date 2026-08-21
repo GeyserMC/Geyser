@@ -178,6 +178,8 @@ public interface GeyserConnection extends Connection, CommandSource {
      * @param emoter the entity emoting.
      * @param emoteId the emote ID to send to this client.
      * @param silent whether to silence the emote chat announcement.
+     *
+     * @since 2.11.2
      */
     void showEmote(GeyserAvatarEntity emoter, String emoteId, boolean silent);
 

@@ -86,7 +86,7 @@ public class GeyserEntityData implements EntityData {
 
     @Override
     public void showEmote(@NonNull GeyserPlayerEntity emoter, @NonNull String emoteId) {
-        showEmote(emoter, emoteId, true);
+        showEmote(emoter, emoteId, false);
     }
 
     @Override
