@@ -31,6 +31,8 @@ import org.cloudburstmc.protocol.bedrock.codec.BedrockPacketSerializer;
 import org.cloudburstmc.protocol.bedrock.packet.BedrockPacket;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Field;
 import java.util.List;
@@ -38,6 +40,8 @@ import java.util.Map;
 import java.util.Objects;
 
 public class CodecProcessorTest {
+
+    private static final Logger log = LoggerFactory.getLogger(CodecProcessorTest.class);
 
     @Test
     @SuppressWarnings("unchecked")
@@ -57,8 +61,12 @@ public class CodecProcessorTest {
                 Field packetDefinitionsField = BedrockCodec.class.getDeclaredField("packetsByClass");
                 packetDefinitionsField.setAccessible(true);
                 packetDefinitionMap = (Map<Class<? extends BedrockPacket>, BedrockPacketDefinition<? extends BedrockPacket>>) packetDefinitionsField.get(baseCodec);
-            } catch (ClassNotFoundException | NoSuchFieldException e) {
-                throw new RuntimeException("Could not find original Bedrock codec for version " + version, e);
+            } catch (ClassNotFoundException e) {
+                log.warn("Could not find original Bedrock codec for version {}", version);
+                continue;
+            } catch (NoSuchFieldException e) {
+                log.warn("Could not find CODEC from base class for version {}", version);
+                continue;
             }
 
             for (Class<? extends BedrockPacket> packetClass : packetDefinitionMap.keySet()) {

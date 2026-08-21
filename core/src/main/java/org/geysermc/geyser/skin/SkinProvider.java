@@ -47,6 +47,7 @@ import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.util.FileUtils;
 import org.geysermc.geyser.util.WebUtils;
+import org.geysermc.mcprotocollib.auth.util.TextureUrlChecker;
 
 import javax.imageio.ImageIO;
 import java.awt.*;
@@ -72,6 +73,7 @@ public class SkinProvider {
     private static ExecutorService EXECUTOR_SERVICE;
 
     static final Skin EMPTY_SKIN;
+    static final BufferedImage EMPTY_SKIN_IMAGE;
     static final Cape EMPTY_CAPE = new Cape("", "no-cape", ByteArrays.EMPTY_ARRAY, true);
 
     private static final Cache<String, Cape> CACHED_JAVA_CAPES = CacheBuilder.newBuilder()
@@ -115,7 +117,8 @@ public class SkinProvider {
         // Generate the empty texture to use as an emergency fallback
         final int pink = 0xFFF800F8;
         final int black = 0xFF000000;
-        ByteArrayOutputStream outputStream = new ByteArrayOutputStream(64 * 4 + 64 * 4);
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream(64 * 64 * 4);
+        EMPTY_SKIN_IMAGE = new BufferedImage(64, 64, BufferedImage.TYPE_INT_ARGB);
         for (int y = 0; y < 64; y++) {
             for (int x = 0; x < 64; x++) {
                 int rgba;
@@ -124,10 +127,13 @@ public class SkinProvider {
                 } else {
                     rgba = x >= 32 ? black : pink;
                 }
+                
                 outputStream.write((rgba >> 16) & 0xFF); // Red
                 outputStream.write((rgba >> 8) & 0xFF); // Green
                 outputStream.write(rgba & 0xFF); // Blue
                 outputStream.write((rgba >> 24) & 0xFF); // Alpha
+                
+                EMPTY_SKIN_IMAGE.setRGB(x, y, rgba);
             }
         }
         EMPTY_SKIN = new Skin("geysermc:empty", outputStream.toByteArray(), true);
@@ -620,6 +626,9 @@ public class SkinProvider {
     }
 
     private static BufferedImage downloadImage(String imageUrl) throws IOException {
+        if (!TextureUrlChecker.isAllowedTextureDomain(imageUrl)) {
+            return EMPTY_SKIN_IMAGE;
+        }
         HttpURLConnection con = (HttpURLConnection) new URL(imageUrl).openConnection();
         con.setRequestProperty("User-Agent", WebUtils.getUserAgent());
         con.setConnectTimeout(10000);
