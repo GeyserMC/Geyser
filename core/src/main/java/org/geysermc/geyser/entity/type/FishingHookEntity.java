@@ -26,6 +26,7 @@
 package org.geysermc.geyser.entity.type;
 
 import lombok.Getter;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.cloudburstmc.protocol.bedrock.packet.PlaySoundPacket;
@@ -48,6 +49,7 @@ public class FishingHookEntity extends ProjectileEntity {
     private boolean hooked = false;
     private boolean castByPlayer = false;
     private boolean inWater = false;
+    private boolean retrievedByClient = false;
 
     @Getter
     private final long bedrockOwnerId;
@@ -70,29 +72,92 @@ public class FishingHookEntity extends ProjectileEntity {
         this.metadata.put(EntityDataTypes.OWNER_EID, this.bedrockOwnerId);
 
         if (owner == session.getPlayerEntity()) {
-            session.setFishingRodCast(true);
+            session.setFishingHook(this);
             castByPlayer = true;
         }
     }
 
     @Override
     public void despawnEntity() {
-        if (castByPlayer) {
-            session.setFishingRodCast(false);
+        // A respawned replacement has already taken over the session's hook; don't clear it
+        if (castByPlayer && session.getFishingHook() == this) {
+            session.setFishingHook(null);
         }
         super.despawnEntity();
+    }
+
+    /**
+     * Called when the Bedrock client uses its rod while this hook is out. The client removes its
+     * own hook right away and assumes the retrieve succeeds. When a plugin cancels the retrieve,
+     * Java keeps the hook and never sends anything that brings it back, so the hook is respawned
+     * on the next movement Java sends for it. A hook at rest only gets Java's periodic position
+     * sync, so that can take up to three seconds. Geyser's own projectile ticking must not trigger
+     * the respawn, since a successful retrieve's removal can still be in flight.
+     */
+    public void markRetrievedByClient() {
+        if (castByPlayer) {
+            retrievedByClient = true;
+        }
+    }
+
+    /**
+     * Replaces this hook with a fresh Bedrock entity for the same Java hook. The client treats
+     * the id it reeled in as gone and only links its rod and line to a hook it sees spawn.
+     */
+    private @Nullable FishingHookEntity respawnIfRetrievedByClient() {
+        if (!retrievedByClient) {
+            return null;
+        }
+        retrievedByClient = false;
+        // Only the player's own hook gets marked, so the owner is the session player
+        EntitySpawnContext context = new EntitySpawnContext(session, javaDefinition, entityId, uuid, bedrockDefinition,
+            lastJavaPosition, motion, getYaw(), getPitch(), getHeadYaw(), null);
+        FishingHookEntity replacement = new FishingHookEntity(context, session.getPlayerEntity());
+        replacement.flags.putAll(flags);
+        replacement.inWater = inWater;
+        replacement.silent = silent;
+        if (hooked) {
+            replacement.setHookedTarget(bedrockTargetId);
+        }
+        session.getEntityCache().removeEntity(this);
+        session.getEntityCache().spawnEntity(replacement);
+        return replacement;
+    }
+
+    @Override
+    public void moveRelativeRaw(double relX, double relY, double relZ, float yaw, float pitch, float headYaw, boolean isOnGround) {
+        FishingHookEntity replacement = respawnIfRetrievedByClient();
+        if (replacement != null) {
+            replacement.moveRelativeRaw(relX, relY, relZ, yaw, pitch, headYaw, isOnGround);
+            return;
+        }
+        super.moveRelativeRaw(relX, relY, relZ, yaw, pitch, headYaw, isOnGround);
+    }
+
+    @Override
+    public void moveAbsoluteRaw(Vector3f position, float yaw, float pitch, float headYaw, boolean isOnGround, boolean teleported) {
+        FishingHookEntity replacement = respawnIfRetrievedByClient();
+        if (replacement != null) {
+            replacement.moveAbsoluteRaw(position, yaw, pitch, headYaw, isOnGround, teleported);
+            return;
+        }
+        super.moveAbsoluteRaw(position, yaw, pitch, headYaw, isOnGround, teleported);
     }
 
     public void setHookedEntity(IntEntityMetadata entityMetadata) {
         int hookedEntityId = entityMetadata.getPrimitiveValue() - 1;
         Entity entity = session.getEntityCache().getEntityByJavaId(hookedEntityId);
         if (entity != null) {
-            bedrockTargetId = entity.geyserId();
-            metadata.put(EntityDataTypes.TARGET_EID, bedrockTargetId);
-            hooked = true;
+            setHookedTarget(entity.geyserId());
         } else {
             hooked = false;
         }
+    }
+
+    private void setHookedTarget(long bedrockTargetId) {
+        this.bedrockTargetId = bedrockTargetId;
+        metadata.put(EntityDataTypes.TARGET_EID, bedrockTargetId);
+        hooked = true;
     }
 
     @Override
