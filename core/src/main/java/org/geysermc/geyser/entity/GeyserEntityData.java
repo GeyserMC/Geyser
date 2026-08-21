@@ -102,7 +102,9 @@ public class GeyserEntityData implements EntityData {
         packet.setXuid("");
         packet.setPlatformId(""); // BDS sends empty
         packet.setEmoteId(emoteId);
-        if (silent) {
+        if (entity.getDisplayName(false) == null) { // The emote chat announcement will have no player name if the entity name is blank
+            packet.getFlags().add(EmoteFlag.MUTE_EMOTE_CHAT);
+        } else if (silent) {
             packet.getFlags().add(EmoteFlag.MUTE_EMOTE_CHAT);
         }
         session.sendUpstreamPacket(packet);

@@ -175,7 +175,7 @@ public interface GeyserConnection extends Connection, CommandSource {
     /**
      * Displays a player or mannequin entity as emoting to this client.
      *
-     * @param emoter the player entity emoting.
+     * @param emoter the entity emoting.
      * @param emoteId the emote ID to send to this client.
      * @param silent whether to silence the emote chat announcement.
      */
