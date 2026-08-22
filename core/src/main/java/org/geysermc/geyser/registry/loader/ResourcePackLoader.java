@@ -50,6 +50,7 @@ import org.geysermc.geyser.util.WebUtils;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.IllegalStateException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
@@ -204,11 +205,14 @@ public class ResourcePackLoader implements RegistryLoader<Path, Map<UUID, Resour
                 if (name.contains("manifest.json")) {
                     try {
                         GeyserResourcePackManifest manifest = FileUtils.loadJson(zip.getInputStream(x), GeyserResourcePackManifest.class);
-                        if (manifest.header().uuid() != null) {
+                        if (manifest.header().uuid() != null && manifestReference.get() == null) {
+                            // If manifestReference is non-null, a valid manifest has already been found.
                             manifestReference.set(manifest);
                         }
                     } catch (IOException e) {
                         e.printStackTrace();
+                    } catch (IllegalStateException e) {
+                        // Thrown by GSON, might be from reading a metadata file as JSON
                     }
                 }
             });
