@@ -79,7 +79,7 @@ public class FishingHookEntity extends ProjectileEntity {
 
     @Override
     public void despawnEntity() {
-        // A respawned replacement has already taken over the session's hook; don't clear it
+        // If a respawned replacement has already taken over the session's hook, then don't clear it
         if (castByPlayer && session.getFishingHook() == this) {
             session.setFishingHook(null);
         }
