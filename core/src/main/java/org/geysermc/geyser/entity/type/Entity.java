@@ -100,7 +100,8 @@ public class Entity implements GeyserEntity {
 
     protected int entityId;
     @Accessors(fluent = true)
-    protected final long geyserId;
+    @Setter(AccessLevel.NONE)
+    protected long geyserId;
     @Accessors(fluent = true)
     protected UUID uuid;
     /**

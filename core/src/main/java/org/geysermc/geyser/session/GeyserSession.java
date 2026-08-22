@@ -1534,15 +1534,12 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     }
 
     /**
-     * Also updates the item the player is holding when the rod's cast state changes.
+     * Also updates the item the player is holding.
      */
     public void setFishingHook(@Nullable FishingHookEntity fishingHook) {
-        boolean castChanged = (this.fishingHook == null) != (fishingHook == null);
         this.fishingHook = fishingHook;
-        if (castChanged) {
-            int slot = getPlayerInventory().getOffsetForHotbar(getPlayerInventory().getHeldItemSlot());
-            this.playerInventoryHolder.updateSlot(slot);
-        }
+        int slot = getPlayerInventory().getOffsetForHotbar(getPlayerInventory().getHeldItemSlot());
+        this.playerInventoryHolder.updateSlot(slot);
     }
 
     /**
