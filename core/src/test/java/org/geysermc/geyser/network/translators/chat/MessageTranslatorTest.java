@@ -25,7 +25,9 @@
 
 package org.geysermc.geyser.network.translators.chat;
 
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import net.kyori.adventure.text.Component;
 import org.geysermc.geyser.translator.text.MessageTranslator;
@@ -129,12 +131,14 @@ public class MessageTranslatorTest {
             message = Component.translatable("%1$s".repeat(10), message);
         }
         Assertions.assertEquals("", MessageTranslator.convertMessage(message, "en_US"));
+    }
 
-        message = Component.text("x");
-        for (int i = 0; i < 5; i++) {
-            message = Component.translatable("unknown", "%1$s".repeat(10), message);
-        }
-        Assertions.assertEquals("", MessageTranslator.convertMessage(message, "en_US"));
+    @Test
+    public void allowWideTranslation() {
+        List<Component> arguments = Collections.nCopies(5_000, Component.text("x"));
+        Component message = Component.translatable("%s".repeat(arguments.size()), arguments);
+
+        Assertions.assertEquals("x".repeat(arguments.size()), MessageTranslator.convertMessageRaw(message, "en_US"));
     }
 
     @Test
