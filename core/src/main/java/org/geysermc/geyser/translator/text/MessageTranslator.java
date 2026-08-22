@@ -59,6 +59,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.function.Consumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -79,6 +80,7 @@ public class MessageTranslator {
     private static final String RESET = BASE + "r";
     private static final Pattern LOCALIZATION_PATTERN = Pattern.compile("%(?:(\\d+)\\$)?s");
     private static final int MAX_TRANSLATION_AMPLIFICATION = 4_096;
+    private static final ThreadLocal<long[]> TRANSLATION_AMPLIFICATION = new ThreadLocal<>();
 
     private static final String ERROR_MESSAGE = "§cReport to Geyser";
 
@@ -109,6 +111,19 @@ public class MessageTranslator {
                 final String translated = translatable.key();
                 final Matcher matcher = LOCALIZATION_PATTERN.matcher(translated);
                 final List<TranslationArgument> args = translatable.arguments();
+                final int[] occurrences = new int[args.size()];
+                int occurrenceArgPosition = 0;
+                while (matcher.find()) {
+                    try {
+                        final String argIdx = matcher.group(1);
+                        final int idx = argIdx != null ? Integer.parseInt(argIdx) - 1 : occurrenceArgPosition++;
+                        if (idx >= 0 && idx < occurrences.length) {
+                            occurrences[idx]++;
+                        }
+                    } catch (final NumberFormatException ignored) {
+                    }
+                }
+                matcher.reset();
                 int argPosition = 0;
                 int lastIdx = 0;
                 while (matcher.find()) {
@@ -123,8 +138,8 @@ public class MessageTranslator {
                     if (argIdx != null) {
                         try {
                             final int idx = Integer.parseInt(argIdx) - 1;
-                            if (idx < args.size()) {
-                                consumer.accept(args.get(idx).asComponent());
+                            if (idx >= 0 && idx < args.size()) {
+                                acceptTranslationArgument(args.get(idx).asComponent(), occurrences[idx], consumer);
                             }
                         } catch (final NumberFormatException ex) {
                             // ignore, drop the format placeholder
@@ -132,7 +147,7 @@ public class MessageTranslator {
                     } else {
                         final int idx = argPosition++;
                         if (idx < args.size()) {
-                            consumer.accept(args.get(idx).asComponent());
+                            acceptTranslationArgument(args.get(idx).asComponent(), occurrences[idx], consumer);
                         }
                     }
                 }
@@ -176,14 +191,20 @@ public class MessageTranslator {
     private static String convertMessage(Component message, String locale, boolean addLeadingResetFormat) {
         // Converting messages is quite a hot path, so the code is a bit less optimized for reading and more optimized for performance.
         try {
-            if (translationAmplification(message) > MAX_TRANSLATION_AMPLIFICATION) {
-                return "";
-            }
-
             // Translate any components that require it
             message = RENDERER.render(message, locale);
 
-            String legacy = BEDROCK_SERIALIZER.serialize(message);
+            long[] translationAmplification = {1, 0};
+            TRANSLATION_AMPLIFICATION.set(translationAmplification);
+            String legacy;
+            try {
+                legacy = BEDROCK_SERIALIZER.serialize(message);
+            } finally {
+                TRANSLATION_AMPLIFICATION.remove();
+            }
+            if (translationAmplification[1] != 0) {
+                return "";
+            }
             int legacyLength = legacy.length();
 
             // We need to allocate at least the length of the original message, it can only grow
@@ -274,37 +295,26 @@ public class MessageTranslator {
         return convertMessage(message, locale, true);
     }
 
-    private static long translationAmplification(Component component) {
-        long amplification = 1;
-        if (component instanceof TranslatableComponent translatable) {
-            String translated = translatable.fallback() != null ? translatable.fallback() : translatable.key();
-            Matcher matcher = LOCALIZATION_PATTERN.matcher(translated);
-            List<TranslationArgument> args = translatable.arguments();
-            int argPosition = 0;
-            int[] occurrences = new int[args.size()];
-            while (matcher.find()) {
-                try {
-                    String argIdx = matcher.group(1);
-                    int idx = argIdx != null ? Integer.parseInt(argIdx) - 1 : argPosition++;
-                    if (idx >= 0 && idx < args.size()) {
-                        occurrences[idx]++;
-                    }
-                } catch (NumberFormatException ignored) {
-                }
-            }
-
-            for (int i = 0; i < occurrences.length; i++) {
-                if (occurrences[i] > 0) {
-                    amplification = Math.max(amplification, Math.min(MAX_TRANSLATION_AMPLIFICATION + 1L,
-                            occurrences[i] * translationAmplification(args.get(i).asComponent())));
-                }
-            }
+    private static void acceptTranslationArgument(Component argument, int occurrences, Consumer<Component> consumer) {
+        long[] amplification = TRANSLATION_AMPLIFICATION.get();
+        if (amplification == null) {
+            consumer.accept(argument);
+            return;
         }
 
-        for (Component child : component.children()) {
-            amplification = Math.max(amplification, translationAmplification(child));
+        long previous = amplification[0];
+        long current = Math.min(MAX_TRANSLATION_AMPLIFICATION + 1L, previous * occurrences);
+        if (current > MAX_TRANSLATION_AMPLIFICATION) {
+            amplification[1] = 1;
+            return;
         }
-        return amplification;
+
+        amplification[0] = current;
+        try {
+            consumer.accept(argument);
+        } finally {
+            amplification[0] = previous;
+        }
     }
 
     /**
