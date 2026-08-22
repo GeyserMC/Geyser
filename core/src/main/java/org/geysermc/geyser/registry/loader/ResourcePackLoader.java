@@ -202,7 +202,7 @@ public class ResourcePackLoader implements RegistryLoader<Path, Map<UUID, Resour
                             + ", " + name.length() + " characters long). This will cause problems on some Bedrock platforms." +
                             " Please rename it to be shorter, or reduce the amount of folders needed to get to the file.");
                 }
-                if (name.equals("manifest.json") || name.equals("pack_manifest.json")) {
+                if (name.endsWith("manifest.json") || name.endsWith("pack_manifest.json")) {
                     try {
                         GeyserResourcePackManifest manifest = FileUtils.loadJson(zip.getInputStream(x), GeyserResourcePackManifest.class);
                         if (manifest.header().uuid() != null && manifestReference.get() == null) {
