@@ -586,6 +586,7 @@ public final class ItemTranslator {
      */
     public static String getCustomName(GeyserSession session, DataComponents components, ItemMapping mapping,
                                        char translationColor, boolean customNameOnly, boolean includeAll) {
+        boolean forceName = false;
         if (components != null) {
             // If the tooltip is hidden entirely, return an empty custom name
             if (TooltipOptions.hideTooltip(components)) {
@@ -599,7 +600,6 @@ public final class ItemTranslator {
             }
 
             if (!customNameOnly) {
-                boolean forceName = false;
                 PotionContents potionContents = components.get(DataComponentTypes.POTION_CONTENTS);
                 if (potionContents != null) {
                     // hold the custom effect information (reason for this is mentioned in getPotionName method)
@@ -633,12 +633,21 @@ public final class ItemTranslator {
                     // behavior as of 1.21
                     return ChatColor.RESET + ChatColor.ESCAPE + translationColor + MessageTranslator.convertMessage(customName, session.locale());
                 }
-
-                if (forceName) {
-                    String translationKey = mapping.getJavaItem().translationKey();
-                    return ChatColor.RESET + ChatColor.ESCAPE + translationColor + MinecraftLocale.getLocaleString(translationKey, session.locale());
-                }
             }
+        }
+
+        if (customNameOnly) {
+            return null;
+        }
+
+        if (mapping.getJavaItem() instanceof TippedArrowItem) {
+            // Always show name for the tipped arrow to distinguish it from normal arrow
+            forceName = true;
+        }
+
+        if (forceName) {
+            String translationKey = mapping.getJavaItem().translationKey();
+            return ChatColor.RESET + ChatColor.ESCAPE + translationColor + MinecraftLocale.getLocaleString(translationKey, session.locale());
         }
 
         if (mapping.hasTranslation()) {
