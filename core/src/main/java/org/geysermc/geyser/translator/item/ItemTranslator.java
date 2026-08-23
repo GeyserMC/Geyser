@@ -445,8 +445,8 @@ public final class ItemTranslator {
 
         if (includeDefault) {
             // Make a name when has custom effects
-            // because the custom effect information is display from the second line of the name.
-            // if name is not set, the custom effect information will not be displayed.
+            // The custom effect information is displayed in the second line of the name.
+            // If a name is not set, the custom effect information will not be displayed.
             String potionName;
             Potion potion = Potion.getByJavaId(contents.getPotionId());
             if (potion != null) {
