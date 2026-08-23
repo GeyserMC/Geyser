@@ -1,0 +1,42 @@
+{
+  "type": "geyser:component_hash",
+  "component": "minecraft:potion_contents",
+  "value": [
+    {},
+    {
+      "potion": "minecraft:mundane"
+    },
+    {
+      "custom_color": 893458
+    },
+    {
+      "custom_name": "epic_hrt_potion"
+    },
+    {
+      "custom_effects": [
+        {
+          "id": "minecraft:speed"
+        }
+      ]
+    },
+    {
+      "potion": "minecraft:thick",
+      "custom_color": 53954,
+      "custom_name": "super_thick_potion",
+      "custom_effects": [
+        {
+          "id": "minecraft:haste",
+          "amplifier": 4,
+          "show_particles": false,
+          "show_icon": false
+        },
+        {
+          "id": "minecraft:speed",
+          "duration": 80,
+          "ambient": true,
+          "show_icon": true
+        }
+      ]
+    }
+  ]
+}

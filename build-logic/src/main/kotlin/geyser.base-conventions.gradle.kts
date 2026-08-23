@@ -17,12 +17,12 @@ indra {
     mitLicense()
 
     javaVersions {
-        target(17)
+        target(21)
     }
 }
 
 dependencies {
-    compileOnly("org.checkerframework", "checker-qual", libs.checker.qual.get().version)
+    compileOnly("org.checkerframework:checker-qual:" + libs.checker.qual.get().version)
 }
 
 repositories {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2023 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2026 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -64,12 +64,19 @@ public class BrushableBlockEntityTranslator extends BlockEntityTranslator implem
         }
         NbtMapBuilder itemBuilder = NbtMap.builder()
             .putString("Name", mapping.getBedrockIdentifier())
-            .putByte("Count", itemTag.getByte("Count"));
+            .putByte("Count", (byte) itemTag.getInt("count"));
 
         bedrockNbt.putCompound("item", itemBuilder.build());
         // controls which side the item protrudes from
         bedrockNbt.putByte("brush_direction", hitDirection);
         // controls how much the item protrudes
         bedrockNbt.putInt("brush_count", blockState.getValue(Properties.DUSTED));
+
+        // The type of brushable block, not sure why bedrock requires this
+        String identifier = session.getBlockMappings().getJavaToBedrockIdentifiers().get(blockState.block().javaId());
+        if (identifier == null) {
+            identifier = blockState.block().javaIdentifier().value();
+        }
+        bedrockNbt.putString("type", identifier);
     }
 }

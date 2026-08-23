@@ -1,0 +1,30 @@
+{
+  "type": "geyser:component_hash",
+  "component": "minecraft:use_effects",
+  "value": [
+    {
+      "can_sprint": true
+    },
+    {
+      "can_sprint": false,
+      "speed_multiplier": 0.2,
+      "interact_vibrations": true
+    },
+    {
+      "can_sprint": true,
+      "speed_multiplier": 0.9,
+      "interact_vibrations": false
+    },
+    {
+      "speed_multiplier": 0.0
+    },
+    {
+      "interact_vibrations": false
+    },
+    {
+      "can_sprint": true,
+      "speed_multiplier": 0.1,
+      "interact_vibrations": true
+    }
+  ]
+}

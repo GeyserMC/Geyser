@@ -1,0 +1,45 @@
+{
+  "type": "geyser:component_hash",
+  "component": "minecraft:map_decorations",
+  "value": [
+    {},
+    {
+      "a_proxy_allowing_you_to_connect_from_a_bedrock_client_to_a_java_server": {
+        "type": "red_marker",
+        "x": 50.448588882192595,
+        "z": 7.3753546858199135,
+        "rotation": 45.0
+      }
+    },
+    {
+      "rory_the_cat": {
+        "type": "target_point",
+        "x": 53.19956421616696,
+        "z": -1.396431968718453,
+        "rotation": 15.0
+      }
+    },
+    {
+      "mr_boss": {
+        "type": "player",
+        "x": 59.32072060276045,
+        "z": 18.051518467350018,
+        "rotation": 275.0
+      }
+    },
+    {
+      "the_city": {
+        "type": "mansion",
+        "x": 50.10803167396046,
+        "z": 8.687072019337352,
+        "rotation": 360.0
+      },
+      "the_mountains": {
+        "type": "monument",
+        "x": 45.976579378907424,
+        "z": 7.658447262947543,
+        "rotation": 0.0
+      }
+    }
+  ]
+}

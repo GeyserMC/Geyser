@@ -29,9 +29,12 @@ import lombok.Getter;
 import lombok.Setter;
 import org.checkerframework.checker.nullness.qual.MonotonicNonNull;
 import org.cloudburstmc.math.vector.Vector2f;
+import org.cloudburstmc.protocol.bedrock.data.InputInteractionModel;
 import org.cloudburstmc.protocol.bedrock.data.InputMode;
 import org.cloudburstmc.protocol.bedrock.data.PlayerAuthInputData;
+import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.cloudburstmc.protocol.bedrock.packet.PlayerAuthInputPacket;
+import org.geysermc.geyser.entity.EntitySpectateHelper;
 import org.geysermc.geyser.entity.type.player.SessionPlayerEntity;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.level.ServerboundPlayerInputPacket;
@@ -58,17 +61,61 @@ public final class InputCache {
     public void processInputs(SessionPlayerEntity entity, PlayerAuthInputPacket packet) {
         // Input is sent to the server before packet positions, as of 1.21.2
         Set<PlayerAuthInputData> bedrockInput = packet.getInputData();
+        // While spectating an entity, jump cycles the camera view (first-person / third-person back / front)
+        if (EntitySpectateHelper.isSpectating(session) && bedrockInput.contains(PlayerAuthInputData.JUMP_PRESSED_RAW)) {
+            EntitySpectateHelper.cycleMode(session);
+        }
         var oldInputPacket = this.inputPacket;
         this.inputMode = packet.getInputMode();
 
+        /*
+        Brief introduction to how Bedrock sends movement inputs! It's mainly based on the following:
+        (as of 1.21.111)
+        1. inputmode:
+        - MOUSE: same as Java edition; will send up/down/left/right inputs via input flags
+        - GAMEPAD: indicates the use of a controller with joysticks, sends an "analogue movement vector" instead
+        - TOUCH: see interaction model!
+        - MOTION_CONTROLLER: what even is this
+
+        2. Interaction model (here, only really relevant for us when the inputmode is "touch"):
+        - CLASSIC: shows "wasd" keys on the client; like input-mode MOUSE would, additionally up_left / up_right / down_left / down_right
+        - CROSSHAIR / TOUCH: NO wasd, analogue movement vector instead
+
+        Hence, we'll also need to check for this fun edge-case!
+         */
+        boolean isMobileAndClassicMovement = inputMode == InputMode.TOUCH && packet.getInputInteractionModel() == InputInteractionModel.CLASSIC;
+
         boolean up, down, left, right;
-        if (this.inputMode == InputMode.MOUSE) {
+        if (this.inputMode == InputMode.MOUSE || isMobileAndClassicMovement) {
             up = bedrockInput.contains(PlayerAuthInputData.UP);
             down = bedrockInput.contains(PlayerAuthInputData.DOWN);
             left = bedrockInput.contains(PlayerAuthInputData.LEFT);
             right = bedrockInput.contains(PlayerAuthInputData.RIGHT);
+
+            if (isMobileAndClassicMovement) {
+                // These are the buttons in the corners of the touch area
+                if (bedrockInput.contains(PlayerAuthInputData.UP_LEFT)) {
+                    up = true;
+                    left = true;
+                }
+
+                if (bedrockInput.contains(PlayerAuthInputData.UP_RIGHT)) {
+                    up = true;
+                    right = true;
+                }
+
+                if (bedrockInput.contains(PlayerAuthInputData.DOWN_LEFT)) {
+                    down = true;
+                    left = true;
+                }
+
+                if (bedrockInput.contains(PlayerAuthInputData.DOWN_RIGHT)) {
+                    down = true;
+                    right = true;
+                }
+            }
         } else {
-            // The above flags don't fire TODO test console
+            // The above flags don't fire
             Vector2f analogMovement = packet.getAnalogMoveVector();
             up = analogMovement.getY() > 0;
             down = analogMovement.getY() < 0;
@@ -78,7 +125,6 @@ public final class InputCache {
 
         boolean sneaking = isSneaking(bedrockInput);
 
-        // TODO when is UP_LEFT, etc. used?
         this.inputPacket = this.inputPacket
             .withForward(up)
             .withBackward(down)
@@ -87,7 +133,8 @@ public final class InputCache {
             // https://mojang.github.io/bedrock-protocol-docs/html/enums.html
             // using the "raw" values allows us sending key presses even with locked input
             // There appear to be cases where the raw value is not sent - e.g. sneaking with a shield on mobile (1.21.80)
-            .withJump(bedrockInput.contains(PlayerAuthInputData.JUMP_CURRENT_RAW) || bedrockInput.contains(PlayerAuthInputData.JUMP_DOWN))
+            // We also need to check for water auto jumping, since bedrock don't send jumping value in those cases.
+            .withJump(bedrockInput.contains(PlayerAuthInputData.JUMP_CURRENT_RAW) || bedrockInput.contains(PlayerAuthInputData.JUMP_DOWN) || bedrockInput.contains(PlayerAuthInputData.AUTO_JUMPING_IN_WATER))
             .withShift(session.isShouldSendSneak() || sneaking)
             .withSprint(bedrockInput.contains(PlayerAuthInputData.SPRINT_DOWN));
 
@@ -99,11 +146,20 @@ public final class InputCache {
             } else {
                 session.stopSneaking(true);
             }
+        } else {
+            // This allows the player to continue blocking after cooldown without re-sneaking.
+            if (sneaking && !entity.getFlag(EntityFlag.BLOCKING) && !entity.getFlag(EntityFlag.USING_ITEM)) {
+                if (session.attemptToBlock()) {
+                    entity.updateBedrockMetadata();
+                }
+            }
         }
 
         if (oldInputPacket != this.inputPacket) { // Simple equality check is fine since we're checking for an instance change.
             session.sendDownstreamGamePacket(this.inputPacket);
         }
+
+        session.setShouldSendSneak(false);
     }
 
     public boolean wasJumping() {
@@ -133,7 +189,7 @@ public final class InputCache {
     public boolean isSneaking(Set<PlayerAuthInputData> authInputData) {
         // Flying doesn't send start / stop fly cases; might as well return early
         if (session.isFlying()) {
-            // Of course e.g. mobile handles it differently with a descend case, while
+            // Of course e.g. mobile devices handle it differently with a descend case, while
             // e.g. Win10 sends SNEAK_DOWN. Why? We'll never know.
             return authInputData.contains(PlayerAuthInputData.DESCEND) || authInputData.contains(PlayerAuthInputData.SNEAK_DOWN);
         }

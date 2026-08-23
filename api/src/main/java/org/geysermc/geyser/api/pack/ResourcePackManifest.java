@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2023 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2026 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,11 +25,10 @@
 
 package org.geysermc.geyser.api.pack;
 
-import org.checkerframework.checker.nullness.qual.NonNull;
-import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.api.event.bedrock.SessionLoadResourcePacksEvent;
 import org.geysermc.geyser.api.event.lifecycle.GeyserDefineResourcePacksEvent;
 import org.geysermc.geyser.api.pack.option.SubpackOption;
+import org.jspecify.annotations.Nullable;
 
 import java.util.Collection;
 import java.util.UUID;
@@ -60,7 +59,6 @@ public interface ResourcePackManifest {
      * @return the {@link Header}
      * @since 2.1.1
      */
-    @NonNull
     Header header();
 
     /**
@@ -69,7 +67,6 @@ public interface ResourcePackManifest {
      * @return a collection of modules
      * @since 2.1.1
      */
-    @NonNull
     Collection<? extends Module> modules();
 
     /**
@@ -78,7 +75,6 @@ public interface ResourcePackManifest {
      * @return a collection of dependencies
      * @since 2.6.2
      */
-    @NonNull
     Collection<? extends Dependency> dependencies();
 
     /**
@@ -89,7 +85,6 @@ public interface ResourcePackManifest {
      * @return a collection of subpacks
      * @since 2.6.2
      */
-    @NonNull
     Collection<? extends Subpack> subpacks();
 
     /**
@@ -100,7 +95,6 @@ public interface ResourcePackManifest {
      * @return a collection of settings
      * @since 2.6.2
      */
-    @NonNull
     Collection<? extends Setting> settings();
 
     /**
@@ -120,7 +114,6 @@ public interface ResourcePackManifest {
          * @return the UUID
          * @since 2.1.1
          */
-        @NonNull
         UUID uuid();
 
         /**
@@ -129,7 +122,6 @@ public interface ResourcePackManifest {
          * @return the version
          * @since 2.1.1
          */
-        @NonNull
         Version version();
 
         /**
@@ -138,7 +130,6 @@ public interface ResourcePackManifest {
          * @return the name
          * @since 2.1.1
          */
-        @NonNull
         String name();
 
         /**
@@ -147,7 +138,6 @@ public interface ResourcePackManifest {
          * @return the description
          * @since 2.1.1
          */
-        @NonNull
         String description();
 
         /**
@@ -156,7 +146,6 @@ public interface ResourcePackManifest {
          * @return the minimum supported Minecraft version
          * @since 2.1.1
          */
-        @NonNull
         Version minimumSupportedMinecraftVersion();
     }
 
@@ -177,7 +166,6 @@ public interface ResourcePackManifest {
          * @return the UUID
          * @since 2.1.1
          */
-        @NonNull
         UUID uuid();
 
         /**
@@ -186,7 +174,6 @@ public interface ResourcePackManifest {
          * @return the {@link Version}
          * @since 2.1.1
          */
-        @NonNull
         Version version();
 
         /**
@@ -195,7 +182,6 @@ public interface ResourcePackManifest {
          * @return the type
          * @since 2.1.1
          */
-        @NonNull
         String type();
 
         /**
@@ -204,7 +190,6 @@ public interface ResourcePackManifest {
          * @return the description
          * @since 2.1.1
          */
-        @NonNull
         String description();
     }
 
@@ -224,7 +209,6 @@ public interface ResourcePackManifest {
          * @return the uuid
          * @since 2.1.1
          */
-        @NonNull
         UUID uuid();
 
         /**
@@ -233,7 +217,6 @@ public interface ResourcePackManifest {
          * @return the {@link Version}
          * @since 2.1.1
          */
-        @NonNull
         Version version();
     }
 
@@ -250,7 +233,6 @@ public interface ResourcePackManifest {
          * @return the folder name
          * @since 2.6.2
          */
-        @NonNull
         String folderName();
 
         /**
@@ -262,7 +244,6 @@ public interface ResourcePackManifest {
          * @return the subpack name
          * @since 2.6.2
          */
-        @NonNull
         String name();
 
         /**
@@ -273,8 +254,7 @@ public interface ResourcePackManifest {
          * @return the memory tier
          * @since 2.6.2
          */
-        @Nullable
-        Float memoryTier();
+        @Nullable Float memoryTier();
     }
 
     /**
@@ -290,7 +270,6 @@ public interface ResourcePackManifest {
          * @return the type
          * @since 2.6.2
          */
-        @NonNull
         String type();
 
         /**
@@ -299,7 +278,6 @@ public interface ResourcePackManifest {
          * @return the text content
          * @since 2.6.2
          */
-        @NonNull
         String text();
     }
 
@@ -339,7 +317,7 @@ public interface ResourcePackManifest {
          * @return the version string
          * @since 2.1.1
          */
-        @NonNull String toString();
+        String toString();
     }
 }
 

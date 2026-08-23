@@ -33,20 +33,21 @@ import lombok.Setter;
 import lombok.SneakyThrows;
 import net.lenni0451.commons.httpclient.HttpClient;
 import net.raphimc.minecraftauth.MinecraftAuth;
-import net.raphimc.minecraftauth.step.java.session.StepFullJavaSession;
-import net.raphimc.minecraftauth.step.msa.StepMsaDeviceCode;
-import net.raphimc.minecraftauth.util.MicrosoftConstants;
+import net.raphimc.minecraftauth.java.JavaAuthManager;
+import net.raphimc.minecraftauth.msa.data.MsaConstants;
+import net.raphimc.minecraftauth.msa.model.MsaApplicationConfig;
+import net.raphimc.minecraftauth.msa.model.MsaDeviceCode;
+import net.raphimc.minecraftauth.msa.model.MsaToken;
+import net.raphimc.minecraftauth.msa.service.impl.DeviceCodeMsaAuthService;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.GeyserLogger;
-import org.geysermc.geyser.util.MinecraftAuthLogger;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
-import java.util.function.BiFunction;
 import java.util.function.Consumer;
 
 /**
@@ -55,14 +56,6 @@ import java.util.function.Consumer;
  */
 public class PendingMicrosoftAuthentication {
     public static final HttpClient AUTH_CLIENT = MinecraftAuth.createHttpClient();
-    public static final BiFunction<Boolean, Integer, StepFullJavaSession> AUTH_FLOW = (offlineAccess, timeoutSec) -> MinecraftAuth.builder()
-            .withClientId(GeyserImpl.OAUTH_CLIENT_ID)
-            .withScope(offlineAccess ? "XboxLive.signin XboxLive.offline_access" : "XboxLive.signin")
-            .withTimeout(timeoutSec)
-            .deviceCode()
-            .withoutDeviceToken()
-            .regularAuthentication(MicrosoftConstants.JAVA_XSTS_RELYING_PARTY)
-            .buildMinecraftJavaProfileStep(false);
     /**
      * For GeyserConnect usage.
      */
@@ -100,7 +93,7 @@ public class PendingMicrosoftAuthentication {
         private final String userKey;
         private final int timeoutSec;
         @Getter
-        private CompletableFuture<StepChainResult> authentication;
+        private CompletableFuture<JavaAuthManager> authentication;
 
         private AuthenticationTask(String userKey, int timeoutSec) {
             this.userKey = userKey;
@@ -124,11 +117,16 @@ public class PendingMicrosoftAuthentication {
             authentications.invalidate(userKey);
         }
 
-        public CompletableFuture<StepChainResult> performLoginAttempt(boolean offlineAccess, Consumer<StepMsaDeviceCode.MsaDeviceCode> deviceCodeConsumer) {
+        public CompletableFuture<JavaAuthManager> performLoginAttempt(boolean offlineAccess, Consumer<MsaDeviceCode> deviceCodeConsumer) {
+            MsaApplicationConfig applicationConfig = GeyserImpl.OAUTH_CONFIG.withScope(offlineAccess ? MsaConstants.SCOPE_OFFLINE_ACCESS : MsaConstants.SCOPE_NO_OFFLINE_ACCESS);
+            DeviceCodeMsaAuthService authService = new DeviceCodeMsaAuthService(AUTH_CLIENT, applicationConfig, deviceCodeConsumer, timeoutSec * 1000);
             return authentication = CompletableFuture.supplyAsync(() -> {
                 try {
-                    StepFullJavaSession step = AUTH_FLOW.apply(offlineAccess, timeoutSec);
-                    return new StepChainResult(step, step.getFromInput(MinecraftAuthLogger.INSTANCE, AUTH_CLIENT, new StepMsaDeviceCode.MsaDeviceCodeCallback(deviceCodeConsumer)));
+                    MsaToken msaToken = authService.acquireToken();
+                    JavaAuthManager authManager = JavaAuthManager.create(AUTH_CLIENT).msaApplicationConfig(applicationConfig).login(msaToken);
+                    authManager.getMinecraftToken().refresh(); // Preload the Minecraft token
+                    authManager.getMinecraftProfile().refresh(); // Preload the Minecraft profile
+                    return authManager;
                 } catch (Exception e) {
                     throw new CompletionException(e);
                 }
@@ -153,8 +151,5 @@ public class PendingMicrosoftAuthentication {
         private ProxyAuthenticationTask(String userKey, int timeoutSec) {
             super(userKey, timeoutSec);
         }
-    }
-
-    public record StepChainResult(StepFullJavaSession step, StepFullJavaSession.FullJavaSession session) {
     }
 }

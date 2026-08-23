@@ -2,6 +2,12 @@ plugins {
     `kotlin-dsl`
 }
 
+java {
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of(21))
+    }
+}
+
 repositories {
     gradlePluginPortal()
 
@@ -25,4 +31,5 @@ dependencies {
     implementation(libs.architectury.plugin)
     implementation(libs.architectury.loom)
     implementation(libs.minotaur)
+    implementation(libs.loom.companion)
 }

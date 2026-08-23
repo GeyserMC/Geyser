@@ -41,7 +41,7 @@ public class NoticeDialog extends Dialog {
 
     private final Optional<DialogButton> button;
 
-    public NoticeDialog(GeyserSession session, NbtMap map, Dialog.IdGetter idGetter) {
+    public NoticeDialog(Optional<GeyserSession> session, NbtMap map, Dialog.IdGetter idGetter) {
         super(session, map);
         button = DialogButton.read(session, map.getCompound("action"), idGetter);
     }

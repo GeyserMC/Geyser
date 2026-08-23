@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2023 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2026 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,13 +25,12 @@
 
 package org.geysermc.geyser.api.event.bedrock;
 
-import org.checkerframework.checker.nullness.qual.NonNull;
-import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.event.Cancellable;
 import org.geysermc.geyser.api.connection.GeyserConnection;
 import org.geysermc.geyser.api.event.connection.ConnectionEvent;
 import org.geysermc.geyser.api.network.RemoteServer;
 import org.geysermc.geyser.api.util.PlatformType;
+import org.jspecify.annotations.Nullable;
 
 import java.util.Map;
 import java.util.Objects;
@@ -43,13 +42,13 @@ import java.util.Objects;
 public final class SessionLoginEvent extends ConnectionEvent implements Cancellable {
     private RemoteServer remoteServer;
     private boolean cancelled;
-    private String disconnectReason;
+    private @Nullable String disconnectReason;
     private Map<String, byte[]> cookies;
     private boolean transferring;
 
-    public SessionLoginEvent(@NonNull GeyserConnection connection,
-                             @NonNull RemoteServer remoteServer,
-                             @NonNull Map<String, byte[]> cookies) {
+    public SessionLoginEvent(GeyserConnection connection,
+                             RemoteServer remoteServer,
+                             Map<String, byte[]> cookies) {
         super(connection);
         this.remoteServer = remoteServer;
         this.cookies = cookies;
@@ -85,7 +84,7 @@ public final class SessionLoginEvent extends ConnectionEvent implements Cancella
      * @param cancelled If the login event should be cancelled.
      * @param disconnectReason The reason for the cancellation.
      */
-    public void setCancelled(boolean cancelled, @NonNull String disconnectReason) {
+    public void setCancelled(boolean cancelled, String disconnectReason) {
         this.cancelled = cancelled;
         this.disconnectReason = disconnectReason;
     }
@@ -104,7 +103,7 @@ public final class SessionLoginEvent extends ConnectionEvent implements Cancella
      *
      * @return the {@link RemoteServer} the session will attempt to connect to.
      */
-    public @NonNull RemoteServer remoteServer() {
+    public RemoteServer remoteServer() {
         return this.remoteServer;
     }
 
@@ -115,7 +114,7 @@ public final class SessionLoginEvent extends ConnectionEvent implements Cancella
      *
      * @param remoteServer Sets the {@link RemoteServer} to connect to.
      */
-    public void remoteServer(@NonNull RemoteServer remoteServer) {
+    public void remoteServer(RemoteServer remoteServer) {
         this.remoteServer = remoteServer;
     }
 
@@ -123,7 +122,7 @@ public final class SessionLoginEvent extends ConnectionEvent implements Cancella
      * Sets a map of cookies from a possible previous session. The Java server can send and request these
      * to store information on the client across server transfers.
      */
-    public void cookies(@NonNull Map<String, byte[]> cookies) {
+    public void cookies(Map<String, byte[]> cookies) {
         Objects.requireNonNull(cookies);
         this.cookies = cookies;
     }
@@ -132,7 +131,7 @@ public final class SessionLoginEvent extends ConnectionEvent implements Cancella
      * Gets a map of the sessions cookies, if set.
      * @return the connections cookies
      */
-    public @NonNull Map<String, byte[]> cookies() {
+    public Map<String, byte[]> cookies() {
         return cookies;
     }
 

@@ -70,9 +70,12 @@ public enum BedrockEnchantment {
     SWIFT_SNEAK,
     WIND_BURST,
     DENSITY,
-    BREACH;
+    BREACH,
+    LUNGE;
 
     private static final BedrockEnchantment[] VALUES = values();
+
+    public static final int INVALID = VALUES.length + 1;
 
     private final String javaIdentifier;
 

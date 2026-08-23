@@ -26,10 +26,11 @@
 package org.geysermc.geyser.platform.bungeecord.command;
 
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.serializer.bungeecord.BungeeComponentSerializer;
+import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
 import net.md_5.bungee.api.CommandSender;
 import net.md_5.bungee.api.chat.TextComponent;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
+import net.md_5.bungee.chat.ComponentSerializer;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.command.GeyserCommandSource;
@@ -64,10 +65,10 @@ public class BungeeCommandSource implements GeyserCommandSource {
     public void sendMessage(Component message) {
         if (handle instanceof ProxiedPlayer player && player.getPendingConnection().getVersion() >= PROTOCOL_HEX_COLOR) {
             // Include hex colors
-            handle.sendMessage(BungeeComponentSerializer.get().serialize(message));
+            handle.sendMessage(ComponentSerializer.parse(GsonComponentSerializer.gson().serialize(message)));
             return;
         }
-        handle.sendMessage(BungeeComponentSerializer.legacy().serialize(message));
+        handle.sendMessage(ComponentSerializer.parse(GsonComponentSerializer.colorDownsamplingGson().serialize(message)));
     }
 
     @Override

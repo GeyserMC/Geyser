@@ -1,0 +1,49 @@
+{
+  "type": "geyser:component_hash",
+  "component": "minecraft:fireworks",
+  "value": [
+    {},
+    {
+      "flight_duration": 2
+    },
+    {
+      "flight_duration": 3,
+      "explosions": []
+    },
+    {
+      "flight_duration": 1,
+      "explosions": [
+        {
+          "shape": "burst",
+          "has_trail": true
+        }
+      ]
+    },
+    {
+      "flight_duration": 1,
+      "explosions": [
+        {
+          "shape": "burst",
+          "has_trail": true
+        },
+        {
+          "shape": "creeper",
+          "colors": [
+            434345,
+            457645,
+            678564,
+            134256
+          ],
+          "fade_colors": [
+            534665,
+            457465,
+            345345,
+            123135
+          ],
+          "has_trail": true,
+          "has_twinkle": true
+        }
+      ]
+    }
+  ]
+}

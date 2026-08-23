@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2023 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2026 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,9 +26,8 @@
 package org.geysermc.geyser.api.event.connection;
 
 import org.checkerframework.checker.index.qual.NonNegative;
-import org.checkerframework.checker.nullness.qual.NonNull;
-import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.event.Event;
+import org.jspecify.annotations.Nullable;
 
 import java.net.InetSocketAddress;
 
@@ -45,7 +44,7 @@ public interface GeyserBedrockPingEvent extends Event {
      *
      * @param primary the string to set as the primary motd
      */
-    void primaryMotd(@NonNull String primary);
+    void primaryMotd(String primary);
 
     /**
      * Sets the given string as the secondary motd, the given string cannot be null.
@@ -53,7 +52,7 @@ public interface GeyserBedrockPingEvent extends Event {
      *
      * @param secondary the string to set as the secondary motd
      */
-    void secondaryMotd(@NonNull String secondary);
+    void secondaryMotd(String secondary);
 
     /**
      * Sets how many players are currently online, the given number cannot be below 0.
@@ -74,16 +73,14 @@ public interface GeyserBedrockPingEvent extends Event {
      *
      * @return the primary motd string
      */
-    @Nullable
-    String primaryMotd();
+    @Nullable String primaryMotd();
 
     /**
      * Gets the secondary motd.
      *
      * @return the secondary motd string
      */
-    @Nullable
-    String secondaryMotd();
+    @Nullable String secondaryMotd();
 
     /**
      * Gets the current number of players.
@@ -105,6 +102,5 @@ public interface GeyserBedrockPingEvent extends Event {
      *
      * @return a {@link InetSocketAddress}
      */
-    @NonNull
     InetSocketAddress address();
 }

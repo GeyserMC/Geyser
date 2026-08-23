@@ -36,7 +36,7 @@ import org.geysermc.geyser.session.GeyserSession;
 
 import java.util.Arrays;
 
-public abstract class ChestedHorseInventoryTranslator extends AbstractHorseInventoryTranslator {
+public abstract class ChestedHorseInventoryTranslator extends AbstractMountInventoryTranslator {
     private final int chestSize;
     private final int equipSlot;
 

@@ -44,6 +44,9 @@ public class JavaStartConfigurationTranslator extends PacketTranslator<Clientbou
             erosionHandler.close();
         }
 
+        // Reset code of conduct being accepted
+        session.hasAcceptedCodeOfConduct(false);
+
         ChunkUtils.sendEmptyChunks(session, session.getPlayerEntity().position().toInt(), session.getServerRenderDistance(), false);
     }
 }

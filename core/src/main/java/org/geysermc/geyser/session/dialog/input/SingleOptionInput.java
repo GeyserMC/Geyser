@@ -47,7 +47,7 @@ public class SingleOptionInput extends DialogInput<String> {
     private final List<Entry> entries = new ArrayList<>();
     private final int initial;
 
-    public SingleOptionInput(GeyserSession session, NbtMap map) {
+    public SingleOptionInput(Optional<GeyserSession> session, NbtMap map) {
         super(session, map);
         labelVisible = map.getBoolean("label_visible", true);
         List<NbtMap> entriesTag = map.getList("options", NbtType.COMPOUND);

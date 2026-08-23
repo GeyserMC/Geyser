@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 GeyserMC. http://geysermc.org
+ * Copyright (c) 2024-2026 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,7 +25,6 @@
 
 package org.geysermc.geyser.api.pack.option;
 
-import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.api.pack.ResourcePack;
 import org.geysermc.geyser.api.pack.exception.ResourcePackException;
 
@@ -45,13 +44,13 @@ public interface ResourcePackOption<T> {
      * @return the option type
      * @since 2.6.2
      */
-    @NonNull Type type();
+    Type type();
 
     /**
      * @return the value of the option
      * @since 2.6.2
      */
-    @NonNull T value();
+    T value();
 
     /**
      * Used to validate a specific options for a pack.
@@ -61,7 +60,7 @@ public interface ResourcePackOption<T> {
      * @throws ResourcePackException with the {@link ResourcePackException.Cause#INVALID_PACK_OPTION} cause
      * @since 2.6.2
      */
-    void validate(@NonNull ResourcePack pack);
+    void validate(ResourcePack pack);
 
     /**
      * Represents the different types of resource pack options.

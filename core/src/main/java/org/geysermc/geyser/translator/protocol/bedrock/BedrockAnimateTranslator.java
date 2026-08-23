@@ -29,6 +29,7 @@ import org.cloudburstmc.protocol.bedrock.packet.AnimatePacket;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.player.GameMode;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.Hand;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.player.ServerboundSwingPacket;
 
@@ -58,9 +59,9 @@ public class BedrockAnimateTranslator extends PacketTranslator<AnimatePacket> {
             // Other times, there is a 1-tick-delay, which would result in the swing packet sent here. The BedrockAuthInputTranslator's
             // MISSED_SWING case also accounts for that by checking if a swing was sent a tick ago here.
 
-            // Also, delay the swing so entity damage can be processed first
+            // We also send this right after entity attack to ensure packet order.
             session.scheduleInEventLoop(() -> {
-                    if (session.getArmAnimationTicks() != 0 && (session.getTicks() - session.getLastAirHitTick() > 2)) {
+                    if (session.getArmAnimationTicks() != 0 && (session.getTicks() - session.getLastAirHitTick() > 2) && session.getGameMode() != GameMode.SPECTATOR) {
                         // So, generally, a Java player can only do one *thing* at a time.
                         // If a player right-clicks, for example, then there's probably only one action associated with
                         // that right-click that will send a swing.

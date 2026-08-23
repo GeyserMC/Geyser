@@ -38,7 +38,6 @@ import org.geysermc.geyser.platform.mod.platform.GeyserModPlatform;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.file.Files;
 import java.nio.file.Path;
 
 public class GeyserNeoForgePlatform implements GeyserModPlatform {
@@ -73,7 +72,7 @@ public class GeyserNeoForgePlatform implements GeyserModPlatform {
     public boolean testFloodgatePluginPresent(@NonNull GeyserModBootstrap bootstrap) {
         if (ModList.get().isLoaded("floodgate")) {
             Path floodgateDataFolder = FMLPaths.CONFIGDIR.get().resolve("floodgate");
-            bootstrap.getGeyserConfig().loadFloodgate(bootstrap, floodgateDataFolder);
+            bootstrap.loadFloodgate(floodgateDataFolder);
             return true;
         }
         return false;
@@ -82,8 +81,7 @@ public class GeyserNeoForgePlatform implements GeyserModPlatform {
     @Override
     public @Nullable InputStream resolveResource(@NonNull String resource) {
         try {
-            Path path = container.getModInfo().getOwningFile().getFile().findResource(resource);
-            return Files.newInputStream(path);
+            return container.getModInfo().getOwningFile().getFile().getContents().openFile(resource);
         } catch (IOException e) {
             return null;
         }

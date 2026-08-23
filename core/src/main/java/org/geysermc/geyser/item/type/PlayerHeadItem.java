@@ -30,10 +30,12 @@ import org.geysermc.geyser.item.TooltipOptions;
 import org.geysermc.geyser.item.components.Rarity;
 import org.geysermc.geyser.level.block.type.Block;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.skin.SkinManager;
 import org.geysermc.geyser.text.ChatColor;
 import org.geysermc.geyser.text.MinecraftLocale;
 import org.geysermc.geyser.translator.item.BedrockItemBuilder;
 import org.geysermc.mcprotocollib.auth.GameProfile;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.player.ResolvableProfile;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentTypes;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
 
@@ -49,18 +51,25 @@ public class PlayerHeadItem extends BlockItem {
         // Use the correct color, determined by the rarity of the item
         char rarity = Rarity.fromId(components.getOrDefault(DataComponentTypes.RARITY, Rarity.COMMON.ordinal())).getColor();
 
-        GameProfile profile = components.get(DataComponentTypes.PROFILE);
+        ResolvableProfile profile = components.get(DataComponentTypes.PROFILE);
         if (profile != null) {
-            String name = profile.getName();
-            if (name != null) {
-                // Add correct name of player skull
-                String displayName = ChatColor.RESET + ChatColor.ESCAPE + rarity +
+            // Ideally we'd update the item once the profile is resolved,
+            // but there's no good way of doing this as we don't know where the item is in an inventory after we have translated it
+            // So, we request a resolve here, and if the profile has already been resolved it will be returned instantly from cache.
+            // If not, the next time the item will be translated the profile will probably have been resolved
+            GameProfile resolved = SkinManager.resolveProfile(profile).getNow(null);
+            if (resolved != null) {
+                String name = resolved.getName();
+                if (name != null) {
+                    // Add correct name of player skull
+                    String displayName = ChatColor.RESET + ChatColor.ESCAPE + rarity +
                         MinecraftLocale.getLocaleString("block.minecraft.player_head.named", session.locale()).replace("%s", name);
-                builder.setCustomName(displayName);
-            } else {
-                // No name found so default to "Player Head"
-                builder.setCustomName(ChatColor.RESET + ChatColor.ESCAPE + rarity +
+                    builder.setCustomName(displayName);
+                } else {
+                    // No name found so default to "Player Head"
+                    builder.setCustomName(ChatColor.RESET + ChatColor.ESCAPE + rarity +
                         MinecraftLocale.getLocaleString("block.minecraft.player_head", session.locale()));
+                }
             }
         }
     }

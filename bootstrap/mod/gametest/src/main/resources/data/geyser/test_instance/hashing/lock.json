@@ -1,0 +1,39 @@
+{
+  "type": "geyser:component_hash",
+  "component": "minecraft:lock",
+  "value": [
+    {},
+    {
+      "items": "minecraft:tripwire_hook"
+    },
+    {
+      "items": [
+        "minecraft:tripwire_hook",
+        "minecraft:string"
+      ],
+      "count": {
+        "min": 5,
+        "max": 10
+      }
+    },
+    {
+      "items": "#minecraft:brewing_fuel",
+      "count": 43,
+      "components": {
+        "minecraft:max_stack_size": 44
+      }
+    },
+    {
+      "components": {
+        "minecraft:max_stack_size": 1
+      }
+    },
+    {
+      "predicates": {
+        "minecraft:damage": {
+          "durability": 50
+        }
+      }
+    }
+  ]
+}

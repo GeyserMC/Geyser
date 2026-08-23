@@ -25,7 +25,6 @@
 
 package org.geysermc.geyser.translator.protocol.java.scoreboard;
 
-import java.util.Arrays;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.GeyserLogger;
 import org.geysermc.geyser.scoreboard.Scoreboard;
@@ -37,6 +36,8 @@ import org.geysermc.geyser.translator.protocol.Translator;
 import org.geysermc.mcprotocollib.protocol.data.game.scoreboard.TeamAction;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.scoreboard.ClientboundSetPlayerTeamPacket;
 
+import java.util.Arrays;
+
 @Translator(packet = ClientboundSetPlayerTeamPacket.class)
 public class JavaSetPlayerTeamTranslator extends PacketTranslator<ClientboundSetPlayerTeamPacket> {
     private final GeyserLogger logger = GeyserImpl.getInstance().getLogger();
@@ -44,7 +45,7 @@ public class JavaSetPlayerTeamTranslator extends PacketTranslator<ClientboundSet
     @Override
     public void translate(GeyserSession session, ClientboundSetPlayerTeamPacket packet) {
         if (logger.isDebug()) {
-            logger.debug("Team packet " + packet.getTeamName() + " " + packet.getAction() + " " + Arrays.toString(packet.getPlayers()));
+            logger.debug("Team packet (" + session.bedrockUsername() + ") " + packet.getTeamName() + " " + packet.getAction() + " " + Arrays.toString(packet.getPlayers()));
         }
 
         if ((packet.getAction() == TeamAction.ADD_PLAYER || packet.getAction() == TeamAction.REMOVE_PLAYER) && packet.getPlayers().length == 0) {
@@ -59,9 +60,8 @@ public class JavaSetPlayerTeamTranslator extends PacketTranslator<ClientboundSet
             scoreboard.registerNewTeam(
                 packet.getTeamName(),
                 packet.getPlayers(),
-                packet.getDisplayName(),
-                packet.getPrefix(),
-                packet.getSuffix(),
+                packet.getPlayerPrefix(),
+                packet.getPlayerSuffix(),
                 packet.getNameTagVisibility(),
                 packet.getColor()
             );
@@ -79,9 +79,8 @@ public class JavaSetPlayerTeamTranslator extends PacketTranslator<ClientboundSet
             switch (packet.getAction()) {
                 case UPDATE -> {
                     team.updateProperties(
-                        packet.getDisplayName(),
-                        packet.getPrefix(),
-                        packet.getSuffix(),
+                        packet.getPlayerPrefix(),
+                        packet.getPlayerSuffix(),
                         packet.getNameTagVisibility(),
                         packet.getColor()
                     );

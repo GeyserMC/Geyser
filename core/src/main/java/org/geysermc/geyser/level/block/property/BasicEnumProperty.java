@@ -26,6 +26,7 @@
 package org.geysermc.geyser.level.block.property;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Represents enums we don't need classes for in Geyser.
@@ -55,6 +56,11 @@ public final class BasicEnumProperty extends Property<String> {
     @SuppressWarnings("unchecked")
     public <T> T values() {
         return (T) this.values;
+    }
+
+    @Override
+    public Optional<String> valueOf(String string) {
+        return values.contains(string) ? Optional.of(string) : Optional.empty();
     }
 
     public static BasicEnumProperty create(String name, String... values) {

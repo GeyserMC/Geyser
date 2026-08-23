@@ -26,19 +26,33 @@
 package org.geysermc.geyser.entity.properties.type;
 
 import org.cloudburstmc.nbt.NbtMap;
+import org.cloudburstmc.protocol.bedrock.data.entity.IntEntityProperty;
+import org.geysermc.geyser.api.entity.property.type.GeyserBooleanEntityProperty;
+import org.geysermc.geyser.api.util.Identifier;
 
-public class BooleanProperty implements PropertyType {
-    private final String name;
-
-    public BooleanProperty(String name) {
-        this.name = name;
-    }
+public record BooleanProperty(
+    Identifier identifier,
+    Boolean defaultValue
+) implements PropertyType<Boolean, IntEntityProperty>, GeyserBooleanEntityProperty {
 
     @Override
     public NbtMap nbtMap() {
         return NbtMap.builder()
-                .putString("name", name)
+                .putString("name", identifier.toString())
                 .putInt("type", 2)
                 .build();
+    }
+
+    @Override
+    public IntEntityProperty defaultValue(int index) {
+        return createValue(index, defaultValue != null && defaultValue);
+    }
+
+    @Override
+    public IntEntityProperty createValue(int index, Boolean value) {
+        if (value == null) {
+            return defaultValue(index);
+        }
+        return new IntEntityProperty(index, value ? 1 : 0);
     }
 }

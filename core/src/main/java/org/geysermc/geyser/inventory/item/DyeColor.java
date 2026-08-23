@@ -27,34 +27,38 @@ package org.geysermc.geyser.inventory.item;
 
 import lombok.Getter;
 import org.checkerframework.checker.nullness.qual.Nullable;
+import org.geysermc.geyser.util.ColorUtils;
 
 import java.util.Locale;
 
 @Getter
 public enum DyeColor {
-    WHITE,
-    ORANGE,
-    MAGENTA,
-    LIGHT_BLUE,
-    YELLOW,
-    LIME,
-    PINK,
-    GRAY,
-    LIGHT_GRAY,
-    CYAN,
-    PURPLE,
-    BLUE,
-    BROWN,
-    GREEN,
-    RED,
-    BLACK;
+    WHITE(0xf9fffe),
+    ORANGE(0xf9801d),
+    MAGENTA(0xc74ebd),
+    LIGHT_BLUE(0x3ab3da),
+    YELLOW(0xfed83d),
+    LIME(0x80c71f),
+    PINK(0xf38baa),
+    GRAY(0x474f52),
+    LIGHT_GRAY(0x9d9d97),
+    CYAN(0x169c9c),
+    PURPLE(0x8932b8),
+    BLUE(0x3c44aa),
+    BROWN(0x835432),
+    GREEN(0x5e7c16),
+    RED(0xb02e26),
+    BLACK(0x1d1d21);
 
     private static final DyeColor[] VALUES = values();
 
     private final String javaIdentifier;
+    // Take from Mojang's own DyeColor: https://mcsrc.dev/1/26.1.2/net/minecraft/world/item/DyeColor
+    private final int textureDiffuseColor;
 
-    DyeColor() {
+    DyeColor(int textureDiffuseColor) {
         this.javaIdentifier = this.name().toLowerCase(Locale.ROOT);
+        this.textureDiffuseColor = ColorUtils.argbOpaque(textureDiffuseColor);
     }
 
     public static @Nullable DyeColor getById(int id) {
@@ -62,6 +66,14 @@ public enum DyeColor {
             return VALUES[id];
         }
         return null;
+    }
+
+    public static DyeColor getOrDefault(@Nullable Integer id, DyeColor defaultValue) {
+        if (id == null) {
+            return defaultValue;
+        }
+        DyeColor color = getById(id);
+        return color == null ? defaultValue : color;
     }
 
     public static @Nullable DyeColor getByJavaIdentifier(String javaIdentifier) {

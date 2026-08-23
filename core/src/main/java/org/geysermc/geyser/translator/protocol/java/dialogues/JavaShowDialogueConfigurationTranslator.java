@@ -36,13 +36,7 @@ public class JavaShowDialogueConfigurationTranslator extends PacketTranslator<Cl
 
     @Override
     public void translate(GeyserSession session, ClientboundShowDialogConfigurationPacket packet) {
-        if (!session.isSentSpawnPacket()) {
-            session.connect();
-        }
-
-        // Disable time progression whilst the dialog is open
-        // Once logged into the game this is set correctly when receiving a time packet from the server
-        session.setDaylightCycle(false);
+        session.prepareForConfigurationForm();
         session.getDialogManager().openDialog(Holder.ofCustom(packet.getDialog()));
     }
 }

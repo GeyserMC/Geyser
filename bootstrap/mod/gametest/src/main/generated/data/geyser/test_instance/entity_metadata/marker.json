@@ -1,0 +1,5 @@
+{
+  "type": "geyser:entity_metadata",
+  "entity_type": "minecraft:marker",
+  "required": false
+}

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2026 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -55,7 +55,7 @@ public enum Potion {
     STRONG_SLOWNESS(42, ArrowParticleColors.SLOWNESS),
     TURTLE_MASTER(37, ArrowParticleColors.TURTLE_MASTER),
     LONG_TURTLE_MASTER(38, ArrowParticleColors.TURTLE_MASTER),
-    STRONG_TURTLE_MASTER(39, ArrowParticleColors.TURTLE_MASTER),
+    STRONG_TURTLE_MASTER(39, ArrowParticleColors.TURTLE_MASTER_ENHANCED),
     WATER_BREATHING(19, ArrowParticleColors.WATER_BREATHING),
     LONG_WATER_BREATHING(20, ArrowParticleColors.WATER_BREATHING),
     HEALING(21, ArrowParticleColors.HEALING),
@@ -73,7 +73,7 @@ public enum Potion {
     STRONG_STRENGTH(33, ArrowParticleColors.STRENGTH),
     WEAKNESS(34, ArrowParticleColors.WEAKNESS),
     LONG_WEAKNESS(35, ArrowParticleColors.WEAKNESS),
-    LUCK(2, ArrowParticleColors.NONE), // does not exist in Bedrock
+    LUCK(2, ArrowParticleColors.LUCK), // does not exist in Bedrock
     SLOW_FALLING(40, ArrowParticleColors.SLOW_FALLING),
     LONG_SLOW_FALLING(41, ArrowParticleColors.SLOW_FALLING),
     WIND_CHARGING(43, ArrowParticleColors.WIND_CHARGING),
@@ -142,25 +142,27 @@ public enum Potion {
 
     /**
      * For tipped arrow usage
+     * https://minecraft.wiki/w/Effect_colors#Potion_colors
      */
     private static final class ArrowParticleColors {
-        static final int NONE = 1;
-        static final int NIGHT_VISION = 2039713;
-        static final int INVISIBILITY = 8356754;
-        static final int LEAPING = 2293580;
-        static final int FIRE_RESISTANCE = 14981690;
-        static final int SWIFTNESS = 8171462;
-        static final int SLOWNESS = 5926017;
-        static final int TURTLE_MASTER = 7691106;
-        static final int WATER_BREATHING = 3035801;
+        static final int NONE = 3694022;
+        static final int NIGHT_VISION = 12779366;
+        static final int INVISIBILITY = 16185078;
+        static final int LEAPING = 16646020;
+        static final int FIRE_RESISTANCE = 16750848;
+        static final int SWIFTNESS = 3402751;
+        static final int SLOWNESS = 9154528;
+        static final int TURTLE_MASTER = 9274086;
+        static final int TURTLE_MASTER_ENHANCED = 9274854;
+        static final int WATER_BREATHING = 10017472;
         static final int HEALING = 16262179;
-        static final int HARMING = 4393481;
-        static final int POISON = 5149489;
+        static final int HARMING = 11101546;
+        static final int POISON = 8889187;
         static final int REGENERATION = 13458603;
-        static final int STRENGTH = 9643043;
+        static final int STRENGTH = 16762624;
         static final int WEAKNESS = 4738376;
-        static final int LUCK = 3381504;
-        static final int SLOW_FALLING = 16773073;
+        static final int LUCK = 5882118;
+        static final int SLOW_FALLING = 15978425;
         static final int WIND_CHARGING = 12438015;
         static final int WEAVING = 7891290;
         static final int OOZING = 10092451;

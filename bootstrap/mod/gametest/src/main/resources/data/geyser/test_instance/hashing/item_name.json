@@ -1,0 +1,11 @@
+{
+  "type": "geyser:component_hash",
+  "component": "minecraft:item_name",
+  "value": [
+    "simple item name",
+    {
+      "text": "*cool* item name",
+      "color": "#ff0000"
+    }
+  ]
+}

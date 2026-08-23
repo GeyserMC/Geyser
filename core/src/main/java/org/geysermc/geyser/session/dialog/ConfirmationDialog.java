@@ -40,7 +40,7 @@ public class ConfirmationDialog extends DialogWithButtons {
     private final DialogButton yes;
     private final DialogButton no;
 
-    public ConfirmationDialog(GeyserSession session, NbtMap map, IdGetter idGetter) {
+    public ConfirmationDialog(Optional<GeyserSession> session, NbtMap map, IdGetter idGetter) {
         super(session, map, Optional.empty());
         yes = DialogButton.read(session, map.get("yes"), idGetter).orElseThrow();
         no = DialogButton.read(session, map.get("no"), idGetter).orElseThrow();

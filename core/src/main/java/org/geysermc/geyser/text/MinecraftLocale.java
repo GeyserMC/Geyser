@@ -25,11 +25,13 @@
 
 package org.geysermc.geyser.text;
 
-import com.fasterxml.jackson.databind.JsonNode;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.util.AssetUtils;
 import org.geysermc.geyser.util.FileUtils;
+import org.geysermc.geyser.util.JsonUtils;
 import org.geysermc.geyser.util.WebUtils;
 
 import java.io.FileNotFoundException;
@@ -38,8 +40,9 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
+import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
@@ -47,10 +50,14 @@ public class MinecraftLocale {
 
     public static final Map<String, Map<String, String>> LOCALE_MAPPINGS = new HashMap<>();
 
+    private static final List<String> REMOVED_KEYS = new ArrayList<>();
+    private static final Map<String, String> REPLACED_KEYS = new HashMap<>();
+
     // Check instance availability to avoid exception during testing
     private static final boolean IN_INSTANCE = GeyserImpl.getInstance() != null;
 
     private static final Path LOCALE_FOLDER = (IN_INSTANCE) ? GeyserImpl.getInstance().getBootstrap().getConfigFolder().resolve("locales") : null;
+    private static final Path DEPRECATED = LOCALE_FOLDER == null ? null : getPath("deprecated");
 
     static {
         if (IN_INSTANCE) {
@@ -65,14 +72,23 @@ public class MinecraftLocale {
     }
 
     public static void ensureEN_US() {
+        // en_us requires special treatment since it's included in Minecraft's JAR file
         Path localeFile = getPath("en_us");
         AssetUtils.addTask(!Files.exists(localeFile), new AssetUtils.ClientJarTask("assets/minecraft/lang/en_us.json",
                 (stream) -> AssetUtils.saveFile(localeFile, stream),
+                () -> loadLocale("en_us")));
+    }
+
+    public static void downloadDeprecations() {
+        if (!loadDeprecations()) {
+            AssetUtils.addTask(!Files.exists(DEPRECATED), new AssetUtils.ClientJarTask("assets/minecraft/lang/deprecated.json",
+                stream -> AssetUtils.saveFile(DEPRECATED, stream),
                 () -> {
-                    if ("en_us".equals(GeyserLocale.getDefaultLocale())) {
-                        loadLocale("en_us");
+                    if (!loadDeprecations()) {
+                        GeyserImpl.getInstance().getLogger().warning("Failed to load deprecated locale file: it doesn't exist?");
                     }
                 }));
+        }
     }
 
     /**
@@ -117,6 +133,7 @@ public class MinecraftLocale {
      * @param locale Locale to download
      */
     private static void downloadLocale(String locale) {
+        // Don't download en_us, it's included in the JAR file
         if (locale.equals("en_us")) {
             return;
         }
@@ -183,6 +200,35 @@ public class MinecraftLocale {
         }
     }
 
+    private static boolean loadDeprecations() {
+        if (Files.exists(DEPRECATED) && Files.isReadable(DEPRECATED)) {
+            try (InputStream localeStream = Files.newInputStream(DEPRECATED, StandardOpenOption.READ)) {
+                // Parse the file as json
+                JsonObject localeObj = JsonUtils.fromJson(localeStream);
+                JsonElement removed = localeObj.get("removed");
+                if (removed.isJsonArray()) {
+                    for (JsonElement removedElement : removed.getAsJsonArray()) {
+                        REMOVED_KEYS.add(removedElement.getAsString());
+                    }
+                }
+
+                JsonElement renamed = localeObj.get("renamed");
+                if (renamed.isJsonObject()) {
+                    for (Map.Entry<String, JsonElement> renamedElement : renamed.getAsJsonObject().entrySet()) {
+                        REPLACED_KEYS.put(renamedElement.getKey(), renamedElement.getValue().getAsString());
+                    }
+                }
+
+                return true;
+            } catch (FileNotFoundException e){
+                throw new AssertionError(GeyserLocale.getLocaleStringLog("geyser.locale.fail.file", DEPRECATED, e.getMessage()));
+            } catch (Exception e) {
+                throw new AssertionError(GeyserLocale.getLocaleStringLog("geyser.locale.fail.json", DEPRECATED), e);
+            }
+        }
+        return false;
+    }
+
     /**
      * Load and parse a json lang file.
      *
@@ -194,14 +240,15 @@ public class MinecraftLocale {
         // Read the localefile
         try (InputStream localeStream = Files.newInputStream(localeFile, StandardOpenOption.READ)) {
             // Parse the file as json
-            JsonNode localeObj = GeyserImpl.JSON_MAPPER.readTree(localeStream);
+            JsonObject localeObj = JsonUtils.fromJson(localeStream);
 
             // Parse all the locale fields
-            Iterator<Map.Entry<String, JsonNode>> localeIterator = localeObj.fields();
             Map<String, String> langMap = new HashMap<>();
-            while (localeIterator.hasNext()) {
-                Map.Entry<String, JsonNode> entry = localeIterator.next();
-                langMap.put(entry.getKey(), entry.getValue().asText());
+            for (Map.Entry<String, JsonElement> entry : localeObj.entrySet()) {
+                if (REMOVED_KEYS.contains(entry.getKey())) {
+                    continue;
+                }
+                langMap.put(REPLACED_KEYS.getOrDefault(entry.getKey(), entry.getKey()), entry.getValue().getAsString());
             }
             return langMap;
         } catch (FileNotFoundException e){
@@ -212,28 +259,24 @@ public class MinecraftLocale {
     }
 
     /**
-     * Translate the given language string into the given locale, or falls back to the default locale
+     * Translate the given Java language string into the given locale, or falls back to American English.
      *
      * @param messageText Language string to translate
      * @param locale Locale to translate to
      * @return Translated string or the original message if it was not found in the given locale
      */
     public static String getLocaleString(String messageText, String locale) {
-        Map<String, String> localeStrings = LOCALE_MAPPINGS.get(locale.toLowerCase(Locale.ROOT));
-        if (localeStrings == null) {
-            localeStrings = LOCALE_MAPPINGS.get(GeyserLocale.getDefaultLocale());
-            if (localeStrings == null) {
-                // Don't cause a NPE if the locale is STILL missing
-                GeyserImpl.getInstance().getLogger().debug("MISSING DEFAULT LOCALE: " + GeyserLocale.getDefaultLocale());
-                return messageText;
-            }
+        String translated = getLocaleStringIfPresent(messageText, locale);
+        if (translated == null) {
+            // Don't cause a NPE if the string is missing
+            GeyserImpl.getInstance().getLogger().debug("MISSING JAVA TRANSLATION STRING: " + messageText);
+            return messageText;
         }
-
-        return localeStrings.getOrDefault(messageText, messageText);
+        return translated;
     }
 
     /**
-     * Translate the given language string into the given locale, or returns null.
+     * Translate the given Java language string into the given locale, falls back to American English, or returns null.
      *
      * @param messageText Language string to translate
      * @param locale Locale to translate to
@@ -242,9 +285,15 @@ public class MinecraftLocale {
     public static @Nullable String getLocaleStringIfPresent(String messageText, String locale) {
         Map<String, String> localeStrings = LOCALE_MAPPINGS.get(locale.toLowerCase(Locale.ROOT));
         if (localeStrings != null) {
+            String translated = localeStrings.get(messageText);
+            if (translated != null) {
+                return translated;
+            }
+        }
+        localeStrings = LOCALE_MAPPINGS.get("en_us");
+        if (localeStrings != null) {
             return localeStrings.get(messageText);
         }
-
         return null;
     }
 

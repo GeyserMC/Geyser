@@ -40,7 +40,7 @@ public abstract class DialogInput<T> {
     protected final String key;
     protected final String label;
 
-    protected DialogInput(GeyserSession session, NbtMap map) {
+    protected DialogInput(Optional<GeyserSession> session, NbtMap map) {
         this.key = map.getString("key");
         this.label = MessageTranslator.convertFromNullableNbtTag(session, map.get("label"));
     }
@@ -59,7 +59,7 @@ public abstract class DialogInput<T> {
 
     public abstract T defaultValue();
 
-    public static DialogInput<?> read(GeyserSession session, NbtMap tag) {
+    public static DialogInput<?> read(Optional<GeyserSession> session, NbtMap tag) {
         Key type = MinecraftKey.key(tag.getString("type"));
         if (type.equals(BooleanInput.TYPE)) {
             return new BooleanInput(session, tag);

@@ -25,31 +25,43 @@
 
 package org.geysermc.geyser.level.block.property;
 
-import it.unimi.dsi.fastutil.ints.IntArrayList;
-import it.unimi.dsi.fastutil.ints.IntList;
+import java.util.Locale;
+import java.util.Optional;
 
 public final class EnumProperty<T extends Enum<T>> extends Property<T> {
-    private final IntList ordinalValues;
+    private final T[] values;
 
     /**
      * @param values all possible values of this enum.
      */
     private EnumProperty(String name, T[] values) {
         super(name);
-        this.ordinalValues = new IntArrayList(values.length);
-        for (T anEnum : values) {
-            this.ordinalValues.add(anEnum.ordinal());
-        }
+        this.values = values;
     }
 
     @Override
     public int valuesCount() {
-        return this.ordinalValues.size();
+        return values.length;
     }
 
     @Override
     public int indexOf(T value) {
-        return this.ordinalValues.indexOf(value.ordinal());
+        for (int i = 0; i < values.length; i++) {
+            if (value == values[i]) {
+                return i;
+            }
+        }
+        throw new IllegalArgumentException("Property " + this + " does not have value " + value);
+    }
+
+    @Override
+    public Optional<T> valueOf(String string) {
+        for (T value : values) {
+            if (value.name().toLowerCase(Locale.ROOT).equals(string)) {
+                return Optional.of(value);
+            }
+        }
+        return Optional.empty();
     }
 
     @SafeVarargs

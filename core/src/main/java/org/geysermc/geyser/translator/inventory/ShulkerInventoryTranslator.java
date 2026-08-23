@@ -53,7 +53,7 @@ public class ShulkerInventoryTranslator extends AbstractBlockInventoryTranslator
             private final BlockEntityTranslator shulkerBoxTranslator = Registries.BLOCK_ENTITIES.get(BlockEntityType.SHULKER_BOX);
 
             @Override
-            protected boolean isValidBlock(BlockState blockState) {
+            protected boolean isValidBlock(GeyserSession session, Vector3i position, BlockState blockState) {
                 return blockState.block().javaIdentifier().value().contains("shulker_box"); // TODO ew
             }
 

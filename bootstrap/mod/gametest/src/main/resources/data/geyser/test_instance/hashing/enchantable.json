@@ -1,0 +1,15 @@
+{
+  "type": "geyser:component_hash",
+  "component": "minecraft:enchantable",
+  "value": [
+    {
+      "value": 5
+    },
+    {
+      "value": 6
+    },
+    {
+      "value": 7
+    }
+  ]
+}

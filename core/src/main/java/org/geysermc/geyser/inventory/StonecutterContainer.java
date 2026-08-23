@@ -45,7 +45,7 @@ public class StonecutterContainer extends Container {
 
     @Override
     public void setItem(int slot, @NonNull GeyserItemStack newItem, GeyserSession session) {
-        if (slot == 0 && newItem.getJavaId() != items[slot].getJavaId()) {
+        if (slot == 0 && !newItem.isSameItem(items[slot])) {
             // The pressed stonecutter button output resets whenever the input item changes
             this.stonecutterButton = -1;
         }

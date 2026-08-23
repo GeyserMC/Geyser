@@ -1,0 +1,14 @@
+{
+  "type": "geyser:component_hash",
+  "component": "minecraft:block_state",
+  "value": [
+    {},
+    {
+      "facing": "west"
+    },
+    {
+      "facing": "east",
+      "powered": "true"
+    }
+  ]
+}

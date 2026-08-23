@@ -1,0 +1,9 @@
+{
+  "type": "geyser:component_hash",
+  "component": "minecraft:note_block_sound",
+  "value": [
+    "geyser:cool_sound",
+    "geyser:a_better_note_block_sound",
+    "geyser:snapshot_rawr"
+  ]
+}

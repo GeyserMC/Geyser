@@ -1,0 +1,75 @@
+{
+  "type": "geyser:component_hash",
+  "component": "minecraft:blocks_attacks",
+  "value": [
+    {},
+    {
+      "block_delay_seconds": 5.0
+    },
+    {
+      "disable_cooldown_scale": 0.5
+    },
+    {
+      "damage_reductions": [
+        {
+          "type": "minecraft:arrow",
+          "base": 5.0,
+          "factor": 0.4,
+          "horizontal_blocking_angle": 360.0
+        }
+      ]
+    },
+    {
+      "damage_reductions": [
+        {
+          "base": 0.1,
+          "factor": 4.3
+        }
+      ]
+    },
+    {
+      "damage_reductions": [
+        {
+          "base": 4.2,
+          "factor": 0.3,
+          "horizontal_blocking_angle": 60
+        },
+        {
+          "type": "#minecraft:bypasses_enchantments",
+          "base": 0.5,
+          "factor": 0.0
+        }
+      ]
+    },
+    {
+      "item_damage": {
+        "threshold": 3.0,
+        "base": 1.4,
+        "factor": 0.4
+      }
+    },
+    {
+      "block_sound": "minecraft:block.heavy_core.break",
+      "disabled_sound": {
+        "sound_id": "geyser:rory_rawr",
+        "range": 160.0
+      }
+    },
+    {
+      "bypassed_by": [
+        "minecraft:player_attack",
+        "minecraft:campfire"
+      ]
+    },
+    {
+      "block_delay_seconds": 5.0,
+      "disable_cooldown_scale": 0.5,
+      "item_damage": {
+        "threshold": 0.5,
+        "base": 3.5,
+        "factor": 2.3
+      },
+      "bypassed_by": "#minecraft:bypasses_armor"
+    }
+  ]
+}

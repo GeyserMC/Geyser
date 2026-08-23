@@ -1,0 +1,39 @@
+{
+  "type": "geyser:component_hash",
+  "components": [
+    {
+      "component": "minecraft:enchantments",
+      "value": [
+        {
+          "minecraft:sharpness": 5,
+          "minecraft:sweeping_edge": 3,
+          "minecraft:knockback": 2
+        },
+        {
+          "minecraft:looting": 255
+        },
+        {
+          "minecraft:efficiency": 5,
+          "minecraft:silk_touch": 1
+        }
+      ]
+    },
+    {
+      "component": "minecraft:stored_enchantments",
+      "value": [
+        {
+          "minecraft:respiration": 3,
+          "minecraft:protection": 4,
+          "minecraft:unbreaking": 3
+        },
+        {
+          "minecraft:mending": 1
+        },
+        {
+          "minecraft:quick_charge": 2,
+          "minecraft:power": 3
+        }
+      ]
+    }
+  ]
+}

@@ -33,19 +33,19 @@ import org.geysermc.geyser.api.entity.EntityData;
 import org.geysermc.geyser.api.entity.type.GeyserEntity;
 import org.geysermc.geyser.api.entity.type.player.GeyserPlayerEntity;
 import org.geysermc.geyser.entity.type.Entity;
+import org.geysermc.geyser.input.InputLocksFlag;
 import org.geysermc.geyser.session.GeyserSession;
 
-import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class GeyserEntityData implements EntityData {
 
     private final GeyserSession session;
-
-    private final Set<UUID> movementLockOwners = new HashSet<>();
+    private final Set<UUID> movementLockOwners = ConcurrentHashMap.newKeySet();
 
     public GeyserEntityData(GeyserSession session) {
         this.session = session;
@@ -59,6 +59,30 @@ public class GeyserEntityData implements EntityData {
     }
 
     @Override
+    public @Nullable GeyserEntity byJavaId(@NonNegative int javaId) {
+        //noinspection ConstantValue
+        if (javaId < 0) {
+            throw new IllegalArgumentException("entity id cannot be negative! (got: " + javaId + ")");
+        }
+        return session.getEntityCache().getEntityByJavaId(javaId);
+    }
+
+    @Override
+    public @Nullable GeyserEntity byUuid(@NonNull UUID javaUuid) {
+        Objects.requireNonNull(javaUuid, "javaUuid");
+        return session.getEntityCache().getEntityByUuid(javaUuid);
+    }
+
+    @Override
+    public @Nullable GeyserEntity byGeyserId(@NonNegative long geyserId) {
+        //noinspection ConstantValue
+        if (geyserId < 0) {
+            throw new IllegalArgumentException("geyser entity id cannot be negative! (got: " + geyserId + ")");
+        }
+        return session.getEntityCache().getEntityByGeyserId(geyserId);
+    }
+
+    @Override
     public void showEmote(@NonNull GeyserPlayerEntity emoter, @NonNull String emoteId) {
         Objects.requireNonNull(emoter, "emoter must not be null!");
         Entity entity = (Entity) emoter;
@@ -67,7 +91,7 @@ public class GeyserEntityData implements EntityData {
         }
 
         EmotePacket packet = new EmotePacket();
-        packet.setRuntimeEntityId(entity.getGeyserId());
+        packet.setRuntimeEntityId(entity.geyserId());
         packet.setXuid("");
         packet.setPlatformId(""); // BDS sends empty
         packet.setEmoteId(emoteId);
@@ -88,7 +112,10 @@ public class GeyserEntityData implements EntityData {
             movementLockOwners.remove(owner);
         }
 
-        session.lockInputs(session.camera().isCameraLocked(), isMovementLocked());
+        session.executeInEventLoop(() -> {
+            session.setLockInput(InputLocksFlag.MOVEMENT, isMovementLocked());
+            session.updateInputLocks();
+        });
         return isMovementLocked();
     }
 

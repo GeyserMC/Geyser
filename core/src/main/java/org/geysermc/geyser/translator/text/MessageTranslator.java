@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2025 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,10 +25,16 @@
 
 package org.geysermc.geyser.translator.text;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.JoinConfiguration;
-import net.kyori.adventure.text.ScoreComponent;
 import net.kyori.adventure.text.TranslatableComponent;
+import net.kyori.adventure.text.TranslationArgument;
 import net.kyori.adventure.text.flattener.ComponentFlattener;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.Style;
@@ -49,17 +55,11 @@ import org.geysermc.geyser.text.ChatColor;
 import org.geysermc.geyser.text.ChatDecoration;
 import org.geysermc.geyser.text.DummyLegacyHoverEventSerializer;
 import org.geysermc.geyser.text.GeyserLocale;
-import org.geysermc.geyser.text.GsonComponentSerializerWrapper;
 import org.geysermc.geyser.text.MinecraftTranslationRegistry;
 import org.geysermc.mcprotocollib.protocol.data.DefaultComponentSerializer;
 import org.geysermc.mcprotocollib.protocol.data.game.Holder;
 import org.geysermc.mcprotocollib.protocol.data.game.chat.ChatType;
 import org.geysermc.mcprotocollib.protocol.data.game.chat.ChatTypeDecoration;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
-import java.util.regex.Pattern;
 
 public class MessageTranslator {
     // These are used for handling the translations of the messages
@@ -71,23 +71,22 @@ public class MessageTranslator {
 
     private static final LegacyComponentSerializer BEDROCK_SERIALIZER;
     private static final String BEDROCK_COLORS;
+    private static final String BEDROCK_DECORATIONS;
 
     // Legacy formatting character
-    private static final String BASE = "\u00a7";
+    private static final String BASE = "§";
 
     // Reset character
     private static final String RESET = BASE + "r";
-    private static final Pattern RESET_PATTERN = Pattern.compile("(" + RESET + "){2,}");
+    private static final Pattern LOCALIZATION_PATTERN = Pattern.compile("%(?:(\\d+)\\$)?s");
 
     static {
-        // Temporary fix for https://github.com/KyoriPowered/adventure/issues/447 - TODO resolve properly
-        GsonComponentSerializer source = DefaultComponentSerializer.get()
+        GSON_SERIALIZER = DefaultComponentSerializer.get()
                 .toBuilder()
                 // Use a custom legacy hover event deserializer since we don't use any of this data anyway, and
                 // fixes issues where legacy hover events throw deserialization errors
                 .legacyHoverEventSerializer(new DummyLegacyHoverEventSerializer())
                 .build();
-        GSON_SERIALIZER = new GsonComponentSerializerWrapper(source);
         // Tell MCProtocolLib to use this serializer, too.
         DefaultComponentSerializer.set(GSON_SERIALIZER);
 
@@ -109,25 +108,74 @@ public class MessageTranslator {
         formats.add(CharacterAndFormat.characterAndFormat('s', TextColor.color(44, 186, 168))); // Diamond
         formats.add(CharacterAndFormat.characterAndFormat('t', TextColor.color(33, 73, 123))); // Lapis
         formats.add(CharacterAndFormat.characterAndFormat('u', TextColor.color(154, 92, 198))); // Amethyst
+        formats.add(CharacterAndFormat.characterAndFormat('v', TextColor.color(235, 114, 20))); // Resin
 
-        // Can be removed once Adventure 1.15.0 is released (see https://github.com/KyoriPowered/adventure/pull/954)
         ComponentFlattener flattener = ComponentFlattener.basic().toBuilder()
-                .mapper(ScoreComponent.class, component -> "")
-                .build();
+            .nestingLimit(30)
+            .complexMapper(TranslatableComponent.class, (translatable, consumer) -> {
+                final String translated = translatable.key();
+                final Matcher matcher = LOCALIZATION_PATTERN.matcher(translated);
+                final List<TranslationArgument> args = translatable.arguments();
+                int argPosition = 0;
+                int lastIdx = 0;
+                while (matcher.find()) {
+                    // append prior
+                    if (lastIdx < matcher.start()) {
+                        consumer.accept(Component.text(translated.substring(lastIdx, matcher.start())));
+                    }
+                    lastIdx = matcher.end();
+
+                    final @Nullable String argIdx = matcher.group(1);
+                    // calculate argument position
+                    if (argIdx != null) {
+                        try {
+                            final int idx = Integer.parseInt(argIdx) - 1;
+                            if (idx < args.size()) {
+                                consumer.accept(args.get(idx).asComponent());
+                            }
+                        } catch (final NumberFormatException ex) {
+                            // ignore, drop the format placeholder
+                        }
+                    } else {
+                        final int idx = argPosition++;
+                        if (idx < args.size()) {
+                            consumer.accept(args.get(idx).asComponent());
+                        }
+                    }
+                }
+
+                // append tail
+                if (lastIdx < translated.length()) {
+                    consumer.accept(Component.text(translated.substring(lastIdx)));
+                }
+            })
+            .build();
 
         BEDROCK_SERIALIZER = LegacyComponentSerializer.legacySection().toBuilder()
                 .formats(formats)
                 .flattener(flattener)
                 .build();
 
-        // cache all the legacy character codes
+        // Cache all the legacy character codes and formats
+
         StringBuilder colorBuilder = new StringBuilder();
+        StringBuilder decorationBuilder = new StringBuilder();
+
         for (CharacterAndFormat format : formats) {
             if (format.format() instanceof TextColor) {
                 colorBuilder.append(format.character());
             }
+            if (format.format() instanceof TextDecoration) {
+                decorationBuilder.append(format.character());
+            }
         }
+
         BEDROCK_COLORS = colorBuilder.toString();
+        BEDROCK_DECORATIONS = decorationBuilder.toString();
+
+        if (BEDROCK_COLORS.length() + BEDROCK_DECORATIONS.length() > 32) {
+            throw new AssertionError("Cannot exceed 32 characters due to int-limit on formatting flags");
+        }
     }
 
     /**
@@ -168,76 +216,110 @@ public class MessageTranslator {
     }
 
     private static String convertMessage(Component message, String locale, boolean addLeadingResetFormat) {
+        // Converting messages is quite a hot path, so the code is a bit less optimized for reading and more optimized for performance.
         try {
             // Translate any components that require it
             message = RENDERER.render(message, locale);
 
             String legacy = BEDROCK_SERIALIZER.serialize(message);
+            int legacyLength = legacy.length();
 
-            StringBuilder finalLegacy = new StringBuilder();
-            char[] legacyChars = legacy.toCharArray();
-            boolean lastFormatReset = !addLeadingResetFormat;
-            for (int i = 0; i < legacyChars.length; i++) {
-                char legacyChar = legacyChars[i];
-                if (legacyChar != ChatColor.ESCAPE || i >= legacyChars.length - 1) {
-                    // No special formatting for Bedrock needed
-                    // Or, we're at the end of the string
+            // We need to allocate at least the length of the original message, it can only grow
+            StringBuilder finalLegacy = new StringBuilder(legacyLength + (addLeadingResetFormat ? 2 : 0));
+            if (addLeadingResetFormat) finalLegacy.append(RESET);
+
+            // A bit for each possible legacy color & formatting, since it's already been converted to legacy colors at this point.
+            int appliedFormatting = 0;
+
+            boolean lastFormatReset = addLeadingResetFormat;
+
+            for (int i = 0; i < legacyLength; i++) {
+                char legacyChar = legacy.charAt(i);
+                if (legacyChar != ChatColor.ESCAPE || i == legacyLength - 1) {
+                    // No special formatting for Bedrock needed, or we're at the end of the string.
+                    // If the string ends with an escape then Java will silently ignore it. We don't have to remove it.
                     finalLegacy.append(legacyChar);
                     lastFormatReset = false;
+
+                    // However, it can still be a newline.
+                    if (legacyChar == '\n' && appliedFormatting != 0) {
+                        // If there's a new line, then we need to readd the formatting.
+                        // Java does continue with the same formatting, but Bedrock doesn't.
+                        applyFormattingFlags(appliedFormatting, finalLegacy);
+                    }
                     continue;
                 }
 
-                char next = legacyChars[++i];
-                if (BEDROCK_COLORS.indexOf(next) != -1) {
-                    // Unlike Java Edition, the ChatFormatting is not reset when a ChatColor is added
-                    if (!lastFormatReset) {
-                        finalLegacy.append(RESET);
-                    }
+                char next = legacy.charAt(++i);
+                if (lastFormatReset && next == 'r') {
+                    // If we have two resets in a row, skip the second one.
+                    continue;
+                }
+
+                if (!lastFormatReset && BEDROCK_COLORS.indexOf(next) != -1 && appliedFormatting != 0) {
+                    // Unlike Java Edition, the chat formatting (e.g. bold) is not reset when a ChatColor is added
+                    finalLegacy.append(RESET);
                 }
                 finalLegacy.append(BASE).append(next);
                 lastFormatReset = next == 'r';
+
+                // Store formatting so we can restore it if there are newlines.
+                appliedFormatting = setFormattingFlag(appliedFormatting, next);
             }
 
-            String finalLegacyString = finalLegacy.toString();
+            // Remove dangling tail paragraph sign just like Java Edition does, and remove tail reset
+            int tailRemove = 0;
+            if (endsWith(finalLegacy, BASE)) tailRemove += BASE.length();
+            if (endsWith(finalLegacy, RESET)) tailRemove += RESET.length();
 
-            // Remove duplicate resets and trailing resets
-            finalLegacyString = RESET_PATTERN.matcher(finalLegacyString).replaceAll(RESET);
-            if (finalLegacyString.endsWith(RESET)) {
-                finalLegacyString = finalLegacyString.substring(0, finalLegacyString.length() - 2);
+            if (tailRemove > 0) {
+                return finalLegacy.substring(0, finalLegacy.length() - tailRemove);
             }
 
-            // If the message contains \n then go through and re-set the color after each by caching the last color
-            // Bedrock is dumb and resets the color after a newline
-            if (finalLegacyString.contains("\n")) {
-                StringBuilder output = new StringBuilder();
-
-                StringBuilder lastColors = new StringBuilder();
-                for (int i = 0; i < finalLegacyString.length(); i++) {
-                    char c = finalLegacyString.charAt(i);
-
-                    output.append(c);
-
-                    if (c == ChatColor.ESCAPE) {
-                        char newColor = finalLegacyString.charAt(i + 1);
-                        if (newColor == 'r') {
-                            lastColors = new StringBuilder();
-                        } else {
-                            lastColors.append(ChatColor.ESCAPE).append(newColor);
-                        }
-                    } else if (c == '\n' && !lastColors.isEmpty()) {
-                        output.append(lastColors);
-                    }
-                }
-
-                return output.toString();
-            } else {
-                return finalLegacyString;
-            }
+            return finalLegacy.toString();
         } catch (Exception e) {
             GeyserImpl.getInstance().getLogger().debug(GSON_SERIALIZER.serialize(message));
             GeyserImpl.getInstance().getLogger().error("Failed to parse message", e);
 
             return "";
+        }
+    }
+
+    private static int setFormattingFlag(int flags, char format) {
+        // Reset resets all formatting, and is registered as neither a color nor decoration.
+        if (format == 'r') {
+            return 0;
+        }
+
+        int index = BEDROCK_COLORS.indexOf(format);
+        if (index == -1) {
+            index = BEDROCK_DECORATIONS.indexOf(format);
+            if (index == -1) {
+                // Just silently ignore if it's an unknown format
+                return flags;
+            }
+
+            // You can have multiple decorations.
+            return flags | (1 << (BEDROCK_COLORS.length() + index));
+        }
+
+        // Colors reset all formatting on Java Edition. Note that Bedrock Edition doesn't do this,
+        // but the method callee makes sure that a reset is added.
+        return 1 << index;
+    }
+
+    private static void applyFormattingFlags(int flags, StringBuilder builder) {
+        int colorCount = BEDROCK_COLORS.length();
+
+        for (int i = 0; i < colorCount; i++) {
+            if (((flags >> i) & 0x01) == 0x01) {
+                builder.append(BASE).append(BEDROCK_COLORS.charAt(i));
+            }
+        }
+        for (int i = 0; i < BEDROCK_DECORATIONS.length(); i++) {
+            if (((flags >> (i + colorCount)) & 0x01) == 0x01) {
+                builder.append(BASE).append(BEDROCK_DECORATIONS.charAt(i));
+            }
         }
     }
 
@@ -296,17 +378,6 @@ public class MessageTranslator {
     }
 
     /**
-     * Convert a Bedrock message string back to a format Java can understand
-     *
-     * @param message Message to convert
-     * @return The formatted JSON string
-     */
-    public static String convertToJavaMessage(String message) {
-        Component component = BEDROCK_SERIALIZER.deserialize(message);
-        return GSON_SERIALIZER.serialize(component);
-    }
-
-    /**
      * Convert a Java message to plain text
      *
      * @param message Message to convert
@@ -326,19 +397,23 @@ public class MessageTranslator {
      * @param message Message to convert
      * @return The plain text of the message
      */
-    public static String convertToPlainText(String message) {
-        char[] input = message.toCharArray();
-        char[] output = new char[input.length];
-        int outputSize = 0;
-        for (int i = 0, inputLength = input.length; i < inputLength; i++) {
-            char c = input[i];
-            if (c == ChatColor.ESCAPE) {
-                i++;
-            } else {
-                output[outputSize++] = c;
+    public static String convertIncomingToPlainText(String message) {
+        GeyserImpl instance = GeyserImpl.getInstance();
+        if (instance == null || instance.config().gameplay().blockLegacyCodes()) {
+            char[] input = message.toCharArray();
+            char[] output = new char[input.length];
+            int outputSize = 0;
+            for (int i = 0, inputLength = input.length; i < inputLength; i++) {
+                char c = input[i];
+                if (c == ChatColor.ESCAPE) {
+                    i++;
+                } else {
+                    output[outputSize++] = c;
+                }
             }
+            return new String(output, 0, outputSize);
         }
-        return new String(output, 0, outputSize);
+        return message;
     }
 
     /**
@@ -414,7 +489,7 @@ public class MessageTranslator {
             textPacket.setMessage(MessageTranslator.convertMessage(withDecoration.build(), session.locale()));
         } else {
             session.getGeyser().getLogger().debug("Likely illegal chat type detection found.");
-            if (session.getGeyser().getConfig().isDebugMode()) {
+            if (session.getGeyser().config().debugMode()) {
                 Thread.dumpStack();
             }
             textPacket.setMessage(MessageTranslator.convertMessage(message, session.locale()));
@@ -490,11 +565,15 @@ public class MessageTranslator {
         return convertMessageForTooltip(parsed, session.locale());
     }
 
-    public static @Nullable String convertFromNullableNbtTag(GeyserSession session, @Nullable Object nbtTag) {
+    /**
+     * Should only be used by {@link org.geysermc.geyser.session.cache.RegistryCache.RegistryReader}s, as these do not always have a {@link GeyserSession} available.
+     */
+    public static @Nullable String convertFromNullableNbtTag(Optional<GeyserSession> session, @Nullable Object nbtTag) {
         if (nbtTag == null) {
             return null;
         }
-        return convertMessage(session, componentFromNbtTag(nbtTag));
+        return session.map(present -> convertMessage(present, componentFromNbtTag(nbtTag)))
+            .orElse("MISSING GEYSER SESSION");
     }
 
     public static Component componentFromNbtTag(Object nbtTag) {
@@ -565,8 +644,8 @@ public class MessageTranslator {
         Style.Builder style = Style.style();
 
         String colorString = map.getString("color", null);
-        if (colorString != null) {
-            if (colorString.startsWith(TextColor.HEX_PREFIX)) {
+        if (colorString != null && !colorString.isEmpty()) {
+            if (colorString.charAt(0) == TextColor.HEX_CHARACTER) {
                 style.color(TextColor.fromHexString(colorString));
             } else {
                 style.color(NamedTextColor.NAMES.value(colorString));
@@ -584,6 +663,13 @@ public class MessageTranslator {
 
     public static Style getStyleFromNbtMap(NbtMap map, Style base) {
         return base.merge(getStyleFromNbtMap(map));
+    }
+
+    private static boolean endsWith(StringBuilder builder, String suffix) {
+        if (builder.length() < suffix.length()) {
+            return false;
+        }
+        return builder.indexOf(suffix, builder.length() - suffix.length()) != -1;
     }
 
     public static void init() {

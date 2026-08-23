@@ -102,7 +102,8 @@ public class AdvancementsCache {
 
         List<String> rootAdvancementIds = new ArrayList<>();
         for (Map.Entry<String, GeyserAdvancement> advancement : storedAdvancements.entrySet()) {
-            if (advancement.getValue().getParentId() == null) { // No parent means this is a root advancement
+            if (advancement.getValue().getParentId() == null // No parent means this is a root advancement
+                    && (isEarned(advancement.getValue()) || !advancement.getValue().getDisplayData().isHidden())) {
                 builder.button(MessageTranslator.convertMessage(advancement.getValue().getDisplayData().getTitle(), session.locale()));
                 rootAdvancementIds.add(advancement.getKey());
             }

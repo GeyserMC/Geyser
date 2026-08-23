@@ -27,14 +27,17 @@ package org.geysermc.geyser.session.cache;
 
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
+import lombok.Getter;
 import lombok.Setter;
 import org.geysermc.geyser.level.block.type.Block;
 import org.geysermc.geyser.level.chunk.GeyserChunk;
+import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.util.MathUtils;
 import org.geysermc.mcprotocollib.protocol.data.game.chunk.DataPalette;
 
 public class ChunkCache {
+    @Getter
     private final boolean cache;
     private final Long2ObjectMap<GeyserChunk> chunks;
 
@@ -66,33 +69,37 @@ public class ChunkCache {
         return chunks.getOrDefault(chunkPosition, null);
     }
 
+    /**
+     * Doesn't check for cache enabled, so don't use this without checking that first!
+     */
+    @Deprecated
+    public DataPalette getChunkSection(int chunkX, int chunkY, int chunkZ, boolean createIfAbsent) {
+        GeyserChunk chunk = this.getChunk(chunkX, chunkZ);
+        if (chunk == null) {
+            return null;
+        }
+
+        if (chunkY < getChunkMinY() || chunkY - getChunkMinY() > chunk.sections().length - 1) {
+            return null;
+        }
+
+        DataPalette palette = chunk.sections()[chunkY - getChunkMinY()];
+        if (createIfAbsent && palette == null) {
+            palette = DataPalette.createForBlockState(Block.JAVA_AIR_ID, BlockRegistries.BLOCK_STATES.get().size());
+            chunk.sections()[chunkY - getChunkMinY()] = palette;
+        }
+
+        return palette;
+    }
+
     public void updateBlock(int x, int y, int z, int block) {
         if (!cache) {
             return;
         }
 
-        GeyserChunk chunk = this.getChunk(x >> 4, z >> 4);
-        if (chunk == null) {
-            return;
-        }
-
-        if (y < minY || ((y - minY) >> 4) > chunk.sections().length - 1) {
-            // Y likely goes above or below the height limit of this world
-            return;
-        }
-
-        DataPalette palette = chunk.sections()[(y - minY) >> 4];
+        DataPalette palette = this.getChunkSection(x >> 4, y >> 4, z >> 4, true);
         if (palette == null) {
-            if (block != Block.JAVA_AIR_ID) {
-                // A previously empty chunk, which is no longer empty as a block has been added to it
-                palette = DataPalette.createForChunk();
-                // Fixes the chunk assuming that all blocks is the `block` variable we are updating. /shrug
-                palette.getPalette().stateToId(Block.JAVA_AIR_ID);
-                chunk.sections()[(y - minY) >> 4] = palette;
-            } else {
-                // Nothing to update
-                return;
-            }
+            return;
         }
 
         palette.set(x & 0xF, y & 0xF, z & 0xF, block);
@@ -103,22 +110,12 @@ public class ChunkCache {
             return Block.JAVA_AIR_ID;
         }
 
-        GeyserChunk column = this.getChunk(x >> 4, z >> 4);
-        if (column == null) {
+        DataPalette palette = this.getChunkSection(x >> 4, y >> 4, z >> 4, false);
+        if (palette == null) {
             return Block.JAVA_AIR_ID;
         }
 
-        if (y < minY || ((y - minY) >> 4) > column.sections().length - 1) {
-            // Y likely goes above or below the height limit of this world
-            return Block.JAVA_AIR_ID;
-        }
-
-        DataPalette chunk = column.sections()[(y - minY) >> 4];
-        if (chunk != null) {
-            return chunk.get(x & 0xF, y & 0xF, z & 0xF);
-        }
-
-        return Block.JAVA_AIR_ID;
+        return palette.get(x & 0xF, y & 0xF, z & 0xF);
     }
 
     public void removeChunk(int chunkX, int chunkZ) {

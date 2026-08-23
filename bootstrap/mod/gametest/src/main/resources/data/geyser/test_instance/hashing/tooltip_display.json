@@ -1,0 +1,21 @@
+{
+  "type": "geyser:component_hash",
+  "component": "minecraft:tooltip_display",
+  "value": [
+    {},
+    {
+      "hide_tooltip": true,
+      "hidden_components": [
+        "minecraft:unbreakable",
+        "minecraft:jukebox_playable"
+      ]
+    },
+    {
+      "hidden_components": [
+        "minecraft:damage",
+        "minecraft:instrument",
+        "minecraft:unbreakable"
+      ]
+    }
+  ]
+}

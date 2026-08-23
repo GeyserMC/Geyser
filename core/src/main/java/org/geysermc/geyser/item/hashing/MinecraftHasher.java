@@ -31,26 +31,32 @@ import net.kyori.adventure.key.Key;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtList;
 import org.cloudburstmc.nbt.NbtMap;
+import org.cloudburstmc.nbt.NbtUtils;
+import org.geysermc.geyser.api.util.Identifier;
 import org.geysermc.geyser.inventory.item.DyeColor;
 import org.geysermc.geyser.item.components.Rarity;
-import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.cache.registry.JavaRegistryProvider;
+import org.geysermc.geyser.util.MinecraftKey;
 import org.geysermc.mcprotocollib.auth.GameProfile;
+import org.geysermc.mcprotocollib.auth.texture.TextureModel;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.EquipmentSlot;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.GlobalPos;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.player.ResolvableProfile;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.Filterable;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.ItemAttributeModifiers;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.Unit;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 
 /**
  * Encodes an object into a {@link HashCode} using a {@link MinecraftHashEncoder}.
@@ -64,7 +70,7 @@ import java.util.stream.IntStream;
  *
  * <ul>
  *     <li>{@link MinecraftHasher#list()} creates a hasher that hashes a list of the objects.</li>
- *     <li>{@link MinecraftHasher#cast(Function)} and {@link MinecraftHasher#sessionCast(BiFunction)} create a new hasher that delegates to this hasher with a converter function.</li>
+ *     <li>{@link MinecraftHasher#cast(Function)} and {@link MinecraftHasher#registryCast(BiFunction)} create a new hasher that delegates to this hasher with a converter function.</li>
  *     <li>{@link MinecraftHasher#filterable()} creates a hasher that hashes a {@link Filterable} instance of the object.</li>
  * </ul>
  *
@@ -106,13 +112,19 @@ public interface MinecraftHasher<Type> {
 
     MinecraftHasher<Boolean> BOOL = (b, encoder) -> encoder.bool(b);
 
-    MinecraftHasher<IntStream> INT_ARRAY = (ints, encoder) -> encoder.intArray(ints.toArray());
+    MinecraftHasher<byte[]> BYTE_ARRAY = (ints, encoder) -> encoder.byteArray(ints);
+
+    MinecraftHasher<int[]> INT_ARRAY = (ints, encoder) -> encoder.intArray(ints);
+
+    MinecraftHasher<long[]> LONG_ARRAY = (ints, encoder) -> encoder.longArray(ints);
 
     MinecraftHasher<NbtMap> NBT_MAP = (map, encoder) -> encoder.nbtMap(map);
 
     MinecraftHasher<NbtList<?>> NBT_LIST = (list, encoder) -> encoder.nbtList(list);
 
-    MinecraftHasher<Vector3i> POS = INT_ARRAY.cast(pos -> IntStream.of(pos.getX(), pos.getY(), pos.getZ()));
+    MinecraftHasher<Vector3i> POS = INT_ARRAY.cast(pos -> new int[]{pos.getX(), pos.getY(), pos.getZ()});
+
+    MinecraftHasher<Object> NBT_STRING = STRING.cast(MinecraftHasher::nbtObjectToCompressedString);
 
     MinecraftHasher<Key> KEY = STRING.cast(Key::asString);
 
@@ -120,10 +132,12 @@ public interface MinecraftHasher<Type> {
 
     MinecraftHasher<Key> KEY_REMOVAL = STRING.cast(key -> '!' + key.asString());
 
+    MinecraftHasher<Identifier> IDENTIFIER = KEY.cast(MinecraftKey::identifierToKey);
+
     MinecraftHasher<UUID> UUID = INT_ARRAY.cast(uuid -> {
         long mostSignificant = uuid.getMostSignificantBits();
         long leastSignificant = uuid.getLeastSignificantBits();
-        return IntStream.of((int) (mostSignificant >> 32), (int) mostSignificant, (int) (leastSignificant >> 32), (int) leastSignificant);
+        return new int[]{(int) (mostSignificant >> 32), (int) mostSignificant, (int) (leastSignificant >> 32), (int) leastSignificant};
     }); // TODO test
 
     MinecraftHasher<GameProfile.Property> GAME_PROFILE_PROPERTY = mapBuilder(builder -> builder
@@ -131,10 +145,17 @@ public interface MinecraftHasher<Type> {
         .accept("value", STRING, GameProfile.Property::getValue)
         .optionalNullable("signature", STRING, GameProfile.Property::getSignature));
 
-    MinecraftHasher<GameProfile> GAME_PROFILE = mapBuilder(builder -> builder
-        .optionalNullable("name", STRING, GameProfile::getName)
-        .optionalNullable("id", UUID, GameProfile::getId)
-        .optionalList("properties", GAME_PROFILE_PROPERTY, GameProfile::getProperties));
+    MinecraftHasher<ResolvableProfile> RESOLVABLE_PROFILE = mapBuilder(builder -> builder
+        .optionalNullable("name", STRING, resolvableProfile -> resolvableProfile.getProfile().getName())
+        .optionalNullable("id", UUID, resolvableProfile -> resolvableProfile.getProfile().getId())
+        .optionalList("properties", GAME_PROFILE_PROPERTY, resolvableProfile -> resolvableProfile.getProfile().getProperties())
+        .optionalNullable("texture", KEY, ResolvableProfile::getBody)
+        .optionalNullable("cape", KEY, ResolvableProfile::getCape)
+        .optionalNullable("elytra", KEY, ResolvableProfile::getElytra)
+        .optional("model", STRING, resolvableProfile -> Optional.ofNullable(resolvableProfile.getModel())
+            .map(TextureModel::name)
+            .map(model -> model.toLowerCase(Locale.ROOT)))
+    );
 
     MinecraftHasher<Integer> RARITY = fromIdEnum(Rarity.values(), Rarity::getName);
 
@@ -179,33 +200,44 @@ public interface MinecraftHasher<Type> {
     }
 
     /**
+     * Casts this hasher to a hasher for {@link Casted}. This cast is done unsafely without converting of any kind, only use this if you are sure the object being encoded is of the type being cast to!
+     *
+     * @param <Casted> the type to cast to.
+     */
+    default <Casted> MinecraftHasher<Casted> cast() {
+        return cast(casted -> (Type) casted);
+    }
+
+    /**
      * "Casts" this hasher to another hash a different object, with a converter method. The returned hasher takes a {@link Casted}, converts it to a {@link Type} using the {@code converter}, and then hashes it.
      *
-     * <p>If a {@link GeyserSession} object is needed for conversion, use {@link MinecraftHasher#sessionCast(BiFunction)}.</p>
+     * <p>If a {@link JavaRegistryProvider} object is needed for conversion, use {@link MinecraftHasher#registryCast(BiFunction)}.</p>
      *
      * @param converter the converter function that converts a {@link Casted} into a {@link Type}.
      * @param <Casted> the type of the new hasher.
-     * @see MinecraftHasher#sessionCast(BiFunction)
+     * @see MinecraftHasher#registryCast(BiFunction)
      */
     default <Casted> MinecraftHasher<Casted> cast(Function<Casted, Type> converter) {
         return (value, encoder) -> hash(converter.apply(value), encoder);
     }
 
     /**
-     * Like {@link MinecraftHasher#cast(Function)}, but has access to {@link GeyserSession}.
+     * Like {@link MinecraftHasher#cast(Function)}, but has access to {@link JavaRegistryProvider}.
      *
      * @param converter the converter function.
      * @param <Casted> the type of the new hasher.
      * @see MinecraftHasher#cast(Function)
      */
-    default <Casted> MinecraftHasher<Casted> sessionCast(BiFunction<GeyserSession, Casted, Type> converter) {
-        return (value, encoder) -> hash(converter.apply(encoder.session(), value), encoder);
+    default <Casted> MinecraftHasher<Casted> registryCast(BiFunction<JavaRegistryProvider, Casted, Type> converter) {
+        return (value, encoder) -> hash(converter.apply(encoder.registries(), value), encoder);
     }
 
     /**
      * Delegates to {@link MinecraftHasher#dispatch(String, Function, Function)}, uses {@code "type"} as the {@code typeKey}.
      *
      * @see MinecraftHasher#dispatch(String, Function, Function)
+     * @see MapBuilder#dispatch(MinecraftHasher, Function, Function)
+     * @see MapBuilder#dispatch(String, MinecraftHasher, Function, Function)
      */
     default <Dispatched> MinecraftHasher<Dispatched> dispatch(Function<Dispatched, Type> typeExtractor, Function<Type, MapBuilder<Dispatched>> hashDispatch) {
         return dispatch("type", typeExtractor, hashDispatch);
@@ -217,15 +249,17 @@ public interface MinecraftHasher<Type> {
      *
      * <p>This can be used to create hashers that hash an abstract type or interface into a map with different keys depending on the type.</p>
      *
+     * <p>Internally this simply delegates to and wraps {@link MapBuilder#dispatch(String, MinecraftHasher, Function, Function)} in {@link MinecraftHasher#mapBuilder(MapBuilder)},
+     * using {@code this} as {@code typeHasher}.</p>
+     *
      * @param typeKey the key to store the {@link Type} in.
      * @param typeExtractor the function that extracts a {@link Type} from a {@link Dispatched}.
      * @param mapDispatch the function that provides a {@link MapBuilder} based on a {@link Type}.
      * @param <Dispatched> the type of the new hasher.
+     * @see MapBuilder#dispatch(String, MinecraftHasher, Function, Function)
      */
     default <Dispatched> MinecraftHasher<Dispatched> dispatch(String typeKey, Function<Dispatched, Type> typeExtractor, Function<Type, MapBuilder<Dispatched>> mapDispatch) {
-        return mapBuilder(builder -> builder
-            .accept(typeKey, this, typeExtractor)
-            .accept(typeExtractor, mapDispatch));
+        return mapBuilder(MapBuilder.dispatch(typeKey, this, typeExtractor, mapDispatch));
     }
 
     /**
@@ -379,5 +413,47 @@ public interface MinecraftHasher<Type> {
      */
     static <Type> MinecraftHasher<Type> dispatch(Function<Type, MinecraftHasher<Type>> hashDispatch) {
         return (value, encoder) -> hashDispatch.apply(value).hash(value, encoder);
+    }
+
+    private static String nbtObjectToCompressedString(Object object) {
+        // Can't just use NbtUtils.toString for everything because there are some differences with how Mojang does it
+        if (object instanceof NbtMap map) {
+            // Mojang compares entries by key when converting a NbtMap to a string
+            // See StringTagVisitor#visitCompound
+            List<Map.Entry<String, Object>> entries = new ArrayList<>(map.entrySet());
+            entries.sort(Map.Entry.comparingByKey());
+
+            // Manually converting to string because Mojang does not do newlines or spaces/indents,
+            // and doesn't put quotes for keys without spaces
+            // This will break for keys with quotes, but honestly, Cloud should just expand for this
+            StringBuilder mapString = new StringBuilder("{");
+            for (int i = 0; i < entries.size(); i++) {
+                Map.Entry<String, Object> entry = entries.get(i);
+                if (entry.getKey().contains(" ")) {
+                    mapString.append('"').append(entry.getKey()).append('"');
+                } else {
+                    mapString.append(entry.getKey());
+                }
+                mapString.append(':');
+                mapString.append(nbtObjectToCompressedString(entry.getValue()));
+                if (i < entries.size() - 1) {
+                    mapString.append(',');
+                }
+            }
+            mapString.append('}');
+            return mapString.toString();
+        } else if (object instanceof NbtList<?> list) {
+            // Same as above
+            StringBuilder listString = new StringBuilder("[");
+            for (int i = 0; i < list.size(); i++) {
+                listString.append(nbtObjectToCompressedString(list.get(i)));
+                if (i < list.size() - 1) {
+                    listString.append(',');
+                }
+            }
+            listString.append(']');
+            return listString.toString();
+        }
+        return NbtUtils.toString(object).replaceAll("\\n *", "");
     }
 }

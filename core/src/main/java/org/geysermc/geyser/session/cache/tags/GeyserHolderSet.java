@@ -57,6 +57,7 @@ import java.util.function.ToIntFunction;
  */
 @Data
 public final class GeyserHolderSet<T> {
+    private static final int[] EMPTY = new int[0];
 
     private final JavaRegistryKey<T> registry;
     private final @Nullable Tag<T> tag;
@@ -87,12 +88,26 @@ public final class GeyserHolderSet<T> {
     }
 
     /**
+     * Constructs an empty {@link GeyserHolderSet}.
+     */
+    public static <T> GeyserHolderSet<T> empty(JavaRegistryKey<T> registry) {
+        return new GeyserHolderSet<>(registry, EMPTY);
+    }
+
+    /**
      * Constructs a {@link GeyserHolderSet} from a MCPL HolderSet.
      */
     public static <T> GeyserHolderSet<T> fromHolderSet(JavaRegistryKey<T> registry, @NonNull HolderSet holderSet) {
         // MCPL HolderSets don't have to support inline elements... for now (TODO CHECK ME)
         Tag<T> tag = holderSet.getLocation() == null ? null : new Tag<>(registry, holderSet.getLocation());
         return new GeyserHolderSet<>(registry, tag, holderSet.getHolders(), null);
+    }
+
+    public boolean contains(@NonNull GeyserSession session, @Nullable T object) {
+        if (object == null) {
+            return false;
+        }
+        return session.getTagCache().is(this, object);
     }
 
     /**
@@ -180,7 +195,7 @@ public final class GeyserHolderSet<T> {
         } else if (holderSet instanceof List<?> list) {
             if (list.isEmpty()) {
                 return new GeyserHolderSet<>(registry);
-            } else if (list.get(0) instanceof NbtMap) {
+            } else if (list.getFirst() instanceof NbtMap) {
                 if (reader != null) {
                     return new GeyserHolderSet<>(registry, list.stream().map(o -> (NbtMap) o).map(reader).toList());
                 }

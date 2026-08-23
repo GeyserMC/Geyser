@@ -306,7 +306,7 @@ public abstract class InventoryTranslator<Type extends Inventory> {
                 case PLACE: {
                     TransferItemStackRequestAction transferAction = (TransferItemStackRequestAction) action;
                     if (!(checkNetId(session, inventory, transferAction.getSource()) && checkNetId(session, inventory, transferAction.getDestination()))) {
-                        if (session.getGeyser().getConfig().isDebugMode()) {
+                        if (session.getGeyser().config().debugMode()) {
                             session.getGeyser().getLogger().error("DEBUG: About to reject TAKE/PLACE request made by " + session.bedrockUsername());
                             dumpStackRequestDetails(session, inventory, transferAction.getSource(), transferAction.getDestination());
                         }
@@ -329,8 +329,7 @@ public abstract class InventoryTranslator<Type extends Inventory> {
                         if (destSlot == 5) {
                             // only set the head if the destination is the head slot
                             GeyserItemStack javaItem = inventory.getItem(sourceSlot);
-                            if (javaItem.asItem() == Items.PLAYER_HEAD
-                                    && javaItem.hasNonBaseComponents()) {
+                            if (javaItem.is(Items.PLAYER_HEAD) && javaItem.hasNonBaseComponents()) {
                                 FakeHeadProvider.setHead(session, session.getPlayerEntity(), javaItem.getComponent(DataComponentTypes.PROFILE));
                             }
                         } else if (sourceSlot == 5) {
@@ -478,7 +477,7 @@ public abstract class InventoryTranslator<Type extends Inventory> {
                     ItemStackRequestSlotData destination = swapAction.getDestination();
 
                     if (!(checkNetId(session, inventory, source) && checkNetId(session, inventory, destination))) {
-                        if (session.getGeyser().getConfig().isDebugMode()) {
+                        if (session.getGeyser().config().debugMode()) {
                             session.getGeyser().getLogger().error("DEBUG: About to reject SWAP request made by " + session.bedrockUsername());
                             dumpStackRequestDetails(session, inventory, source, destination);
                         }
@@ -604,7 +603,8 @@ public abstract class InventoryTranslator<Type extends Inventory> {
                 case CRAFT_RESULTS_DEPRECATED: // Tends to be called for UI inventories
                 case CRAFT_RECIPE_OPTIONAL: // Anvils and cartography tables will handle this
                 case CRAFT_LOOM: // Looms 1.17.40+
-                case CRAFT_REPAIR_AND_DISENCHANT: { // Grindstones 1.17.40+
+                case CRAFT_REPAIR_AND_DISENCHANT: // Grindstones 1.17.40+
+                case MINE_BLOCK: { // server-auth block breaking, confirming durability
                     break;
                 }
                 default:
@@ -875,7 +875,7 @@ public abstract class InventoryTranslator<Type extends Inventory> {
                     int javaSlot = bedrockSlotToJava(transferAction.getDestination());
                     if (isCursor(transferAction.getDestination())) { //TODO
                         if (timesCrafted > 1) {
-                            tempSlot = findTempSlot(plan, GeyserItemStack.from(output), true);
+                            tempSlot = findTempSlot(plan, GeyserItemStack.from(session, output), true);
                             if (tempSlot == -1) {
                                 return rejectRequest(request);
                             }
@@ -923,7 +923,7 @@ public abstract class InventoryTranslator<Type extends Inventory> {
             }
         }
 
-        inventory.setItem(0, GeyserItemStack.from(output), session);
+        inventory.setItem(0, GeyserItemStack.from(session, output), session);
         plan.execute(true);
         return acceptRequest(request, makeContainerEntries(session, inventory, plan.getAffectedSlots()));
     }
@@ -984,7 +984,7 @@ public abstract class InventoryTranslator<Type extends Inventory> {
      *                   as bad (false).
      */
     protected static ItemStackResponse rejectRequest(ItemStackRequest request, boolean throwError) {
-        if (throwError && GeyserImpl.getInstance().getConfig().isDebugMode()) {
+        if (throwError && GeyserImpl.getInstance().config().debugMode()) {
             new Throwable("DEBUGGING: ItemStackRequest rejected " + request.toString()).printStackTrace();
         }
         return new ItemStackResponse(ItemStackResponseStatus.ERROR, request.getRequestId(), Collections.emptyList());

@@ -111,7 +111,7 @@ public class GeyserNeoForgeBootstrap extends GeyserModBootstrap {
 
     @Override
     public boolean isServer() {
-        return FMLLoader.getDist().isDedicatedServer();
+        return FMLLoader.getCurrent().getDist().isDedicatedServer();
     }
 
     private void onPermissionGather(PermissionGatherEvent.Nodes event) {

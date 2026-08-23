@@ -34,8 +34,8 @@ import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.skin.FakeHeadProvider;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
-import org.geysermc.mcprotocollib.auth.GameProfile;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.Equipment;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.player.ResolvableProfile;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentTypes;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.entity.ClientboundSetEquipmentPacket;
 
@@ -50,7 +50,7 @@ public class JavaSetEquipmentTranslator extends PacketTranslator<ClientboundSetE
 
         if (!(entity instanceof LivingEntity livingEntity)) {
             session.getGeyser().getLogger().debug("Attempted to add armor to a non-living entity (" +
-                    entity.getDefinition().identifier() + ").");
+                    entity.definition().identifier() + ").");
             return;
         }
 
@@ -58,11 +58,11 @@ public class JavaSetEquipmentTranslator extends PacketTranslator<ClientboundSetE
         boolean mainHandUpdated = false;
         boolean offHandUpdated = false;
         for (Equipment equipment : packet.getEquipment()) {
-            GeyserItemStack stack = GeyserItemStack.from(equipment.getItem());
+            GeyserItemStack stack = GeyserItemStack.from(session, equipment.getItem());
             switch (equipment.getSlot()) {
                 case HELMET -> {
-                    GameProfile profile = stack.getComponent(DataComponentTypes.PROFILE);
-                    if (livingEntity instanceof PlayerEntity && stack.asItem() == Items.PLAYER_HEAD && profile != null) {
+                    ResolvableProfile profile = stack.getComponent(DataComponentTypes.PROFILE);
+                    if (livingEntity instanceof PlayerEntity && stack.is(Items.PLAYER_HEAD) && profile != null) {
                         FakeHeadProvider.setHead(session, (PlayerEntity) livingEntity, profile);
                     } else {
                         FakeHeadProvider.restoreOriginalSkin(session, livingEntity);
@@ -104,13 +104,13 @@ public class JavaSetEquipmentTranslator extends PacketTranslator<ClientboundSetE
         }
 
         if (armorUpdated) {
-            livingEntity.updateArmor(session);
+            livingEntity.updateArmor();
         }
         if (mainHandUpdated) {
-            livingEntity.updateMainHand(session);
+            livingEntity.updateMainHand();
         }
         if (offHandUpdated) {
-            livingEntity.updateOffHand(session);
+            livingEntity.updateOffHand();
         }
     }
 }

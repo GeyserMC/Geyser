@@ -1,0 +1,17 @@
+{
+  "type": "geyser:component_hash",
+  "component": "minecraft:provides_trim_material",
+  "value": [
+    "minecraft:amethyst",
+    "minecraft:copper",
+    "minecraft:diamond",
+    "minecraft:emerald",
+    "minecraft:gold",
+    "minecraft:iron",
+    "minecraft:lapis",
+    "minecraft:quartz",
+    "minecraft:netherite",
+    "minecraft:redstone",
+    "minecraft:resin"
+  ]
+}

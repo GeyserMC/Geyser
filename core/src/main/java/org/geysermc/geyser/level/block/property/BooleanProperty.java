@@ -25,6 +25,8 @@
 
 package org.geysermc.geyser.level.block.property;
 
+import java.util.Optional;
+
 public final class BooleanProperty extends Property<Boolean> {
     private BooleanProperty(String name) {
         super(name);
@@ -38,6 +40,16 @@ public final class BooleanProperty extends Property<Boolean> {
     @Override
     public int indexOf(Boolean value) {
         return value ? 0 : 1;
+    }
+
+    @Override
+    public Optional<Boolean> valueOf(String string) {
+        // Not using Boolean.parseBoolean because that will return false for any string not "true"
+        return switch (string) {
+            case "true" -> Optional.of(true);
+            case "false" -> Optional.of(false);
+            default -> Optional.empty();
+        };
     }
 
     public static BooleanProperty create(String name) {

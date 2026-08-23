@@ -29,6 +29,7 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.protocol.bedrock.data.definitions.ItemDefinition;
 import org.geysermc.geyser.GeyserImpl;
@@ -72,7 +73,7 @@ public abstract class Inventory {
      * Used for smooth transitions between two windows of the same type.
      */
     @Getter
-    protected final ContainerType containerType;
+    protected final @Nullable ContainerType containerType;
 
     @Getter
     protected final String title;
@@ -101,15 +102,15 @@ public abstract class Inventory {
     @Setter
     private boolean displayed;
 
-    protected Inventory(GeyserSession session, int id, int size, ContainerType containerType) {
+    protected Inventory(GeyserSession session, int id, int size, @Nullable ContainerType containerType) {
         this(session, "Inventory", id, size, containerType);
     }
 
-    protected Inventory(GeyserSession session, String title, int javaId, int size, ContainerType containerType) {
-        this.title = title;
+    protected Inventory(GeyserSession session, String title, int javaId, int size, @Nullable ContainerType containerType) {
         this.javaId = javaId;
         this.size = size;
         this.containerType = containerType;
+        this.title = getPrefixedTitle(session, title);
         this.items = new GeyserItemStack[size];
         Arrays.fill(items, GeyserItemStack.EMPTY);
 
@@ -148,7 +149,7 @@ public abstract class Inventory {
         items[slot] = newItem;
 
         // Lodestone caching
-        if (newItem.asItem() == Items.COMPASS) {
+        if (newItem.is(Items.COMPASS)) {
             var tracker = newItem.getComponent(DataComponentTypes.LODESTONE_TRACKER);
             if (tracker != null) {
                 session.getLodestoneCache().cacheInventoryItem(newItem, tracker);
@@ -192,5 +193,14 @@ public abstract class Inventory {
      */
     public boolean shouldConfirmContainerClose() {
         return true;
+    }
+
+    /**
+     * Used for setting the title, which may be modified to apply integrated pack features.
+     * See {@link Container#getPrefixedTitle(GeyserSession, String)}
+     * @return the title to display
+     */
+    protected String getPrefixedTitle(GeyserSession session, String title) {
+        return title;
     }
 }

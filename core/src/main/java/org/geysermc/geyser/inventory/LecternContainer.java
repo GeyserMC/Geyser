@@ -37,7 +37,11 @@ public class LecternContainer extends Container {
     @Setter
     private int currentBedrockPage = 0;
     @Setter
+    private int maxPages = 50;
+    @Setter
     private NbtMap blockEntityTag;
+    @Setter
+    private int currentBookHash;
 
     private boolean isBookInPlayerInventory = false;
 

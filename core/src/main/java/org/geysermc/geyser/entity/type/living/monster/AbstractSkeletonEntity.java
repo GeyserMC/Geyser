@@ -25,20 +25,16 @@
 
 package org.geysermc.geyser.entity.type.living.monster;
 
-import org.cloudburstmc.math.vector.Vector3f;
-import org.cloudburstmc.protocol.bedrock.data.definitions.ItemDefinition;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
-import org.geysermc.geyser.entity.EntityDefinition;
-import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.entity.spawn.EntitySpawnContext;
+import org.geysermc.geyser.item.Items;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.ByteEntityMetadata;
-
-import java.util.UUID;
 
 public class AbstractSkeletonEntity extends MonsterEntity {
 
-    public AbstractSkeletonEntity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
-        super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
+    public AbstractSkeletonEntity(EntitySpawnContext context) {
+        super(context);
     }
 
     @Override
@@ -46,11 +42,10 @@ public class AbstractSkeletonEntity extends MonsterEntity {
         super.setMobFlags(entityMetadata);
         byte xd = entityMetadata.getPrimitiveValue();
         // A bit of a loophole so the hands get raised - set the target ID to its own ID
-        dirtyMetadata.put(EntityDataTypes.TARGET_EID, ((xd & 4) == 4) ? geyserId : 0);
+        metadata.put(EntityDataTypes.TARGET_EID, ((xd & 4) == 4) ? geyserId : 0);
 
         if ((xd & 4) == 4) {
-            ItemDefinition bow = session.getItemMappings().getStoredItems().bow().getBedrockDefinition();
-            setFlag(EntityFlag.FACING_TARGET_TO_RANGE_ATTACK, this.hand.getDefinition() == bow || this.offhand.getDefinition() == bow);
+            setFlag(EntityFlag.FACING_TARGET_TO_RANGE_ATTACK, isHolding(Items.BOW));
         } else {
             setFlag(EntityFlag.FACING_TARGET_TO_RANGE_ATTACK, false);
         }

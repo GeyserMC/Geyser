@@ -25,13 +25,11 @@
 
 package org.geysermc.geyser.entity.type;
 
-import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.entity.EntityDefinition;
+import org.geysermc.geyser.entity.spawn.EntitySpawnContext;
 import org.geysermc.geyser.inventory.item.Potion;
-import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.EntityMetadata;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.type.EntityType;
 import org.geysermc.mcprotocollib.protocol.data.game.item.ItemStack;
@@ -40,20 +38,19 @@ import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponen
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.PotionContents;
 
 import java.util.EnumSet;
-import java.util.UUID;
 
 public class ThrownPotionEntity extends ThrowableItemEntity {
     private static final EnumSet<Potion> NON_ENCHANTED_POTIONS = EnumSet.of(Potion.WATER, Potion.MUNDANE, Potion.THICK, Potion.AWKWARD);
 
-    public ThrownPotionEntity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
-        super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
+    public ThrownPotionEntity(EntitySpawnContext context) {
+        super(context);
     }
 
     @Override
     public void setItem(EntityMetadata<ItemStack, ?> entityMetadata) {
         ItemStack itemStack = entityMetadata.getValue();
         if (itemStack == null) {
-            dirtyMetadata.put(EntityDataTypes.AUX_VALUE_DATA, (short) 0);
+            metadata.put(EntityDataTypes.AUX_VALUE_DATA, (short) 0);
             setFlag(EntityFlag.ENCHANTED, false);
             setFlag(EntityFlag.LINGERING, false);
         } else {
@@ -64,15 +61,15 @@ public class ThrownPotionEntity extends ThrowableItemEntity {
                 if (potionContents != null) {
                     Potion potion = Potion.getByJavaId(potionContents.getPotionId());
                     if (potion != null) {
-                        dirtyMetadata.put(EntityDataTypes.AUX_VALUE_DATA, potion.getBedrockId());
+                        metadata.put(EntityDataTypes.AUX_VALUE_DATA, potion.getBedrockId());
                         setFlag(EntityFlag.ENCHANTED, !NON_ENCHANTED_POTIONS.contains(potion));
                     } else {
-                        dirtyMetadata.put(EntityDataTypes.AUX_VALUE_DATA, (short) 0);
+                        metadata.put(EntityDataTypes.AUX_VALUE_DATA, (short) 0);
                         GeyserImpl.getInstance().getLogger().debug("Unknown java potion: " + potionContents.getPotionId());
                     }
                 }
 
-                boolean isLingering = definition.entityType() == EntityType.LINGERING_POTION;
+                boolean isLingering = javaDefinition.type().is(EntityType.LINGERING_POTION);
                 setFlag(EntityFlag.LINGERING, isLingering);
             }
         }

@@ -70,7 +70,7 @@ public class TropicalFishBucketItem extends Item {
             int predefinedVariantId = TropicalFishEntity.getPredefinedId(packedVariant);
             if (predefinedVariantId != -1) {
                 Component line = Component.translatable("entity.minecraft.tropical_fish.predefined." + predefinedVariantId, LORE_STYLE);
-                lore.add(0, MessageTranslator.convertMessage(line, session.locale()));
+                lore.addFirst(MessageTranslator.convertMessage(line, session.locale()));
             } else {
                 Component typeTooltip = Component.translatable("entity.minecraft.tropical_fish.type." + TropicalFishEntity.getVariantName(packedVariant), LORE_STYLE);
                 lore.add(0, MessageTranslator.convertMessage(typeTooltip, session.locale()));

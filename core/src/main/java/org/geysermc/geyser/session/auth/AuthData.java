@@ -27,5 +27,14 @@ package org.geysermc.geyser.session.auth;
 
 import java.util.UUID;
 
-public record AuthData(String name, UUID uuid, String xuid) {
+/**
+ * A class holding some basic information of the connected user.
+ *
+ * @param name The gamertag of the user
+ * @param uuid Also known as identity
+ * @param xuid The xuid of the user
+ * @param issuedAt The unix time (in seconds) that the JWT was issued
+ * @param playFabId The PlayFab ID of the user
+ */
+public record AuthData(String name, UUID uuid, String xuid, long issuedAt, String playFabId) {
 }

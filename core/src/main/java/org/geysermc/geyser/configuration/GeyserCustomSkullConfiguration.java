@@ -25,26 +25,21 @@
 
 package org.geysermc.geyser.configuration;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonProperty;
+import org.spongepowered.configurate.objectmapping.ConfigSerializable;
 
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
-@JsonIgnoreProperties(ignoreUnknown = true)
-@SuppressWarnings("FieldMayBeFinal") // Jackson requires that the fields are not final
+@ConfigSerializable
+@Deprecated
 public class GeyserCustomSkullConfiguration {
-    @JsonProperty("player-usernames")
     private List<String> playerUsernames;
 
-    @JsonProperty("player-uuids")
-    private List<String> playerUUIDs;
+    private List<String> playerUuids;
 
-    @JsonProperty("player-profiles")
     private List<String> playerProfiles;
 
-    @JsonProperty("skin-hashes")
     private List<String> skinHashes;
 
     public List<String> getPlayerUsernames() {
@@ -52,7 +47,7 @@ public class GeyserCustomSkullConfiguration {
     }
 
     public List<String> getPlayerUUIDs() {
-        return Objects.requireNonNullElse(playerUUIDs, Collections.emptyList());
+        return Objects.requireNonNullElse(playerUuids, Collections.emptyList());
     }
 
     public List<String> getPlayerProfiles() {
@@ -61,5 +56,19 @@ public class GeyserCustomSkullConfiguration {
 
     public List<String> getPlayerSkinHashes() {
         return Objects.requireNonNullElse(skinHashes, Collections.emptyList());
+    }
+
+    public boolean isEmpty() {
+        return getPlayerUsernames().isEmpty() && getPlayerUUIDs().isEmpty() && getPlayerProfiles().isEmpty() && getPlayerSkinHashes().isEmpty();
+    }
+
+    @Override
+    public String toString() {
+        return "GeyserCustomSkullConfiguration{" +
+            "playerUsernames=" + playerUsernames +
+            ", playerUuids=" + playerUuids +
+            ", playerProfiles=" + playerProfiles +
+            ", skinHashes=" + skinHashes +
+            '}';
     }
 }

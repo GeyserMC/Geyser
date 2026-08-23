@@ -26,14 +26,63 @@
 package org.geysermc.geyser.util;
 
 import net.kyori.adventure.key.Key;
+import org.checkerframework.checker.nullness.qual.Nullable;
+import org.geysermc.geyser.api.util.Identifier;
+import org.geysermc.geyser.impl.IdentifierImpl;
 import org.intellij.lang.annotations.Subst;
 
 public final class MinecraftKey {
 
     /**
      * To prevent constant warnings from invalid regex.
+     *
+     * @throws net.kyori.adventure.key.InvalidKeyException for invalid keys
      */
     public static Key key(@Subst("empty") String s) {
         return Key.key(s);
+    }
+
+    /**
+     * @return null when the input is null
+     * @throws net.kyori.adventure.key.InvalidKeyException for invalid keys
+     */
+    public static @Nullable Key nullableKey(@Nullable @Subst("empty") String s) {
+        if (s == null) {
+            return null;
+        }
+        return Key.key(s);
+    }
+
+    /**
+     * To prevent constant warnings from invalid regex.
+     */
+    public static Key key(@Subst("empty") String namespace, @Subst("empty") String value) {
+        return Key.key(namespace, value);
+    }
+
+    public static @Nullable Key identifierToKey(@Nullable Identifier identifier) {
+        if (identifier == null) {
+            return null;
+        }
+        return identifier instanceof IdentifierImpl(Key key) ? key : key(identifier.namespace(), identifier.path());
+    }
+
+    public static @Nullable Identifier keyToIdentifier(@Nullable Key key) {
+        if (key == null) {
+            return null;
+        }
+        return new IdentifierImpl(key);
+    }
+
+    public static String getNamespace(String identifier) {
+        int i = identifier.indexOf(':');
+        if (i >= 0) {
+            return identifier.substring(0, i);
+        }
+        return "minecraft";
+    }
+
+    public static boolean isVanilla(String identifier) {
+        return getNamespace(identifier).equals("minecraft");
     }
 }

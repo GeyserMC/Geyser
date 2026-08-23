@@ -27,15 +27,13 @@ package org.geysermc.geyser.entity.type.living.animal;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
-import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityEventType;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.cloudburstmc.protocol.bedrock.packet.EntityEventPacket;
-import org.geysermc.geyser.entity.EntityDefinition;
+import org.geysermc.geyser.entity.spawn.EntitySpawnContext;
 import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.item.type.Item;
-import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.cache.tags.ItemTag;
 import org.geysermc.geyser.session.cache.tags.Tag;
 import org.geysermc.geyser.util.InteractionResult;
@@ -44,27 +42,25 @@ import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.ByteEn
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.IntEntityMetadata;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.Hand;
 
-import java.util.UUID;
-
 public class PandaEntity extends AnimalEntity {
     private Gene mainGene = Gene.NORMAL;
     private Gene hiddenGene = Gene.NORMAL;
 
-    public PandaEntity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
-        super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
+    public PandaEntity(EntitySpawnContext context) {
+        super(context);
     }
 
     public void setEatingCounter(IntEntityMetadata entityMetadata) {
         int count = entityMetadata.getPrimitiveValue();
         setFlag(EntityFlag.EATING, count > 0);
-        dirtyMetadata.put(EntityDataTypes.EATING_COUNTER, count);
+        metadata.put(EntityDataTypes.EATING_COUNTER, count);
         if (count != 0) {
             // Particles and sound
             EntityEventPacket packet = new EntityEventPacket();
             packet.setRuntimeEntityId(geyserId);
             packet.setType(EntityEventType.EATING_ITEM);
             // As of 1.20.5 - pandas can eat cake
-            packet.setData(this.hand.getDefinition().getRuntimeId() << 16);
+            packet.setData(session.getItemMappings().getMapping(getMainHandItem()).getBedrockDefinition().getRuntimeId() << 16);
             session.sendUpstreamPacket(packet);
         }
     }
@@ -85,8 +81,8 @@ public class PandaEntity extends AnimalEntity {
         setFlag(EntityFlag.ROLLING, (xd & 0x04) == 0x04);
         setFlag(EntityFlag.SITTING, (xd & 0x08) == 0x08);
         // Required to put these both for sitting to actually show
-        dirtyMetadata.put(EntityDataTypes.SITTING_AMOUNT, (xd & 0x08) == 0x08 ? 1f : 0f);
-        dirtyMetadata.put(EntityDataTypes.SITTING_AMOUNT_PREVIOUS, (xd & 0x08) == 0x08 ? 1f : 0f);
+        metadata.put(EntityDataTypes.SITTING_AMOUNT, (xd & 0x08) == 0x08 ? 1f : 0f);
+        metadata.put(EntityDataTypes.SITTING_AMOUNT_PREVIOUS, (xd & 0x08) == 0x08 ? 1f : 0f);
         setFlag(EntityFlag.LAYING_DOWN, (xd & 0x10) == 0x10);
     }
 
@@ -137,14 +133,14 @@ public class PandaEntity extends AnimalEntity {
         if (mainGene.isRecessive) {
             if (mainGene == hiddenGene) {
                 // Main and hidden genes match; this is what the panda looks like.
-                dirtyMetadata.put(EntityDataTypes.VARIANT, mainGene.ordinal());
+                metadata.put(EntityDataTypes.VARIANT, mainGene.ordinal());
             } else {
                 // Genes have no effect on appearance
-                dirtyMetadata.put(EntityDataTypes.VARIANT, Gene.NORMAL.ordinal());
+                metadata.put(EntityDataTypes.VARIANT, Gene.NORMAL.ordinal());
             }
         } else {
             // No need to worry about hidden gene
-            dirtyMetadata.put(EntityDataTypes.VARIANT, mainGene.ordinal());
+            metadata.put(EntityDataTypes.VARIANT, mainGene.ordinal());
         }
     }
 

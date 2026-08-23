@@ -26,18 +26,15 @@
 package org.geysermc.geyser.entity.type.living.monster;
 
 import org.cloudburstmc.math.GenericMath;
-import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.cloudburstmc.protocol.bedrock.packet.PlaySoundPacket;
-import org.geysermc.geyser.entity.EntityDefinition;
+import org.geysermc.geyser.entity.spawn.EntitySpawnContext;
 import org.geysermc.geyser.entity.type.Tickable;
-import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.util.MathUtils;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.Pose;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.IntEntityMetadata;
 
-import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
 
 public class WardenEntity extends MonsterEntity implements Tickable {
@@ -46,14 +43,14 @@ public class WardenEntity extends MonsterEntity implements Tickable {
 
     private int sonicBoomTickDuration;
 
-    public WardenEntity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
-        super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
+    public WardenEntity(EntitySpawnContext context) {
+        super(context);
     }
 
     @Override
     protected void initializeMetadata() {
         super.initializeMetadata();
-        dirtyMetadata.put(EntityDataTypes.HEARTBEAT_INTERVAL_TICKS, heartBeatDelay);
+        metadata.put(EntityDataTypes.HEARTBEAT_INTERVAL_TICKS, heartBeatDelay);
     }
 
     @Override
@@ -68,11 +65,12 @@ public class WardenEntity extends MonsterEntity implements Tickable {
     public void setAngerLevel(IntEntityMetadata entityMetadata) {
         float anger = (float) entityMetadata.getPrimitiveValue() / 80f;
         heartBeatDelay = 40 - GenericMath.floor(MathUtils.clamp(anger, 0.0F, 1.0F) * 30F);
-        dirtyMetadata.put(EntityDataTypes.HEARTBEAT_INTERVAL_TICKS, heartBeatDelay);
+        metadata.put(EntityDataTypes.HEARTBEAT_INTERVAL_TICKS, heartBeatDelay);
     }
 
     @Override
     public void tick() {
+        super.tick();
         if (++tickCount % heartBeatDelay == 0 && !silent) {
             // We have to do these calculations because they're clientside on Java Edition but we mute entities
             // to prevent hearing their step sounds
@@ -80,7 +78,7 @@ public class WardenEntity extends MonsterEntity implements Tickable {
 
             PlaySoundPacket packet = new PlaySoundPacket();
             packet.setSound("mob.warden.heartbeat");
-            packet.setPosition(position);
+            packet.setPosition(bedrockPosition());
             packet.setPitch((random.nextFloat() - random.nextFloat()) * 0.2f + 1.0f);
             packet.setVolume(1.0f);
             session.sendUpstreamPacket(packet);

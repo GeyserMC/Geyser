@@ -45,7 +45,7 @@ public class CommandBlockBlockEntityTranslator extends BlockEntityTranslator imp
         // Java and Bedrock values
         bedrockNbt.putByte("conditionMet", javaNbt.getByte("conditionMet"));
         bedrockNbt.putByte("auto", javaNbt.getByte("auto"));
-        bedrockNbt.putString("CustomName", MessageTranslator.convertJsonMessage(javaNbt.getString("CustomName"), session.locale()));
+        bedrockNbt.putString("CustomName", MessageTranslator.convertMessageLenient(javaNbt.getString("CustomName"), session.locale()));
         bedrockNbt.putByte("powered", javaNbt.getByte("powered"));
         bedrockNbt.putString("Command", javaNbt.getString("Command"));
         bedrockNbt.putInt("SuccessCount", javaNbt.getInt("SuccessCount"));

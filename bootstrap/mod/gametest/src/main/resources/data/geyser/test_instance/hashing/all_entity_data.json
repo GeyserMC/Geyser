@@ -1,0 +1,35 @@
+{
+  "type": "geyser:component_hash",
+  "components": [
+    {
+      "component": "minecraft:entity_data",
+      "value": {
+        "id": "minecraft:player",
+        "Health": 15.0
+      }
+    },
+    {
+      "component": "minecraft:bucket_entity_data",
+      "value": {
+        "super_duper_cool_axo": true
+      }
+    },
+    {
+      "component": "minecraft:block_entity_data",
+      "value": {
+        "id": "minecraft:chest",
+        "value": {
+          "Items": [
+            {
+              "id": "minecraft:diamond",
+              "count": 99,
+              "components": {
+                "minecraft:max_stack_size": 99
+              }
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

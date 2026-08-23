@@ -40,11 +40,11 @@ import java.nio.file.Path;
 
 public class GeyserExtensionClassLoader extends URLClassLoader {
     private final GeyserExtensionLoader loader;
-    private final ExtensionDescription description;
+    private final GeyserExtensionDescription description;
     private final Object2ObjectMap<String, Class<?>> classes = new Object2ObjectOpenHashMap<>();
     private boolean warnedForExternalClassAccess;
 
-    public GeyserExtensionClassLoader(GeyserExtensionLoader loader, ClassLoader parent, Path path, ExtensionDescription description) throws MalformedURLException {
+    public GeyserExtensionClassLoader(GeyserExtensionLoader loader, ClassLoader parent, Path path, GeyserExtensionDescription description) throws MalformedURLException {
         super(new URL[] { path.toUri().toURL() }, parent);
         this.loader = loader;
         this.description = description;
@@ -89,7 +89,7 @@ public class GeyserExtensionClassLoader extends URLClassLoader {
                 // If class is not found in current extension, check in the global class loader
                 // This is used for classes that are not in the extension, but are in other extensions
                 if (checkGlobal) {
-                    if (!warnedForExternalClassAccess) {
+                    if (!warnedForExternalClassAccess && this.description.dependencies().isEmpty()) { // Don't warn when the extension has dependencies, it is probably using it's dependencies!
                         GeyserImpl.getInstance().getLogger().warning("Extension " + this.description.name() + " loads class " + name + " from an external source. " +
                                 "This can change at any time and break the extension, additionally to potentially causing unexpected behaviour!");
                         warnedForExternalClassAccess = true;

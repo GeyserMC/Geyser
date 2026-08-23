@@ -1,0 +1,10 @@
+{
+  "type": "geyser:component_hash",
+  "component": "minecraft:rarity",
+  "value": [
+    "common",
+    "uncommon",
+    "rare",
+    "epic"
+  ]
+}

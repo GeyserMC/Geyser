@@ -1,0 +1,40 @@
+{
+  "type": "geyser:component_hash",
+  "component": "minecraft:written_book_content",
+  "value": [
+    {
+      "title": "My Cool Unit Test Story",
+      "author": "eclipse <3"
+    },
+    {
+      "title": "Even Better Unit Test Story",
+      "author": "mr. boss",
+      "generation": 1
+    },
+    {
+      "title": "The Best Unit Test Story",
+      "author": "camotoy, the developer",
+      "pages": [
+        "this book has actual content",
+        {
+          "text": "that's why this one is better than any other",
+          "italic": true
+        },
+        {
+          "translate": "geyser.isnt_that_amazing"
+        }
+      ]
+    },
+    {
+      "title": "The Final Unit Test Story",
+      "author": "the top of the water sprout",
+      "pages": [
+        {
+          "raw": "give us the bedrock pdb files!!",
+          "filtered": "oh my! even more marketplace content! how exciting!"
+        }
+      ],
+      "resolved": true
+    }
+  ]
+}

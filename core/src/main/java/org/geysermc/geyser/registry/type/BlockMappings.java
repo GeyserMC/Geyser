@@ -26,6 +26,7 @@
 package org.geysermc.geyser.registry.type;
 
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
+import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
 import lombok.Builder;
 import lombok.Value;
@@ -65,6 +66,8 @@ public class BlockMappings implements DefinitionRegistry<BlockDefinition> {
     BlockDefinition commandBlock;
     BlockDefinition mobSpawnerBlock;
     BlockDefinition netherPortalBlock;
+
+    IntArrayList collisionIgnoredBlocks;
 
     Map<NbtMap, BlockDefinition> itemFrames;
     Map<Block, NbtMap> flowerPotBlocks;

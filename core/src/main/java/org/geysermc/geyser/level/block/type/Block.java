@@ -41,12 +41,19 @@ import org.geysermc.geyser.level.block.property.Property;
 import org.geysermc.geyser.level.physics.PistonBehavior;
 import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.mcprotocollib.protocol.data.game.item.ItemStack;
+import org.geysermc.geyser.session.cache.registry.JavaRegistries;
+import org.geysermc.geyser.session.cache.tags.Tag;
+import org.geysermc.geyser.translator.level.block.entity.BedrockChunkWantsBlockEntityTag;
+import org.geysermc.geyser.util.BlockEntityUtils;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.HolderSet;
 import org.geysermc.mcprotocollib.protocol.data.game.level.block.BlockEntityType;
 import org.intellij.lang.annotations.Subst;
 
-import java.util.*;
-import java.util.function.Supplier;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Stream;
 
 public class Block {
@@ -60,11 +67,6 @@ public class Block {
     private final @Nullable BlockEntityType blockEntityType;
     private final float destroyTime;
     private final @NonNull PistonBehavior pushReaction;
-    /**
-     * Used for classes we don't have implemented yet that override Mojmap getCloneItemStack with their own item.
-     * A supplier prevents any issues arising where the Items class finishes before the Blocks class.
-     */
-    private final Supplier<Item> pickItem;
     protected Item item = null;
     private int javaId = -1;
 
@@ -80,47 +82,22 @@ public class Block {
         this.blockEntityType = builder.blockEntityType;
         this.destroyTime = builder.destroyTime;
         this.pushReaction = builder.pushReaction;
-        this.pickItem = builder.pickItem;
 
-        BlockState firstState = builder.build(this).get(0);
+        BlockState firstState = builder.build(this).getFirst();
         this.propertyKeys = builder.propertyKeys; // Ensure this is not null before iterating over states
         this.defaultState = setDefaultState(firstState);
     }
 
+    // JavaSectionBlocksUpdateTranslator only calls updateBlock for specialized blocks,
+    // make sure to also update JavaSectionBlocksUpdateTranslator for general changes.
     public void updateBlock(GeyserSession session, BlockState state, Vector3i position) {
         checkForEmptySkull(session, state, position);
 
         BlockDefinition definition = session.getBlockMappings().getBedrockBlock(state);
         sendBlockUpdatePacket(session, state, definition, position);
 
-        // Extended collision boxes for custom blocks
-        if (!session.getBlockMappings().getExtendedCollisionBoxes().isEmpty()) {
-            int aboveBlock = session.getGeyser().getWorldManager().getBlockAt(session, position.getX(), position.getY() + 1, position.getZ());
-            BlockDefinition aboveBedrockExtendedCollisionDefinition = session.getBlockMappings().getExtendedCollisionBoxes().get(state.javaId());
-            int belowBlock = session.getGeyser().getWorldManager().getBlockAt(session, position.getX(), position.getY() - 1, position.getZ());
-            BlockDefinition belowBedrockExtendedCollisionDefinition = session.getBlockMappings().getExtendedCollisionBoxes().get(belowBlock);
-            if (belowBedrockExtendedCollisionDefinition != null && state.is(Blocks.AIR)) {
-                UpdateBlockPacket updateBlockPacket = new UpdateBlockPacket();
-                updateBlockPacket.setDataLayer(0);
-                updateBlockPacket.setBlockPosition(position);
-                updateBlockPacket.setDefinition(belowBedrockExtendedCollisionDefinition);
-                updateBlockPacket.getFlags().add(UpdateBlockPacket.Flag.NETWORK);
-                session.sendUpstreamPacket(updateBlockPacket);
-            } else if (aboveBedrockExtendedCollisionDefinition != null && aboveBlock == Block.JAVA_AIR_ID) {
-                UpdateBlockPacket updateBlockPacket = new UpdateBlockPacket();
-                updateBlockPacket.setDataLayer(0);
-                updateBlockPacket.setBlockPosition(position.add(0, 1, 0));
-                updateBlockPacket.setDefinition(aboveBedrockExtendedCollisionDefinition);
-                updateBlockPacket.getFlags().add(UpdateBlockPacket.Flag.NETWORK);
-                session.sendUpstreamPacket(updateBlockPacket);
-            } else if (aboveBlock == Block.JAVA_AIR_ID) {
-                UpdateBlockPacket updateBlockPacket = new UpdateBlockPacket();
-                updateBlockPacket.setDataLayer(0);
-                updateBlockPacket.setBlockPosition(position.add(0, 1, 0));
-                updateBlockPacket.setDefinition(session.getBlockMappings().getBedrockAir());
-                updateBlockPacket.getFlags().add(UpdateBlockPacket.Flag.NETWORK);
-                session.sendUpstreamPacket(updateBlockPacket);
-            }
+        if (this instanceof BedrockChunkWantsBlockEntityTag blockEntity) {
+            BlockEntityUtils.updateBlockEntity(session, blockEntity.createTag(session, position, state), position);
         }
     }
 
@@ -156,13 +133,6 @@ public class Block {
             return this.item = Item.byBlock(this);
         }
         return this.item;
-    }
-
-    public ItemStack pickItem(BlockState state) {
-        if (this.pickItem != null) {
-            return new ItemStack(this.pickItem.get().javaId());
-        }
-        return new ItemStack(this.asItem().javaId());
     }
 
     /**
@@ -215,6 +185,14 @@ public class Block {
         this.javaId = javaId;
     }
 
+    public boolean is(GeyserSession session, Tag<Block> tag) {
+        return session.getTagCache().is(tag, javaId);
+    }
+
+    public boolean is(GeyserSession session, HolderSet set) {
+        return session.getTagCache().is(set, JavaRegistries.BLOCK, javaId);
+    }
+
     @Override
     public String toString() {
         return "Block{" +
@@ -223,7 +201,7 @@ public class Block {
                 '}';
     }
 
-    Property<?>[] propertyKeys() {
+    public Property<?>[] propertyKeys() {
         return propertyKeys;
     }
 
@@ -237,7 +215,6 @@ public class Block {
         private BlockEntityType blockEntityType = null;
         private PistonBehavior pushReaction = PistonBehavior.NORMAL;
         private float destroyTime;
-        private Supplier<Item> pickItem;
 
         // We'll use this field after building
         private Property<?>[] propertyKeys = null;
@@ -291,11 +268,6 @@ public class Block {
 
         public Builder pushReaction(PistonBehavior pushReaction) {
             this.pushReaction = pushReaction;
-            return this;
-        }
-
-        public Builder pickItem(Supplier<Item> pickItem) {
-            this.pickItem = pickItem;
             return this;
         }
 

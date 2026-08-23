@@ -25,13 +25,13 @@
 
 package org.geysermc.geyser.item.hashing.data;
 
-import lombok.Getter;
+import org.geysermc.geyser.item.hashing.EnumMapDispatchHasher;
 import org.geysermc.geyser.item.hashing.MapBuilder;
 import org.geysermc.geyser.item.hashing.MinecraftHasher;
 import org.geysermc.geyser.item.hashing.RegistryHasher;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.ConsumeEffect;
 
-public enum ConsumeEffectType {
+public enum ConsumeEffectType implements EnumMapDispatchHasher<ConsumeEffectType, ConsumeEffect> {
     APPLY_EFFECTS(ConsumeEffect.ApplyEffects.class, builder -> builder
         .acceptList("effects", RegistryHasher.MOB_EFFECT_INSTANCE, ConsumeEffect.ApplyEffects::effects)
         .optional("probability", MinecraftHasher.FLOAT, ConsumeEffect.ApplyEffects::probability, 1.0F)),
@@ -43,8 +43,10 @@ public enum ConsumeEffectType {
     PLAY_SOUND(ConsumeEffect.PlaySound.class, builder -> builder
         .accept("sound", RegistryHasher.SOUND_EVENT, ConsumeEffect.PlaySound::sound));
 
+    public static final MinecraftHasher<ConsumeEffectType> CONSUME_EFFECT_TYPE_HASHER = RegistryHasher.enumRegistry();
+    public static final MinecraftHasher<ConsumeEffect> CONSUME_EFFECT_HASHER = MinecraftHasher.mapBuilder(EnumMapDispatchHasher.dispatch(CONSUME_EFFECT_TYPE_HASHER, ConsumeEffectType::values));
+
     private final Class<? extends ConsumeEffect> clazz;
-    @Getter
     private final MapBuilder<? extends ConsumeEffect> builder;
 
     <T extends ConsumeEffect> ConsumeEffectType(Class<T> clazz) {
@@ -57,13 +59,18 @@ public enum ConsumeEffectType {
         this.builder = builder;
     }
 
-    public static ConsumeEffectType fromEffect(ConsumeEffect effect) {
-        Class<? extends ConsumeEffect> clazz = effect.getClass();
-        for (ConsumeEffectType type : values()) {
-            if (clazz == type.clazz) {
-                return type;
-            }
-        }
-        throw new IllegalStateException("Unimplemented consume effect type for hashing");
+    @Override
+    public ConsumeEffectType distinction() {
+        return this;
+    }
+
+    @Override
+    public Class<? extends ConsumeEffect> valueTypeClass() {
+        return clazz;
+    }
+
+    @Override
+    public MapBuilder<? extends ConsumeEffect> mapBuilder() {
+        return builder;
     }
 }

@@ -1,0 +1,24 @@
+{
+  "type": "geyser:component_hash",
+  "component": "minecraft:swing_animation",
+  "value": [
+    {},
+    {
+      "type": "none"
+    },
+    {
+      "type": "stab"
+    },
+    {
+      "type": "stab",
+      "duration": 2
+    },
+    {
+      "type": "none",
+      "duration": 100
+    },
+    {
+      "duration": 1
+    }
+  ]
+}
