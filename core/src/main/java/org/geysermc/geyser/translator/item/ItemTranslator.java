@@ -426,7 +426,7 @@ public final class ItemTranslator {
             }
             Component component = Component.text()
                 .resetStyle()
-                // Use blue to distinguish the gray vanilla Bedrock effect
+                // Use blue to distinguish it from gray vanilla Bedrock effect
                 .color((negativeEffectList.contains(effect)) ? NamedTextColor.RED : NamedTextColor.BLUE)
                 .append(appendTranslatable)
                 .build();
@@ -607,9 +607,14 @@ public final class ItemTranslator {
                             && !potionContents.getCustomEffects().isEmpty();
                     // Get name in "potion_contents" component for vanilla potion items
                     if (mapping.getJavaItem() instanceof PotionItem || mapping.getJavaItem() instanceof TippedArrowItem) {
-                        String potionName = getPotionName(potionContents, mapping, forceName, session.locale());
+                        String potionName = getPotionName(potionContents, mapping,
+                            forceName || potionContents.getPotionId() == -1, // "Uncraftable ..."
+                            session.locale());
                         if (potionName != null) {
                             return ChatColor.RESET + ChatColor.ESCAPE + translationColor + potionName;
+                        } else {
+                            // Match Java client behavior: Make the potion name always override what comes after
+                            return null;
                         }
                     }
                 }
