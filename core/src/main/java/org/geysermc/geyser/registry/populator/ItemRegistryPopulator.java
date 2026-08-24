@@ -294,7 +294,7 @@ public class ItemRegistryPopulator {
             BlockMappings blockMappings = BlockRegistries.BLOCKS.forVersion(palette.protocolVersion());
 
             Set<Item> javaOnlyItems = new ObjectOpenHashSet<>();
-            Collections.addAll(javaOnlyItems, Items.SPECTRAL_ARROW, Items.KNOWLEDGE_BOOK, Items.DEBUG_STICK);
+            Collections.addAll(javaOnlyItems, Items.SPECTRAL_ARROW, Items.TIPPED_ARROW, Items.KNOWLEDGE_BOOK, Items.DEBUG_STICK);
             if (!GeyserImpl.getInstance().config().gameplay().enableCustomContent()) {
                 javaOnlyItems.add(Items.FURNACE_MINECART);
                 if (!GeyserImpl.getInstance().config().gameplay().enableIntegratedPack()) {

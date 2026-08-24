@@ -640,11 +640,6 @@ public final class ItemTranslator {
             return null;
         }
 
-        if (mapping.getJavaItem() instanceof TippedArrowItem) {
-            // Always show name for the tipped arrow to distinguish it from normal arrow
-            forceName = true;
-        }
-
         if (forceName) {
             String translationKey = mapping.getJavaItem().translationKey();
             return ChatColor.RESET + ChatColor.ESCAPE + translationColor + MinecraftLocale.getLocaleString(translationKey, session.locale());
