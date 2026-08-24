@@ -25,12 +25,15 @@
 
 package org.geysermc.geyser.translator.protocol.java.level;
 
-import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.level.ClientboundSoundPacket;
 import org.cloudburstmc.math.vector.Vector3f;
+import org.cloudburstmc.protocol.bedrock.data.ParticleType;
+import org.cloudburstmc.protocol.bedrock.packet.LevelEventPacket;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 import org.geysermc.geyser.util.SoundUtils;
+import org.geysermc.mcprotocollib.protocol.data.game.level.sound.BuiltinSound;
+import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.level.ClientboundSoundPacket;
 
 @Translator(packet = ClientboundSoundPacket.class)
 public class JavaSoundTranslator extends PacketTranslator<ClientboundSoundPacket> {
@@ -39,5 +42,20 @@ public class JavaSoundTranslator extends PacketTranslator<ClientboundSoundPacket
     public void translate(GeyserSession session, ClientboundSoundPacket packet) {
         Vector3f position = Vector3f.from(packet.getX(), packet.getY(), packet.getZ());
         SoundUtils.playSound(session, packet.getSound(), position, packet.getVolume(), packet.getPitch());
+
+        // A brushing player's own dust is client-side on Java and never sent over the network, and
+        // the server only sends the recurring brush sound for other players' strokes. That makes
+        // this sound the one signal an observer gets, so pair it with the dust Java observers
+        // create locally. Registry identity rather than name, so /playsound cannot fake a stroke.
+        // https://github.com/GeyserMC/Geyser/issues/3844
+        if (packet.getSound() == BuiltinSound.ITEM_BRUSH_BRUSHING_GENERIC
+                || packet.getSound() == BuiltinSound.ITEM_BRUSH_BRUSHING_SAND
+                || packet.getSound() == BuiltinSound.ITEM_BRUSH_BRUSHING_GRAVEL) {
+            LevelEventPacket dustPacket = new LevelEventPacket();
+            dustPacket.setType(ParticleType.BRUSH_DUST);
+            dustPacket.setPosition(position);
+            dustPacket.setData(0);
+            session.sendUpstreamPacket(dustPacket);
+        }
     }
 }

@@ -26,6 +26,7 @@
 package org.geysermc.geyser.translator.protocol.java.entity;
 
 import org.cloudburstmc.math.vector.Vector3d;
+import org.cloudburstmc.math.vector.Vector3f;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.vehicle.ClientVehicle;
 import org.geysermc.geyser.session.GeyserSession;
@@ -42,6 +43,10 @@ public class JavaEntityPositionSyncTranslator extends PacketTranslator<Clientbou
         if (entity == null) return;
 
         Vector3d pos = packet.getPosition();
+        Vector3f target = pos.toFloat();
+        // Compute before the cached position is overwritten. Java clients snap rather than
+        // interpolate a sync farther than 64 blocks; Bedrock needs teleport semantics there too
+        boolean teleported = entity.position().distanceSquared(target) > 4096;
 
         if (entity instanceof ClientVehicle clientVehicle) {
             // Ignore if player is controlling
@@ -51,6 +56,7 @@ public class JavaEntityPositionSyncTranslator extends PacketTranslator<Clientbou
             clientVehicle.getVehicleComponent().moveAbsolute(pos.getX(), pos.getY(), pos.getZ());
         }
 
-        entity.teleport(pos.toFloat(), packet.getYRot(), packet.getXRot(), packet.isOnGround());
+        // As in Entity#teleport, the head yaw follows the yaw
+        entity.moveAbsolute(target, packet.getYRot(), packet.getXRot(), packet.getYRot(), packet.isOnGround(), teleported);
     }
 }

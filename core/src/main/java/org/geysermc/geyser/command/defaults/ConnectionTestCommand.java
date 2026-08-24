@@ -41,8 +41,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Random;
 import java.util.concurrent.CompletableFuture;
 
-import static org.incendo.cloud.parser.standard.IntegerParser.integerParser;
-import static org.incendo.cloud.parser.standard.StringParser.stringParser;
+import static org.incendo.cloud.parser.standard.StringParser.greedyStringParser;
 
 public class ConnectionTestCommand extends GeyserCommand {
 
@@ -53,7 +52,6 @@ public class ConnectionTestCommand extends GeyserCommand {
     public static String CONNECTION_TEST_MOTD = null;
 
     private static final String ADDRESS = "address";
-    private static final String PORT = "port";
 
     private final GeyserImpl geyser;
     private final Random random = new Random();
@@ -66,19 +64,38 @@ public class ConnectionTestCommand extends GeyserCommand {
     @Override
     public void register(CommandManager<GeyserCommandSource> manager) {
         manager.command(baseBuilder(manager)
-            .required(ADDRESS, stringParser())
-            .optional(PORT, integerParser(0, 65535))
+            // A single greedy argument, split on whitespace below. A typed string argument maps to
+            // Brigadier's word grammar on some platforms, which rejects the colons in IPv6 literals.
+            .required(ADDRESS, greedyStringParser())
             .handler(this::execute));
     }
 
     @Override
     public void execute(CommandContext<GeyserCommandSource> context) {
         GeyserCommandSource source = context.sender();
-        String ipArgument = context.get(ADDRESS);
-        Integer portArgument = context.getOrDefault(PORT, null); // null if port was not specified
+        String[] arguments = context.<String>get(ADDRESS).trim().split("\\s+");
+        if (arguments.length > 2) {
+            source.sendMessage("Please specify only an address, optionally followed by a port.");
+            return;
+        }
 
-        // Replace "<" and ">" symbols if they are present to avoid the common issue of people including them
-        final String ip = ipArgument.replace("<", "").replace(">", "");
+        Integer portArgument = null;
+        if (arguments.length == 2) {
+            try {
+                portArgument = Integer.parseInt(arguments[1]);
+            } catch (NumberFormatException exception) {
+                source.sendMessage("The port you specified is invalid! Please specify a valid port.");
+                return;
+            }
+        }
+
+        // Replace "<" and ">" symbols if they are present to avoid the common issue of people including them,
+        // and unwrap bracketed IPv6 literals
+        String ipArgument = arguments[0].replace("<", "").replace(">", "");
+        if (ipArgument.startsWith("[") && ipArgument.endsWith("]")) {
+            ipArgument = ipArgument.substring(1, ipArgument.length() - 1);
+        }
+        final String ip = ipArgument;
         final int port = portArgument != null ? portArgument : geyser.config().advanced().bedrock().broadcastPort(); // default bedrock port
 
         // Issue: people commonly checking placeholders
@@ -94,7 +111,7 @@ public class ConnectionTestCommand extends GeyserCommand {
         }
 
         // Issue: people testing local ip
-        if (ip.equals("localhost") || ip.startsWith("127.") || ip.startsWith("10.") || ip.startsWith("192.168.")) {
+        if (ip.equals("localhost") || ip.equals("::1") || ip.startsWith("127.") || ip.startsWith("10.") || ip.startsWith("192.168.")) {
             source.sendMessage("This tool checks if connections from other networks are possible, so you cannot check a local IP.");
             return;
         }
@@ -109,19 +126,14 @@ public class ConnectionTestCommand extends GeyserCommand {
 
         // Issue: do the ports not line up? We only check this if players don't override the broadcast port - if they do, they (hopefully) know what they're doing
         if (config.advanced().bedrock().broadcastPort() == config.bedrock().port()) {
-            if (port != config.bedrock().port()) {
-                if (portArgument != null) {
-                    source.sendMessage("The port you are testing with (" + port + ") is not the same as you set in your Geyser configuration ("
-                            + config.bedrock().port() + ")");
-                    source.sendMessage("Re-run the command with the port in the config, or change the `bedrock` `port` in the config.");
-                    if (config.bedrock().cloneRemotePort()) {
-                        source.sendMessage("You have `clone-remote-port` enabled. This option ignores the `bedrock` `port` in the config, and uses the Java server port instead.");
-                    }
-                } else {
-                    source.sendMessage("You did not specify the port to check (add it with \":<port>\"), " +
-                            "and the default port 19132 does not match the port in your Geyser configuration ("
-                            + config.bedrock().port() + ")!");
-                    source.sendMessage("Re-run the command with that port, or change the port in the config under `bedrock` `port`.");
+            // Without a port argument the tested port defaults to the broadcast port, which is the
+            // configured port in this branch, so only an explicitly given port can mismatch.
+            if (portArgument != null && portArgument != config.bedrock().port()) {
+                source.sendMessage("The port you are testing with (" + port + ") is not the same as you set in your Geyser configuration ("
+                        + config.bedrock().port() + ")");
+                source.sendMessage("Re-run the command with the port in the config, or change the `bedrock` `port` in the config.");
+                if (config.bedrock().cloneRemotePort()) {
+                    source.sendMessage("You have `clone-remote-port` enabled. This option ignores the `bedrock` `port` in the config, and uses the Java server port instead.");
                 }
             }
         } else {
