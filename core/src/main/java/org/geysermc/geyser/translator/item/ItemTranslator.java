@@ -25,6 +25,7 @@
 
 package org.geysermc.geyser.translator.item;
 
+import it.unimi.dsi.fastutil.ints.IntList;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TranslatableComponent;
@@ -503,7 +504,7 @@ public final class ItemTranslator {
                 if (holderSet == null) {
                     continue;
                 }
-                int[] holders = holderSet.getHolders();
+                IntList holders = holderSet.getHolders();
                 if (holders == null) {
                     continue;
                 }

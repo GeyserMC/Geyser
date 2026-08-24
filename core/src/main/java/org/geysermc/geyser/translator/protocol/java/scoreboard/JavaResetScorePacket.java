@@ -44,6 +44,10 @@ public class JavaResetScorePacket extends PacketTranslator<ClientboundResetScore
 
     @Override
     public void translate(GeyserSession session, ClientboundResetScorePacket packet) {
+        if (logger.isDebug()) {
+            logger.debug("Reset score packet (" + session.bedrockUsername() + "): " + packet);
+        }
+
         WorldCache worldCache = session.getWorldCache();
         Scoreboard scoreboard = worldCache.getScoreboard();
         int pps = worldCache.increaseAndGetScoreboardPacketsPerSecond();

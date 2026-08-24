@@ -44,6 +44,7 @@ import org.cloudburstmc.protocol.bedrock.packet.InventoryTransactionPacket;
 import org.cloudburstmc.protocol.bedrock.packet.LevelSoundEventPacket;
 import org.cloudburstmc.protocol.bedrock.packet.PlaySoundPacket;
 import org.geysermc.geyser.entity.type.Entity;
+import org.geysermc.geyser.entity.type.FishingHookEntity;
 import org.geysermc.geyser.entity.type.ItemFrameEntity;
 import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.inventory.Inventory;
@@ -181,6 +182,13 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
             case INVENTORY_MISMATCH:
                 break;
             case ITEM_USE:
+                // Using a rod on a block or in the air reels the client's own bobber in right away;
+                // see FishingHookEntity#markRetrievedByClient
+                FishingHookEntity fishingHook = session.getFishingHook();
+                if (fishingHook != null && packet.getActionType() <= 1 && packet.getItemInHand() != null
+                        && session.getItemMappings().getMapping(packet.getItemInHand()).getJavaItem() == Items.FISHING_ROD) {
+                    fishingHook.markRetrievedByClient();
+                }
                 switch (packet.getActionType()) {
                     case 0 -> {
                         final Vector3i packetBlockPosition = packet.getBlockPosition();

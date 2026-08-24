@@ -150,7 +150,11 @@ public final class FloodgateSkinUploader {
                                     String signature = data.get("signature").getAsString();
                                     byte[] bytes = (value + '\0' + signature)
                                             .getBytes(StandardCharsets.UTF_8);
-                                    // Delay to ensure the server connection is established
+                                    // Send once the session is spawned, so the message misses the
+                                    // proxy's null-connection window on initial join. The fixed
+                                    // delay send stays as a fallback because the spawn poll is
+                                    // best effort; a duplicate apply overwrites the same skin.
+                                    sendSkinWhenSpawned(geyser, session, bytes, 0);
                                     geyser.getScheduledThread().schedule(() -> {
                                         PluginMessageUtils.sendMessage(session, PluginMessageChannels.SKIN, bytes);
                                     }, 5, TimeUnit.SECONDS);
@@ -171,7 +175,11 @@ public final class FloodgateSkinUploader {
                                         String signature = data.get("signature").getAsString();
                                         byte[] bytes = (value + '\0' + signature)
                                                 .getBytes(StandardCharsets.UTF_8);
-                                        // Delay to ensure the server connection is established
+                                        // Send once the session is spawned, so the message misses the
+                                        // proxy's null-connection window on initial join. The fixed
+                                        // delay send stays as a fallback because the spawn poll is
+                                        // best effort; a duplicate apply overwrites the same skin.
+                                        sendSkinWhenSpawned(geyser, eduSession, bytes, 0);
                                         geyser.getScheduledThread().schedule(() -> {
                                             PluginMessageUtils.sendMessage(eduSession, PluginMessageChannels.SKIN, bytes);
                                         }, 5, TimeUnit.SECONDS);
@@ -334,6 +342,19 @@ public final class FloodgateSkinUploader {
                 skinQueue.addLast(jsonString);
             }
         }
+    }
+
+    private void sendSkinWhenSpawned(GeyserImpl geyser, GeyserSession session, byte[] bytes, int attempt) {
+        if (session.isClosed() || attempt >= 10) {
+            return;
+        }
+        if (session.isSpawned()) {
+            PluginMessageUtils.sendMessage(session, PluginMessageChannels.SKIN, bytes);
+            return;
+        }
+        geyser.getScheduledThread().schedule(
+                () -> sendSkinWhenSpawned(geyser, session, bytes, attempt + 1),
+                500, TimeUnit.MILLISECONDS);
     }
 
     private void reconnectLater(GeyserImpl geyser) {

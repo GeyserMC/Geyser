@@ -80,7 +80,7 @@ public final class SidebarDisplaySlot extends DisplaySlot {
                     }
 
                     // new score, so it should be added
-                    return new SidebarDisplayScore(this, objective.getScoreboard().nextId(), reference);
+                    return new SidebarDisplayScore(this, objective.getScoreboard().nextDisplayId(), reference);
                 }).collect(Collectors.toList());
 
         // Make sure that we set the displayScores as early as possible, because setTeamFor relies on these potential
@@ -140,7 +140,7 @@ public final class SidebarDisplaySlot extends DisplaySlot {
 
             if (team != null) {
                 // entities are mostly removed from teams without notifying the scores.
-                if (team.shouldRemove() || !team.hasEntity(score.name())) {
+                if (team.isRemoved() || !team.hasEntity(score.name())) {
                     score.team(null);
                     add = true;
                 }
@@ -188,6 +188,10 @@ public final class SidebarDisplaySlot extends DisplaySlot {
     @Override
     public void playerRemoved(PlayerEntity player) {
 
+    }
+
+    public void setUpdateTypeAdd() {
+        updateType = UpdateType.ADD;
     }
 
     public void setTeamFor(Team team, Set<String> entities) {

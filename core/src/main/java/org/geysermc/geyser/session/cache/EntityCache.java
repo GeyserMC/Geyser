@@ -144,6 +144,27 @@ public class EntityCache {
         }
     }
 
+    /**
+     * Moves a cached entity to a fresh Geyser id and returns the new id. For an entity the Bedrock client removed on
+     * its own while Java still has it: the client ignores a spawn for an id it already removed, so the entity has to
+     * be spawned again under a new one. The caller stores the id and sends the spawn.
+     */
+    public long reassignGeyserId(Entity entity) {
+        lock.writeLock().lock();
+        try {
+            long geyserId = nextEntityId();
+            entities.remove(entity.geyserId());
+            entities.put(geyserId, entity);
+            entityIdTranslations.put(entity.getEntityId(), geyserId);
+            if (entity.uuid() != null) {
+                entityUuidTranslations.put(entity.uuid(), geyserId);
+            }
+            return geyserId;
+        } finally {
+            lock.writeLock().unlock();
+        }
+    }
+
     public void removeEntity(Entity entity) {
         if (entity == null) {
             return;
