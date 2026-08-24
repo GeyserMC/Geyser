@@ -192,7 +192,7 @@ public class JavaUpdateRecipesTranslator extends PacketTranslator<ClientboundUpd
             }
 
             int[] ingredients = GeyserHolderSet.fromHolderSet(JavaRegistries.ITEM, recipe.input().getValues())
-                .resolveRaw(session.getTagCache());
+                .resolveRaw(session.getTagCache()).toIntArray();
             for (int ingredient : ingredients) {
                 rawStonecutterData.computeIfAbsent(ingredient, $ -> new ArrayList<>()).add(recipe);
             }

@@ -25,7 +25,9 @@
 
 package org.geysermc.geyser.session.cache;
 
+import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntArrays;
+import it.unimi.dsi.fastutil.ints.IntList;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import net.kyori.adventure.key.Key;
 import org.checkerframework.checker.nullness.qual.NonNull;
@@ -63,7 +65,7 @@ import java.util.Map;
  */
 public final class TagCache {
     private final GeyserSession session;
-    private final Map<Tag<?>, int[]> tags = new Object2ObjectOpenHashMap<>();
+    private final Map<Tag<?>, IntList> tags = new Object2ObjectOpenHashMap<>();
 
     public TagCache(GeyserSession session) {
         this.session = session;
@@ -113,7 +115,7 @@ public final class TagCache {
                 // Used in RecipeBookAddTranslator
                 Arrays.sort(value);
             }
-            this.tags.put(new Tag<>(registry, tag.getKey()), value);
+            this.tags.put(new Tag<>(registry, tag.getKey()), new IntArrayList(value));
         }
     }
 
@@ -148,7 +150,7 @@ public final class TagCache {
             return false;
         }
 
-        int[] entries = holderSet.resolve(key -> {
+        IntList entries = holderSet.resolve(key -> {
             // This should never happen, since a key in a HolderSet is always a tag
             // We check for it anyway
             if (key.value().startsWith("#")) {
@@ -167,18 +169,18 @@ public final class TagCache {
     /**
      * @return the network IDs in the given tag. This can be an empty array.
      */
-    public int[] getRaw(@NonNull Tag<?> tag) {
-        return this.tags.getOrDefault(tag, IntArrays.EMPTY_ARRAY);
+    public IntList getRaw(@NonNull Tag<?> tag) {
+        return this.tags.getOrDefault(tag, IntList.of());
     }
 
     /**
      * Maps a raw array of network IDs to their respective objects.
      */
-    public static <T> List<T> mapRawArray(GeyserSession session, int[] array, JavaRegistryKey<T> registry) {
-        return Arrays.stream(array).mapToObj(i -> registry.value(session, i)).toList();
+    public static <T> List<T> mapRawArray(GeyserSession session, IntList array, JavaRegistryKey<T> registry) {
+        return array.intStream().mapToObj(i -> registry.value(session, i)).toList();
     }
 
-    private static boolean contains(int[] array, int i) {
+    private static boolean contains(IntList array, int i) {
         for (int item : array) {
             if (item == i) {
                 return true;

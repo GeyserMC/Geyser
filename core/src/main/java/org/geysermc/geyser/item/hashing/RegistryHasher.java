@@ -423,10 +423,10 @@ public interface RegistryHasher<DirectType> extends MinecraftHasher<Integer> {
             if (holder.getLocation() != null) {
                 return TAG.hash(holder.getLocation(), encoder);
             } else if (holder.getHolders() != null) {
-                if (holder.getHolders().length == 1) {
-                    return hash(holder.getHolders()[0], encoder);
+                if (holder.getHolders().size() == 1) {
+                    return hash(holder.getHolders().getInt(0), encoder);
                 }
-                return list().hash(Arrays.stream(holder.getHolders()).boxed().toList(), encoder);
+                return list().hash(holder.getHolders().intStream().boxed().toList(), encoder);
             }
             throw new IllegalStateException("HolderSet must have either tag location or holders");
         };
