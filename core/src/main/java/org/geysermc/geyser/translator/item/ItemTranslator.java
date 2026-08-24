@@ -121,6 +121,25 @@ public final class ItemTranslator {
     private final static List<Item> GLINT_PRESENT = List.of(Items.ENCHANTED_GOLDEN_APPLE, Items.EXPERIENCE_BOTTLE, Items.WRITTEN_BOOK,
         Items.NETHER_STAR, Items.ENCHANTED_BOOK, Items.END_CRYSTAL);
 
+    private static final List<Effect> NEGATIVE_EFFECTS = List.of(
+        Effect.SLOWNESS,
+        Effect.MINING_FATIGUE,
+        Effect.INSTANT_DAMAGE,
+        Effect.NAUSEA,
+        Effect.BLINDNESS,
+        Effect.HUNGER,
+        Effect.WEAKNESS,
+        Effect.POISON,
+        Effect.WITHER,
+        Effect.LEVITATION,
+        Effect.UNLUCK,
+        Effect.DARKNESS,
+        Effect.WIND_CHARGED,
+        Effect.WEAVING,
+        Effect.OOZING,
+        Effect.INFESTED
+    );
+
     private ItemTranslator() {
     }
 
@@ -372,25 +391,6 @@ public final class ItemTranslator {
         return MessageTranslator.convertMessage(attributeComponent, language);
     }
 
-    private static final List<Effect> negativeEffectList = List.of(
-        Effect.SLOWNESS,
-        Effect.MINING_FATIGUE,
-        Effect.INSTANT_DAMAGE,
-        Effect.NAUSEA,
-        Effect.BLINDNESS,
-        Effect.HUNGER,
-        Effect.WEAKNESS,
-        Effect.POISON,
-        Effect.WITHER,
-        Effect.LEVITATION,
-        Effect.UNLUCK,
-        Effect.DARKNESS,
-        Effect.WIND_CHARGED,
-        Effect.WEAVING,
-        Effect.OOZING,
-        Effect.INFESTED
-    );
-
     public static String getPotionEffectInfo(PotionContents contents, float durationScale, String language) {
         StringBuilder finalText = new StringBuilder();
         List<MobEffectInstance> effectInstanceList = contents.getCustomEffects();
@@ -427,7 +427,7 @@ public final class ItemTranslator {
             Component component = Component.text()
                 .resetStyle()
                 // Use blue to distinguish it from gray vanilla Bedrock effect
-                .color((negativeEffectList.contains(effect)) ? NamedTextColor.RED : NamedTextColor.BLUE)
+                .color((NEGATIVE_EFFECTS.contains(effect)) ? NamedTextColor.RED : NamedTextColor.BLUE)
                 .append(appendTranslatable)
                 .build();
             // Bedrock supports wrap lines with '\n' in a single string in custom name
