@@ -124,7 +124,7 @@ public class GeyserItemStack {
                 if (itemTag.isEmpty()) {
                     yield GeyserItemStack.EMPTY;
                 }
-                yield GeyserItemStack.of(session, itemTag.getInt(0), 1);
+                yield GeyserItemStack.of(session, itemTag.getFirst(), 1);
             }
             case DyedSlotDisplay(SlotDisplay dye, SlotDisplay target) -> {
                 // This probably works... MC does it a little differently
