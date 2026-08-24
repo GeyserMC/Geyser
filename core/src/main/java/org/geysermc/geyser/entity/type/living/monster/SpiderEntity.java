@@ -29,6 +29,8 @@ import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.geysermc.geyser.entity.spawn.EntitySpawnContext;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.ByteEntityMetadata;
 
+import java.util.EnumMap;
+
 public class SpiderEntity extends MonsterEntity {
 
     public SpiderEntity(EntitySpawnContext context) {
@@ -40,6 +42,14 @@ public class SpiderEntity extends MonsterEntity {
         super.initializeMetadata();
         // Allow red eyes to show when invisible
         setFlag(EntityFlag.RENDER_WHEN_INVISIBLE, true);
+    }
+
+    @Override
+    protected EnumMap<EntityFlag, Boolean> spectateHiddenFlags() {
+        // The red eyes use RENDER_WHEN_INVISIBLE, so hide them too while this spider is being spectated
+        EnumMap<EntityFlag, Boolean> overridden = super.spectateHiddenFlags();
+        overridden.put(EntityFlag.RENDER_WHEN_INVISIBLE, false);
+        return overridden;
     }
 
     public void setSpiderFlags(ByteEntityMetadata entityMetadata) {

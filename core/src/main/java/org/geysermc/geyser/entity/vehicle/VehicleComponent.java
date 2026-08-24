@@ -237,7 +237,7 @@ public class VehicleComponent<T extends Entity & ClientVehicle> {
         double lavaHeight = getFluidHeightAndApplyMovement(ctx, iter, Fluid.LAVA, vehicle.getSession().getDimensionType().ultrawarm() ? 0.007 : 0.007 / 3, min.getY());
 
         // Apply upward motion if the vehicle is a Strider, and it is submerged in lava
-        if (lavaHeight > 0 && vehicle.getDefinition().entityType() == EntityType.STRIDER) {
+        if (lavaHeight > 0 && vehicle.getJavaDefinition().is(EntityType.STRIDER)) {
             Vector3i blockPos = ctx.centerPos().toInt();
             if (!CollisionManager.FLUID_COLLISION.isBelow(blockPos.getY(), boundingBox) || ctx.getBlock(blockPos.up()).is(Blocks.LAVA)) {
                 vehicle.setMotion(vehicle.getMotion().mul(0.5f).add(0, 0.05f, 0));
@@ -501,7 +501,7 @@ public class VehicleComponent<T extends Entity & ClientVehicle> {
         box.translate(vehicle.getMotion().toDouble().up(0.6f - ctx.centerPos().getY() + originalY));
         box.expand(-1.0E-7);
 
-        BlockPositionIterator iter = vehicle.getSession().getCollisionManager().collidableBlocksIterator(box);
+        BlockPositionIterator iter = CollisionManager.collidableBlocksIterator(vehicle.getSession(), box);
         for (iter.reset(); iter.hasNext(); iter.next()) {
             int blockId = ctx.getBlockId(iter);
 

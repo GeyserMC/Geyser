@@ -53,7 +53,9 @@ public class JavaPlayerInfoRemoveTranslator extends PacketTranslator<Clientbound
                 }
                 // Just remove the entity's player list status
                 // Don't despawn the entity - the Java server will also take care of that.
-                entries.add(new PlayerListPacket.Entry(entity.getTabListUuid()));
+                PlayerListPacket.Entry entry = new PlayerListPacket.Entry(entity.getTabListUuid());
+                entry.setAction(PlayerListPacket.Action.REMOVE);
+                entries.add(entry);
             }
         }
 

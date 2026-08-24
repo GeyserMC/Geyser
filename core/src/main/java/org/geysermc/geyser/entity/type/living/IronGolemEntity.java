@@ -41,7 +41,7 @@ public class IronGolemEntity extends GolemEntity {
         // Indicate that we should show cracks through a resource pack
         setFlag(EntityFlag.BRIBED, true);
         // Required, or else the overlay is black
-        dirtyMetadata.put(EntityDataTypes.COLOR_2, (byte) 0);
+        metadata.put(EntityDataTypes.COLOR_2, (byte) 0);
         // Default max health. Ensures correct cracked texture is used
         // Bug reproducible in 1.19.0 JE vanilla/fabric when spawning a new iron golem
         maxHealth = 100f;

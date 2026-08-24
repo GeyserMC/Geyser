@@ -51,7 +51,6 @@ import org.cloudburstmc.protocol.bedrock.packet.ResourcePacksInfoPacket;
 import org.cloudburstmc.protocol.bedrock.packet.SetTitlePacket;
 import org.cloudburstmc.protocol.common.PacketSignal;
 import org.cloudburstmc.protocol.common.util.Zlib;
-import org.geysermc.api.util.BedrockPlatform;
 import org.geysermc.geyser.Constants;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.event.bedrock.SessionInitializeEvent;
@@ -168,10 +167,8 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
         }
 
         // New since 1.19.30 - sent before login packet
-        PacketCompressionAlgorithm algorithm = PacketCompressionAlgorithm.ZLIB;
-
         NetworkSettingsPacket responsePacket = new NetworkSettingsPacket();
-        responsePacket.setCompressionAlgorithm(algorithm);
+        responsePacket.setCompressionAlgorithm(PacketCompressionAlgorithm.ZLIB);
         responsePacket.setCompressionThreshold(512);
         session.sendUpstreamPacketImmediately(responsePacket);
         session.getUpstream().getSession().getPeer().setCompression(compressionStrategy);
@@ -199,11 +196,6 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
             return PacketSignal.HANDLED;
         }
         receivedLoginPacket = true;
-
-        if (geyser.getSessionManager().reachedMaxConnectionsPerAddress(session)) {
-            session.disconnect("Too many connections are originating from this location!");
-            return PacketSignal.HANDLED;
-        }
 
         LoginEncryptionUtils.encryptPlayerConnection(session, loginPacket);
 
@@ -245,8 +237,8 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
 
         resourcePacksInfo.setForcedToAccept(GeyserImpl.getInstance().config().gameplay().forceResourcePacks() ||
             resourcePackLoadEvent.isIntegratedPackActive());
-        resourcePacksInfo.setWorldTemplateId(UUID.randomUUID());
-        resourcePacksInfo.setWorldTemplateVersion("*");
+        resourcePacksInfo.setWorldTemplateId(new UUID(0, 0));
+        resourcePacksInfo.setWorldTemplateVersion("");
 
         session.sendUpstreamPacket(resourcePacksInfo);
 
@@ -289,7 +281,7 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
                 ResourcePackStackPacket stackPacket = new ResourcePackStackPacket();
                 stackPacket.setExperimentsPreviouslyToggled(false);
                 stackPacket.setForcedToAccept(false); // Leaving this as false allows the player to choose to download or not
-                stackPacket.setGameVersion(session.getClientData().getGameVersion());
+                stackPacket.setGameVersion("*");
                 stackPacket.getResourcePacks().addAll(this.resourcePackLoadEvent.orderedPacks());
 
                 session.sendUpstreamPacket(stackPacket);
@@ -354,12 +346,8 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
         // Resolve some console pack downloading issues.
         // See <https://github.com/PowerNukkitX/PowerNukkitX/pull/1997> for reference
         chunkRequestQueue.add(packet);
-        if (isConsole()) {
-            if (!currentlySendingChunks) {
-                currentlySendingChunks = true;
-                processNextChunk();
-            }
-        } else {
+        if (!currentlySendingChunks) {
+            currentlySendingChunks = true;
             processNextChunk();
         }
         return PacketSignal.HANDLED;
@@ -417,14 +405,10 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
 
         data.setData(Unpooled.wrappedBuffer(packData));
 
-        if (isConsole()) {
-            // Also flushes packets
-            // Avoids bursting slower / delayed clients
-            session.sendUpstreamPacketImmediately(data);
-            session.scheduleInEventLoop(this::processNextChunk, PACKET_SEND_DELAY, TimeUnit.MILLISECONDS);
-        } else {
-            session.sendUpstreamPacket(data);
-        }
+        // Also flushes packets
+        // Avoids bursting slower / delayed clients
+        session.sendUpstreamPacketImmediately(data);
+        session.scheduleInEventLoop(this::processNextChunk, PACKET_SEND_DELAY, TimeUnit.MILLISECONDS);
 
         // Check if it is the last chunk and send next pack in queue when available.
         if (remainingSize <= GeyserResourcePack.CHUNK_SIZE && !packsToSend.isEmpty()) {
@@ -476,10 +460,5 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
         data.setType(ResourcePackType.RESOURCES);
 
         session.sendUpstreamPacket(data);
-    }
-
-    private boolean isConsole() {
-        BedrockPlatform platform = session.platform();
-        return platform == BedrockPlatform.PS4 || platform == BedrockPlatform.XBOX || platform == BedrockPlatform.NX;
     }
 }

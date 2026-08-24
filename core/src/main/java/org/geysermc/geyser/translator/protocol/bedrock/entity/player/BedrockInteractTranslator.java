@@ -114,7 +114,7 @@ public class BedrockInteractTranslator extends PacketTranslator<InteractPacket> 
                     if (session.getMouseoverEntity() != null) {
                         // No interactive tag should be sent
                         session.setMouseoverEntity(null);
-                        session.getPlayerEntity().getDirtyMetadata().put(EntityDataTypes.INTERACT_TEXT, "");
+                        session.getPlayerEntity().getMetadata().put(EntityDataTypes.INTERACT_TEXT, "");
                         session.getPlayerEntity().updateBedrockMetadata();
                     }
                 }

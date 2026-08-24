@@ -34,7 +34,7 @@ import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.protocol.bedrock.data.definitions.BlockDefinition;
 import org.geysermc.geyser.api.block.custom.CustomBlockState;
-import org.geysermc.geyser.entity.EntityDefinitions;
+import org.geysermc.geyser.entity.VanillaEntities;
 import org.geysermc.geyser.entity.spawn.EntitySpawnContext;
 import org.geysermc.geyser.entity.type.player.SkullPlayerEntity;
 import org.geysermc.geyser.level.block.property.Properties;
@@ -44,6 +44,8 @@ import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.registry.type.CustomSkull;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.mcprotocollib.auth.GameProfile;
+import org.geysermc.mcprotocollib.auth.texture.Texture;
+import org.geysermc.mcprotocollib.auth.texture.TextureType;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -80,9 +82,9 @@ public class SkullCache {
     }
 
     public @Nullable Skull putSkull(Vector3i position, GameProfile resolved, BlockState blockState) {
-        GameProfile.Texture texture;
+        Texture texture;
         try {
-            texture = resolved.getTexture(GameProfile.TextureType.SKIN, false);
+            texture = resolved.getTexture(TextureType.SKIN, false);
         } catch (IllegalStateException e) {
             session.getGeyser().getLogger().debug("Player skull with invalid skin found at " + position + " with texture payload " + resolved.getProperty("textures"));
             return null;
@@ -191,7 +193,7 @@ public class SkullCache {
         }
         if (!cullingEnabled || totalSkullEntities < maxVisibleSkulls) {
             // Create a new entity
-            skull.entity = new SkullPlayerEntity(EntitySpawnContext.DUMMY_CONTEXT.apply(session, UUID.randomUUID(), EntityDefinitions.PLAYER));
+            skull.entity = new SkullPlayerEntity(EntitySpawnContext.DUMMY_CONTEXT.apply(session, UUID.randomUUID(), VanillaEntities.PLAYER));
             skull.entity.spawnEntity();
             skull.entity.updateSkull(skull);
             totalSkullEntities++;

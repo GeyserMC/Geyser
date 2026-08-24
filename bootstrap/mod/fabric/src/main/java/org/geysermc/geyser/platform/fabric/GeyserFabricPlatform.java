@@ -34,7 +34,6 @@ import org.geysermc.geyser.api.util.PlatformType;
 import org.geysermc.geyser.dump.BootstrapDumpInfo;
 import org.geysermc.geyser.platform.mod.GeyserModBootstrap;
 import org.geysermc.geyser.platform.mod.platform.GeyserModPlatform;
-import org.geysermc.geyser.util.InternalPlatformType;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -42,8 +41,6 @@ import java.nio.file.Path;
 import java.util.Optional;
 
 public class GeyserFabricPlatform implements GeyserModPlatform {
-    private static Boolean isGameTestServer = null;
-    
     private final ModContainer mod;
 
     public GeyserFabricPlatform() {
@@ -52,7 +49,7 @@ public class GeyserFabricPlatform implements GeyserModPlatform {
 
     @Override
     public @NonNull PlatformType platformType() {
-        return isGameTestServer() ? InternalPlatformType.GAMETEST : PlatformType.FABRIC;
+        return PlatformType.FABRIC;
     }
 
     @Override
@@ -92,18 +89,10 @@ public class GeyserFabricPlatform implements GeyserModPlatform {
 
         try {
             return path.getFileSystem()
-                    .provider()
-                    .newInputStream(path);
+                .provider()
+                .newInputStream(path);
         } catch (IOException e) {
             return null;
         }
-    }
-
-    public static boolean isGameTestServer() {
-        if (isGameTestServer != null) {
-            return isGameTestServer;
-        }
-        // Property is from GameTestSystemProperties, FAPI internal
-        return isGameTestServer = System.getProperty("fabric-api.gametest") != null && FabricLoader.getInstance().isDevelopmentEnvironment();
     }
 }

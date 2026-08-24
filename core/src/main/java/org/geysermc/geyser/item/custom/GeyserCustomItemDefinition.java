@@ -223,6 +223,15 @@ public class GeyserCustomItemDefinition implements CustomItemDefinition {
             return this;
         }
 
+        /**
+         * Adds a Geyser component to a vanilla item definition, which the item API doesn't allow. The component must
+         * match the vanilla item's behaviour.
+         */
+        public <T> Builder geyserComponent(ItemDataComponent<T> component, T value) {
+            components.put(component, value);
+            return this;
+        }
+
         @Override
         public CustomItemDefinition.Builder removeComponent(@NonNull Identifier component) {
             Objects.requireNonNull(component, "component cannot be null");

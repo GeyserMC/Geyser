@@ -25,15 +25,15 @@
 
 package org.geysermc.geyser.entity.type.living.animal;
 
+import org.geysermc.geyser.api.util.Identifier;
 import org.geysermc.geyser.entity.properties.type.EnumProperty;
 import org.geysermc.geyser.entity.spawn.EntitySpawnContext;
-import org.geysermc.geyser.impl.IdentifierImpl;
 import org.geysermc.geyser.session.cache.RegistryCache;
 
 public abstract class TemperatureVariantAnimal extends AnimalEntity implements VariantHolder<TemperatureVariantAnimal.BuiltInVariant> {
 
     public static final EnumProperty<BuiltInVariant> TEMPERATE_VARIANT_PROPERTY = new EnumProperty<>(
-        IdentifierImpl.of("climate_variant"),
+        Identifier.of("climate_variant"),
         BuiltInVariant.class,
         BuiltInVariant.TEMPERATE
     );

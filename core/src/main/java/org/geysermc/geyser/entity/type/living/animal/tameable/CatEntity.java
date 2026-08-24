@@ -56,7 +56,7 @@ public class CatEntity extends TameableEntity implements VariantIntHolder {
     protected void initializeMetadata() {
         super.initializeMetadata();
         // Default value (minecraft:black).
-        dirtyMetadata.put(EntityDataTypes.VARIANT, 1);
+        metadata.put(EntityDataTypes.VARIANT, 1);
     }
 
     @Override
@@ -87,7 +87,7 @@ public class CatEntity extends TameableEntity implements VariantIntHolder {
 
     @Override
     public void setBedrockVariantId(int bedrockId) {
-        dirtyMetadata.put(EntityDataTypes.VARIANT, bedrockId);
+        metadata.put(EntityDataTypes.VARIANT, bedrockId);
     }
 
     public void setResting(BooleanEntityMetadata entityMetadata) {
@@ -102,7 +102,7 @@ public class CatEntity extends TameableEntity implements VariantIntHolder {
     private void updateCollarColor() {
         // Needed or else wild cats are a red color
         if (getFlag(EntityFlag.TAMED)) {
-            dirtyMetadata.put(EntityDataTypes.COLOR, collarColor);
+            metadata.put(EntityDataTypes.COLOR, collarColor);
         }
     }
 

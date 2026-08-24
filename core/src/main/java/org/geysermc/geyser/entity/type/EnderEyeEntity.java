@@ -38,6 +38,6 @@ public class EnderEyeEntity extends Entity {
     protected void initializeMetadata() {
         super.initializeMetadata();
         // Correct sizing
-        dirtyMetadata.put(EntityDataTypes.SCALE, 0.5f);
+        metadata.put(EntityDataTypes.SCALE, 0.5f);
     }
 }

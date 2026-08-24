@@ -45,8 +45,6 @@ import org.geysermc.geyser.api.item.custom.v2.component.geyser.GeyserBlockPlacer
 import org.geysermc.geyser.api.item.custom.v2.component.geyser.GeyserChargeable;
 import org.geysermc.geyser.api.item.custom.v2.component.geyser.GeyserItemDataComponents;
 import org.geysermc.geyser.api.item.custom.v2.component.geyser.GeyserThrowableComponent;
-import org.geysermc.geyser.api.item.custom.v2.component.java.JavaItemDataComponents;
-import org.geysermc.geyser.api.item.custom.v2.component.java.JavaRepairable;
 import org.geysermc.geyser.api.predicate.MinecraftPredicate;
 import org.geysermc.geyser.api.predicate.context.item.ItemPredicateContext;
 import org.geysermc.geyser.api.predicate.item.ItemConditionPredicate;
@@ -54,15 +52,16 @@ import org.geysermc.geyser.api.util.CreativeCategory;
 import org.geysermc.geyser.api.util.Identifier;
 import org.geysermc.geyser.api.util.Unit;
 import org.geysermc.geyser.event.type.GeyserDefineCustomItemsEventImpl;
-import org.geysermc.geyser.impl.HoldersImpl;
 import org.geysermc.geyser.item.GeyserCustomMappingData;
 import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.item.custom.GeyserCustomItemBedrockOptions;
 import org.geysermc.geyser.item.custom.GeyserCustomItemDefinition;
 import org.geysermc.geyser.item.exception.InvalidItemComponentsException;
 import org.geysermc.geyser.item.type.Item;
-import org.geysermc.geyser.item.type.NonVanillaItem;
+import org.geysermc.geyser.network.GameProtocol;
+import org.geysermc.geyser.registry.mappings.BuiltInMappings;
 import org.geysermc.geyser.registry.mappings.MappingsConfigReader;
+import org.geysermc.geyser.registry.mappings.MappingsType;
 import org.geysermc.geyser.registry.populator.custom.CustomItemContext;
 import org.geysermc.geyser.registry.type.GeyserMappingItem;
 import org.geysermc.geyser.registry.type.ItemMapping;
@@ -74,6 +73,7 @@ import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponen
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.Equippable;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.FoodProperties;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.HolderSet;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.KineticWeapon;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.PiercingWeapon;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.SwingAnimation;
@@ -110,9 +110,12 @@ public class CustomItemRegistryPopulator {
 
     public static void populate(Map<String, GeyserMappingItem> items, Multimap<Identifier, CustomItemDefinition> customItems,
                                 Multimap<Identifier, NonVanillaCustomItemDefinition> nonVanillaCustomItems) {
-        MappingsConfigReader mappingsConfigReader = new MappingsConfigReader();
+        if (!GeyserImpl.getInstance().config().gameplay().enableCustomContent()) {
+            return;
+        }
+
         // Load custom items from mappings files
-        mappingsConfigReader.loadItemMappingsFromJson((identifier, item) -> {
+        MappingsConfigReader.loadCustomMappingsFromJson(MappingsType.ITEMS, (identifier, item) -> {
             try {
                 validateVanillaOverride(identifier, item, customItems, items);
                 customItems.get(identifier).add(item);
@@ -175,7 +178,9 @@ public class CustomItemRegistryPopulator {
         String bedrockIdentifier = customItem.bedrockIdentifier().toString();
         NbtMapBuilder bedrockComponents = createComponentNbt(MinecraftKey.identifierToKey(customItem.identifier()), context);
 
-        Item javaItem = new NonVanillaItem(customItem.identifier().toString(), Item.builder().components(context.components()), context.resolvableComponents());
+        Item javaItem = new Item(customItem.identifier().toString(), Item.builder()
+            .components(context.components())
+            .resolvableComponents(context.resolvableComponents()));
         Items.register(javaItem, customItem.javaId());
 
         ItemMapping customMapping = ItemMapping.builder()
@@ -198,7 +203,7 @@ public class CustomItemRegistryPopulator {
         Identifier bedrockIdentifier = item.bedrockIdentifier();
         if (bedrockIdentifier.vanilla()) {
             throw new CustomItemDefinitionRegisterException("custom item bedrock identifier namespace can't be minecraft");
-        } else if (item.model().equals(vanillaIdentifier) && item.predicates().isEmpty()) {
+        } else if (item.model().equals(vanillaIdentifier) && item.predicates().isEmpty() && !BuiltInMappings.isRegistering()) {
             GeyserImpl.getInstance().getLogger().warning("Custom item " + bedrockIdentifier + " overrides the vanilla item model " + vanillaIdentifier + " without additional predicates!");
         }
 
@@ -251,7 +256,7 @@ public class CustomItemRegistryPopulator {
         NbtMapBuilder itemProperties = NbtMap.builder();
         NbtMapBuilder componentBuilder = NbtMap.builder();
 
-        setupBasicItemInfo(context.definition(), context.components(), itemProperties, componentBuilder);
+        setupBasicItemInfo(context, itemProperties, componentBuilder);
 
         computeToolProperties(itemProperties, componentBuilder);
         Integer attackDamage = context.definition().components().get(GeyserItemDataComponents.ATTACK_DAMAGE);
@@ -266,10 +271,9 @@ public class CustomItemRegistryPopulator {
         boolean canDestroyInCreative = toolData == null || toolData.isCanDestroyBlocksInCreative();
         computeCreativeDestroyProperties(canDestroyInCreative, itemProperties, componentBuilder);
 
-        // Using API component here because MCPL one is just an ID holder set, and we can't get identifiers from that
-        JavaRepairable repairable = context.definition().components().get(JavaItemDataComponents.REPAIRABLE);
+        HolderSet repairable = context.components().get(DataComponentTypes.REPAIRABLE);
         if (repairable != null) {
-            computeRepairableProperties(repairable, componentBuilder);
+            computeRepairableProperties(componentBuilder);
         }
 
         Equippable equippable = context.components().get(DataComponentTypes.EQUIPPABLE);
@@ -347,15 +351,19 @@ public class CustomItemRegistryPopulator {
             computeUseCooldownProperties(useCooldown, itemIdentifier, componentBuilder);
         }
 
-        GeyserBlockPlacer blockPlacer = context.vanillaMapping().map(mapping -> {
-            String bedrockIdentifier = mapping.getBedrockIdentifier();
-            if (bedrockIdentifier.equals("minecraft:fire_charge") || bedrockIdentifier.equals("minecraft:flint_and_steel")) {
-                return GeyserBlockPlacer.builder().block(Identifier.of("fire")).build();
-            } else if (mapping.getFirstBlockRuntimeId() != null) {
-                return GeyserBlockPlacer.builder().block(Identifier.of(mapping.getBedrockIdentifier())).build();
-            }
-            return null;
-        }).orElse(context.definition().components().get(GeyserItemDataComponents.BLOCK_PLACER));
+        // A block placer specified on the definition wins over the one derived from the vanilla mapping
+        GeyserBlockPlacer blockPlacer = context.definition().components().get(GeyserItemDataComponents.BLOCK_PLACER);
+        if (blockPlacer == null) {
+            blockPlacer = context.vanillaMapping().map(mapping -> {
+                String bedrockIdentifier = mapping.getBedrockIdentifier();
+                if (bedrockIdentifier.equals("minecraft:fire_charge") || bedrockIdentifier.equals("minecraft:flint_and_steel")) {
+                    return GeyserBlockPlacer.builder().block(Identifier.of("fire")).build();
+                } else if (mapping.getFirstBlockRuntimeId() != null) {
+                    return GeyserBlockPlacer.builder().block(Identifier.of(mapping.getBedrockIdentifier())).build();
+                }
+                return null;
+            }).orElse(null);
+        }
 
         if (blockPlacer != null) {
             computeBlockItemProperties(blockPlacer, componentBuilder);
@@ -391,12 +399,10 @@ public class CustomItemRegistryPopulator {
                 consumableComponent.map(Consumable::consumeSeconds));
         }
 
-        Unit entityPlacer = context.vanillaMapping().map(mapping -> {
-            if (mapping.isEntityPlacer()) {
-                return Unit.INSTANCE;
-            }
-            return null;
-        }).orElse(context.definition().components().get(GeyserItemDataComponents.ENTITY_PLACER));
+        Unit entityPlacer = context.vanillaMapping()
+            .filter(GeyserMappingItem::isEntityPlacer)
+            .map(mapping -> Unit.INSTANCE)
+            .orElse(context.definition().components().get(GeyserItemDataComponents.ENTITY_PLACER));
 
         if (entityPlacer != null) {
             computeEntityPlacerProperties(componentBuilder);
@@ -429,7 +435,9 @@ public class CustomItemRegistryPopulator {
         return builder;
     }
 
-    private static void setupBasicItemInfo(CustomItemDefinition definition, DataComponents components, NbtMapBuilder itemProperties, NbtMapBuilder componentBuilder) {
+    private static void setupBasicItemInfo(CustomItemContext context, NbtMapBuilder itemProperties, NbtMapBuilder componentBuilder) {
+        CustomItemDefinition definition = context.definition();
+        DataComponents components = context.components();
         CustomItemBedrockOptions options = definition.bedrockOptions();
 
         // Don't send an icon if the item has a block placer component, and is set to use its block as icon
@@ -455,36 +463,43 @@ public class CustomItemRegistryPopulator {
         componentBuilder.putCompound("minecraft:display_name", NbtMap.builder().putString("value", definition.displayName()).build());
 
         // Add a Geyser tag to the item, allowing Molang queries
-        addItemTag(componentBuilder, Identifier.of("geyser:is_custom"));
+        addItemTag(componentBuilder, "geyser:is_custom");
 
         // Add other defined tags to the item
         Set<Identifier> tags = options.tags();
         for (Identifier tag : tags) {
-            addItemTag(componentBuilder, tag);
+            addItemTag(componentBuilder, tag.toString());
         }
 
         itemProperties.putBoolean("allow_off_hand", options.allowOffhand());
         itemProperties.putBoolean("hand_equipped", options.displayHandheld());
 
         int maxDamage = components.getOrDefault(DataComponentTypes.MAX_DAMAGE, 0);
-        // Note that Java requires stack size to be 1 when max damage is above 0, and bedrock requires stack size to be 1 when the item can be equipped
-        // We already checked and threw for these cases in CustomItemContext#checkComponents though
+        // Note that Java requires stack size to be 1 when max damage is above 0
+        // We already checked and threw for that case in CustomItemContext#checkComponents though
         // This can be missing if a non-vanilla item didn't specify a max stack size, or if a component patch removed the component. In that case vanilla Minecraft defaults to 1
         int stackSize = components.getOrDefault(DataComponentTypes.MAX_STACK_SIZE, 1);
 
+        // Before 1.26.30, minecraft:wearable overrides this component, which leaves equippable items unstackable, see MCPE-176931
+        boolean sendStackSizeComponent = GameProtocol.is26_30orHigher(context.protocolVersion());
+
         // Hack for v1 compat: Allow e.g. carved pumpkins to continue working as a base
-        if (stackSize > 1 && definition instanceof GeyserCustomItemDefinition customItemDefinition && customItemDefinition.isOldConvertedItem()) {
+        if (!sendStackSizeComponent && stackSize > 1 && definition instanceof GeyserCustomItemDefinition customItemDefinition && customItemDefinition.isOldConvertedItem()) {
             Equippable equippable = components.get(DataComponentTypes.EQUIPPABLE);
             if (equippable != null) {
                 stackSize = 1;
             }
         }
-        // Bedrock's stack size can be at most 64
-        if (stackSize > 64) {
-            stackSize = 64;
-        }
 
-        itemProperties.putInt("max_stack_size", stackSize);
+        int bedrockStackSize = Math.min(stackSize, Item.BEDROCK_MAX_STACK_SIZE);
+        itemProperties.putInt("max_stack_size", bedrockStackSize);
+        if (sendStackSizeComponent) {
+            // Also sent as a component, as a byte: without it minecraft:wearable resets the stack size to one,
+            // and the client refuses to move any slot holding more than one of the item
+            componentBuilder.putCompound("minecraft:max_stack_size", NbtMap.builder()
+                .putByte("value", (byte) bedrockStackSize)
+                .build());
+        }
 
         // Ignore durability if the item's predicates requires that it be unbreakable
         if (maxDamage > 0 && !isUnbreakableItem(definition)) {
@@ -530,23 +545,14 @@ public class CustomItemRegistryPopulator {
             .build());
     }
 
-    /**
-     * This method passes the Java identifiers straight to bedrock - which isn't perfect. Also doesn't work with holder sets that use a tag.
-     */
-    private static void computeRepairableProperties(JavaRepairable repairable, NbtMapBuilder componentBuilder) {
-        List<Identifier> identifiers = ((HoldersImpl) repairable.items()).identifiers();
-        if (identifiers == null) {
-            return;
-        }
-        List<NbtMap> items = identifiers.stream()
-            .map(identifier -> NbtMap.builder()
-                .putString("name", identifier.toString())
-                .build()).toList();
-
+    private static void computeRepairableProperties(NbtMapBuilder componentBuilder) {
+        // TODO: only allow repair by the same Java item (not Bedrock item) and repair materials (needs mapping item tags).
         componentBuilder.putCompound("minecraft:repairable", NbtMap.builder()
             .putList("repair_items", NbtType.COMPOUND, NbtMap.builder()
-                .putList("items", NbtType.COMPOUND, items)
-                .putFloat("repair_amount", 0.0F)
+                .putList("items", NbtType.COMPOUND, NbtMap.builder()
+                    .putString("tags", "1")
+                    .build())
+                .putFloat("repair_amount", 1.0F)
                 .build())
             .build());
     }
@@ -759,15 +765,15 @@ public class CustomItemRegistryPopulator {
     }
 
     @SuppressWarnings("unchecked")
-    private static void addItemTag(NbtMapBuilder builder, Identifier tag) {
+    private static void addItemTag(NbtMapBuilder builder, String tag) {
         List<String> tagList = (List<String>) builder.get("item_tags");
         if (tagList == null) {
-            builder.putList("item_tags", NbtType.STRING, tag.toString());
+            builder.putList("item_tags", NbtType.STRING, tag);
         } else {
             // NbtList is immutable
-            if (!tagList.contains(tag.toString())) {
+            if (!tagList.contains(tag)) {
                 tagList = new ArrayList<>(tagList);
-                tagList.add(tag.toString());
+                tagList.add(tag);
                 builder.putList("item_tags", NbtType.STRING, tagList);
             }
         }

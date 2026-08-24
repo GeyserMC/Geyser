@@ -51,9 +51,9 @@ public class EnderCrystalEntity extends Entity {
         // Usually performed client-side on Bedrock except for Ender Dragon respawn event
         Optional<Vector3i> optionalPos = entityMetadata.getValue();
         if (optionalPos.isPresent()) {
-            dirtyMetadata.put(EntityDataTypes.BLOCK_TARGET_POS, optionalPos.get());
+            metadata.put(EntityDataTypes.BLOCK_TARGET_POS, optionalPos.get());
         } else {
-            dirtyMetadata.put(EntityDataTypes.BLOCK_TARGET_POS, Vector3i.ZERO);
+            metadata.put(EntityDataTypes.BLOCK_TARGET_POS, Vector3i.ZERO);
         }
     }
 }

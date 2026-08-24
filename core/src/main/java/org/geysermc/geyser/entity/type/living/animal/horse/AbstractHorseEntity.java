@@ -64,7 +64,7 @@ public class AbstractHorseEntity extends AnimalEntity implements ClientVehicle {
         super(context);
 
         // Specifies the size of the entity's inventory. Required to place slots in the entity.
-        dirtyMetadata.put(EntityDataTypes.CONTAINER_SIZE, getContainerBaseSize());
+        metadata.put(EntityDataTypes.CONTAINER_SIZE, getContainerBaseSize());
 
         setFlag(EntityFlag.WASD_CONTROLLED, true);
     }
@@ -132,7 +132,7 @@ public class AbstractHorseEntity extends AnimalEntity implements ClientVehicle {
         horseFlags = (xd & 0x10) == 0x10 && (xd & 0x40) != 0x40 ? horseFlags | 0x20 : horseFlags;
 
         // Set the flags into the horse flags
-        dirtyMetadata.put(EntityDataTypes.HORSE_FLAGS, horseFlags);
+        metadata.put(EntityDataTypes.HORSE_FLAGS, horseFlags);
 
         // Send the eating particles
         // We use the wheat metadata as static particles since Java
@@ -146,7 +146,7 @@ public class AbstractHorseEntity extends AnimalEntity implements ClientVehicle {
         }
 
         // Set container type if tamed
-        dirtyMetadata.put(EntityDataTypes.CONTAINER_TYPE, tamed ? (byte) ContainerType.HORSE.getId() : (byte) 0);
+        metadata.put(EntityDataTypes.CONTAINER_TYPE, tamed ? (byte) ContainerType.HORSE.getId() : (byte) 0);
     }
 
     @Override

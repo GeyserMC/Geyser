@@ -29,8 +29,8 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.api.util.Holders;
 import org.geysermc.geyser.api.util.Identifier;
-import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.cache.registry.JavaRegistryKey;
+import org.geysermc.geyser.session.cache.registry.JavaRegistryProvider;
 import org.geysermc.geyser.util.MinecraftKey;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.HolderSet;
 
@@ -40,11 +40,11 @@ import java.util.Objects;
 
 public record HoldersImpl(@Nullable List<@NonNull Identifier> identifiers, @Nullable Identifier tag) implements Holders {
 
-    public HolderSet toHolderSet(GeyserSession session, JavaRegistryKey<?> registry) {
+    public HolderSet toHolderSet(JavaRegistryProvider registries, JavaRegistryKey<?> registry) {
         if (identifiers != null) {
             return new HolderSet(identifiers.stream()
                 .map(MinecraftKey::identifierToKey)
-                .mapToInt(key -> registry.networkId(session, key))
+                .mapToInt(key -> registry.networkId(registries, key))
                 .toArray());
         }
         return new HolderSet(Objects.requireNonNull(MinecraftKey.identifierToKey(tag)));

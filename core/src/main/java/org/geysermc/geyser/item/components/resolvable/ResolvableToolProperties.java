@@ -27,8 +27,8 @@ package org.geysermc.geyser.item.components.resolvable;
 
 import org.geysermc.geyser.api.item.custom.v2.component.java.JavaTool;
 import org.geysermc.geyser.impl.HoldersImpl;
-import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.cache.registry.JavaRegistries;
+import org.geysermc.geyser.session.cache.registry.JavaRegistryProvider;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentTypes;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.ToolData;
@@ -43,9 +43,9 @@ public record ResolvableToolProperties(JavaTool properties) implements Resolvabl
     }
 
     @Override
-    public ToolData resolve(GeyserSession session) {
+    public ToolData resolve(JavaRegistryProvider registries) {
         List<ToolData.Rule> rules = properties.rules().stream()
-            .map(rule -> new ToolData.Rule(((HoldersImpl) rule.blocks()).toHolderSet(session, JavaRegistries.BLOCK), rule.speed(), null))
+            .map(rule -> new ToolData.Rule(((HoldersImpl) rule.blocks()).toHolderSet(registries, JavaRegistries.BLOCK), rule.speed(), null))
             .toList();
         return new ToolData(rules, properties.defaultMiningSpeed(), 0, properties.canDestroyBlocksInCreative());
     }

@@ -52,7 +52,7 @@ public class SheepEntity extends AnimalEntity {
         byte xd = entityMetadata.getPrimitiveValue();
         setFlag(EntityFlag.SHEARED, (xd & 0x10) == 0x10);
         color = xd & 15;
-        dirtyMetadata.put(EntityDataTypes.COLOR, (byte) color);
+        metadata.put(EntityDataTypes.COLOR, (byte) color);
     }
 
     @Override

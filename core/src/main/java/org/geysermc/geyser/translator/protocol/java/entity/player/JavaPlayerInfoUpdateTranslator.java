@@ -27,10 +27,11 @@ package org.geysermc.geyser.translator.protocol.java.entity.player;
 
 import org.cloudburstmc.protocol.bedrock.packet.PlayerListPacket;
 import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.entity.EntityDefinitions;
+import org.geysermc.geyser.entity.VanillaEntities;
 import org.geysermc.geyser.entity.spawn.EntitySpawnContext;
 import org.geysermc.geyser.entity.type.player.PlayerEntity;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.cache.waypoint.GeyserWaypoint;
 import org.geysermc.geyser.skin.SkinManager;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
@@ -73,13 +74,14 @@ public class JavaPlayerInfoUpdateTranslator extends PacketTranslator<Clientbound
                     playerEntity.setSkin(profile, () -> GeyserImpl.getInstance().getLogger().debug("Loaded Local Bedrock Java Skin Data for " + session.getClientData().getUsername()));
                 } else {
                     // It's a new player
-                    playerEntity = new PlayerEntity(EntitySpawnContext.DUMMY_CONTEXT.apply(session, id, EntityDefinitions.PLAYER), profile);
+                    playerEntity = new PlayerEntity(EntitySpawnContext.DUMMY_CONTEXT.apply(session, id, VanillaEntities.PLAYER), profile);
                     session.getEntityCache().addPlayerEntity(playerEntity);
                 }
             }
         }
 
         if (actions.contains(PlayerListEntryAction.UPDATE_LISTED)) {
+            // TODO This could probably be optimised for 26.40, each entry has the action now, so we can send one packet!
             List<PlayerListPacket.Entry> toAdd = new ArrayList<>();
             List<PlayerListPacket.Entry> toRemove = new ArrayList<>();
 
@@ -93,14 +95,22 @@ public class JavaPlayerInfoUpdateTranslator extends PacketTranslator<Clientbound
                 if (entry.isListed()) {
                     if (!PlayerListUtils.shouldLimitPlayerListEntries(session)) {
                         PlayerListPacket.Entry playerListEntry = SkinManager.buildEntryFromCachedSkin(session, entity);
+                        playerListEntry.setAction(PlayerListPacket.Action.ADD);
                         toAdd.add(playerListEntry);
-                        session.getWaypointCache().listPlayer(entity);
+                        if (!GeyserWaypoint.uses26_10WaypointPacket(session)) {
+                            session.getWaypointCache().addEntity(entity);
+                        }
                     }
                 } else {
                     // No need to unlist players that were never listed
                     if (entity.isListed()) {
-                        toRemove.add(new PlayerListPacket.Entry(entity.getTabListUuid()));
-                        session.getWaypointCache().unlistPlayer(entity);
+                        PlayerListPacket.Entry playerListEntry = new PlayerListPacket.Entry(entity.getTabListUuid());
+                        playerListEntry.setAction(PlayerListPacket.Action.REMOVE);
+                        toRemove.add(playerListEntry);
+
+                        if (!GeyserWaypoint.uses26_10WaypointPacket(session)) {
+                            session.getWaypointCache().removeEntity(entity);
+                        }
                     }
                 }
                 entity.setListed(entry.isListed());

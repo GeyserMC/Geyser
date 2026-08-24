@@ -69,7 +69,7 @@ public class MobEntity extends LivingEntity implements Leashable {
     @Override
     public void setLeashHolderBedrockId(long bedrockId) {
         this.leashHolderBedrockId = bedrockId;
-        dirtyMetadata.put(EntityDataTypes.LEASH_HOLDER, bedrockId);
+        metadata.put(EntityDataTypes.LEASH_HOLDER, bedrockId);
     }
 
     @Override

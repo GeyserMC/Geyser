@@ -41,6 +41,7 @@ import org.geysermc.cumulus.response.SimpleFormResponse;
 import org.geysermc.cumulus.response.result.FormResponseResult;
 import org.geysermc.cumulus.response.result.ValidFormResponseResult;
 import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.network.CodecProcessor;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.auth.AuthData;
 import org.geysermc.geyser.session.auth.BedrockClientData;
@@ -72,7 +73,7 @@ public class LoginEncryptionUtils {
 
             ChainValidationResult result = EncryptionUtils.validatePayload(authPayload);
 
-            geyser.getLogger().debug(String.format("Is player data signed? %s", result.signed()));
+            geyser.getLogger().debug("Is player data signed? %s", result.signed());
             if (!result.signed() && session.getGeyser().config().advanced().bedrock().validateBedrockLogin()) {
                 session.disconnect(GeyserLocale.getLocaleStringLog("geyser.network.remote.invalid_xbox_account"));
                 return;
@@ -108,16 +109,16 @@ public class LoginEncryptionUtils {
                 String waterdogXuid = data.getWaterdogXuid();
                 if (waterdogXuid != null && !waterdogXuid.isBlank() && waterdogIp != null && !waterdogIp.isBlank()) {
                     xuid = waterdogXuid;
-                    InetSocketAddress originalAddress = session.getUpstream().getAddress();
-                    InetSocketAddress proxiedAddress = new InetSocketAddress(waterdogIp, originalAddress.getPort());
-                    session.getGeyser().getGeyserServer().getProxiedAddresses().put(originalAddress, proxiedAddress);
-                    session.getUpstream().setInetAddress(proxiedAddress);
+                    session.getUpstream().setInetAddress(new InetSocketAddress(waterdogIp, 0));
                 } else {
                     session.disconnect("Did not receive IP and xuid forwarded from the proxy!");
                     return;
                 }
             }
             session.setAuthData(new AuthData(extraData.displayName, extraData.identity, xuid, issuedAt, extraData.minecraftId));
+
+            // Thanks 26.44, we love protocol bumps without protocol version bumps
+            CodecProcessor.updateCodec(session.getUpstream(), data.getGameVersion());
 
             try {
                 startEncryptionHandshake(session, identityPublicKey);

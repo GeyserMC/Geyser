@@ -58,7 +58,11 @@ public class JavaUpdateAdvancementsTranslator extends PacketTranslator<Clientbou
 
         // Adds advancements to the player's stored advancements when advancements are sent
         for (Advancement advancement : packet.getAdvancements()) {
-            if (advancement.getDisplayData() != null && (!advancement.getDisplayData().isHidden() || advancement.getDisplayData().isShowToast())) {
+            // The Java server already evaluates visibility and only syncs advancements the client
+            // should see - a hidden advancement is only sent once it is completed. Filtering hidden
+            // ones out here made completed hidden advancements vanish from the list. Unearned hidden
+            // entries from legacy servers are filtered when the form is built instead.
+            if (advancement.getDisplayData() != null) {
                 GeyserAdvancement geyserAdvancement = GeyserAdvancement.from(advancement);
                 advancementsCache.getStoredAdvancements().put(advancement.getId(), geyserAdvancement);
             } else {

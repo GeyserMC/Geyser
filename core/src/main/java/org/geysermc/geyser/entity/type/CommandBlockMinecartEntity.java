@@ -44,10 +44,10 @@ public class CommandBlockMinecartEntity extends DefaultBlockMinecartEntity {
     protected void initializeMetadata() {
         super.initializeMetadata();
         // Required, or else the GUI will not open
-        dirtyMetadata.put(EntityDataTypes.CONTAINER_TYPE, (byte) 16);
-        dirtyMetadata.put(EntityDataTypes.CONTAINER_SIZE, 1);
+        metadata.put(EntityDataTypes.CONTAINER_TYPE, (byte) 16);
+        metadata.put(EntityDataTypes.CONTAINER_SIZE, 1);
         // Required, or else the client does not bother to send a packet back with the new information
-        dirtyMetadata.put(EntityDataTypes.COMMAND_BLOCK_ENABLED, true);
+        metadata.put(EntityDataTypes.COMMAND_BLOCK_ENABLED, true);
     }
 
     /**
@@ -55,8 +55,8 @@ public class CommandBlockMinecartEntity extends DefaultBlockMinecartEntity {
      */
     @Override
     public void updateDefaultBlockMetadata() {
-        dirtyMetadata.put(EntityDataTypes.DISPLAY_BLOCK_STATE, session.getBlockMappings().getCommandBlock());
-        dirtyMetadata.put(EntityDataTypes.DISPLAY_OFFSET, 6);
+        metadata.put(EntityDataTypes.DISPLAY_BLOCK_STATE, session.getBlockMappings().getCommandBlock());
+        metadata.put(EntityDataTypes.DISPLAY_OFFSET, 6);
     }
 
     @Override

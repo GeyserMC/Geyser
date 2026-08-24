@@ -31,10 +31,10 @@ import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.protocol.bedrock.data.LevelEvent;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.cloudburstmc.protocol.bedrock.packet.LevelEventGenericPacket;
+import org.geysermc.geyser.api.util.Identifier;
 import org.geysermc.geyser.entity.properties.type.EnumProperty;
 import org.geysermc.geyser.entity.properties.type.IntProperty;
 import org.geysermc.geyser.entity.spawn.EntitySpawnContext;
-import org.geysermc.geyser.impl.IdentifierImpl;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.EntityMetadata;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.MetadataType;
 
@@ -43,7 +43,7 @@ import java.util.Optional;
 public class CreakingEntity extends MonsterEntity {
 
     public static final EnumProperty<CreakingState> STATE_PROPERTY = new EnumProperty<>(
-        IdentifierImpl.of("creaking_state"),
+        Identifier.of("creaking_state"),
         CreakingState.class,
         CreakingState.NEUTRAL
     );
@@ -55,7 +55,7 @@ public class CreakingEntity extends MonsterEntity {
     // - chris
     // update: this still holds true, even a refactor later :(
     public static final IntProperty SWAYING_TICKS_PROPERTY = new IntProperty(
-        IdentifierImpl.of("creaking_swaying_ticks"),
+        Identifier.of("creaking_swaying_ticks"),
         6, 0, 0
     );
 

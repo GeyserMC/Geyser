@@ -31,6 +31,7 @@ import org.geysermc.mcprotocollib.protocol.data.game.level.particle.ColorParticl
 import org.geysermc.mcprotocollib.protocol.data.game.level.particle.DustParticleData;
 import org.geysermc.mcprotocollib.protocol.data.game.level.particle.ItemParticleData;
 import org.geysermc.mcprotocollib.protocol.data.game.level.particle.Particle;
+import org.geysermc.mcprotocollib.protocol.data.game.level.particle.TrailParticleData;
 import org.geysermc.mcprotocollib.protocol.data.game.level.particle.VibrationParticleData;
 import org.geysermc.mcprotocollib.protocol.data.game.level.particle.positionsource.BlockPositionSource;
 import org.geysermc.mcprotocollib.protocol.data.game.level.particle.positionsource.EntityPositionSource;
@@ -198,7 +199,78 @@ public class JavaLevelParticlesTranslator extends PacketTranslator<ClientboundLe
                     particlePacket.setIdentifier("minecraft:biome_tinted_leaves_particle");
                     particlePacket.setDimensionId(dimensionId);
                     particlePacket.setPosition(position);
-                    particlePacket.setMolangVariablesJson(Optional.of("[{ \"name\": \"variable.color\", \"value\": { \"type\": \"member_array\", \"value\": [{\"name\": \".r\", \"value\": { \"type\": \"float\", \"value\": " + red + "}},{\"name\": \".g\", \"value\": {\"type\": \"float\", \"value\": " + green + "}},{\"name\": \".b\", \"value\": {\"type\": \"float\", \"value\": " + blue + "}}]}}]"));
+                    particlePacket.setMolangVariablesJson(Optional.of(colorMolang(red, green, blue)));
+                    return particlePacket;
+                };
+            }
+            case GLOW -> {
+                int dimensionId = DimensionUtils.javaToBedrock(session);
+                return (position) -> {
+                    SpawnParticleEffectPacket particlePacket = new SpawnParticleEffectPacket();
+                    particlePacket.setIdentifier("minecraft:glow_particle");
+                    particlePacket.setDimensionId(dimensionId);
+                    particlePacket.setPosition(position);
+                    // The Java client randomly picks a light or dark cyan for each particle
+                    particlePacket.setMolangVariablesJson(Optional.of(ThreadLocalRandom.current().nextBoolean()
+                            ? colorMolang(0.6f, 1.0f, 0.8f)
+                            : colorMolang(0.08f, 0.4f, 0.4f)));
+                    return particlePacket;
+                };
+            }
+            case WAX_ON -> {
+                int dimensionId = DimensionUtils.javaToBedrock(session);
+                return (position) -> {
+                    SpawnParticleEffectPacket particlePacket = new SpawnParticleEffectPacket();
+                    particlePacket.setIdentifier("minecraft:wax_particle");
+                    particlePacket.setDimensionId(dimensionId);
+                    particlePacket.setPosition(position);
+                    particlePacket.setMolangVariablesJson(Optional.of(colorMolang(0.91f, 0.55f, 0.08f)));
+                    return particlePacket;
+                };
+            }
+            case WAX_OFF -> {
+                int dimensionId = DimensionUtils.javaToBedrock(session);
+                return (position) -> {
+                    SpawnParticleEffectPacket particlePacket = new SpawnParticleEffectPacket();
+                    particlePacket.setIdentifier("minecraft:wax_particle");
+                    particlePacket.setDimensionId(dimensionId);
+                    particlePacket.setPosition(position);
+                    particlePacket.setMolangVariablesJson(Optional.of(colorMolang(1.0f, 0.9f, 1.0f)));
+                    return particlePacket;
+                };
+            }
+            case SCRAPE -> {
+                int dimensionId = DimensionUtils.javaToBedrock(session);
+                return (position) -> {
+                    SpawnParticleEffectPacket particlePacket = new SpawnParticleEffectPacket();
+                    particlePacket.setIdentifier("minecraft:wax_particle");
+                    particlePacket.setDimensionId(dimensionId);
+                    particlePacket.setPosition(position);
+                    // The Java client randomly picks a dark or light teal for each particle
+                    particlePacket.setMolangVariablesJson(Optional.of(ThreadLocalRandom.current().nextBoolean()
+                            ? colorMolang(0.29f, 0.58f, 0.51f)
+                            : colorMolang(0.43f, 0.77f, 0.62f)));
+                    return particlePacket;
+                };
+            }
+            case TRAIL -> {
+                TrailParticleData data = (TrailParticleData) particle.getData();
+                int dimensionId = DimensionUtils.javaToBedrock(session);
+                Vector3f target = data.target().toFloat();
+                int rgbData = data.color();
+                float red = ((rgbData >> 16) & 0xFF) / 255f;
+                float green = ((rgbData >> 8) & 0xFF) / 255f;
+                float blue = (rgbData & 0xFF) / 255f;
+                float lifetime = Math.max(data.duration(), 1) / 20f;
+                return (position) -> {
+                    Vector3f direction = target.sub(position);
+                    float distance = direction.length();
+                    Vector3f normalized = distance > 0 ? direction.div(distance) : Vector3f.ZERO;
+                    SpawnParticleEffectPacket particlePacket = new SpawnParticleEffectPacket();
+                    particlePacket.setIdentifier("minecraft:creaking_heart_trail");
+                    particlePacket.setDimensionId(dimensionId);
+                    particlePacket.setPosition(position);
+                    particlePacket.setMolangVariablesJson(Optional.of("[{ \"name\": \"variable.direction\", \"value\": { \"type\": \"member_array\", \"value\": [{\"name\": \".x\", \"value\": { \"type\": \"float\", \"value\": " + normalized.getX() + "}},{\"name\": \".y\", \"value\": {\"type\": \"float\", \"value\": " + normalized.getY() + "}},{\"name\": \".z\", \"value\": {\"type\": \"float\", \"value\": " + normalized.getZ() + "}}]}},{ \"name\": \"variable.color\", \"value\": { \"type\": \"member_array\", \"value\": [{\"name\": \".r\", \"value\": { \"type\": \"float\", \"value\": " + red + "}},{\"name\": \".g\", \"value\": {\"type\": \"float\", \"value\": " + green + "}},{\"name\": \".b\", \"value\": {\"type\": \"float\", \"value\": " + blue + "}}]}},{ \"name\": \"variable.max_lifetime\", \"value\": { \"type\": \"float\", \"value\": " + lifetime + "}},{ \"name\": \"variable.particle_initial_speed\", \"value\": { \"type\": \"float\", \"value\": " + (distance / lifetime) + "}}]"));
                     return particlePacket;
                 };
             }
@@ -230,6 +302,10 @@ public class JavaLevelParticlesTranslator extends PacketTranslator<ClientboundLe
                 }
             }
         }
+    }
+
+    private static String colorMolang(float red, float green, float blue) {
+        return "[{ \"name\": \"variable.color\", \"value\": { \"type\": \"member_array\", \"value\": [{\"name\": \".r\", \"value\": { \"type\": \"float\", \"value\": " + red + "}},{\"name\": \".g\", \"value\": {\"type\": \"float\", \"value\": " + green + "}},{\"name\": \".b\", \"value\": {\"type\": \"float\", \"value\": " + blue + "}}]}}]";
     }
 
     private static NbtMap buildVec3PositionTag(Vector3f position) {

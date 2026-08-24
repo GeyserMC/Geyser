@@ -26,8 +26,8 @@
 package org.geysermc.geyser.session.cache;
 
 import lombok.Data;
-import lombok.RequiredArgsConstructor;
 import org.cloudburstmc.math.vector.Vector3f;
+import org.geysermc.geyser.session.GeyserSession;
 
 /**
  * Represents a teleport ID and corresponding coordinates that need to be confirmed. <br>
@@ -38,7 +38,6 @@ import org.cloudburstmc.math.vector.Vector3f;
  * Bedrock player actually moves close to that point, so we store the teleport until we get a movement packet from
  * Bedrock that the teleport was successful.
  */
-@RequiredArgsConstructor
 @Data
 public class TeleportCache {
 
@@ -50,8 +49,9 @@ public class TeleportCache {
      */
     private static final int RESEND_THRESHOLD = 20; // Make it one full second with auth input
 
-    public TeleportCache(Vector3f position, float pitch, float yaw, int teleportConfirmId) {
+    public TeleportCache(GeyserSession session, Vector3f position, float pitch, float yaw, int teleportConfirmId) {
         this.position = position;
+        this.adjustedPosition = session.getCollisionManager().adjustPositionForBedrock(position);
         this.velocity = Vector3f.ZERO;
         this.pitch = pitch;
         this.yaw = yaw;
@@ -59,7 +59,18 @@ public class TeleportCache {
         this.teleportType = TeleportType.NORMAL;
     }
 
+    public TeleportCache(GeyserSession session, Vector3f position, Vector3f velocity, float pitch, float yaw, int teleportConfirmId, TeleportType teleportType) {
+        this.position = position;
+        this.adjustedPosition = session.getCollisionManager().adjustPositionForBedrock(position);
+        this.velocity = velocity;
+        this.pitch = pitch;
+        this.yaw = yaw;
+        this.teleportConfirmId = teleportConfirmId;
+        this.teleportType = teleportType;
+    }
+
     private final Vector3f position;
+    private final Vector3f adjustedPosition;
     private final Vector3f velocity;
     private final float pitch, yaw;
     private final int teleportConfirmId;
@@ -68,9 +79,9 @@ public class TeleportCache {
     private int unconfirmedFor = 0;
 
     public boolean canConfirm(Vector3f position) {
-        final float distanceX = Math.abs(this.position.getX() - position.getX());
-        final float distanceY = Math.abs(this.position.getY() - position.getY());
-        final float distanceZ = Math.abs(this.position.getZ() - position.getZ());
+        final float distanceX = Math.abs(this.adjustedPosition.getX() - position.getX());
+        final float distanceY = Math.abs(this.adjustedPosition.getY() - position.getY());
+        final float distanceZ = Math.abs(this.adjustedPosition.getZ() - position.getZ());
 
         return distanceX < ERROR_X_AND_Z && distanceY < ERROR_Y && distanceZ < ERROR_X_AND_Z;
     }

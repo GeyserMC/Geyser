@@ -59,6 +59,8 @@ import org.geysermc.floodgate.news.NewsItemAction;
 import org.geysermc.geyser.api.GeyserApi;
 import org.geysermc.geyser.api.command.CommandSource;
 import org.geysermc.geyser.api.event.EventRegistrar;
+import org.geysermc.geyser.api.event.lifecycle.GeyserDefineCustomBlocksEvent;
+import org.geysermc.geyser.api.event.lifecycle.GeyserDefineCustomItemsEvent;
 import org.geysermc.geyser.api.event.lifecycle.GeyserPostInitializeEvent;
 import org.geysermc.geyser.api.event.lifecycle.GeyserPostReloadEvent;
 import org.geysermc.geyser.api.event.lifecycle.GeyserPreInitializeEvent;
@@ -73,7 +75,7 @@ import org.geysermc.geyser.api.util.PlatformType;
 import org.geysermc.geyser.command.CommandRegistry;
 import org.geysermc.geyser.configuration.GeyserConfig;
 import org.geysermc.geyser.configuration.GeyserPluginConfig;
-import org.geysermc.geyser.entity.EntityDefinitions;
+import org.geysermc.geyser.entity.VanillaEntities;
 import org.geysermc.geyser.erosion.UnixSocketClientListener;
 import org.geysermc.geyser.event.GeyserEventBus;
 import org.geysermc.geyser.event.type.SessionDisconnectEventImpl;
@@ -87,6 +89,7 @@ import org.geysermc.geyser.ping.GeyserLegacyPingPassthrough;
 import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.registry.loader.ResourcePackLoader;
+import org.geysermc.geyser.registry.mappings.BuiltInMappings;
 import org.geysermc.geyser.registry.provider.ProviderSupplier;
 import org.geysermc.geyser.scoreboard.ScoreboardUpdater;
 import org.geysermc.geyser.session.GeyserSession;
@@ -169,6 +172,8 @@ public class GeyserImpl implements GeyserApi, EventRegistrar {
 
     private ScheduledExecutorService scheduledThread;
 
+    private ScoreboardUpdater scoreboardUpdater;
+
     private GeyserServer geyserServer;
     private final GeyserBootstrap bootstrap;
 
@@ -224,6 +229,8 @@ public class GeyserImpl implements GeyserApi, EventRegistrar {
                 EncryptionUtils.getMojangPublicKey();
             } catch (Throwable t) {
                 GeyserImpl.getInstance().getLogger().error("Unable to set up encryption! This can be caused by your internet connection or the Minecraft api being unreachable. ", t);
+                this.disable();
+                return;
             }
         }
 
@@ -241,6 +248,9 @@ public class GeyserImpl implements GeyserApi, EventRegistrar {
         }
         logger.info("******************************************");
 
+        eventBus.subscribe(this, GeyserDefineCustomBlocksEvent.class, BuiltInMappings::registerBlocks);
+        eventBus.subscribe(this, GeyserDefineCustomItemsEvent.class, BuiltInMappings::registerItems);
+
         /*
         First load the registries and then populate them.
         Both the block registries and the common registries depend on each other,
@@ -253,7 +263,7 @@ public class GeyserImpl implements GeyserApi, EventRegistrar {
         RegistryCache.init();
 
         /* Initialize translators */
-        EntityDefinitions.init();
+        VanillaEntities.init();
         MessageTranslator.init();
 
         // Download the latest asset list and cache it
@@ -264,11 +274,6 @@ public class GeyserImpl implements GeyserApi, EventRegistrar {
 
             MinecraftLocale.downloadDeprecations();
             MinecraftLocale.ensureEN_US();
-            String locale = GeyserLocale.getDefaultLocale();
-            if (!"en_us".equals(locale)) {
-                // English will be loaded after assets are downloaded, if necessary
-                MinecraftLocale.downloadAndLoadLocale(locale);
-            }
 
             ProvidedSkins.init();
 
@@ -314,11 +319,12 @@ public class GeyserImpl implements GeyserApi, EventRegistrar {
         GeyserLogger logger = bootstrap.getGeyserLogger();
         GeyserConfig config = bootstrap.config();
 
-        ScoreboardUpdater.init();
+        this.scoreboardUpdater = ScoreboardUpdater.init();
 
         SkinProvider.registerCacheImageTask(this);
 
         Registries.RESOURCE_PACKS.load();
+        Registries.WAYPOINT_STYLE_MAPPINGS.load();
 
         // Warnings to users who enable options that they might not need.
         if (config.advanced().bedrock().useHaproxyProtocol()) {
@@ -594,20 +600,23 @@ public class GeyserImpl implements GeyserApi, EventRegistrar {
             bootstrap.getGeyserLogger().info(GeyserLocale.getLocaleStringLog("geyser.core.shutdown.kick.done"));
         }
 
+        runIfNonNull(metrics, MetricsBase::shutdown);
         runIfNonNull(scheduledThread, ScheduledExecutorService::shutdown);
+        runIfNonNull(scoreboardUpdater, ScoreboardUpdater::shutdown);
         runIfNonNull(geyserServer, GeyserServer::shutdown);
         runIfNonNull(skinUploader, FloodgateSkinUploader::close);
         runIfNonNull(newsHandler, NewsHandler::shutdown);
         runIfNonNull(erosionUnixListener, UnixSocketClientListener::close);
 
         if (bootstrap.getGeyserPingPassthrough() instanceof GeyserLegacyPingPassthrough legacyPingPassthrough) {
-            legacyPingPassthrough.interrupt();
+            legacyPingPassthrough.shutdown();
         }
 
         ResourcePackLoader.clear();
-        if (platformType() != InternalPlatformType.GAMETEST) {
-            CodeOfConductManager.trySave();
+        if (Registries.WAYPOINT_STYLE_MAPPINGS.loaded()) {
+            Registries.WAYPOINT_STYLE_MAPPINGS.get().clear();
         }
+        CodeOfConductManager.trySave();
 
         this.setEnabled(false);
     }
@@ -782,7 +791,7 @@ public class GeyserImpl implements GeyserApi, EventRegistrar {
         }
     }
 
-    private <T> void runIfNonNull(T nullable, Consumer<T> consumer) {
+    private <T> void runIfNonNull(T nullable, Consumer<@NonNull T> consumer) {
         if (nullable != null) {
             consumer.accept(nullable);
         }

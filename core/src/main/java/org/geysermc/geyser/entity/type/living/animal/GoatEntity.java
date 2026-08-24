@@ -92,7 +92,7 @@ public class GoatEntity extends AnimalEntity {
     }
 
     private void setHornCount() {
-        dirtyMetadata.put(EntityDataTypes.GOAT_HORN_COUNT, (hasLeftHorn ? 1 : 0) + (hasRightHorn ? 1 : 0));
+        metadata.put(EntityDataTypes.GOAT_HORN_COUNT, (hasLeftHorn ? 1 : 0) + (hasRightHorn ? 1 : 0));
     }
 
     @Override

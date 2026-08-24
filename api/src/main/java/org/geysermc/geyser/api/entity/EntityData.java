@@ -29,24 +29,57 @@ import org.checkerframework.checker.index.qual.NonNegative;
 import org.geysermc.geyser.api.connection.GeyserConnection;
 import org.geysermc.geyser.api.entity.type.GeyserEntity;
 import org.geysermc.geyser.api.entity.type.player.GeyserPlayerEntity;
+import org.jetbrains.annotations.ApiStatus;
 import org.jspecify.annotations.Nullable;
 
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
 /**
- * This class holds all the methods that relate to entities.
- * Can be accessed through {@link GeyserConnection#entities()}.
+ * Provides entity lookup and input-lock utilities for a specific connection.
+ * Accessed via {@link GeyserConnection#entities()}.
  */
 public interface EntityData {
 
     /**
-     * Returns a {@link GeyserEntity} to e.g. make them play an emote.
+     * @deprecated use {@link #byJavaId(int)}
+     * @since 2.3.0
+     */
+    @Deprecated(since = "2.11.0")
+    CompletableFuture<@Nullable GeyserEntity> entityByJavaId(@NonNegative int javaId);
+
+    /**
+     * Returns the {@link GeyserEntity} for the given Java entity ID if it is tracked
+     * in this connection's entity cache, or {@code null} if not found.
      *
      * @param javaId the Java entity ID to look up
-     * @return a {@link GeyserEntity} if present in this connection's entity tracker
+     * @return the entity, or {@code null} if not found
+     * @since 2.11.0
      */
-    CompletableFuture<@Nullable GeyserEntity> entityByJavaId(@NonNegative int javaId);
+    @ApiStatus.Experimental
+    @Nullable GeyserEntity byJavaId(@NonNegative int javaId);
+
+    /**
+     * Returns the {@link GeyserEntity} for the given Java entity UUID if it is tracked
+     * in this connection's entity cache, or {@code null} if not found.
+     *
+     * @param javaUuid the Java entity UUID to look up
+     * @return the entity, or {@code null} if not found
+     * @since 2.11.0
+     */
+    @ApiStatus.Experimental
+    @Nullable GeyserEntity byUuid(UUID javaUuid);
+
+    /**
+     * Returns the {@link GeyserEntity} for the given Geyser runtime entity ID if it is tracked
+     * in this connection's entity cache, or {@code null} if not found.
+     *
+     * @param geyserId the Geyser entity ID (as returned by {@link GeyserEntity#geyserId()})
+     * @return the entity, or {@code null} if not found
+     * @since 2.11.0
+     */
+    @ApiStatus.Experimental
+    @Nullable GeyserEntity byGeyserId(@NonNegative long geyserId);
 
     /**
      * (Un)locks the client's movement inputs, so that they cannot move.
@@ -79,7 +112,7 @@ public interface EntityData {
     void showEmote(GeyserPlayerEntity emoter, String emoteId);
 
     /**
-     * @deprecated Use {@link GeyserConnection#playerEntity} instead.
+     * @deprecated Use {@link GeyserConnection#playerEntity()} instead.
      */
     @Deprecated(since = "2.9.3")
     GeyserPlayerEntity playerEntity();

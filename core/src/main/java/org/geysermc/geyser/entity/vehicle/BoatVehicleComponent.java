@@ -41,6 +41,7 @@ import org.geysermc.geyser.level.block.type.Block;
 import org.geysermc.geyser.level.block.type.BlockState;
 import org.geysermc.geyser.level.physics.Axis;
 import org.geysermc.geyser.level.physics.BoundingBox;
+import org.geysermc.geyser.level.physics.CollisionManager;
 import org.geysermc.geyser.translator.collision.BlockCollision;
 import org.geysermc.geyser.util.BlockUtils;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.level.ServerboundMoveVehiclePacket;
@@ -182,7 +183,7 @@ public class BoatVehicleComponent extends VehicleComponent<BoatEntity> {
             box.translate(0, targetY - getBoundingBox().getMin(Axis.Y), 0);
 
             boolean empty = true;
-            for (BlockPositionIterator iter = vehicle.getSession().getCollisionManager().collidableBlocksIterator(box); iter.hasNext(); iter.next()) {
+            for (BlockPositionIterator iter = CollisionManager.collidableBlocksIterator(vehicle.getSession(), box); iter.hasNext(); iter.next()) {
                 final BlockCollision collision = BlockUtils.getCollision(context.getBlockId(iter.getX(), iter.getY(), iter.getZ()));
                 if (collision != null && collision.checkIntersection(Vector3i.from(iter.getX(), iter.getY(), iter.getZ()), box)) {
                     empty = false;

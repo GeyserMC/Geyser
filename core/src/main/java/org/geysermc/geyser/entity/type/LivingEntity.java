@@ -51,6 +51,7 @@ import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.item.type.Item;
 import org.geysermc.geyser.level.EffectType;
+import org.geysermc.geyser.network.GameProtocol;
 import org.geysermc.geyser.scoreboard.Team;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.cache.tags.ItemTag;
@@ -69,6 +70,7 @@ import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.FloatE
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.IntEntityMetadata;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.ObjectEntityMetadata;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.Hand;
+import org.geysermc.mcprotocollib.protocol.data.game.item.ItemStack;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentTypes;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.Equippable;
 import org.geysermc.mcprotocollib.protocol.data.game.level.particle.ColorParticleData;
@@ -95,12 +97,6 @@ public class LivingEntity extends Entity implements Tickable {
      */
     private boolean isMaxFrozenState = false;
 
-    /**
-     * The base scale entity data, without attributes applied. Used for such cases as baby variants.
-     */
-    @Getter(AccessLevel.NONE)
-    @Setter(AccessLevel.NONE)
-    private float scale;
     /**
      * The scale sent through the Java attributes packet
      */
@@ -201,7 +197,7 @@ public class LivingEntity extends Entity implements Tickable {
         this.attributeScale = 1f;
         super.initializeMetadata();
         // Matches Bedrock behavior; is always set to this
-        dirtyMetadata.put(EntityDataTypes.STRUCTURAL_INTEGRITY, 1);
+        metadata.put(EntityDataTypes.STRUCTURAL_INTEGRITY, 1);
     }
 
     @Override
@@ -219,9 +215,10 @@ public class LivingEntity extends Entity implements Tickable {
 
     @Override
     public void setCustomName(EntityMetadata<Optional<Component>, ?> entityMetadata) {
-        // Update custom name, but reset nametag to be empty when there are passengers
+        // Update custom name, but reset the nametag when there are passengers, or when this is the spectated
+        // entity (its name shouldn't float in the spectator's own first-person view)
         super.setCustomName(entityMetadata);
-        if (!passengers.isEmpty()) {
+        if (!passengers.isEmpty() || this == session.getSpectatedEntity()) {
             setNametag("", false);
         }
     }
@@ -233,8 +230,15 @@ public class LivingEntity extends Entity implements Tickable {
         boolean isUsingOffhand = (xd & 0x02) == 0x02;
 
         boolean isUsingShield = hasShield(isUsingOffhand);
+        boolean isUsingEnderEye = hasEnderEye(isUsingOffhand);
+        boolean isChargedProjectilesItem = hasChargedProjectiles();
 
-        setFlag(EntityFlag.USING_ITEM, isUsingItem && !isUsingShield);
+        // We can't check for shield since the player is sneaking and not actually using it on their side.
+        // For ender eye, it's not consider a consumable item on bedrock, so the player never sends release item use so USING_ITEM flags are always true
+        // until you switch item, therefore we ignore it. Resolve https://github.com/GeyserMC/Geyser/issues/6316
+        // For charged projectiles items (like crossbows), Java is okay with the player continuing using a charged crossbow, but Bedrock is not.
+
+        setFlag(EntityFlag.USING_ITEM, isUsingItem && !isUsingShield && !isUsingEnderEye && !isChargedProjectilesItem);
         // Override the blocking
         setFlag(EntityFlag.BLOCKING, isUsingItem && isUsingShield);
 
@@ -312,14 +316,14 @@ public class LivingEntity extends Entity implements Tickable {
             return;
         }
 
-        dirtyMetadata.put(EntityDataTypes.VISIBLE_MOB_EFFECTS, visibleEffects);
+        metadata.put(EntityDataTypes.VISIBLE_MOB_EFFECTS, visibleEffects);
     }
 
     public @Nullable Vector3i setBedPosition(EntityMetadata<Optional<Vector3i>, ?> entityMetadata) {
         Optional<Vector3i> optionalPos = entityMetadata.getValue();
         if (optionalPos.isPresent()) {
             Vector3i bedPosition = optionalPos.get();
-            dirtyMetadata.put(EntityDataTypes.BED_POSITION, bedPosition);
+            metadata.put(EntityDataTypes.BED_POSITION, bedPosition);
             // Required to sync position of entity to bed
             // 1.21.11 MojMap see LivingEntity#setPosToBed
             this.setPosition(bedPosition.toFloat().add(0.5, 0.6875, 0.5));
@@ -329,12 +333,25 @@ public class LivingEntity extends Entity implements Tickable {
         }
     }
 
+    protected boolean hasEnderEye(boolean offhand) {
+        if (offhand) {
+            return getOffHandItem().is(Items.ENDER_EYE);
+        } else {
+            return getMainHandItem().is(Items.ENDER_EYE);
+        }
+    }
+
     protected boolean hasShield(boolean offhand) {
         if (offhand) {
             return getOffHandItem().is(Items.SHIELD);
         } else {
             return getMainHandItem().is(Items.SHIELD);
         }
+    }
+
+    protected boolean hasChargedProjectiles() {
+        List<ItemStack> chargedProjectiles = getMainHandItem().getComponent(DataComponentTypes.CHARGED_PROJECTILES);
+        return chargedProjectiles != null && !chargedProjectiles.isEmpty();
     }
 
     @Override
@@ -360,19 +377,15 @@ public class LivingEntity extends Entity implements Tickable {
         return freezingPercentage;
     }
 
-    protected void setScale(float scale) {
-        this.scale = scale;
-        applyScale();
-    }
-
     protected void setAttributeScale(float scale) {
         this.attributeScale = MathUtils.clamp(scale, GeyserAttributeType.SCALE.getMinimum(), GeyserAttributeType.SCALE.getMaximum());
         applyScale();
     }
 
-    private void applyScale() {
+    @Override
+    protected void applyScale() {
         // Take any adjustments Bedrock requires, and compute it alongside the attribute's additional changes
-        this.dirtyMetadata.put(EntityDataTypes.SCALE, scale * attributeScale);
+        this.metadata.put(EntityDataTypes.SCALE, scale * attributeScale);
     }
 
     /**
@@ -689,6 +702,21 @@ public class LivingEntity extends Entity implements Tickable {
                         clientVehicle.getVehicleComponent().setMovementEfficiency(AttributeUtils.calculateValue(javaAttribute));
                     }
                 }
+                case FRICTION_MODIFIER -> {
+                    if (GameProtocol.is26_30orHigher(session.protocolVersion())) {
+                        newAttributes.add(calculateAttribute(javaAttribute, GeyserAttributeType.FRICTION_MODIFIER));
+                    }
+                }
+                case BOUNCINESS -> {
+                    if (GameProtocol.is26_30orHigher(session.protocolVersion())) {
+                        newAttributes.add(calculateAttribute(javaAttribute, GeyserAttributeType.BOUNCINESS));
+                    }
+                }
+                case AIR_DRAG_MODIFIER -> {
+                    if (GameProtocol.is26_30orHigher(session.protocolVersion())) {
+                        newAttributes.add(calculateAttribute(javaAttribute, GeyserAttributeType.AIR_DRAG_MODIFIER));
+                    }
+                }
             }
         }
     }
@@ -706,7 +734,7 @@ public class LivingEntity extends Entity implements Tickable {
             if (equippable != null) {
                 return slot == equippable.slot() &&
                     canUseSlot(slot) &&
-                    EntityUtils.equipmentUsableByEntity(session, equippable, this.definition.entityType());
+                    EntityUtils.equipmentUsableByEntity(session, equippable, javaDefinition.type());
             } else {
                 return slot == EquipmentSlot.MAIN_HAND && canUseSlot(EquipmentSlot.MAIN_HAND);
             }
@@ -720,7 +748,7 @@ public class LivingEntity extends Entity implements Tickable {
         if (equippable == null) {
             return slot == EquipmentSlot.MAIN_HAND && this.canUseSlot(EquipmentSlot.MAIN_HAND);
         } else {
-            return slot == equippable.slot() && this.canUseSlot(equippable.slot()) && EntityUtils.equipmentUsableByEntity(session, equippable, this.definition.entityType());
+            return slot == equippable.slot() && this.canUseSlot(equippable.slot()) && EntityUtils.equipmentUsableByEntity(session, equippable, javaDefinition.type());
         }
     }
 

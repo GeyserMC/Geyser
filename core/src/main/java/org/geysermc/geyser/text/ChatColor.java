@@ -133,11 +133,6 @@ public class ChatColor {
             case LIGHT_PURPLE -> LIGHT_PURPLE;
             case YELLOW -> YELLOW;
             case WHITE -> WHITE;
-            case OBFUSCATED -> OBFUSCATED;
-            case BOLD -> BOLD;
-            case STRIKETHROUGH, UNDERLINED -> "";
-            case ITALIC -> ITALIC;
-            default -> RESET;
         };
     }
 }

@@ -50,7 +50,7 @@ public class ThrownPotionEntity extends ThrowableItemEntity {
     public void setItem(EntityMetadata<ItemStack, ?> entityMetadata) {
         ItemStack itemStack = entityMetadata.getValue();
         if (itemStack == null) {
-            dirtyMetadata.put(EntityDataTypes.AUX_VALUE_DATA, (short) 0);
+            metadata.put(EntityDataTypes.AUX_VALUE_DATA, (short) 0);
             setFlag(EntityFlag.ENCHANTED, false);
             setFlag(EntityFlag.LINGERING, false);
         } else {
@@ -61,15 +61,15 @@ public class ThrownPotionEntity extends ThrowableItemEntity {
                 if (potionContents != null) {
                     Potion potion = Potion.getByJavaId(potionContents.getPotionId());
                     if (potion != null) {
-                        dirtyMetadata.put(EntityDataTypes.AUX_VALUE_DATA, potion.getBedrockId());
+                        metadata.put(EntityDataTypes.AUX_VALUE_DATA, potion.getBedrockId());
                         setFlag(EntityFlag.ENCHANTED, !NON_ENCHANTED_POTIONS.contains(potion));
                     } else {
-                        dirtyMetadata.put(EntityDataTypes.AUX_VALUE_DATA, (short) 0);
+                        metadata.put(EntityDataTypes.AUX_VALUE_DATA, (short) 0);
                         GeyserImpl.getInstance().getLogger().debug("Unknown java potion: " + potionContents.getPotionId());
                     }
                 }
 
-                boolean isLingering = definition.entityType() == EntityType.LINGERING_POTION;
+                boolean isLingering = javaDefinition.type().is(EntityType.LINGERING_POTION);
                 setFlag(EntityFlag.LINGERING, isLingering);
             }
         }

@@ -53,10 +53,10 @@ public class GeyserVelocityPingPassthrough implements IGeyserPingPassthrough {
         ProxyPingEvent event;
         try {
             event = server.getEventManager().fire(new ProxyPingEvent(new GeyserInboundConnection(inetSocketAddress), ServerPing.builder()
-                    .description(server.getConfiguration().getMotd()).onlinePlayers(server.getPlayerCount())
-                    .maximumPlayers(server.getConfiguration().getShowMaxPlayers())
-                    .version(new Version(GameProtocol.getJavaProtocolVersion(), GameProtocol.getJavaMinecraftVersion())) 
-                    .build())).get();
+                .description(server.getConfiguration().getMotd())
+                .onlinePlayers(server.getPlayerCount())
+                .maximumPlayers(server.getConfiguration().getShowMaxPlayers())
+                .version(new Version(GameProtocol.getJavaProtocolVersion(), GameProtocol.getJavaMinecraftVersion())).build())).get();
         } catch (ExecutionException | InterruptedException e) {
             throw new RuntimeException(e);
         }

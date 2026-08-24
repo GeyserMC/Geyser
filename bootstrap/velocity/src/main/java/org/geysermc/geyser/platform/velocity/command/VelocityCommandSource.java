@@ -49,7 +49,7 @@ public class VelocityCommandSource implements GeyserCommandSource {
     }
 
     @Override
-    public String name() {
+    public @NonNull String name() {
         if (handle instanceof Player) {
             return ((Player) handle).getUsername();
         } else if (handle instanceof ConsoleCommandSource) {
@@ -65,7 +65,6 @@ public class VelocityCommandSource implements GeyserCommandSource {
 
     @Override
     public void sendMessage(Component message) {
-        // Be careful that we don't shade in Adventure!!
         handle.sendMessage(message);
     }
 
@@ -83,9 +82,9 @@ public class VelocityCommandSource implements GeyserCommandSource {
     }
 
     @Override
-    public String locale() {
-        if (handle instanceof Player) {
-            Locale locale = ((Player) handle).getPlayerSettings().getLocale();
+    public @NonNull String locale() {
+        if (handle instanceof Player player) {
+            Locale locale = player.getPlayerSettings().getLocale();
             return GeyserLocale.formatLocale(locale.getLanguage() + "_" + locale.getCountry());
         }
         return GeyserLocale.getDefaultLocale();

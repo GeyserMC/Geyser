@@ -86,4 +86,9 @@ public class ChestCollision extends BlockCollision {
         previous.translate(0, yVelocity, 0);
         playerCollision.setMiddleY(previous.getMiddleY());
     }
+
+    @Override
+    public double pushUpForTeleport() {
+        return 0.075;
+    }
 }

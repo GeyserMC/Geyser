@@ -33,7 +33,7 @@ import org.geysermc.geyser.item.hashing.EnumMapDispatchHasher;
 import org.geysermc.geyser.item.hashing.MapBuilder;
 import org.geysermc.geyser.item.hashing.MinecraftHasher;
 
-public enum NbtComponentType implements EnumMapDispatchHasher<NbtComponentType, NBTComponent<?, ?>> {
+public enum NbtComponentType implements EnumMapDispatchHasher<NbtComponentType, NBTComponent<?>> {
     BLOCK(BlockNBTComponent.class, builder -> builder
         .accept("block", ComponentPosHasher.POS_HASHER, BlockNBTComponent::pos)),
     ENTITY(EntityNBTComponent.class, builder -> builder
@@ -41,12 +41,12 @@ public enum NbtComponentType implements EnumMapDispatchHasher<NbtComponentType, 
     STORAGE(StorageNBTComponent.class, builder -> builder
         .accept("storage", MinecraftHasher.KEY, StorageNBTComponent::storage));
 
-    public static final MapBuilder<NBTComponent<?, ?>> NBT_COMPONENT_SOURCE_MAP_BUILDER = EnumMapDispatchHasher.dispatchFuzzy(NbtComponentType::values);
+    public static final MapBuilder<NBTComponent<?>> NBT_COMPONENT_SOURCE_MAP_BUILDER = EnumMapDispatchHasher.dispatchFuzzy(NbtComponentType::values);
 
-    private final Class<? extends NBTComponent<?, ?>> clazz;
-    private final MapBuilder<? extends NBTComponent<?, ?>> mapBuilder;
+    private final Class<? extends NBTComponent<?>> clazz;
+    private final MapBuilder<? extends NBTComponent<?>> mapBuilder;
 
-    <T extends NBTComponent<?, ?>> NbtComponentType(Class<T> clazz, MapBuilder<T> mapBuilder) {
+    <T extends NBTComponent<?>> NbtComponentType(Class<T> clazz, MapBuilder<T> mapBuilder) {
         this.clazz = clazz;
         this.mapBuilder = mapBuilder;
     }
@@ -57,12 +57,12 @@ public enum NbtComponentType implements EnumMapDispatchHasher<NbtComponentType, 
     }
 
     @Override
-    public Class<? extends NBTComponent<?, ?>> valueTypeClass() {
+    public Class<? extends NBTComponent<?>> valueTypeClass() {
         return clazz;
     }
 
     @Override
-    public MapBuilder<? extends NBTComponent<?, ?>> mapBuilder() {
+    public MapBuilder<? extends NBTComponent<?>> mapBuilder() {
         return mapBuilder;
     }
 }

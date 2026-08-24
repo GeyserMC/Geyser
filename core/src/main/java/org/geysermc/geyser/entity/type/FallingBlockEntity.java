@@ -35,7 +35,7 @@ public class FallingBlockEntity extends Entity {
     public FallingBlockEntity(EntitySpawnContext context, int javaId) {
         super(context);
 
-        this.dirtyMetadata.put(EntityDataTypes.BLOCK, session.getBlockMappings().getBedrockBlock(javaId));
+        this.metadata.put(EntityDataTypes.BLOCK, session.getBlockMappings().getBedrockBlock(javaId));
     }
 
     @Override

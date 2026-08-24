@@ -26,25 +26,28 @@
 package org.geysermc.geyser.session.cache.waypoint;
 
 import org.cloudburstmc.math.vector.Vector3f;
-import org.geysermc.geyser.entity.type.player.PlayerEntity;
+import org.geysermc.geyser.api.util.Identifier;
+import org.geysermc.geyser.api.waypoint.CustomWaypointStyle;
+import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.mcprotocollib.protocol.data.game.level.waypoint.AzimuthWaypointData;
 import org.geysermc.mcprotocollib.protocol.data.game.level.waypoint.WaypointData;
 
 import java.awt.Color;
 import java.util.Optional;
+import java.util.UUID;
 
 public class AzimuthWaypoint extends GeyserWaypoint implements TickingWaypoint {
 
     // In Java, this waypoint always appears really far, so set the distance far here too,
     // This also makes the waypoint more accurate on the bar and less susceptible to the player moving
-    private static final float WAYPOINT_DISTANCE = 1000.0F;
+    private static final float WAYPOINT_DISTANCE = Integer.MAX_VALUE;
 
     // The angle, in radians, where the waypoint should appear on the bar
     private float angle = 0.0F;
 
-    public AzimuthWaypoint(GeyserSession session, Optional<PlayerEntity> player, Color color) {
-        super(session, player, color);
+    public AzimuthWaypoint(GeyserSession session, UUID uuid, CustomWaypointStyle style, Identifier styleIdentifier, Color color, Optional<Entity> entity) {
+        super(session, uuid, style, styleIdentifier, color, entity);
     }
 
     @Override
@@ -71,6 +74,6 @@ public class AzimuthWaypoint extends GeyserWaypoint implements TickingWaypoint {
         float dx = (float) -(Math.sin(angle) * WAYPOINT_DISTANCE);
         float dz = (float) (Math.cos(angle) * WAYPOINT_DISTANCE);
         // Set Y to the player's Y since this waypoint always appears in the centre of the bar on Java
-        position = Vector3f.from(playerPosition.getX() + dx, playerPosition.getY(), playerPosition.getZ() + dz);
+        setPosition(Vector3f.from(playerPosition.getX() + dx, playerPosition.getY(), playerPosition.getZ() + dz));
     }
 }

@@ -27,6 +27,11 @@ package org.geysermc.geyser.translator.protocol.java.inventory;
 
 import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerId;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
+import org.cloudburstmc.protocol.bedrock.data.inventory.crafting.CraftingDataType;
+import org.cloudburstmc.protocol.bedrock.data.inventory.crafting.recipe.RecipeData;
+import org.cloudburstmc.protocol.bedrock.data.inventory.crafting.recipe.ShapedRecipeData;
+import org.cloudburstmc.protocol.bedrock.data.inventory.crafting.recipe.ShapelessRecipeData;
+import org.cloudburstmc.protocol.bedrock.data.inventory.crafting.recipe.SmithingTransformRecipeData;
 import org.cloudburstmc.protocol.bedrock.packet.CraftingDataPacket;
 import org.cloudburstmc.protocol.bedrock.packet.InventorySlotPacket;
 import org.geysermc.geyser.GeyserLogger;
@@ -37,6 +42,7 @@ import org.geysermc.geyser.inventory.recipe.GeyserRecipe;
 import org.geysermc.geyser.inventory.recipe.GeyserShapedRecipe;
 import org.geysermc.geyser.inventory.recipe.GeyserSmithingRecipe;
 import org.geysermc.geyser.item.Items;
+import org.geysermc.geyser.network.GameProtocol;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.inventory.SmithingInventoryTranslator;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
@@ -175,12 +181,21 @@ public class JavaContainerSetSlotTranslator extends PacketTranslator<Clientbound
                 }
             }
 
-            GeyserRecipe geyserRecipe = new GeyserShapedRecipe(ThreadLocalRandom.current().nextInt(), newRecipeId,
+            GeyserShapedRecipe geyserRecipe = new GeyserShapedRecipe(ThreadLocalRandom.current().nextInt(), newRecipeId,
                     width, height, javaIngredients, new ItemStackSlotDisplay(item));
             session.getCraftingRecipes().put(newRecipeId, geyserRecipe);
 
             CraftingDataPacket craftPacket = new CraftingDataPacket();
-            craftPacket.getCraftingData().add(geyserRecipe.asRecipeData(session).getFirst());
+            ShapedRecipeData data = geyserRecipe.asRecipeData(session).getFirst();
+            if (GameProtocol.is26_40orHigher(session.protocolVersion())) {
+                if (data.getType().equals(CraftingDataType.SHAPED)) {
+                    craftPacket.getShapedData().add(data);
+                } else {
+                    throw new IllegalStateException("Unexpected value: " + data);
+                }
+            } else {
+                craftPacket.getCraftingData().add(data);
+            }
             session.sendUpstreamPacket(craftPacket);
 
             index = 0;
@@ -245,7 +260,16 @@ public class JavaContainerSetSlotTranslator extends PacketTranslator<Clientbound
             session.getSmithingRecipes().add(geyserRecipe);
 
             CraftingDataPacket craftPacket = new CraftingDataPacket();
-            craftPacket.getCraftingData().add(geyserRecipe.asRecipeData(session).getFirst());
+            SmithingTransformRecipeData data = geyserRecipe.asRecipeData(session).getFirst();
+            if (GameProtocol.is26_40orHigher(session.protocolVersion())) {
+                if (data.getType().equals(CraftingDataType.SMITHING_TRANSFORM)) {
+                    craftPacket.getSmithingTransformData().add(data);
+                } else {
+                    throw new IllegalStateException("Unexpected value: " + data);
+                }
+            } else {
+                craftPacket.getCraftingData().add(data);
+            }
             session.sendUpstreamPacket(craftPacket);
 
             // Just set one of the slots to air, then right back to its proper item.
