@@ -25,7 +25,7 @@
 
 package org.geysermc.geyser.impl;
 
-import it.unimi.dsi.fastutil.ints.IntArrayList;
+import it.unimi.dsi.fastutil.ints.IntList;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.api.util.Holders;
@@ -43,7 +43,7 @@ public record HoldersImpl(@Nullable List<@NonNull Identifier> identifiers, @Null
 
     public HolderSet toHolderSet(JavaRegistryProvider registries, JavaRegistryKey<?> registry) {
         if (identifiers != null) {
-            return new HolderSet(new IntArrayList(identifiers.stream()
+            return new HolderSet(IntList.of(identifiers.stream()
                 .map(MinecraftKey::identifierToKey)
                 .mapToInt(key -> registry.networkId(registries, key))
                 .toArray()));

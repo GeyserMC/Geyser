@@ -25,8 +25,6 @@
 
 package org.geysermc.geyser.session.cache.tags;
 
-import it.unimi.dsi.fastutil.ints.IntArrayList;
-import it.unimi.dsi.fastutil.ints.IntArrays;
 import it.unimi.dsi.fastutil.ints.IntList;
 import it.unimi.dsi.fastutil.ints.IntLists;
 import lombok.Data;
@@ -68,7 +66,7 @@ public final class GeyserHolderSet<T> {
     private final @Nullable List<T> inline;
 
     private GeyserHolderSet(JavaRegistryKey<T> registry) {
-        this(registry, IntList.of());
+        this(registry, IntLists.emptyList());
     }
 
     public GeyserHolderSet(JavaRegistryKey<T> registry, @Nullable IntList holders) {
@@ -94,7 +92,7 @@ public final class GeyserHolderSet<T> {
      * Constructs an empty {@link GeyserHolderSet}.
      */
     public static <T> GeyserHolderSet<T> empty(JavaRegistryKey<T> registry) {
-        return new GeyserHolderSet<>(registry, IntList.of());
+        return new GeyserHolderSet<>(registry, IntLists.emptyList());
     }
 
     /**
@@ -204,7 +202,7 @@ public final class GeyserHolderSet<T> {
                 }
             } else {
                 // Assume the list is a list of strings (resource locations)
-                return new GeyserHolderSet<>(registry, new IntArrayList(list.stream().map(o -> (String) o).map(Key::key).mapToInt(idMapper).toArray()));
+                return new GeyserHolderSet<>(registry, IntList.of(list.stream().map(o -> (String) o).map(Key::key).mapToInt(idMapper).toArray()));
             }
         }
 

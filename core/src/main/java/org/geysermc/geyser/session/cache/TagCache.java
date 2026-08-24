@@ -25,9 +25,8 @@
 
 package org.geysermc.geyser.session.cache;
 
-import it.unimi.dsi.fastutil.ints.IntArrayList;
-import it.unimi.dsi.fastutil.ints.IntArrays;
 import it.unimi.dsi.fastutil.ints.IntList;
+import it.unimi.dsi.fastutil.ints.IntLists;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import net.kyori.adventure.key.Key;
 import org.checkerframework.checker.nullness.qual.NonNull;
@@ -115,7 +114,7 @@ public final class TagCache {
                 // Used in RecipeBookAddTranslator
                 Arrays.sort(value);
             }
-            this.tags.put(new Tag<>(registry, tag.getKey()), new IntArrayList(value));
+            this.tags.put(new Tag<>(registry, tag.getKey()), IntList.of(value));
         }
     }
 
@@ -123,11 +122,11 @@ public final class TagCache {
      * Should only be used when the network ID of an element is already known. If not, prefer using the {@link TagCache#is(Tag, Object)} shorthand method.
      */
     public boolean is(@NonNull Tag<?> tag, int id) {
-        return contains(getRaw(tag), id);
+        return getRaw(tag).contains(id);
     }
 
     public <T> boolean is(@NonNull Tag<T> tag, @NonNull T object) {
-        return contains(getRaw(tag), tag.registry().networkId(session, object));
+        return getRaw(tag).contains(tag.registry().networkId(session, object));
     }
 
     /**
@@ -139,7 +138,7 @@ public final class TagCache {
         if (object == null) {
             return false;
         }
-        return contains(holderSet.resolveRaw(this), holderSet.getRegistry().networkId(session, object));
+        return holderSet.resolveRaw(this).contains(holderSet.getRegistry().networkId(session, object));
     }
 
     /**
@@ -159,7 +158,7 @@ public final class TagCache {
             return getRaw(new Tag<>(registry, key));
         });
 
-        return contains(entries, id);
+        return entries.contains(id);
     }
 
     public <T> List<T> get(@NonNull Tag<T> tag) {
@@ -169,8 +168,8 @@ public final class TagCache {
     /**
      * @return the network IDs in the given tag. This can be an empty array.
      */
-    public IntList getRaw(@NonNull Tag<?> tag) {
-        return this.tags.getOrDefault(tag, IntList.of());
+    public @NonNull IntList getRaw(@NonNull Tag<?> tag) {
+        return this.tags.getOrDefault(tag, IntLists.emptyList());
     }
 
     /**
@@ -178,14 +177,5 @@ public final class TagCache {
      */
     public static <T> List<T> mapRawArray(GeyserSession session, IntList array, JavaRegistryKey<T> registry) {
         return array.intStream().mapToObj(i -> registry.value(session, i)).toList();
-    }
-
-    private static boolean contains(IntList array, int i) {
-        for (int item : array) {
-            if (item == i) {
-                return true;
-            }
-        }
-        return false;
     }
 }

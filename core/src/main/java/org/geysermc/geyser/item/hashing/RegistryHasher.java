@@ -82,7 +82,6 @@ import org.geysermc.mcprotocollib.protocol.data.game.level.sound.CustomSound;
 import org.geysermc.mcprotocollib.protocol.data.game.level.sound.Sound;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -424,9 +423,9 @@ public interface RegistryHasher<DirectType> extends MinecraftHasher<Integer> {
                 return TAG.hash(holder.getLocation(), encoder);
             } else if (holder.getHolders() != null) {
                 if (holder.getHolders().size() == 1) {
-                    return hash(holder.getHolders().getInt(0), encoder);
+                    return hash(holder.getHolders().getFirst(), encoder);
                 }
-                return list().hash(holder.getHolders().intStream().boxed().toList(), encoder);
+                return list().hash(holder.getHolders(), encoder);
             }
             throw new IllegalStateException("HolderSet must have either tag location or holders");
         };
