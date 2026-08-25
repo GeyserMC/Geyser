@@ -99,6 +99,7 @@ import org.cloudburstmc.protocol.bedrock.packet.SetTimePacket;
 import org.cloudburstmc.protocol.bedrock.packet.StartGamePacket;
 import org.cloudburstmc.protocol.bedrock.packet.SyncEntityPropertyPacket;
 import org.cloudburstmc.protocol.bedrock.packet.TextPacket;
+import org.cloudburstmc.protocol.bedrock.packet.ToastRequestPacket;
 import org.cloudburstmc.protocol.bedrock.packet.TransferPacket;
 import org.cloudburstmc.protocol.bedrock.packet.UpdateAbilitiesPacket;
 import org.cloudburstmc.protocol.bedrock.packet.UpdateAdventureSettingsPacket;
@@ -2745,6 +2746,14 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
             latencyPingCache.add(runnable);
         }
         sendUpstreamPacket(latencyPacket);
+    }
+
+    @Override
+    public void sendToast(@NonNull String title, @NonNull String content) {
+        ToastRequestPacket packet = new ToastRequestPacket();
+        packet.setTitle(title);
+        packet.setContent(content);
+        sendUpstreamPacket(packet);
     }
 
     public String getDebugInfo() {

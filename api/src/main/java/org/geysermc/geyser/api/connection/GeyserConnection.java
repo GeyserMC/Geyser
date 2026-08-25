@@ -26,6 +26,7 @@
 package org.geysermc.geyser.api.connection;
 
 import org.checkerframework.checker.index.qual.Positive;
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.api.connection.Connection;
 import org.geysermc.geyser.api.bedrock.camera.CameraData;
 import org.geysermc.geyser.api.bedrock.camera.CameraShake;
@@ -244,4 +245,14 @@ public interface GeyserConnection extends Connection, CommandSource {
      * @since 2.9.4
      */
     String playFabId();
+
+    /**
+     * Sends a Toast notification to this Player.
+     *
+     * @param title The Title of the toast notification.
+     * @param content The Content of the toast notification.
+     *
+     * @since 2.11.1
+     */
+    void sendToast(@NonNull String title, @NonNull String content);
 }
