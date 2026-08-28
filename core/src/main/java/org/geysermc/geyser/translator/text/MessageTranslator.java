@@ -25,14 +25,7 @@
 
 package org.geysermc.geyser.translator.text;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.JoinConfiguration;
 import net.kyori.adventure.text.TranslatableComponent;
 import net.kyori.adventure.text.TranslationArgument;
 import net.kyori.adventure.text.flattener.ComponentFlattener;
@@ -61,6 +54,13 @@ import org.geysermc.mcprotocollib.protocol.data.game.Holder;
 import org.geysermc.mcprotocollib.protocol.data.game.chat.ChatType;
 import org.geysermc.mcprotocollib.protocol.data.game.chat.ChatTypeDecoration;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 public class MessageTranslator {
     // These are used for handling the translations of the messages
     // Custom instead of TranslatableComponentRenderer#usingTranslationSource so we don't need to worry about finding a Locale class
@@ -81,6 +81,7 @@ public class MessageTranslator {
     private static final Pattern LOCALIZATION_PATTERN = Pattern.compile("%(?:(\\d+)\\$)?s");
 
     static {
+        // FIXME do we still need this?
         GSON_SERIALIZER = DefaultComponentSerializer.get()
                 .toBuilder()
                 // Use a custom legacy hover event deserializer since we don't use any of this data anyway, and
@@ -557,15 +558,6 @@ public class MessageTranslator {
     }
 
     /**
-     * Deserialize an NbtMap with a description text component (usually provided from a registry) into a Bedrock-formatted string.
-     */
-    public static String deserializeDescriptionForTooltip(GeyserSession session, NbtMap tag) {
-        Object description = tag.get("description");
-        Component parsed = componentFromNbtTag(description);
-        return convertMessageForTooltip(parsed, session.locale());
-    }
-
-    /**
      * Should only be used by {@link org.geysermc.geyser.session.cache.RegistryCache.RegistryReader}s, as these do not always have a {@link GeyserSession} available.
      */
     public static @Nullable String convertFromNullableNbtTag(Optional<GeyserSession> session, @Nullable Object nbtTag) {
@@ -577,11 +569,11 @@ public class MessageTranslator {
     }
 
     public static Component componentFromNbtTag(Object nbtTag) {
-        return componentFromNbtTag(nbtTag, Style.empty());
+        return DefaultComponentSerializer.nbt().deserialize(nbtTag);
     }
 
     public static List<String> signTextFromNbtTag(GeyserSession session, List<?> nbtTag) {
-        var components = componentsFromNbtList(nbtTag, Style.empty());
+        List<Component> components = componentsFromNbtList(nbtTag);
         List<String> messages = new ArrayList<>();
         for (Component component : components) {
             messages.add(convertMessageRaw(component, session.locale()));
@@ -589,53 +581,10 @@ public class MessageTranslator {
         return messages;
     }
 
-    private static Component componentFromNbtTag(Object nbtTag, Style style) {
-        if (nbtTag instanceof String literal) {
-            return Component.text(literal).style(style);
-        } else if (nbtTag instanceof List<?> list) {
-            return Component.join(JoinConfiguration.noSeparators(), componentsFromNbtList(list, style));
-        } else if (nbtTag instanceof NbtMap map) {
-            Component component = null;
-            String text = map.getString("text", map.getString("", null));
-            if (text != null) {
-                component = Component.text(text);
-            } else {
-                String translateKey = map.getString("translate", null);
-                if (translateKey != null) {
-                    String fallback = map.getString("fallback", null);
-                    List<Component> args = new ArrayList<>();
-
-                    Object with = map.get("with");
-                    if (with instanceof List<?> list) {
-                        args = componentsFromNbtList(list, style);
-                    } else if (with != null) {
-                        args.add(componentFromNbtTag(with, style));
-                    }
-                    component = Component.translatable(translateKey, fallback, args);
-                }
-            }
-
-            if (component != null) {
-                Style newStyle = getStyleFromNbtMap(map, style);
-                component = component.style(newStyle);
-
-                Object extra = map.get("extra");
-                if (extra != null) {
-                    component = component.append(componentFromNbtTag(extra, newStyle));
-                }
-
-                return component;
-            }
-        }
-
-        GeyserImpl.getInstance().getLogger().error("Expected tag to be a literal string, a list of components, or a component object with a text/translate key: " + nbtTag);
-        return Component.empty();
-    }
-
-    private static List<Component> componentsFromNbtList(List<?> list, Style style) {
+    private static List<Component> componentsFromNbtList(List<?> list) {
         List<Component> components = new ArrayList<>();
         for (Object entry : list) {
-            components.add(componentFromNbtTag(entry, style));
+            components.add(componentFromNbtTag(entry));
         }
         return components;
     }
@@ -659,10 +608,6 @@ public class MessageTranslator {
         map.listenForBoolean("obfuscated", value -> style.decoration(TextDecoration.OBFUSCATED, value));
 
         return style.build();
-    }
-
-    public static Style getStyleFromNbtMap(NbtMap map, Style base) {
-        return base.merge(getStyleFromNbtMap(map));
     }
 
     private static boolean endsWith(StringBuilder builder, String suffix) {
