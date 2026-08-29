@@ -48,4 +48,8 @@ public class GeyserMappingItem {
     Integer firstBlockRuntimeId;
     Integer lastBlockRuntimeId;
     @SerializedName("is_entity_placer") boolean entityPlacer = false;
+    /**
+     * Burn duration in Java ticks.
+     */
+    @SerializedName("fuel_duration") int fuelDuration;
 }

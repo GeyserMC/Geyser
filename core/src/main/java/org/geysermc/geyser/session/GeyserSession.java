@@ -132,6 +132,7 @@ import org.geysermc.geyser.entity.VanillaEntities;
 import org.geysermc.geyser.entity.attribute.GeyserAttributeType;
 import org.geysermc.geyser.entity.type.BoatEntity;
 import org.geysermc.geyser.entity.type.Entity;
+import org.geysermc.geyser.entity.type.FishingHookEntity;
 import org.geysermc.geyser.entity.type.ItemFrameEntity;
 import org.geysermc.geyser.entity.type.Tickable;
 import org.geysermc.geyser.entity.type.player.PlayerEntity;
@@ -596,9 +597,11 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     private boolean isUsingExperimentalMinecartLogic = false;
 
     /**
-     * Whether a fishing bobber in the world is connected to the player. Used for custom items, updates the item the player is holding when changed.
+     * The fishing bobber the player has cast, if any. Custom item predicates read whether one exists,
+     * so the held item is resent when that changes. The hook itself is kept so it can be restored
+     * after the Bedrock client reels it in on its own.
      */
-    private boolean hasFishingRodCast = false;
+    private @Nullable FishingHookEntity fishingHook;
 
     /**
      * The current attack speed of the player. Used for sending proper cooldown timings.
@@ -1523,14 +1526,18 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     }
 
     public boolean hasFishingRodCast() {
-        return hasFishingRodCast;
+        return fishingHook != null;
+    }
+
+    public @Nullable FishingHookEntity getFishingHook() {
+        return fishingHook;
     }
 
     /**
      * Also updates the item the player is holding.
      */
-    public void setFishingRodCast(boolean cast) {
-        this.hasFishingRodCast = cast;
+    public void setFishingHook(@Nullable FishingHookEntity fishingHook) {
+        this.fishingHook = fishingHook;
         int slot = getPlayerInventory().getOffsetForHotbar(getPlayerInventory().getHeldItemSlot());
         this.playerInventoryHolder.updateSlot(slot);
     }

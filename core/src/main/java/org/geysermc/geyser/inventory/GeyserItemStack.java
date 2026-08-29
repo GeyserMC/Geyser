@@ -25,6 +25,7 @@
 
 package org.geysermc.geyser.inventory;
 
+import it.unimi.dsi.fastutil.ints.IntList;
 import lombok.AccessLevel;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -119,11 +120,11 @@ public class GeyserItemStack {
             case CompositeSlotDisplay(List<SlotDisplay> contents) -> contents.isEmpty() ? GeyserItemStack.EMPTY : from(session, contents.getFirst());
             case TagSlotDisplay(Key tag) -> {
                 // Again, just create an itemstack of the first item in the tag, if possible
-                int[] itemTag = session.getTagCache().getRaw(new Tag<>(JavaRegistries.ITEM, tag));
-                if (itemTag.length == 0) {
+                IntList itemTag = session.getTagCache().getRaw(new Tag<>(JavaRegistries.ITEM, tag));
+                if (itemTag.isEmpty()) {
                     yield GeyserItemStack.EMPTY;
                 }
-                yield GeyserItemStack.of(session, itemTag[0], 1);
+                yield GeyserItemStack.of(session, itemTag.getFirst(), 1);
             }
             case DyedSlotDisplay(SlotDisplay dye, SlotDisplay target) -> {
                 // This probably works... MC does it a little differently
