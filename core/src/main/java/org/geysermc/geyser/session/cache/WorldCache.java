@@ -28,6 +28,8 @@ package org.geysermc.geyser.session.cache;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntMaps;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
+import it.unimi.dsi.fastutil.objects.Object2LongMap;
+import it.unimi.dsi.fastutil.objects.Object2LongOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import lombok.Getter;
 import lombok.Setter;
@@ -71,6 +73,13 @@ public final class WorldCache {
     private final Object2IntMap<Vector3i> unverifiedPredictions = new Object2IntOpenHashMap<>(1);
 
     private final Map<Vector3i, String> activeRecords = new Object2ObjectOpenHashMap<>(1); // Assume the average player won't be listening to many records
+    private final Object2LongMap<Vector3i> playingRecords = new Object2LongOpenHashMap<>(1) {
+        {
+            this.defaultReturnValue(-1);
+        }
+    }; // Ditto for the above
+
+    private long lastPlayingSoundId = 0;
 
     @Getter
     @Setter
@@ -215,6 +224,17 @@ public final class WorldCache {
 
     public void addActiveRecord(Vector3i pos, String bedrockPlaySound) {
         this.activeRecords.put(pos, bedrockPlaySound);
+    }
+
+    public long addPlayingRecord(Vector3i pos) {
+        long selectedId = lastPlayingSoundId++;
+        this.playingRecords.put(pos, selectedId);
+        return selectedId;
+    }
+
+    public @Nullable Long removePlayingRecord(Vector3i pos) {
+        long removedId = this.playingRecords.removeLong(pos);
+        return removedId == -1 ? null : removedId;
     }
 
     // Implementation note: positions aren't removed unless the server calls, but this seems to match 1.21 Java

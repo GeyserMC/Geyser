@@ -114,12 +114,6 @@ public class PlayerEntity extends AvatarEntity implements GeyserPlayerEntity {
             packet.getEntries().add(entry);
             packet.setAction(PlayerListPacket.Action.REMOVE);
             session.sendUpstreamPacket(packet);
-
-            if (!GeyserWaypoint.uses26_10WaypointPacket(session)) {
-                // To ensure waypoints still remain, if any were added while the
-                // player had a valid player list entry
-                session.getWaypointCache().removeEntity(this);
-            }
         }
 
         // Since we re-use player entities: Clear flags, held item, etc

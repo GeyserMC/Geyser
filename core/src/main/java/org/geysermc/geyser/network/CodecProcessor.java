@@ -35,6 +35,7 @@ import org.cloudburstmc.protocol.bedrock.codec.v1001.serializer.MobArmorEquipmen
 import org.cloudburstmc.protocol.bedrock.codec.v2168.Bedrock_v2168;
 import org.cloudburstmc.protocol.bedrock.codec.v2168.serializer.MovePlayerSerializer_v2168;
 import org.cloudburstmc.protocol.bedrock.codec.v2168.serializer.PlayerSkinSerializer_v2168;
+import org.cloudburstmc.protocol.bedrock.codec.v2192.serializer.BossEventSerializer_v2192;
 import org.cloudburstmc.protocol.bedrock.codec.v291.serializer.MobEquipmentSerializer_v291;
 import org.cloudburstmc.protocol.bedrock.codec.v291.serializer.MoveEntityAbsoluteSerializer_v291;
 import org.cloudburstmc.protocol.bedrock.codec.v291.serializer.PlayerHotbarSerializer_v291;
@@ -195,13 +196,13 @@ public class CodecProcessor {
     /**
      * Serializer that does nothing when trying to deserialize BossEventPacket since it is not used from the client.
      */
-    private static final BedrockPacketSerializer<BossEventPacket> BOSS_EVENT_SERIALIZER_V776 = new BossEventSerializer_v776() {
+    private static final BedrockPacketSerializer<BossEventPacket> BOSS_EVENT_SERIALIZER_V1001 = new BossEventSerializer_v1001() {
         @Override
         public void deserialize(ByteBuf buffer, BedrockCodecHelper helper, BossEventPacket packet) {
         }
     };
 
-    private static final BedrockPacketSerializer<BossEventPacket> BOSS_EVENT_SERIALIZER_V1001 = new BossEventSerializer_v1001() {
+    private static final BedrockPacketSerializer<BossEventPacket> BOSS_EVENT_SERIALIZER_V2192 = new BossEventSerializer_v2192() {
         @Override
         public void deserialize(ByteBuf buffer, BedrockCodecHelper helper, BossEventPacket packet) {
         }
@@ -371,11 +372,9 @@ public class CodecProcessor {
         if (codec.getProtocolVersion() < 1001) { // 26.30
             codecBuilder.updateSerializer(MobArmorEquipmentPacket.class, MOB_ARMOR_EQUIPMENT_SERIALIZER_V712);
             codecBuilder.updateSerializer(InventoryContentPacket.class, INVENTORY_CONTENT_SERIALIZER_V748);
-            codecBuilder.updateSerializer(BossEventPacket.class, BOSS_EVENT_SERIALIZER_V776);
         } else {
             codecBuilder.updateSerializer(MobArmorEquipmentPacket.class, MOB_ARMOR_EQUIPMENT_SERIALIZER_V1001);
             codecBuilder.updateSerializer(InventoryContentPacket.class, INVENTORY_CONTENT_SERIALIZER_V1001);
-            codecBuilder.updateSerializer(BossEventPacket.class, BOSS_EVENT_SERIALIZER_V1001);
         }
 
         if (codec.getProtocolVersion() < 2168) { // 26.40
@@ -385,6 +384,12 @@ public class CodecProcessor {
         } else {
             codecBuilder.updateSerializer(MovePlayerPacket.class, MOVE_PLAYER_SERIALIZER_V2168);
             codecBuilder.updateSerializer(PlayerSkinPacket.class, PLAYER_SKIN_SERIALIZER_V2168);
+        }
+
+        if (codec.getProtocolVersion() < 2192) { // 26.50
+            codecBuilder.updateSerializer(BossEventPacket.class, BOSS_EVENT_SERIALIZER_V1001);
+        } else {
+            codecBuilder.updateSerializer(BossEventPacket.class, BOSS_EVENT_SERIALIZER_V2192);
         }
 
         return codecBuilder.build();

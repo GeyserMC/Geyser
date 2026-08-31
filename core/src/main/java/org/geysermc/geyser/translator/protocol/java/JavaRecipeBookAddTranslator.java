@@ -82,7 +82,7 @@ public class JavaRecipeBookAddTranslator extends PacketTranslator<ClientboundRec
             // Hacky fix: on 26.20 and above, the client crashes when there are no furnace recipes. Furnace recipes also have to be shapeless.
             // Before this fix, Geyser did not translate furnace recipes at all.
             // TODO rewrite this, but properly
-            if (display instanceof FurnaceRecipeDisplay furnaceRecipe && GameProtocol.is26_20orHigher(session.protocolVersion())) {
+            if (display instanceof FurnaceRecipeDisplay furnaceRecipe) {
                 GeyserShapelessRecipe geyserRecipe = new GeyserShapelessRecipe(contents.id(), netId, furnaceRecipe, contents.category());
                 knownFurnaceRecipes.add(GeyserShapelessRecipe.FurnaceRecipeType.fromCategory(contents.category()));
 

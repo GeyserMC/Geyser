@@ -58,16 +58,12 @@ public abstract class GeyserWaypoint {
 
     protected final GeyserSession session;
 
-    // On 26.10 and above (new waypoint system): the waypoint group UUID
-    // On 26.0 and below (old waypoint system): the UUID of the waypoint
+    // The waypoint group UUID
     // This is decided by the Java server. When Java sends us a waypoint with a String ID, we turn it into a UUID
     private final UUID uuid;
     private final LocatorBarWaypoint bedrockWaypoint;
     private final CustomWaypointStyle style;
     private final Identifier styleIdentifier;
-    private final boolean uses26_10WaypointPacket;
-    private final boolean uses26_20WaypointPacket;
-    private boolean sendListPackets;
 
     private Vector3f lastSentPosition = null;
 
@@ -77,8 +73,6 @@ public abstract class GeyserWaypoint {
         this.style = style;
         this.styleIdentifier = styleIdentifier;
         this.bedrockWaypoint = new LocatorBarWaypoint();
-        this.uses26_10WaypointPacket = uses26_10WaypointPacket(session);
-        this.uses26_20WaypointPacket = uses26_20WaypointPacket(session);
         bedrockWaypoint.setVisible(true);
         bedrockWaypoint.setColor(color);
         initialiseWaypointFromEntity(entity);
@@ -87,13 +81,7 @@ public abstract class GeyserWaypoint {
 
     private void initialiseWaypointFromEntity(Optional<Entity> entity) {
         bedrockWaypoint.setClientPositionAuthority(entity.isPresent());
-        bedrockWaypoint.setEntityUniqueId(entity.map(Entity::geyserId).orElseGet(() -> uses26_10WaypointPacket ? null : session.getEntityCache().nextEntityId()));
-
-        if (uses26_10WaypointPacket) {
-            this.sendListPackets = false;
-        } else {
-            this.sendListPackets = entity.isEmpty();
-        }
+        bedrockWaypoint.setEntityUniqueId(entity.map(Entity::geyserId).orElse(null));
     }
 
     public Color color() {
@@ -103,134 +91,63 @@ public abstract class GeyserWaypoint {
     public void track(WaypointData data) {
         setData(data);
         sendTrackPackets(true);
-        if (!uses26_10WaypointPacket) {
-            sendLocationPacket(false);
-        }
     }
 
     private void track() {
         sendTrackPackets(true);
-        if (!uses26_10WaypointPacket) {
-            sendLocationPacket(false);
-        }
     }
 
     public void update(WaypointData data) {
         setData(data);
-        sendLocationPacket(false);
+        sendLocationPacket();
     }
 
     public void untrack() {
-        if (!uses26_10WaypointPacket) {
-            PlayerLocationPacket packet = new PlayerLocationPacket();
-            packet.setType(PlayerLocationPacket.Type.HIDE);
-            packet.setTargetEntityId(bedrockWaypoint.getEntityUniqueId());
-            session.sendUpstreamPacket(packet);
-        }
         sendTrackPackets(false);
         lastSentPosition = null;
     }
 
     public void setEntity(Entity entity) {
-        if (uses26_10WaypointPacket) {
-            untrack();
-            initialiseWaypointFromEntity(Optional.ofNullable(entity));
-            track();
-        } else {
-            if (!(entity instanceof PlayerEntity)) {
-                // 26.0 and below does not support non-player entities as waypoint target,
-                // as such, this method should never be called with non-player entities
-                GeyserImpl.getInstance().getLogger().warning("GeyserWaypoint#setEntity called for non-player entity!");
-                entity = null;
-            }
-
-            if (sendListPackets) {
-                if (entity == null) {
-                    // We're already emulating the waypoint with player list packets
-                    // Could occur due to player list shenanigans for PlayStation devices
-                    return;
-                }
-                untrack();
-                initialiseWaypointFromEntity(Optional.of(entity));
-                sendLocationPacket(true);
-            } else if (entity == null) { // Previously had an attached player, and now that player is gone
-                initialiseWaypointFromEntity(Optional.empty());
-                sendTrackPackets(true);
-                sendLocationPacket(true);
-            }
-        }
+        untrack();
+        initialiseWaypointFromEntity(Optional.ofNullable(entity));
+        track();
     }
 
     protected void setPosition(Vector3f position) {
         bedrockWaypoint.setWorldPosition(new LocatorBarWaypoint.WorldPosition(position, session.getBedrockDimension().bedrockId()));
-        if (uses26_10WaypointPacket) {
-            if (uses26_20WaypointPacket) {
-                float distance = session.playerEntity().position().distance(position);
-                String texture = style.texturePath(styleIdentifier, distance);
-                Vector2f iconSize = style.textureSize(styleIdentifier, distance);
+        float distance = session.playerEntity().position().distance(position);
+        String texture = style.texturePath(styleIdentifier, distance);
+        Vector2f iconSize = style.textureSize(styleIdentifier, distance);
 
-                if (texture == null) {
-                    GeyserImpl.getInstance().getLogger().warning("custom waypoint style for " + styleIdentifier + " returned null texture!");
-                    texture = "ui/locator_bar_dot_0";
-                }
-                if (iconSize.getX() < 0.0F || iconSize.getY() < 0.0F) {
-                    GeyserImpl.getInstance().getLogger().warning("custom waypoint style for " + styleIdentifier + " returned a negative texture size!");
-                    iconSize = Vector2f.ZERO;
-                }
-                bedrockWaypoint.setTexturePath("textures/" + texture);
-                bedrockWaypoint.setIconSize(iconSize);
-            } else {
-                float distanceSquared = session.playerEntity().position().distanceSquared(position);
-                bedrockWaypoint.setTextureId(getLegacyWaypointTexture(distanceSquared));
-            }
+        if (texture == null) {
+            GeyserImpl.getInstance().getLogger().warning("custom waypoint style for " + styleIdentifier + " returned null texture!");
+            texture = "ui/locator_bar_dot_0";
         }
+        if (iconSize.getX() < 0.0F || iconSize.getY() < 0.0F) {
+            GeyserImpl.getInstance().getLogger().warning("custom waypoint style for " + styleIdentifier + " returned a negative texture size!");
+            iconSize = Vector2f.ZERO;
+        }
+        bedrockWaypoint.setTexturePath("textures/" + texture);
+        bedrockWaypoint.setIconSize(iconSize);
     }
 
-    protected void sendLocationPacket(boolean force) {
+    protected void sendLocationPacket() {
         Vector3f position = bedrockWaypoint.getWorldPosition().getPosition();
-        if (force || lastSentPosition == null || position.distanceSquared(lastSentPosition) > 1.0F) {
-            if (uses26_10WaypointPacket) {
-                LocatorBarPacket packet = new LocatorBarPacket();
-                bedrockWaypoint.setUpdateFlag(WaypointUpdateFlags.WORLD_POS | (uses26_20WaypointPacket ? WaypointUpdateFlags.TEXTURE_PATH | WaypointUpdateFlags.ICON_SIZE : WaypointUpdateFlags.TEXTURE_ID));
-                packet.setWaypoints(List.of(new LocatorBarPacket.Payload(LocatorBarPacket.Action.UPDATE, uuid, bedrockWaypoint)));
-                session.sendUpstreamPacket(packet);
-            } else {
-                PlayerLocationPacket packet = new PlayerLocationPacket();
-                packet.setType(PlayerLocationPacket.Type.COORDINATES);
-                packet.setTargetEntityId(bedrockWaypoint.getEntityUniqueId());
-                packet.setPosition(position);
-                session.sendUpstreamPacket(packet);
-            }
+        if (lastSentPosition == null || position.distanceSquared(lastSentPosition) > 1.0F) {
+            LocatorBarPacket packet = new LocatorBarPacket();
+            bedrockWaypoint.setUpdateFlag(WaypointUpdateFlags.WORLD_POS | WaypointUpdateFlags.TEXTURE_PATH | WaypointUpdateFlags.ICON_SIZE);
+            packet.setWaypoints(List.of(new LocatorBarPacket.Payload(LocatorBarPacket.Action.UPDATE, uuid, bedrockWaypoint)));
+            session.sendUpstreamPacket(packet);
 
             lastSentPosition = position;
         }
     }
 
     private void sendTrackPackets(boolean add) {
-        if (uses26_10WaypointPacket) {
-            LocatorBarPacket packet = new LocatorBarPacket();
-            bedrockWaypoint.setUpdateFlag(add ? WaypointUpdateFlags.ALL : 0);
-            packet.setWaypoints(List.of(new LocatorBarPacket.Payload(add ? LocatorBarPacket.Action.ADD : LocatorBarPacket.Action.REMOVE, uuid, bedrockWaypoint)));
-            session.sendUpstreamPacket(packet);
-        } else if (sendListPackets) {
-            PlayerListPacket packet = new PlayerListPacket();
-            packet.setAction(add ? PlayerListPacket.Action.ADD : PlayerListPacket.Action.REMOVE);
-
-            // Not sending a skin causes a player list entry to be invalid,
-            // leading to waypoints not showing
-            PlayerListPacket.Entry entry = new PlayerListPacket.Entry(uuid);
-            entry.setEntityId(bedrockWaypoint.getEntityUniqueId());
-            entry.setColor(bedrockWaypoint.getColor());
-            entry.setName("");
-            entry.setSkin(SkinProvider.EMPTY_SERIALIZED_SKIN);
-            entry.setXuid("");
-            entry.setPlatformChatId("");
-            entry.setTrustedSkin(true);
-            entry.setAction(add ? PlayerListPacket.Action.ADD : PlayerListPacket.Action.REMOVE);
-            packet.getEntries().add(entry);
-
-            session.sendUpstreamPacket(packet);
-        }
+        LocatorBarPacket packet = new LocatorBarPacket();
+        bedrockWaypoint.setUpdateFlag(add ? WaypointUpdateFlags.ALL : 0);
+        packet.setWaypoints(List.of(new LocatorBarPacket.Payload(add ? LocatorBarPacket.Action.ADD : LocatorBarPacket.Action.REMOVE, uuid, bedrockWaypoint)));
+        session.sendUpstreamPacket(packet);
     }
 
     public abstract void setData(WaypointData data);
@@ -251,14 +168,6 @@ public abstract class GeyserWaypoint {
         };
     }
 
-    public static boolean uses26_10WaypointPacket(GeyserSession session) {
-        return GameProtocol.is26_10orHigher(session.protocolVersion());
-    }
-
-    public static boolean uses26_20WaypointPacket(GeyserSession session) {
-        return GameProtocol.is26_20orHigher(session.protocolVersion());
-    }
-
     private static Color getWaypointColor(TrackedWaypoint waypoint) {
         // Use icon's colour, or calculate from UUID/ID if it is not specified
         // This is similar to how Java does it, but they do some brightness modifications too, which is a lot of math (see LocatorBarRenderer)
@@ -267,14 +176,5 @@ public abstract class GeyserWaypoint {
             .or(() -> Optional.ofNullable(waypoint.id()).map(String::hashCode))
             .map(i -> new Color(i & 0xFFFFFF))
             .orElseThrow();
-    }
-
-    private static int getLegacyWaypointTexture(float distanceSquared) {
-        if (distanceSquared < VANILLA_NEAR_DISTANCE_SQUARED) {
-            return 2;
-        } else if (distanceSquared >= VANILLA_FAR_DISTANCE_SQUARED) {
-            return 5;
-        }
-        return (int) (3 + Math.floor((distanceSquared - VANILLA_NEAR_DISTANCE_SQUARED) / (VANILLA_FAR_DISTANCE_SQUARED - VANILLA_NEAR_DISTANCE_SQUARED) * 2));
     }
 }
