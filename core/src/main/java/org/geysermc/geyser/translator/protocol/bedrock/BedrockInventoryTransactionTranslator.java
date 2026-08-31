@@ -130,8 +130,8 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
         switch (packet.getTransactionType()) {
             case NORMAL:
                 if (packet.getActions().size() == 2) {
-                    InventoryActionData worldAction = GameProtocol.is26_30orHigher(session.protocolVersion()) ? packet.getActions().get(1) : packet.getActions().get(0);
-                    InventoryActionData containerAction = GameProtocol.is26_30orHigher(session.protocolVersion()) ? packet.getActions().get(0) : packet.getActions().get(1);
+                    InventoryActionData worldAction = packet.getActions().get(1);
+                    InventoryActionData containerAction = packet.getActions().get(0);
                     if (worldAction.getSource().getType() == InventorySource.Type.WORLD_INTERACTION
                             && worldAction.getSource().getFlag() == InventorySource.Flag.DROP_ITEM) {
                         boolean dropAll = worldAction.getToItem().getCount() > 1;

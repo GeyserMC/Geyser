@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 GeyserMC. http://geysermc.org
+ * Copyright (c) 2026 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,36 +26,25 @@
 package org.geysermc.geyser.registry.populator.conversion;
 
 import org.cloudburstmc.nbt.NbtMap;
-import org.cloudburstmc.nbt.NbtMapBuilder;
 
-// A variety of methods to help with re-mapping blocks and items to older versions.
-public class ConversionHelper {
-
-    static NbtMap withName(NbtMap tag, String name) {
-        return withId(tag, "minecraft:" + name);
-    }
-
-    static NbtMap withId(NbtMap tag, String id) {
-        NbtMapBuilder builder = tag.toBuilder();
-        builder.replace("name", id);
-        return builder.build();
-    }
-
-    static NbtMap withoutStates(String id) {
-        NbtMapBuilder tagBuilder = NbtMap.builder();
-        tagBuilder.putString("name", id);
-        tagBuilder.putCompound("states", NbtMap.EMPTY);
-        return tagBuilder.build();
-    }
-
-    static NbtMap removeStates(NbtMap map, String firstState, String... otherStates) {
-        NbtMapBuilder builder = map.toBuilder();
-        NbtMapBuilder states = map.getCompound("states").toBuilder();
-        states.remove(firstState);
-        for (String otherState : otherStates) {
-            states.remove(otherState);
+/**
+ * Har har funny icanhasbukkit reference, this class actually downgrades the palette for versions below 26.50,
+ * as that version introduced new states for stairs and fences (server controlled now, wooo!)
+ */
+public class ICanHasStates extends ConversionHelper {
+    public static NbtMap convertBlock(NbtMap tag) {
+        String name = tag.getString("name");
+        if (name.contains("_stairs")) {
+            return removeStates(tag, "minecraft:corner");
+        } else if (
+            (name.contains("_fence") && !name.contains("_fence_gate")) ||
+                name.contains("glass_pane") ||
+                name.contains("_bars") ||
+                name.equals("minecraft:trip_wire")
+        ) {
+            return removeStates(tag, "minecraft:connection_north", "minecraft:connection_east",
+                "minecraft:connection_south", "minecraft:connection_west");
         }
-        builder.putCompound("states", states.build());
-        return builder.build();
+        return tag;
     }
 }

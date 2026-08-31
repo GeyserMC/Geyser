@@ -55,6 +55,7 @@ import org.cloudburstmc.math.vector.Vector2f;
 import org.cloudburstmc.math.vector.Vector2i;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.math.vector.Vector3i;
+import org.cloudburstmc.nbt.NbtList;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.netty.channel.raknet.RakChildChannel;
 import org.cloudburstmc.netty.handler.codec.raknet.common.RakSessionCodec;
@@ -88,6 +89,7 @@ import org.cloudburstmc.protocol.bedrock.packet.CreativeContentPacket;
 import org.cloudburstmc.protocol.bedrock.packet.DimensionDataPacket;
 import org.cloudburstmc.protocol.bedrock.packet.GameRulesChangedPacket;
 import org.cloudburstmc.protocol.bedrock.packet.ItemComponentPacket;
+import org.cloudburstmc.protocol.bedrock.packet.JigsawStructureDataPacket;
 import org.cloudburstmc.protocol.bedrock.packet.LevelEventPacket;
 import org.cloudburstmc.protocol.bedrock.packet.LevelSoundEventPacket;
 import org.cloudburstmc.protocol.bedrock.packet.NetworkStackLatencyPacket;
@@ -924,7 +926,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
             geyser.getLogger().debug("Extending overworld dimension to " + minY + " - " + maxY);
 
             DimensionDataPacket dimensionDataPacket = new DimensionDataPacket();
-            dimensionDataPacket.getDefinitions().add(new DimensionDefinition("minecraft:overworld", maxY, minY, 5, 3, GeyserIntegratedPackUtil.INTEGRATED_PACK_UUID));
+            dimensionDataPacket.getDefinitions().add(new DimensionDefinition("minecraft:overworld", maxY, minY, 5, 3, GeyserIntegratedPackUtil.INTEGRATED_PACK_UUID, "minecraft:plains"));
             upstream.sendPacket(dimensionDataPacket);
         }
 
@@ -1010,15 +1012,9 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         // Recipe unlocking
         gamerulePacket.getGameRules().add(new GameRuleData<>("recipesunlock", true));
 
-        if (!GeyserWaypoint.uses26_10WaypointPacket(this)) {
-            // We disable the locator bar until we are certain that the server wants us to enable it
-            // See WaypointCache for details
-            gamerulePacket.getGameRules().add(new GameRuleData<>("locatorBar", false));
-        } else {
-            // On bedrock 26.10 and above, the client only shows the locator bar when there are
-            // waypoints on it, so we're fine doing this
-            gamerulePacket.getGameRules().add(new GameRuleData<>("locatorBar", true));
-        }
+        // On bedrock 26.10 and above, the client only shows the locator bar when there are
+        // waypoints on it, so we're fine doing this
+        gamerulePacket.getGameRules().add(new GameRuleData<>("locatorBar", true));
 
         upstream.sendPacket(gamerulePacket);
     }
@@ -1975,12 +1971,19 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         this.upstream.getCodecHelper().setBlockDefinitions(this.blockMappings);
         this.upstream.getCodecHelper().setCameraPresetDefinitions(CameraDefinitions.CAMERA_DEFINITIONS);
 
-        if (GameProtocol.is26_20orHigher(protocolVersion())) {
-            VoxelShapesPacket voxelShapesPacket = new VoxelShapesPacket();
-            voxelShapesPacket.setNameMap(new HashMap<>());
-            voxelShapesPacket.setShapes(new ArrayList<>());
-            upstream.sendPacket(voxelShapesPacket);
-        }
+        JigsawStructureDataPacket jigsawStructureDataPacket = new JigsawStructureDataPacket();
+        jigsawStructureDataPacket.setJigsawStructureDataTag(NbtMap.fromMap(Map.of(
+            "processors", NbtList.EMPTY,
+            "template_pools", NbtList.EMPTY,
+            "jigsaws", NbtList.EMPTY,
+            "structure_sets", NbtList.EMPTY
+        )));
+        upstream.sendPacket(jigsawStructureDataPacket);
+
+        VoxelShapesPacket voxelShapesPacket = new VoxelShapesPacket();
+        voxelShapesPacket.setNameMap(new HashMap<>());
+        voxelShapesPacket.setShapes(new ArrayList<>());
+        upstream.sendPacket(voxelShapesPacket);
 
         StartGamePacket startGamePacket = buildStartGamePacket();
         configureExperiments(startGamePacket);
