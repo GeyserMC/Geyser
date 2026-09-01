@@ -25,13 +25,14 @@
 
 package org.geysermc.geyser.network.translators.chat;
 
-import java.util.HashMap;
-import java.util.Map;
 import org.geysermc.geyser.translator.text.MessageTranslator;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
+
+import java.util.HashMap;
+import java.util.Map;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class MessageTranslatorTest {
@@ -123,11 +124,11 @@ public class MessageTranslatorTest {
 
     @Test
     public void convertMessageLenient() {
-        Assertions.assertEquals("\n\n\n\n", MessageTranslator.convertMessageLenient("\n\n\n\n"), "All newline message is not handled properly");
-        Assertions.assertEquals("", MessageTranslator.convertMessageLenient(""), "Empty message is not handled properly");
-        Assertions.assertEquals("§r§eGame Selector", MessageTranslator.convertMessageLenient("§r§eGame Selector"), "Reset before message is not handled properly");
-        Assertions.assertEquals("§rBold Underline", MessageTranslator.convertMessageLenient("§m§nBold Underline"), "Unimplemented formatting chars not stripped");
-        Assertions.assertEquals("§r§d[Test]", MessageTranslator.convertMessageLenient("§r§r§d[Test]§r"), "Duplicate and redundant reset removal");
+        Assertions.assertEquals("\n\n\n\n", MessageTranslator.convertNbtMessage("\n\n\n\n"), "All newline message is not handled properly");
+        Assertions.assertEquals("", MessageTranslator.convertNbtMessage(""), "Empty message is not handled properly");
+        Assertions.assertEquals("§r§eGame Selector", MessageTranslator.convertNbtMessage("§r§eGame Selector"), "Reset before message is not handled properly");
+        Assertions.assertEquals("§rBold Underline", MessageTranslator.convertNbtMessage("§m§nBold Underline"), "Unimplemented formatting chars not stripped");
+        Assertions.assertEquals("§r§d[Test]", MessageTranslator.convertNbtMessage("§r§r§d[Test]§r"), "Duplicate and redundant reset removal");
     }
 
     @Test

@@ -279,7 +279,7 @@ public class MessageTranslator {
 
             return finalLegacy.toString();
         } catch (Exception e) {
-            GeyserImpl.getInstance().getLogger().debug(GSON_SERIALIZER.serialize(message));
+            GeyserImpl.getInstance().getLogger().debug(DefaultComponentSerializer.nbt().serialize(message));
             GeyserImpl.getInstance().getLogger().error("Failed to parse message", e);
 
             return "";
@@ -343,39 +343,16 @@ public class MessageTranslator {
         return convertMessage(message, GeyserLocale.getDefaultLocale());
     }
 
-    /**
-     * Verifies the message is valid JSON in case it's plaintext. Works around GsonComponentSerializer not using lenient mode.
-     * See <a href="https://wiki.vg/Chat">here</a> for messages sent in lenient mode, and for a description on leniency.
-     *
-     * @param message Potentially lenient JSON message
-     * @param locale Locale to use for translation strings
-     * @return Bedrock formatted message
-     */
-    public static String convertMessageLenient(String message, String locale) {
-        if (message == null) {
-            return "";
-        }
-        if (message.isBlank()) {
-            return message;
-        }
-
-        try {
-            return convertJsonMessage(message, locale);
-        } catch (Exception ignored) {
-            // Use the default legacy serializer since message is java-legacy
-            String convertedMessage = convertMessage(LegacyComponentSerializer.legacySection().deserialize(message), locale);
-
-            // We have to do this since Adventure strips the starting reset character
-            if (message.startsWith(RESET) && !convertedMessage.startsWith(RESET)) {
-                convertedMessage = RESET + convertedMessage;
-            }
-
-            return convertedMessage;
-        }
+    public static String convertNbtMessage(GeyserSession session, Object tag) {
+        return convertMessage(session, componentFromNbtTag(tag));
     }
 
-    public static String convertMessageLenient(String message) {
-        return convertMessageLenient(message, GeyserLocale.getDefaultLocale());
+    public static String convertNbtMessage(Object tag, String locale) {
+        return convertMessage(componentFromNbtTag(tag), locale);
+    }
+
+    public static String convertNbtMessage(Object tag) {
+        return convertNbtMessage(tag, GeyserLocale.getDefaultLocale());
     }
 
     /**
