@@ -541,8 +541,8 @@ public class MessageTranslator {
         if (nbtTag == null) {
             return null;
         }
-        return session.map(present -> convertMessage(present, componentFromNbtTag(nbtTag)))
-            .orElse("MISSING GEYSER SESSION");
+
+        return convertNbtMessage(nbtTag, session.map(GeyserSession::locale).orElseGet(GeyserLocale::getDefaultLocale));
     }
 
     public static Component componentFromNbtTag(Object nbtTag) {
