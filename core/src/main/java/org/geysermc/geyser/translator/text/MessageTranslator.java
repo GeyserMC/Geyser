@@ -34,7 +34,6 @@ import net.kyori.adventure.text.format.Style;
 import net.kyori.adventure.text.format.TextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import net.kyori.adventure.text.renderer.TranslatableComponentRenderer;
-import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
 import net.kyori.adventure.text.serializer.legacy.CharacterAndFormat;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
@@ -46,7 +45,6 @@ import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.cache.registry.JavaRegistries;
 import org.geysermc.geyser.text.ChatColor;
 import org.geysermc.geyser.text.ChatDecoration;
-import org.geysermc.geyser.text.DummyLegacyHoverEventSerializer;
 import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.text.MinecraftTranslationRegistry;
 import org.geysermc.mcprotocollib.protocol.data.DefaultComponentSerializer;
@@ -66,9 +64,6 @@ public class MessageTranslator {
     // Custom instead of TranslatableComponentRenderer#usingTranslationSource so we don't need to worry about finding a Locale class
     private static final TranslatableComponentRenderer<String> RENDERER = new MinecraftTranslationRegistry();
 
-    // Possible TODO: replace the legacy hover event serializer with an empty one since we have no use for hover events
-    private static final GsonComponentSerializer GSON_SERIALIZER;
-
     private static final LegacyComponentSerializer BEDROCK_SERIALIZER;
     private static final String BEDROCK_COLORS;
     private static final String BEDROCK_DECORATIONS;
@@ -81,16 +76,6 @@ public class MessageTranslator {
     private static final Pattern LOCALIZATION_PATTERN = Pattern.compile("%(?:(\\d+)\\$)?s");
 
     static {
-        // FIXME do we still need this?
-        GSON_SERIALIZER = DefaultComponentSerializer.get()
-                .toBuilder()
-                // Use a custom legacy hover event deserializer since we don't use any of this data anyway, and
-                // fixes issues where legacy hover events throw deserialization errors
-                .legacyHoverEventSerializer(new DummyLegacyHoverEventSerializer())
-                .build();
-        // Tell MCProtocolLib to use this serializer, too.
-        DefaultComponentSerializer.set(GSON_SERIALIZER);
-
         // Customize the formatting characters of our legacy serializer for bedrock edition
         List<CharacterAndFormat> formats = new ArrayList<>(CharacterAndFormat.defaults());
         // The following two do not yet exist on Bedrock - https://bugs.mojang.com/browse/MCPE-41729
@@ -324,10 +309,6 @@ public class MessageTranslator {
         }
     }
 
-    public static String convertJsonMessage(String message, String locale) {
-        return convertMessage(GSON_SERIALIZER.deserialize(message), locale);
-    }
-
     /**
      * Convenience method for locale getting.
      */
@@ -409,7 +390,7 @@ public class MessageTranslator {
         if (message.startsWith("{") && message.endsWith("}")) {
             // Message is a JSON object
             try {
-                messageComponent = GSON_SERIALIZER.deserialize(message);
+                messageComponent = DefaultComponentSerializer.get().deserialize(message);
                 // Translate any components that require it
                 messageComponent = RENDERER.render(messageComponent, locale);
             } catch (Exception ignored) {
