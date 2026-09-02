@@ -90,6 +90,10 @@ public class NetherNetServer {
      * inbound traffic, so a healthy socket never comes close to this.
      */
     private static final long SIGNALING_SILENCE_THRESHOLD_MILLIS = 45_000;
+    // Three missed route probes at the fork's 30s interval. Only the silent
+    // loss case needs this window; a rejected probe or a service side close
+    // is detected on the next watchdog tick.
+    private static final long SIGNALING_ROUTE_SILENCE_THRESHOLD_MILLIS = 90_000;
     private static final long RECONNECT_BASE_DELAY_MILLIS = 10_000;
     private static final long RECONNECT_MAX_DELAY_MILLIS = 120_000;
     private static final String LOG_PREFIX = "[Nethernet] ";
@@ -659,7 +663,8 @@ public class NetherNetServer {
             NetherNetXboxRpcSignaling rpc = this.rpcSignaling;
             if (rpc == null) return;
 
-            if (rpc.isChannelAlive(SIGNALING_SILENCE_THRESHOLD_MILLIS)) {
+            boolean socketAlive = rpc.isChannelAlive(SIGNALING_SILENCE_THRESHOLD_MILLIS);
+            if (socketAlive && rpc.isRouteAlive(SIGNALING_ROUTE_SILENCE_THRESHOLD_MILLIS)) {
                 consecutiveReconnectFailures = 0;
                 return;
             }
@@ -669,7 +674,7 @@ public class NetherNetServer {
                 return;
             }
 
-            logger.info(LOG_PREFIX + "Signaling dead, reconnecting in place...");
+            logger.info(LOG_PREFIX + "Signaling dead (" + (socketAlive ? "route" : "socket") + "), reconnecting in place...");
 
             if (reconnectSocket(rpc)) {
                 consecutiveReconnectFailures = 0;
