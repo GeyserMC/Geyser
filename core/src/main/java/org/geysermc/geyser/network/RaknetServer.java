@@ -77,7 +77,6 @@ public final class RaknetServer {
     // Split childGroup may improve IO
     private EventLoopGroup childGroup;
     private final ServerBootstrap bootstrap;
-    @Getter
     private EventLoopGroup playerGroup;
 
     private int listenCount;

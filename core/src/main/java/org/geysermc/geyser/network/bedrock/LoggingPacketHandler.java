@@ -38,15 +38,11 @@ import org.geysermc.geyser.session.GeyserSession;
  */
 public class LoggingPacketHandler implements BedrockPacketHandler {
     protected final GeyserImpl geyser;
-    protected GeyserSession session;
+    protected final GeyserSession session;
 
     LoggingPacketHandler(GeyserImpl geyser, GeyserSession session) {
         this.geyser = geyser;
         this.session = session;
-    }
-
-    protected void replaceSession(GeyserSession newSession) {
-        this.session = newSession;
     }
 
     PacketSignal defaultHandler(BedrockPacket packet) {
