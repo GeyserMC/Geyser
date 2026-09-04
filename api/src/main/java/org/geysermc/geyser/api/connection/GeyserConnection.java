@@ -26,7 +26,6 @@
 package org.geysermc.geyser.api.connection;
 
 import org.checkerframework.checker.index.qual.Positive;
-import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.api.connection.Connection;
 import org.geysermc.geyser.api.bedrock.camera.CameraData;
 import org.geysermc.geyser.api.bedrock.camera.CameraShake;
@@ -34,7 +33,6 @@ import org.geysermc.geyser.api.command.CommandSource;
 import org.geysermc.geyser.api.entity.EntityData;
 import org.geysermc.geyser.api.entity.type.player.GeyserPlayerEntity;
 import org.geysermc.geyser.api.skin.SkinData;
-import org.jspecify.annotations.Nullable;
 
 import java.util.NoSuchElementException;
 import java.util.Set;
@@ -247,12 +245,12 @@ public interface GeyserConnection extends Connection, CommandSource {
     String playFabId();
 
     /**
-     * Sends a Toast notification to this Player.
+     * Sends a toast notification to this player.
      *
-     * @param title The Title of the toast notification.
-     * @param content The Content of the toast notification.
+     * @param title the title of the toast notification
+     * @param content the content of the toast notification
      *
-     * @since 2.11.1
+     * @since 2.11.2
      */
-    void sendToast(@NonNull String title, @NonNull String content);
+    void sendToast(String title, String content);
 }

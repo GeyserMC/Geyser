@@ -2751,8 +2751,8 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     @Override
     public void sendToast(@NonNull String title, @NonNull String content) {
         ToastRequestPacket packet = new ToastRequestPacket();
-        packet.setTitle(title);
-        packet.setContent(content);
+        packet.setTitle(Objects.requireNonNull(title, "title cannot be null!"));
+        packet.setContent(Objects.requireNonNull(content, "content cannot be null!"));
         sendUpstreamPacket(packet);
     }
 
