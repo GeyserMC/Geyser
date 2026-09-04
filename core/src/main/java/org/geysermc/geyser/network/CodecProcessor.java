@@ -321,7 +321,10 @@ public class CodecProcessor {
             .updateSerializer(CraftingEventPacket.class, ILLEGAL_SERIALIZER)
             // Illegal unusued serverbound packets that relate to unused features
             .updateSerializer(ClientCacheBlobStatusPacket.class, ILLEGAL_SERIALIZER)
-            // SubClientLoginPacket is now allowed for split-screen support
+            // SubClientLoginPacket is deliberately absent from this list: it is how a console
+            // announces a split-screen guest, and rejecting it here tore down the whole
+            // connection - ejecting the player who was already in the world. See
+            // UpstreamPacketHandler#handle(SubClientLoginPacket).
             .updateSerializer(SubChunkRequestPacket.class, ILLEGAL_SERIALIZER)
             .updateSerializer(GameTestRequestPacket.class, ILLEGAL_SERIALIZER)
             // Illegal bidirectional packets

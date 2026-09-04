@@ -29,7 +29,6 @@ import io.netty.buffer.Unpooled;
 import org.cloudburstmc.math.vector.Vector2f;
 import org.cloudburstmc.protocol.bedrock.BedrockDisconnectReasons;
 import org.cloudburstmc.protocol.bedrock.BedrockPeer;
-import org.cloudburstmc.protocol.bedrock.BedrockServerSession;
 import org.cloudburstmc.protocol.bedrock.codec.BedrockCodec;
 import org.cloudburstmc.protocol.bedrock.codec.compat.BedrockCompat;
 import org.cloudburstmc.protocol.bedrock.data.PacketCompressionAlgorithm;
@@ -80,7 +79,6 @@ import org.geysermc.geyser.util.VersionCheckUtils;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.SeekableByteChannel;
-import java.util.ArrayList;
 import java.util.ArrayDeque;
 import java.util.Arrays;
 import java.util.Deque;
@@ -165,6 +163,11 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
         this.session.disconnect(this.session.getUpstream().getSession().getDisconnectReason().toString());
     }
 
+    /**
+     * A client-sent disconnect. For the primary session this merely front-runs the RakNet
+     * disconnect that follows, but for a split-screen guest it is the only notice there is: the
+     * console's connection stays up, so nothing else would tell us that slot is now empty.
+     */
     @Override
     public PacketSignal handle(DisconnectPacket packet) {
         session.disconnect(packet.getKickMessage() != null ? packet.getKickMessage() : "Client disconnected");
@@ -208,10 +211,15 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
         }
         receivedLoginPacket = true;
 
+        // A console that switches accounts re-logs on the same connection, orphaning the session
+        // that was in this slot. Clean that up - but only for this slot: every other session on the
+        // peer is a split-screen player sitting on the same couch, and they did nothing wrong.
+        int slot = session.getUpstream().getSubClientId();
         BedrockPeer currentPeer = session.getUpstream().getSession().getPeer();
-        for (GeyserSession existingSession : new ArrayList<>(geyser.getSessionManager().getAllSessions())) {
-            if (existingSession != session &&
-                existingSession.getUpstream().getSession().getPeer() == currentPeer) {
+        for (GeyserSession existingSession : geyser.getSessionManager().getAllSessions()) {
+            if (existingSession != session
+                    && existingSession.getUpstream().getSession().getPeer() == currentPeer
+                    && existingSession.getUpstream().getSubClientId() == slot) {
                 geyser.getLogger().info("Cleaning up orphaned session " +
                     existingSession.bedrockUsername() + " due to account switch on same BedrockPeer");
                 existingSession.disconnect("Account switched");
@@ -267,6 +275,21 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
         return PacketSignal.HANDLED;
     }
 
+    /**
+     * Handles a split-screen guest signing in on a second controller.
+     *
+     * <p>Bedrock multiplexes every local player of a console over one RakNet connection, tagging
+     * each with a sub-client id. The protocol layer already demultiplexes that: a packet for a new
+     * sub-client id makes the peer build its own {@code BedrockServerSession}, which
+     * {@code GeyserServerInitializer#initSession} gives its own {@link GeyserSession} and its own
+     * instance of this handler. So by the time this runs, {@code session} is already the guest's
+     * own session and nothing needs to be created or swapped here.
+     *
+     * <p>Compared to {@link #handle(LoginPacket)} this skips everything that belongs to the
+     * connection rather than the player: there is no network-settings handshake to wait for, no
+     * codec to pick, no encryption to negotiate, and no resource pack exchange - the console did
+     * all of that once, as the primary session.
+     */
     @Override
     public PacketSignal handle(SubClientLoginPacket subClientLoginPacket) {
         if (geyser.isShuttingDown() || geyser.isReloading()) {
@@ -274,42 +297,32 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
             return PacketSignal.HANDLED;
         }
 
-        if (session.isClosed()) {
-            BedrockServerSession bedrockSession = session.getUpstream().getSession();
-            io.netty.channel.EventLoopGroup playerGroup = geyser.getGeyserServer().getPlayerGroup();
-            if (playerGroup == null) {
-                geyser.getLogger().error("Player event loop group is null - cannot create new session");
-                return PacketSignal.HANDLED;
-            }
-            GeyserSession newSession = new GeyserSession(geyser, bedrockSession, playerGroup.next());
-            replaceSession(newSession);
+        if (!session.isSubClient()) {
+            // Only a sub-client may send this; the primary logs in with LoginPacket.
+            session.disconnect("Received a sub-client login on the primary session!");
+            return PacketSignal.HANDLED;
         }
+
+        if (receivedLoginPacket) {
+            // Note: unlike the primary path this must not force the connection closed - that would
+            // take the whole console down over one guest's bad packet.
+            session.disconnect("Received duplicate login packet!");
+            return PacketSignal.HANDLED;
+        }
+        receivedLoginPacket = true;
 
         if (!LoginEncryptionUtils.setupSubClientSession(session, subClientLoginPacket)) {
             session.disconnect("Failed to authenticate sub-client");
             return PacketSignal.HANDLED;
         }
 
-        GeyserSession existingSession = geyser.getSessionManager().sessionByXuid(session.xuid());
-        boolean isRejoin = false;
-        if (existingSession != null) {
-            if (existingSession == session) {
-                isRejoin = true;
-                session.reconnectToJavaServer();
-            } else {
-                BedrockPeer currentPeer = session.getUpstream().getSession().getPeer();
-                BedrockPeer existingPeer = existingSession.getUpstream().getSession().getPeer();
-
-                if (currentPeer == existingPeer) {
-                    existingSession.disconnect("Rejoining as sub-client");
-                } else {
-                    session.disconnect(GeyserLocale.getLocaleStringLog("geyser.auth.already_loggedin", session.bedrockUsername()));
-                    return PacketSignal.HANDLED;
-                }
-            }
+        if (session.isClosed()) {
+            return PacketSignal.HANDLED;
         }
 
-        if (isRejoin) {
+        if (geyser.getSessionManager().isXuidAlreadyPending(session.xuid())
+                || geyser.getSessionManager().sessionByXuid(session.xuid()) != null) {
+            session.disconnect(GeyserLocale.getLocaleStringLog("geyser.auth.already_loggedin", session.bedrockUsername()));
             return PacketSignal.HANDLED;
         }
 
@@ -324,12 +337,11 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
         playStatus.setStatus(PlayStatusPacket.Status.LOGIN_SUCCESS);
         session.sendUpstreamPacket(playStatus);
 
+        // Resource packs are negotiated once for the console, by the primary session. Marking this
+        // done keeps a stray ResourcePackClientResponsePacket for this slot from restarting it.
         finishedResourcePackSending = true;
 
-        String locale = session.locale();
-        if (locale != null) {
-            GeyserLocale.loadGeyserLocale(locale);
-        }
+        GeyserLocale.loadGeyserLocale(session.locale());
 
         if (geyser.config().java().authType() != AuthType.ONLINE) {
             session.authenticate(session.getAuthData().name());
@@ -337,8 +349,8 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
             session.connect();
         }
 
-        geyser.getLogger().info(GeyserLocale.getLocaleStringLog("geyser.network.connect", session.getAuthData().name() +
-            " (" + protocolVersion + ") [SUB-CLIENT]"));
+        geyser.getLogger().info(GeyserLocale.getLocaleStringLog("geyser.network.connect",
+                session.getAuthData().name() + " (" + protocolVersion + ") [split-screen sub-client]"));
 
         return PacketSignal.HANDLED;
     }

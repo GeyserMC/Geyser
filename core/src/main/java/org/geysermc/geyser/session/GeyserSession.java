@@ -201,7 +201,6 @@ import org.geysermc.geyser.translator.inventory.InventoryTranslator;
 import org.geysermc.geyser.translator.text.MessageTranslator;
 import org.geysermc.geyser.util.ChunkUtils;
 import org.geysermc.geyser.util.CooldownUtils;
-import org.geysermc.geyser.util.DimensionUtils;
 import org.geysermc.geyser.util.EntityUtils;
 import org.geysermc.geyser.util.GeyserIntegratedPackUtil;
 import org.geysermc.geyser.util.InventoryUtils;
@@ -1268,10 +1267,18 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
                 geyser.getLogger().info(GeyserLocale.getLocaleStringLog("geyser.network.disconnect", address, MessageTranslator.convertMessage(reason)));
             }
 
-            // Disconnect upstream if necessary - but NOT if this is a sub-client (Xbox split-screen)
-            // Sub-clients share the upstream connection with their parent session
-            if (!isSubClient() && !upstream.isClosed()) {
-                upstream.disconnect(disconnectEvent.disconnectReason());
+            // Disconnect upstream if necessary. A sub-client shares one console's RakNet connection
+            // with every other local player, so it must never close the peer - that would eject the
+            // whole couch. BedrockSession#close is already a no-op for sub-clients, but that cuts
+            // both ways: nothing removes the closed session from the peer's sub-client map either,
+            // and the next SubClientLoginPacket for that slot would be routed to this dead session
+            // instead of creating a fresh one. So evict it explicitly.
+            if (!upstream.isClosed()) {
+                if (isSubClient()) {
+                    upstream.evictSubClientSession();
+                } else {
+                    upstream.disconnect(disconnectEvent.disconnectReason());
+                }
             }
 
             // Remove from session manager
@@ -1356,15 +1363,12 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
      * Called every Minecraft tick.
      */
     protected void tick() {
-        if (isSubClient()) {
-            if (parentSession != null && parentSession.isClosed()) {
-                disconnect("Parent session closed");
-                return;
-            }
-            if (upstream != null && upstream.isClosed()) {
-                disconnect("Sub-client connection closed");
-                return;
-            }
+        // A sub-client has no transport-level disconnect of its own to notice the parent leaving.
+        // The peer closing does cascade to every sub-client session, so this is only a backstop for
+        // a parent whose GeyserSession is torn down without the peer going down with it.
+        if (isSubClient() && parentSession != null && parentSession.isClosed()) {
+            disconnect("Parent session closed");
+            return;
         }
 
         try {
@@ -2623,45 +2627,17 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         return false; //todo
     }
 
-    public boolean isSubClient() {
-        return parentSession != null;
-    }
-
     /**
-     * Reconnect to Java server for sub-client rejoin.
-     * Used when sub-client leaves split-screen and rejoins - the Bedrock client
-     * needs LOGIN_SUCCESS to acknowledge the new SubClientLoginPacket.
+     * Whether this session is a split-screen sub-client: a second, third or fourth local player
+     * sharing one console's single RakNet connection with whoever signed in first.
+     *
+     * <p>Derived from the transport rather than from {@link #parentSession}. A session is a
+     * sub-client from the moment the peer creates it, which is well before sub-client login has run
+     * and found the parent - so keying this off {@code parentSession} reports {@code false} for a
+     * sub-client during login, which is exactly when the answer matters most.
      */
-    public void reconnectToJavaServer() {
-        if (downstream != null && !downstream.isClosed()) {
-            downstream.disconnect(Component.text("Rejoining split-screen"));
-        }
-        downstream = null;
-
-        loggedIn = false;
-        loggingIn = false;
-
-        sentSpawnPacket = false;
-        spawned = false;
-
-        chunkCache.clear();
-        entityCache.removeAllEntities();
-        itemFrameCache.clear();
-        lodestoneCache.clear();
-        pistonCache.clear();
-        skullCache.clear();
-        getBlockBreakHandler().reset();
-
-        int currentDimension = bedrockDimension.bedrockId();
-        int fakeDimension = DimensionUtils.getTemporaryDimension(currentDimension, currentDimension);
-        DimensionUtils.fastSwitchDimension(this, fakeDimension);
-        DimensionUtils.fastSwitchDimension(this, currentDimension);
-
-        PlayStatusPacket playStatus = new PlayStatusPacket();
-        playStatus.setStatus(PlayStatusPacket.Status.LOGIN_SUCCESS);
-        sendUpstreamPacket(playStatus);
-
-        authenticate(authData.name());
+    public boolean isSubClient() {
+        return upstream.getSession().isSubClient();
     }
 
     @SuppressWarnings("ConstantConditions") // Need to enforce the parameter annotations
