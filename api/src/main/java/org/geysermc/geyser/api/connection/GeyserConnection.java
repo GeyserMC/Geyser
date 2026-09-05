@@ -33,7 +33,6 @@ import org.geysermc.geyser.api.command.CommandSource;
 import org.geysermc.geyser.api.entity.EntityData;
 import org.geysermc.geyser.api.entity.type.player.GeyserPlayerEntity;
 import org.geysermc.geyser.api.skin.SkinData;
-import org.jspecify.annotations.Nullable;
 
 import java.util.NoSuchElementException;
 import java.util.Set;
@@ -244,4 +243,14 @@ public interface GeyserConnection extends Connection, CommandSource {
      * @since 2.9.4
      */
     String playFabId();
+
+    /**
+     * Sends a toast notification to this player.
+     *
+     * @param title the title of the toast notification
+     * @param content the content of the toast notification
+     *
+     * @since 2.11.2
+     */
+    void sendToast(String title, String content);
 }
