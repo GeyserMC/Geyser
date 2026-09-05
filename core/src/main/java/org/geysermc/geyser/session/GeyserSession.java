@@ -1460,8 +1460,10 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
             this.dialogManager.tick();
             this.waypointCache.tick();
 
-            this.upstream.getSession().getPeer().sendPacketsImmediately(0, 0, queuedImmediatelyPackets.toArray(new BedrockPacket[0]));
-            queuedImmediatelyPackets.clear();
+            if (!queuedImmediatelyPackets.isEmpty()) {
+                this.upstream.getSession().getPeer().sendPacketsImmediately(0, 0, queuedImmediatelyPackets.toArray(new BedrockPacket[0]));
+                queuedImmediatelyPackets.clear();
+            }
 
             CooldownUtils.tickCooldown(this);
         } catch (Throwable throwable) {

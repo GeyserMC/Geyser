@@ -33,6 +33,8 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.math.GenericMath;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.math.vector.Vector3i;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
 import org.cloudburstmc.protocol.bedrock.data.AttributeData;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
@@ -107,6 +109,18 @@ public class LivingEntity extends Entity implements Tickable {
     private Vector3f lerpPosition;
     private int lerpSteps;
     protected boolean dirtyYaw, dirtyHeadYaw, dirtyPitch;
+
+    // Movement interpolation is timed from the arrival of each Java update instead of the session
+    // tick, so the tick phase never delays the first step. Java updates most living entities every
+    // two or three server ticks; the delta is spread evenly over the measured interval. The lerp
+    // state is guarded by the entity monitor because arrivals run on the Java channel thread and
+    // the scheduled steps on the session loop.
+    private static final int MAX_LERP_STEPS = 3;
+    private int lerpGeneration;
+    private ScheduledFuture<?> lerpFuture;
+    private long lastMoveNanos;
+    private float measuredIntervalMs;
+    private float stepIntervalMs;
 
     public LivingEntity(EntitySpawnContext context) {
         super(context);
@@ -432,18 +446,7 @@ public class LivingEntity extends Entity implements Tickable {
         }
 
         if (shouldLerp() && (relX != 0 || relY != 0 || relZ != 0) && position.distanceSquared(session.getPlayerEntity().position()) < 4096) {
-            this.dirtyPitch = pitch != this.pitch;
-            this.dirtyYaw = yaw != this.yaw;
-            this.dirtyHeadYaw = headYaw != this.headYaw;
-
-            setYaw(yaw);
-            setPitch(pitch);
-            setHeadYaw(headYaw);
-            setOnGround(isOnGround);
-
-            // Lerp position should be used as base if we have lerp steps left to ensure we don't de-sync with the position provided by the server
-            this.lerpPosition = lerpSteps == 0 ? this.position.add(relX, relY, relZ) : this.lerpPosition.add(relX, relY, relZ);
-            this.lerpSteps = 3;
+            lerpRelative(relX, relY, relZ, yaw, pitch, headYaw, isOnGround);
         } else {
             super.moveRelative(relX, relY, relZ, yaw, pitch, headYaw, isOnGround);
         }
@@ -454,15 +457,7 @@ public class LivingEntity extends Entity implements Tickable {
         // It's vanilla behaviour to lerp if the position is within 64 blocks, however we also check if the position is close enough to the player
         // position to see if it can actually affect anything to save network.
         if (shouldLerp() && position.distanceSquared(this.position) < 4096 && position.distanceSquared(session.getPlayerEntity().position()) < 4096) {
-            this.dirtyPitch = this.dirtyYaw = this.dirtyHeadYaw = true;
-
-            setYaw(yaw);
-            setPitch(pitch);
-            setHeadYaw(headYaw);
-            setOnGround(isOnGround);
-
-            this.lerpPosition = position;
-            this.lerpSteps = 3;
+            lerpAbsolute(position, yaw, pitch, headYaw, isOnGround);
         } else {
             super.moveAbsolute(position, yaw, pitch, headYaw, isOnGround, teleported);
         }
@@ -476,54 +471,138 @@ public class LivingEntity extends Entity implements Tickable {
         return true;
     }
 
+    private synchronized void lerpRelative(double relX, double relY, double relZ, float yaw, float pitch, float headYaw, boolean isOnGround) {
+        this.dirtyPitch = pitch != this.pitch;
+        this.dirtyYaw = yaw != this.yaw;
+        this.dirtyHeadYaw = headYaw != this.headYaw;
+
+        setYaw(yaw);
+        setPitch(pitch);
+        setHeadYaw(headYaw);
+        setOnGround(isOnGround);
+
+        // Build on the outstanding target while steps are pending, so an update that arrives
+        // mid-lerp does not lose the remainder of the previous one.
+        this.lerpPosition = lerpSteps == 0 ? this.position.add(relX, relY, relZ) : this.lerpPosition.add(relX, relY, relZ);
+        startLerp();
+    }
+
+    private synchronized void lerpAbsolute(Vector3f position, float yaw, float pitch, float headYaw, boolean isOnGround) {
+        this.dirtyPitch = this.dirtyYaw = this.dirtyHeadYaw = true;
+
+        setYaw(yaw);
+        setPitch(pitch);
+        setHeadYaw(headYaw);
+        setOnGround(isOnGround);
+
+        this.lerpPosition = position;
+        startLerp();
+    }
+
+    @Override
+    public void despawnEntity() {
+        synchronized (this) {
+            lerpGeneration++;
+            if (lerpFuture != null) {
+                lerpFuture.cancel(false);
+                lerpFuture = null;
+            }
+            lerpSteps = 0;
+        }
+        super.despawnEntity();
+    }
+
+    /**
+     * Starts or restarts the lerp toward {@link #lerpPosition}, sending the first step now. The step
+     * count follows the measured interval between Java updates, one step per server tick and at most
+     * {@link #MAX_LERP_STEPS}, and the steps are spaced evenly across that interval. Caller holds the
+     * entity monitor.
+     */
+    private void startLerp() {
+        long now = System.nanoTime();
+        float tickMs = session.getMillisecondsPerTick();
+        if (lastMoveNanos != 0) {
+            float interval = (now - lastMoveNanos) / 1_000_000f;
+            // Only intervals that look like a regular update cadence feed the estimate; a mob that
+            // stood still for a while must not stretch it.
+            if (interval >= tickMs * 0.5f && interval <= tickMs * MAX_LERP_STEPS * 1.5f) {
+                measuredIntervalMs = measuredIntervalMs == 0 ? interval : (measuredIntervalMs + interval) * 0.5f;
+            }
+        }
+        lastMoveNanos = now;
+
+        float interval = measuredIntervalMs == 0 ? tickMs * MAX_LERP_STEPS : measuredIntervalMs;
+        int steps = Math.max(1, Math.min(MAX_LERP_STEPS, Math.round(interval / tickMs)));
+        this.stepIntervalMs = interval / steps;
+        this.lerpSteps = steps;
+
+        int generation = ++lerpGeneration;
+        ScheduledFuture<?> pending = this.lerpFuture;
+        if (pending != null) {
+            pending.cancel(false);
+            this.lerpFuture = null;
+        }
+        lerpStep(generation);
+    }
+
+    private synchronized void lerpStep(int generation) {
+        if (generation != lerpGeneration || this.lerpSteps <= 0 || !valid) {
+            return;
+        }
+        float time = 1.0f / this.lerpSteps;
+        float lerpXTotal = GenericMath.lerp(this.position.getX(), this.lerpPosition.getX(), time);
+        float lerpYTotal = GenericMath.lerp(this.position.getY(), this.lerpPosition.getY(), time);
+        float lerpZTotal = GenericMath.lerp(this.position.getZ(), this.lerpPosition.getZ(), time);
+
+        MoveEntityDeltaPacket moveEntityPacket = new MoveEntityDeltaPacket();
+        moveEntityPacket.getFlags().add(MoveEntityDeltaPacket.Flag.TELEPORTING);
+        // Since 26.40 the snap is its own field instead of that flag
+        moveEntityPacket.setForceMove(true);
+        moveEntityPacket.setRuntimeEntityId(geyserId);
+        if (onGround) {
+            moveEntityPacket.getFlags().add(MoveEntityDeltaPacket.Flag.ON_GROUND);
+        }
+        if (lerpXTotal != this.position.getX()) {
+            moveEntityPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_X);
+        }
+        if (lerpYTotal != this.position.getY()) {
+            moveEntityPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_Y);
+        }
+        if (lerpZTotal != this.position.getZ()) {
+            moveEntityPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_Z);
+        }
+        if (this.dirtyYaw) {
+            moveEntityPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_YAW);
+        }
+        if (this.dirtyHeadYaw) {
+            moveEntityPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_HEAD_YAW);
+        }
+        if (this.dirtyPitch) {
+            moveEntityPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_PITCH);
+        }
+        this.position = Vector3f.from(lerpXTotal, lerpYTotal, lerpZTotal);
+        Vector3f bedrockPosition = bedrockPosition();
+        moveEntityPacket.setX(bedrockPosition.getX());
+        moveEntityPacket.setY(bedrockPosition.getY());
+        moveEntityPacket.setZ(bedrockPosition.getZ());
+        moveEntityPacket.setYaw(getYaw());
+        moveEntityPacket.setPitch(getPitch());
+        moveEntityPacket.setHeadYaw(getHeadYaw());
+
+        this.dirtyPitch = this.dirtyYaw = this.dirtyHeadYaw = false;
+
+        session.sendUpstreamPacket(moveEntityPacket);
+
+        this.lerpSteps--;
+        if (this.lerpSteps > 0) {
+            this.lerpFuture = session.scheduleInEventLoop(() -> lerpStep(generation),
+                    (long) (stepIntervalMs * 1000), TimeUnit.MICROSECONDS);
+        }
+    }
+
     @Override
     public void tick() {
-        if (this.lerpSteps > 0) {
-            float time = 1.0f / this.lerpSteps;
-            float lerpXTotal = GenericMath.lerp(this.position.getX(), this.lerpPosition.getX(), time);
-            float lerpYTotal = GenericMath.lerp(this.position.getY(), this.lerpPosition.getY(), time);
-            float lerpZTotal = GenericMath.lerp(this.position.getZ(), this.lerpPosition.getZ(), time);
-
-            MoveEntityDeltaPacket moveEntityPacket = new MoveEntityDeltaPacket();
-            moveEntityPacket.getFlags().add(MoveEntityDeltaPacket.Flag.TELEPORTING);
-            moveEntityPacket.setRuntimeEntityId(geyserId);
-            if (onGround) {
-                moveEntityPacket.getFlags().add(MoveEntityDeltaPacket.Flag.ON_GROUND);
-            }
-            if (lerpXTotal != this.position.getX()) {
-                moveEntityPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_X);
-            }
-            if (lerpYTotal != this.position.getY()) {
-                moveEntityPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_Y);
-            }
-            if (lerpZTotal != this.position.getZ()) {
-                moveEntityPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_Z);
-            }
-            if (this.dirtyYaw) {
-                moveEntityPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_YAW);
-            }
-            if (this.dirtyHeadYaw) {
-                moveEntityPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_HEAD_YAW);
-            }
-            if (this.dirtyPitch) {
-                moveEntityPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_PITCH);
-            }
-            this.position = Vector3f.from(lerpXTotal, lerpYTotal, lerpZTotal);
-            Vector3f bedrockPosition = bedrockPosition();
-            moveEntityPacket.setX(bedrockPosition.getX());
-            moveEntityPacket.setY(bedrockPosition.getY());
-            moveEntityPacket.setZ(bedrockPosition.getZ());
-            moveEntityPacket.setYaw(getYaw());
-            moveEntityPacket.setPitch(getPitch());
-            moveEntityPacket.setHeadYaw(getHeadYaw());
-
-            this.dirtyPitch = this.dirtyYaw = this.dirtyHeadYaw = false;
-
-            // Queue this and send it immediately later with the rest.
-            session.getQueuedImmediatelyPackets().add(moveEntityPacket);
-
-            this.lerpSteps--;
-        }
+        // Kept for the subclasses that call up into it; movement is stepped from startLerp() on arrival.
     }
 
     @Override
