@@ -258,4 +258,14 @@ public interface GeyserConnection extends Connection, CommandSource {
      * @since 2.9.4
      */
     String playFabId();
+
+    /**
+     * Sends a toast notification to this player.
+     *
+     * @param title the title of the toast notification
+     * @param content the content of the toast notification
+     *
+     * @since 2.11.3
+     */
+    void sendToast(String title, String content);
 }

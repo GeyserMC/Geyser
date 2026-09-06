@@ -703,19 +703,13 @@ public class LivingEntity extends Entity implements Tickable {
                     }
                 }
                 case FRICTION_MODIFIER -> {
-                    if (GameProtocol.is26_30orHigher(session.protocolVersion())) {
-                        newAttributes.add(calculateAttribute(javaAttribute, GeyserAttributeType.FRICTION_MODIFIER));
-                    }
+                    newAttributes.add(calculateAttribute(javaAttribute, GeyserAttributeType.FRICTION_MODIFIER));
                 }
                 case BOUNCINESS -> {
-                    if (GameProtocol.is26_30orHigher(session.protocolVersion())) {
-                        newAttributes.add(calculateAttribute(javaAttribute, GeyserAttributeType.BOUNCINESS));
-                    }
+                    newAttributes.add(calculateAttribute(javaAttribute, GeyserAttributeType.BOUNCINESS));
                 }
                 case AIR_DRAG_MODIFIER -> {
-                    if (GameProtocol.is26_30orHigher(session.protocolVersion())) {
-                        newAttributes.add(calculateAttribute(javaAttribute, GeyserAttributeType.AIR_DRAG_MODIFIER));
-                    }
+                    newAttributes.add(calculateAttribute(javaAttribute, GeyserAttributeType.AIR_DRAG_MODIFIER));
                 }
             }
         }
