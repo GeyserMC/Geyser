@@ -75,7 +75,7 @@ public interface MaterialInstance {
      * disables ambient occlusion and {@code 1.0} is the default strength.
      *
      * @return the ambient occlusion exponent
-     * @since 2.11.1
+     * @since 2.11.3
      */
     float ambientOcclusionExponent();
 
