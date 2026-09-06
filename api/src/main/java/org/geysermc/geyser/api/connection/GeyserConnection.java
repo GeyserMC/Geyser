@@ -250,7 +250,7 @@ public interface GeyserConnection extends Connection, CommandSource {
      * @param title the title of the toast notification
      * @param content the content of the toast notification
      *
-     * @since 2.11.2
+     * @since 2.11.3
      */
     void sendToast(String title, String content);
 }
