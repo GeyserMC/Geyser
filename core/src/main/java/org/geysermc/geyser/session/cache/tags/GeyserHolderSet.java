@@ -25,7 +25,8 @@
 
 package org.geysermc.geyser.session.cache.tags;
 
-import it.unimi.dsi.fastutil.ints.IntArrays;
+import it.unimi.dsi.fastutil.ints.IntList;
+import it.unimi.dsi.fastutil.ints.IntLists;
 import lombok.Data;
 import net.kyori.adventure.key.Key;
 import org.checkerframework.checker.nullness.qual.NonNull;
@@ -61,14 +62,14 @@ public final class GeyserHolderSet<T> {
 
     private final JavaRegistryKey<T> registry;
     private final @Nullable Tag<T> tag;
-    private final int @Nullable [] holders;
+    private final @Nullable IntList holders;
     private final @Nullable List<T> inline;
 
     private GeyserHolderSet(JavaRegistryKey<T> registry) {
-        this(registry, IntArrays.EMPTY_ARRAY);
+        this(registry, IntLists.emptyList());
     }
 
-    public GeyserHolderSet(JavaRegistryKey<T> registry, int @NonNull [] holders) {
+    public GeyserHolderSet(JavaRegistryKey<T> registry, @Nullable IntList holders) {
         this(registry, null, holders, null);
     }
 
@@ -80,7 +81,7 @@ public final class GeyserHolderSet<T> {
         this(registry, null, null, inline);
     }
 
-    private GeyserHolderSet(JavaRegistryKey<T> registry, @Nullable Tag<T> tag, int @Nullable [] holders, @Nullable List<T> inline) {
+    private GeyserHolderSet(JavaRegistryKey<T> registry, @Nullable Tag<T> tag, @Nullable IntList holders, @Nullable List<T> inline) {
         this.registry = registry;
         this.tag = tag;
         this.holders = holders;
@@ -91,7 +92,7 @@ public final class GeyserHolderSet<T> {
      * Constructs an empty {@link GeyserHolderSet}.
      */
     public static <T> GeyserHolderSet<T> empty(JavaRegistryKey<T> registry) {
-        return new GeyserHolderSet<>(registry, EMPTY);
+        return new GeyserHolderSet<>(registry, IntLists.emptyList());
     }
 
     /**
@@ -131,7 +132,7 @@ public final class GeyserHolderSet<T> {
      * @return the HolderSet turned into a list of network IDs.
      * @throws IllegalStateException when the HolderSet is a list of inline elements.
      */
-    public int[] resolveRaw(TagCache tagCache) {
+    public IntList resolveRaw(TagCache tagCache) {
         if (inline != null) {
             throw new IllegalStateException("Tried to resolve network IDs of a GeyserHolderSet(registry=" + registry  + ") with inline elements!");
         } else if (holders != null) {
@@ -191,7 +192,7 @@ public final class GeyserHolderSet<T> {
             } else if (elementOrTag.isEmpty()) {
                 return new GeyserHolderSet<>(registry);
             }
-            return new GeyserHolderSet<>(registry, new int[]{idMapper.applyAsInt(MinecraftKey.key(elementOrTag))});
+            return new GeyserHolderSet<>(registry, IntList.of(idMapper.applyAsInt(MinecraftKey.key(elementOrTag))));
         } else if (holderSet instanceof List<?> list) {
             if (list.isEmpty()) {
                 return new GeyserHolderSet<>(registry);
@@ -201,7 +202,7 @@ public final class GeyserHolderSet<T> {
                 }
             } else {
                 // Assume the list is a list of strings (resource locations)
-                return new GeyserHolderSet<>(registry, list.stream().map(o -> (String) o).map(Key::key).mapToInt(idMapper).toArray());
+                return new GeyserHolderSet<>(registry, IntList.of(list.stream().map(o -> (String) o).map(Key::key).mapToInt(idMapper).toArray()));
             }
         }
 

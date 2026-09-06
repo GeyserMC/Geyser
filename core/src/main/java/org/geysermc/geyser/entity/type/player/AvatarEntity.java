@@ -63,6 +63,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import org.jetbrains.annotations.ApiStatus;
 
 public abstract class AvatarEntity extends LivingEntity {
     public static final float SNEAKING_POSE_HEIGHT = 1.5f;
@@ -367,5 +368,13 @@ public abstract class AvatarEntity extends LivingEntity {
 
         SkinData fallback = SkinProvider.determineFallbackSkinData(this.uuid);
         return fallback.skin().textureUrl();
+    }
+
+    /**
+     * Only exposed for Scoreboard tests, do not use.
+     */
+    @ApiStatus.Internal
+    public void clearCachedScoreUnsafe() {
+        cachedScore = null;
     }
 }

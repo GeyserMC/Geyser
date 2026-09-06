@@ -397,6 +397,14 @@ public class CustomItemRegistryPopulator {
             computeEntityPlacerProperties(componentBuilder);
         }
 
+        // The client only lets an item into furnace fuel slots when it has this component.
+        int fuelDuration = context.vanillaMapping().map(GeyserMappingItem::getFuelDuration).orElse(0);
+        if (fuelDuration > 0) {
+            componentBuilder.putCompound("minecraft:fuel", NbtMap.builder()
+                .putFloat("duration", fuelDuration / 20.0F)
+                .build());
+        }
+
         // this is not ideal, remove once v1 is removed!
         if (context.definition() instanceof GeyserCustomItemDefinition definition && definition.isOldConvertedItem()) {
             CustomRenderOffsets renderOffsets = definition.getRenderOffsets();

@@ -27,6 +27,8 @@ package org.geysermc.geyser.scoreboard.display.slot;
 
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
+import it.unimi.dsi.fastutil.longs.LongSet;
 import java.util.List;
 import net.kyori.adventure.text.Component;
 import org.cloudburstmc.protocol.bedrock.data.ScoreInfo;
@@ -60,15 +62,14 @@ public class BelownameDisplaySlot extends DisplaySlot {
 
         // remove is handled in #remove()
         if (updateType == UpdateType.ADD) {
+            updateType = UpdateType.NOTHING;
             session.getEntityCache().forEachPlayerEntity(this::playerRegistered);
             return;
         }
+
+        LongSet skipUpdate = null;
         if (updateType == UpdateType.UPDATE) {
-            session.getEntityCache().forEachPlayerEntity(player -> {
-                setBelowNameText(player, scoreFor(player.getUsername()));
-            });
-            updateType = UpdateType.NOTHING;
-            return;
+            skipUpdate = new LongOpenHashSet(displayScores.size());
         }
 
         synchronized (displayScores) {
@@ -81,8 +82,13 @@ public class BelownameDisplaySlot extends DisplaySlot {
                     continue;
                 }
 
+                // If we're already updating the player's score, we don't have to do it again later
+                if (skipUpdate != null) {
+                    skipUpdate.add(score.player().geyserId());
+                }
+
                 if (score.referenceRemoved()) {
-                    clearBelowNameText(score.player());
+                    setBelowNameText(score.player(), null);
                     continue;
                 }
 
@@ -90,6 +96,18 @@ public class BelownameDisplaySlot extends DisplaySlot {
                 setBelowNameText(score.player(), score.reference());
             }
         }
+
+        // If we're in UPDATE, we need to recalculate below name for all players, except the ones we just updated above.
+        if (skipUpdate != null) {
+            LongSet finalSkipUpdate = skipUpdate;
+            session.getEntityCache().forEachPlayerEntity(player -> {
+                if (!finalSkipUpdate.contains(player.geyserId())) {
+                    setBelowNameText(player, scoreFor(player.getUsername()));
+                }
+            });
+        }
+
+        updateType = UpdateType.NOTHING;
     }
 
     @Override
@@ -129,7 +147,7 @@ public class BelownameDisplaySlot extends DisplaySlot {
     }
 
     private BelownameDisplayScore addDisplayScore(PlayerEntity player, ScoreReference reference) {
-        var score = new BelownameDisplayScore(this, objective.getScoreboard().nextId(), reference, player);
+        var score = new BelownameDisplayScore(this, objective.getScoreboard().nextDisplayId(), reference, player);
         synchronized (displayScores) {
             displayScores.put(player.geyserId(), score);
         }
