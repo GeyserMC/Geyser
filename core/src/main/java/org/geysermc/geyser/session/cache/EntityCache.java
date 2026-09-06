@@ -128,7 +128,12 @@ public class EntityCache {
      * <i>disjoint</i>, never meaningful.
      */
     private static long subClientIdBase(GeyserSession session) {
-        return session.getUpstream().getSession().isSubClient()
+        // A session built for a test has no upstream, and a connection-wide id space means nothing
+        // without a connection - so fall back to the primary range rather than throwing from a
+        // constructor.
+        var upstream = session.getUpstream();
+        var bedrockSession = upstream == null ? null : upstream.getSession();
+        return bedrockSession != null && bedrockSession.isSubClient()
                 ? SUB_CLIENT_ID_BANKS.getAndIncrement() * SUB_CLIENT_ID_BANK_SIZE
                 : 0L;
     }
