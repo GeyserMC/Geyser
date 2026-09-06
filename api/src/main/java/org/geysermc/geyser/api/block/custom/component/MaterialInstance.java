@@ -107,7 +107,7 @@ public interface MaterialInstance {
         /**
          * @deprecated Use {@link #ambientOcclusionExponent(float)} instead
          */
-        @Deprecated(since = "2.11.1")
+        @Deprecated(since = "2.11.3")
         Builder ambientOcclusion(boolean ambientOcclusion);
 
         /**
