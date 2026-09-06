@@ -1,0 +1,71 @@
+{
+  "format_version": 1,
+  "biomes": {
+    "my_datapack:cave/crystal_caves": {
+      "attributes": {
+        "minecraft:visual/sky_color": "#78a7ff",
+        "minecraft:visual/fog_color": 12632256,
+        "minecraft:visual/water_fog_color": "#050533",
+        "minecraft:visual/water_fog_end_distance": {
+          "argument": 0.85,
+          "modifier": "multiply"
+        }
+      },
+      "effects": {
+        "water_color": "#803f76e4",
+        "grass_color": "#5f9f45",
+        "foliage_color": "#4f8f3f",
+        "dry_foliage_color": "#9e814d"
+      },
+      "geyser": {
+        "bedrock_identifier": "my_datapack:crystal_caves",
+        "tags": ["overworld", "monster"],
+        "water_surface_opacity": 0.55,
+        "water_fog_end_distance": 48.0,
+        "precipitation": {
+          "type": "blue_spores",
+          "density": 2.0
+        }
+      }
+    },
+    "example:minimal": {
+      "geyser": {
+        "bedrock_identifier": "example:minimal"
+      }
+    },
+    "minecraft:swamp": {
+      "geyser": {
+        "bedrock_identifier": "example:swamp_recolor"
+      }
+    },
+    "example:derived": {
+      "effects": {
+        "grass_color": "#5f9f45"
+      }
+    },
+    "my_datapack:cave/derived": {
+      "attributes": {
+        "minecraft:visual/sky_color": "#123456"
+      },
+      "geyser": {
+        "tags": ["overworld"]
+      }
+    },
+    "example:bad_color": {
+      "effects": {
+        "grass_color": [0.1, 0.2, 0.3]
+      }
+    },
+    "example:bare_identifier": {
+      "geyser": {
+        "bedrock_identifier": "bare_biome"
+      }
+    },
+    "example:not_object": 42,
+    "example:vanilla_namespace": {
+      "geyser": {
+        "bedrock_identifier": "minecraft:oops"
+      }
+    }
+  }
+}

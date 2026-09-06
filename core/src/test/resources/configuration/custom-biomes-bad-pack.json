@@ -1,0 +1,7 @@
+{
+  "format_version": 1,
+  "pack_uuid": "not-a-uuid",
+  "biomes": {
+    "example:orphan": {}
+  }
+}

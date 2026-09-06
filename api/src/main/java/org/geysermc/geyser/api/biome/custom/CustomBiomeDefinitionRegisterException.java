@@ -23,23 +23,24 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.registry.mappings;
+package org.geysermc.geyser.api.biome.custom;
 
-import com.google.gson.JsonObject;
+import org.jetbrains.annotations.ApiStatus;
 
-import java.nio.file.Path;
-import java.util.function.BiConsumer;
+import java.io.Serial;
 
-@FunctionalInterface
-public interface MappingsReader<K, V> {
+/**
+ * Thrown when there was an error registering the custom biome definition. The exception message will have details as to what went wrong.
+ * @since 2.11.1
+ */
+@ApiStatus.NonExtendable
+public class CustomBiomeDefinitionRegisterException extends RuntimeException {
 
-    void read(Path file, JsonObject mappings, BiConsumer<K, V> consumer);
+    @Serial
+    private static final long serialVersionUID = 1L;
 
-    /**
-     * Reads a mappings file with access to its root object, for readers that consume
-     * file-level keys next to {@code format_version}. Defaults to ignoring the root.
-     */
-    default void read(Path file, JsonObject root, JsonObject mappings, BiConsumer<K, V> consumer) {
-        read(file, mappings, consumer);
+    @ApiStatus.Internal
+    public CustomBiomeDefinitionRegisterException(String message) {
+        super(message);
     }
 }
