@@ -35,7 +35,7 @@ public class GeyserMaterialInstance implements MaterialInstance {
     private final String renderMethod;
     private final String tintMethod;
     private final boolean faceDimming;
-    private final boolean ambientOcclusion;
+    private final float ambientOcclusionExponent;
     private final boolean isotropic;
 
     GeyserMaterialInstance(Builder builder) {
@@ -43,7 +43,7 @@ public class GeyserMaterialInstance implements MaterialInstance {
         this.renderMethod = builder.renderMethod;
         this.tintMethod = builder.tintMethod;
         this.faceDimming = builder.faceDimming;
-        this.ambientOcclusion = builder.ambientOcclusion;
+        this.ambientOcclusionExponent = builder.ambientOcclusionExponent;
         this.isotropic = builder.isotropic;
     }
 
@@ -69,7 +69,12 @@ public class GeyserMaterialInstance implements MaterialInstance {
 
     @Override
     public boolean ambientOcclusion() {
-        return ambientOcclusion;
+        return ambientOcclusionExponent > 0.0F;
+    }
+
+    @Override
+    public float ambientOcclusionExponent() {
+        return ambientOcclusionExponent;
     }
 
     @Override
@@ -82,7 +87,7 @@ public class GeyserMaterialInstance implements MaterialInstance {
         private String renderMethod;
         private String tintMethod;
         private boolean faceDimming;
-        private boolean ambientOcclusion;
+        private float ambientOcclusionExponent;
         private boolean isotropic;
 
         @Override
@@ -111,7 +116,15 @@ public class GeyserMaterialInstance implements MaterialInstance {
 
         @Override
         public Builder ambientOcclusion(boolean ambientOcclusion) {
-            this.ambientOcclusion = ambientOcclusion;
+            return ambientOcclusionExponent(ambientOcclusion ? 1.0F : 0.0F);
+        }
+
+        @Override
+        public Builder ambientOcclusionExponent(float ambientOcclusionExponent) {
+            if (!Float.isFinite(ambientOcclusionExponent) || ambientOcclusionExponent < 0.0F || ambientOcclusionExponent > 10.0F) {
+                throw new IllegalArgumentException("Ambient occlusion exponent must be between 0.0 and 10.0 inclusive");
+            }
+            this.ambientOcclusionExponent = ambientOcclusionExponent;
             return this;
         }
 
