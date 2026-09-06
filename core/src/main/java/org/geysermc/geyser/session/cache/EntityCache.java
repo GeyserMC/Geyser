@@ -85,11 +85,52 @@ public class EntityCache {
     @Getter
     private final Set<Entity> dirtyEntities = new ObjectOpenHashSet<>();
 
+    /**
+     * Hands each split-screen sub-client its own range of Bedrock runtime entity ids.
+     *
+     * <p>Runtime ids have to be unique per <i>connection</i>, not per session. Vanilla split screen
+     * gets that for free: every local player on a console is fed by one server session, so one id
+     * space covers them all. Geyser breaks the assumption - each local player is a separate
+     * {@link GeyserSession} with a separate Java connection - and the Bedrock client still keeps a
+     * single entity registry for the connection. Two sessions both counting from 2 therefore mint
+     * the same id for different entities, and the client applies whichever movement packet arrived
+     * last to whichever entity holds that id: mobs and the other player snap to positions belonging
+     * to something in the other player's world and appear to fly. It starts the moment the second
+     * player joins, and nothing is wrong server-side.
+     *
+     * <p>A bank per sub-client keeps the ranges disjoint. Primary sessions still start at 2, so a
+     * connection with no guests on it is byte-for-byte what upstream sends.
+     */
+    private static final AtomicLong SUB_CLIENT_ID_BANKS = new AtomicLong(1L);
+
+    /**
+     * Ids one sub-client may mint before it would run into the next bank. Far more than a session
+     * can spawn in practice, and small enough that the ids stay cheap to encode as varints.
+     */
+    private static final long SUB_CLIENT_ID_BANK_SIZE = 1L << 32;
+
     @Getter
-    private final AtomicLong nextEntityId = new AtomicLong(2L);
+    private final AtomicLong nextEntityId;
 
     public EntityCache(GeyserSession session) {
         this.session = session;
+        // Resolved here rather than on first use: the session's own player entity takes an id in
+        // the GeyserSession constructor, before login has run, and it must land in this bank too -
+        // two local players both answering to runtime id 3 is the same collision.
+        this.nextEntityId = new AtomicLong(subClientIdBase(session) + 2L);
+    }
+
+    /**
+     * The base of this session's id bank - 0 for a primary session, a fresh bank for a sub-client.
+     *
+     * <p>Deliberately not keyed off the controller slot: {@code getSubClientId()} reads the peer's
+     * session map, which is not necessarily populated this early, and the id only has to be
+     * <i>disjoint</i>, never meaningful.
+     */
+    private static long subClientIdBase(GeyserSession session) {
+        return session.getUpstream().getSession().isSubClient()
+                ? SUB_CLIENT_ID_BANKS.getAndIncrement() * SUB_CLIENT_ID_BANK_SIZE
+                : 0L;
     }
 
     public long nextEntityId() {
