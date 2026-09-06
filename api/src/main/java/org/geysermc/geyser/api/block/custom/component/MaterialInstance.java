@@ -114,7 +114,7 @@ public interface MaterialInstance {
          * Sets the exponent applied to the ambient occlusion value after lighting,
          * between {@code 0.0} and {@code 10.0} inclusive.
          *
-         * @since 2.11.1
+         * @since 2.11.3
          */
         Builder ambientOcclusionExponent(float ambientOcclusionExponent);
 
