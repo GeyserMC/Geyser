@@ -66,7 +66,7 @@ public interface MaterialInstance {
      * @return If the block should have ambient occlusion.
      * @deprecated Use {@link #ambientOcclusionExponent()} instead
      */
-    @Deprecated(since = "2.11.1")
+    @Deprecated(since = "2.11.3")
     boolean ambientOcclusion();
 
     /**
