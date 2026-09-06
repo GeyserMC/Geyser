@@ -57,6 +57,7 @@ import java.net.InetSocketAddress;
 import java.nio.charset.StandardCharsets;
 import java.security.KeyPair;
 import java.security.PublicKey;
+import java.util.List;
 import java.util.Locale;
 import java.util.UUID;
 import java.util.function.BiConsumer;
@@ -90,7 +91,7 @@ public class LoginEncryptionUtils {
                 return false;
             }
 
-            ChainValidationResult result = EncryptionUtils.validatePayload(authPayload);
+            ChainValidationResult result = validateSubClientPayload(authPayload);
             if (!result.signed() && geyser.config().advanced().bedrock().validateBedrockLogin()) {
                 geyser.getLogger().warning("Split-screen: sub-client login chain is unsigned and "
                         + "validate-bedrock-login is on; rejecting it.");
@@ -155,6 +156,44 @@ public class LoginEncryptionUtils {
     }
 
     /**
+     * Validates a sub-client's login payload the way {@link EncryptionUtils#validatePayload} does,
+     * minus its final assertion that an {@link AuthType#FULL} payload also carries an
+     * {@code extraData} claim with a non-null {@code xuid} and {@code displayName}.
+     *
+     * <p>That assertion is what kept split-screen out. A console sends {@code FULL} for a guest on
+     * a second controller - the connection as a whole really is fully authenticated, it belongs to
+     * the signed-in host - while sending no XUID and no display name for the guest itself, the
+     * long-standing behaviour tracked as
+     * <a href="https://bugs.mojang.com/browse/MCPE-71033">MCPE-71033</a>. {@code validatePayload}
+     * then throws {@code IllegalStateException: Missing extraData for full auth} before
+     * {@link #resolveSubClientAuthData} - which exists precisely to fill those blanks in - is ever
+     * reached.
+     *
+     * <p><b>No signature check is relaxed here.</b> This calls the same
+     * {@link EncryptionUtils#validateChain}/{@link EncryptionUtils#validateToken} that
+     * {@code validatePayload} calls, with the same empty-input guards, and returns their result
+     * untouched - so {@code signed()} still decides whether an unsigned chain is acceptable at the
+     * call site. The only dropped requirement is that a full-auth login also *name* its player.
+     * The primary login path still goes through {@code validatePayload} unchanged.
+     */
+    private static ChainValidationResult validateSubClientPayload(AuthPayload authPayload) throws Exception {
+        if (authPayload instanceof CertificateChainPayload chainPayload) {
+            List<String> chain = chainPayload.getChain();
+            if (chain == null || chain.isEmpty()) {
+                throw new IllegalStateException("Certificate chain is empty");
+            }
+            return EncryptionUtils.validateChain(chain);
+        } else if (authPayload instanceof TokenPayload tokenPayload) {
+            String token = tokenPayload.getToken();
+            if (token == null || token.isEmpty()) {
+                throw new IllegalStateException("Token is empty");
+            }
+            return EncryptionUtils.validateToken(authPayload.getAuthType(), token);
+        }
+        throw new IllegalArgumentException("Unsupported AuthPayload type: " + authPayload.getClass().getName());
+    }
+
+    /**
      * Finds the session for the player who signed in first on this console - the one that owns the
      * shared connection.
      */
@@ -196,31 +235,40 @@ public class LoginEncryptionUtils {
      * good enough and the guest should be refused instead - see the note on the class.
      */
     private static AuthData resolveSubClientAuthData(GeyserImpl geyser, GeyserSession session,
-                                                     GeyserSession parent, IdentityData extraData,
+                                                     GeyserSession parent, @Nullable IdentityData extraData,
                                                      ChainValidationResult result) {
         int slot = session.getUpstream().getSubClientId();
 
         Long rawIssuedAt = (Long) result.rawIdentityClaims().get("iat");
         long issuedAt = rawIssuedAt != null ? rawIssuedAt : -1;
 
+        // A console may omit the extraData claim for a guest entirely rather than sending it with
+        // blank fields, so every read below goes through these locals rather than the record. Only
+        // the primary login path can still assume extraData is present.
+        String rawXuid = extraData == null ? null : extraData.xuid;
+        String rawName = extraData == null ? null : extraData.displayName;
+        UUID rawIdentity = extraData == null ? null : extraData.identity;
+        String minecraftId = extraData == null ? null : extraData.minecraftId;
+
         // Log what the console actually sent before touching any of it. This is the one place that
         // records how a given platform behaves, and the answer differs per platform.
         geyser.getLogger().info(String.format(
                 "Split-screen: sub-client joining in slot %d behind %s - xuid=%s, displayName=%s, "
-                        + "identity=%s, minecraftId=%s, signed=%s",
+                        + "identity=%s, minecraftId=%s, signed=%s, extraData=%s",
                 slot, parent.bedrockUsername(),
-                describe(extraData.xuid), describe(extraData.displayName),
-                extraData.identity, describe(extraData.minecraftId), result.signed()));
+                describe(rawXuid), describe(rawName),
+                rawIdentity, describe(minecraftId), result.signed(),
+                extraData == null ? "<absent>" : "present"));
 
         // The identity UUID is only worth deriving from if it actually identifies this guest. A
         // console with nothing to say about a guest may send the nil UUID, or echo the signed-in
         // player's - either of which would make two guests derive the same XUID and collide.
-        UUID identity = extraData.identity;
+        UUID identity = rawIdentity;
         boolean identityIdentifies = identity != null
                 && !identity.equals(NIL_UUID)
                 && !identity.equals(parent.getAuthData().uuid());
 
-        String xuid = extraData.xuid;
+        String xuid = rawXuid;
         if (isBlank(xuid)) {
             String source = identityIdentifies ? "its identity UUID" : "the host's XUID and controller slot";
             xuid = syntheticXuid(identityIdentifies
@@ -233,7 +281,7 @@ public class LoginEncryptionUtils {
                             + "Floodgate or online mode.", slot, source));
         }
 
-        String name = extraData.displayName;
+        String name = rawName;
         if (isBlank(name) || name.equals(parent.bedrockUsername())) {
             name = syntheticUsername(parent.bedrockUsername(), slot);
             geyser.getLogger().warning(String.format(
@@ -245,7 +293,7 @@ public class LoginEncryptionUtils {
             identity = UUID.nameUUIDFromBytes(("GeyserSplitScreen:" + xuid).getBytes(StandardCharsets.UTF_8));
         }
 
-        return new AuthData(name, identity, xuid, issuedAt, extraData.minecraftId);
+        return new AuthData(name, identity, xuid, issuedAt, minecraftId);
     }
 
     private static final UUID NIL_UUID = new UUID(0, 0);
