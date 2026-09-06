@@ -32,13 +32,16 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.security.InvalidKeyException;
 import java.security.KeyFactory;
 import java.security.PublicKey;
 import java.security.spec.X509EncodedKeySpec;
 import java.util.Base64;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
@@ -108,8 +111,30 @@ class NetherNetServerIdentityTest {
     @Test
     void keypairPersistsAcrossRestarts(@TempDir Path tempDir) throws Exception {
         String first = cpkOf(NetherNetServerIdentity.loadOrCreate(tempDir), tempDir);
+        String persisted = Files.readString(tempDir.resolve("identity-key.pem"));
         String second = cpkOf(NetherNetServerIdentity.loadOrCreate(tempDir), tempDir);
         assertEquals(first, second, "cpk survives a restart; the pin is stable");
+        assertEquals(persisted, Files.readString(tempDir.resolve("identity-key.pem")));
+    }
+
+    @Test
+    void mismatchedPemBlocksFailWithoutReplacingThePersistedIdentity(@TempDir Path tempDir) throws Exception {
+        NetherNetServerIdentity.loadOrCreate(tempDir);
+        Path otherDir = tempDir.resolve("other");
+        NetherNetServerIdentity.loadOrCreate(otherDir);
+        Path keyFile = tempDir.resolve("identity-key.pem");
+        String first = Files.readString(keyFile);
+        String second = Files.readString(otherDir.resolve("identity-key.pem"));
+        String publicKeyHeader = "-----BEGIN PUBLIC KEY-----";
+        String mismatched = first.substring(0, first.indexOf(publicKeyHeader))
+                + second.substring(second.indexOf(publicKeyHeader));
+        Files.writeString(keyFile, mismatched);
+
+        InvalidKeyException failure = assertThrows(InvalidKeyException.class,
+                () -> NetherNetServerIdentity.loadOrCreate(tempDir));
+
+        assertTrue(failure.getMessage().contains("do not match"));
+        assertEquals(mismatched, Files.readString(keyFile), "A failed load must preserve the operator's keys");
     }
 
     private static String cpkOf(NetherNetServerIdentity identity, Path dir) throws Exception {

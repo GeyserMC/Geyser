@@ -33,11 +33,14 @@ import org.jose4j.jwt.JwtClaims;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.security.GeneralSecurityException;
+import java.security.InvalidKeyException;
 import java.security.KeyFactory;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.PrivateKey;
 import java.security.PublicKey;
+import java.security.Signature;
 import java.security.spec.ECGenParameterSpec;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
@@ -74,9 +77,19 @@ public final class NetherNetServerIdentity {
     private final PrivateKey privateKey;
     private final String encodedPublicKey;
 
-    private NetherNetServerIdentity(PrivateKey privateKey, PublicKey publicKey) {
+    private NetherNetServerIdentity(PrivateKey privateKey, PublicKey publicKey) throws GeneralSecurityException {
+        byte[] encodedPublicKey = publicKey.getEncoded();
+        Signature proof = Signature.getInstance("SHA384withECDSA");
+        proof.initSign(privateKey);
+        proof.update(encodedPublicKey);
+        byte[] signature = proof.sign();
+        proof.initVerify(publicKey);
+        proof.update(encodedPublicKey);
+        if (!proof.verify(signature)) {
+            throw new InvalidKeyException(KEY_FILE + " private and public keys do not match");
+        }
         this.privateKey = privateKey;
-        this.encodedPublicKey = Base64.getEncoder().encodeToString(publicKey.getEncoded());
+        this.encodedPublicKey = Base64.getEncoder().encodeToString(encodedPublicKey);
     }
 
     /**
