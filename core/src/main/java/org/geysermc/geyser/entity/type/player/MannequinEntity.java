@@ -26,13 +26,14 @@
 package org.geysermc.geyser.entity.type.player;
 
 import net.kyori.adventure.text.Component;
+import org.geysermc.geyser.api.entity.type.player.GeyserMannequinEntity;
 import org.geysermc.geyser.entity.spawn.EntitySpawnContext;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.EntityMetadata;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.ResolvableProfile;
 
 import java.util.Optional;
 
-public class MannequinEntity extends AvatarEntity {
+public class MannequinEntity extends AvatarEntity implements GeyserMannequinEntity {
 
     public MannequinEntity(EntitySpawnContext context) {
         super(context, "");

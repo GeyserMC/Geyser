@@ -28,9 +28,11 @@ package org.geysermc.geyser.entity;
 import org.checkerframework.checker.index.qual.NonNegative;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
+import org.cloudburstmc.protocol.bedrock.data.EmoteFlag;
 import org.cloudburstmc.protocol.bedrock.packet.EmotePacket;
 import org.geysermc.geyser.api.entity.EntityData;
 import org.geysermc.geyser.api.entity.type.GeyserEntity;
+import org.geysermc.geyser.api.entity.type.player.GeyserAvatarEntity;
 import org.geysermc.geyser.api.entity.type.player.GeyserPlayerEntity;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.input.InputLocksFlag;
@@ -84,6 +86,11 @@ public class GeyserEntityData implements EntityData {
 
     @Override
     public void showEmote(@NonNull GeyserPlayerEntity emoter, @NonNull String emoteId) {
+        showEmote(emoter, emoteId, false);
+    }
+
+    @Override
+    public void showEmote(@NonNull GeyserAvatarEntity emoter, @NonNull String emoteId, boolean silent) {
         Objects.requireNonNull(emoter, "emoter must not be null!");
         Entity entity = (Entity) emoter;
         if (entity.getSession() != session) {
@@ -95,6 +102,11 @@ public class GeyserEntityData implements EntityData {
         packet.setXuid("");
         packet.setPlatformId(""); // BDS sends empty
         packet.setEmoteId(emoteId);
+        if (entity.getDisplayName(false) == null) { // The emote chat announcement will have no player name if the entity name is blank
+            packet.getFlags().add(EmoteFlag.MUTE_EMOTE_CHAT);
+        } else if (silent) {
+            packet.getFlags().add(EmoteFlag.MUTE_EMOTE_CHAT);
+        }
         session.sendUpstreamPacket(packet);
     }
 
