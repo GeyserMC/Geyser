@@ -54,6 +54,7 @@ import org.geysermc.mcprotocollib.protocol.data.game.chat.ChatType;
 import org.geysermc.mcprotocollib.protocol.data.game.chat.ChatTypeDecoration;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -333,6 +334,7 @@ public class MessageTranslator {
                 try {
                     yield convertNbtMessage(session, tag);
                 } catch (RuntimeException exception) {
+                    GeyserImpl.getInstance().getLogger().debug("Failed to translate NBT message leniently: " + tag, exception);
                     yield fallback;
                 }
             }
@@ -340,10 +342,10 @@ public class MessageTranslator {
     }
 
     /**
-     * Shorthand for {@link MessageTranslator#convertLenientNbtMessage(GeyserSession, Object, String)}, uses an empty string as fallback.
+     * Shorthand for {@link MessageTranslator#convertLenientNbtMessage(GeyserSession, Object, String)}, uses {@code "Report at Geyser"} as fallback.
      */
     public static String convertLenientNbtMessage(GeyserSession session, @Nullable Object tag) {
-        return convertLenientNbtMessage(session, tag, "");
+        return convertLenientNbtMessage(session, tag, "§cReport at Geyser");
     }
 
     /**
@@ -472,11 +474,26 @@ public class MessageTranslator {
     }
 
     public static List<String> signTextFromNbtTag(GeyserSession session, List<?> nbtTag) {
-        List<String> messages = new ArrayList<>(nbtTag.size());
-        for (Object tag : nbtTag) {
-            messages.add(convertMessageRaw(componentFromNbtTag(tag), session.locale()));
+        // Try to parse the entire list as a component, which should work because the serializer allows deserializing a list of components,
+        // then convert each child component separately
+        // We have to convert signt text this way because the list can be a combination of e.g. compound tags and string tags wrapped in a compound (a heterogeneous NBT list)
+
+        try {
+            Component fullText = componentFromNbtTag(nbtTag);
+            if (fullText.children().isEmpty()) {
+                return List.of(convertMessageRaw(fullText, session.locale()));
+            }
+
+            List<String> messages = new ArrayList<>(fullText.children().size() + 1);
+            messages.add(convertMessageRaw(fullText.children(List.of()), session.locale()));
+            for (Component child : fullText.children()) {
+                messages.add(convertMessageRaw(child, session.locale()));
+            }
+            return Collections.unmodifiableList(messages);
+        } catch (RuntimeException exception) {
+            GeyserImpl.getInstance().getLogger().debug("Failed to translate sign text from NBT tag: " + nbtTag, exception);
+            return List.of("§cReport at Geyser");
         }
-        return messages;
     }
 
     public static Style getStyleFromNbtMap(NbtMap map) {
