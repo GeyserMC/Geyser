@@ -38,6 +38,7 @@ import net.kyori.adventure.text.serializer.legacy.CharacterAndFormat;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.checkerframework.checker.nullness.qual.Nullable;
+import org.cloudburstmc.nbt.NbtList;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.protocol.bedrock.packet.TextPacket;
 import org.geysermc.geyser.GeyserImpl;
@@ -64,6 +65,7 @@ public class MessageTranslator {
     // Custom instead of TranslatableComponentRenderer#usingTranslationSource so we don't need to worry about finding a Locale class
     private static final TranslatableComponentRenderer<String> RENDERER = new MinecraftTranslationRegistry();
 
+    private static final LegacyComponentSerializer LEGACY_JAVA_SERIALIZER = LegacyComponentSerializer.legacySection();
     private static final LegacyComponentSerializer BEDROCK_SERIALIZER;
     private static final String BEDROCK_COLORS;
     private static final String BEDROCK_DECORATIONS;
@@ -276,12 +278,91 @@ public class MessageTranslator {
         return convertMessage(message, GeyserLocale.getDefaultLocale());
     }
 
-    /* === Java (NBT) -> Bedrock conversion === */
+    /* === java (legacy § strings) -> bedrock conversion === */
 
-    public static String convertNbtMessage(GeyserSession session, Object tag) {
-        return convertMessage(session, componentFromNbtTag(tag));
+    /**
+     * Converts a legacy Java string (using Java §-prefixed formatting codes) to a bedrock message.
+     *
+     * <p>This method parses the string into a component using {@link LegacyComponentSerializer},
+     * then converts that component using {@link MessageTranslator#convertMessage(Component, String)}.</p>
+     *
+     * @param message the legacy Java message
+     * @param locale the locale
+     * @return the converted message to be sent to bedrock
+     */
+    public static String convertLegacyMessage(String message, String locale) {
+        // Parse legacy message into component with LEGACY_JAVA_SERIALIZER, then convert component to bedrock string
+        return convertMessage(LEGACY_JAVA_SERIALIZER.deserialize(message), locale);
     }
 
+    /**
+     * Shorthand for {@link MessageTranslator#convertLegacyMessage(String, String)}.
+     */
+    public static String convertLegacyMessage(GeyserSession session, String message) {
+        return convertLegacyMessage(message, session.locale());
+    }
+
+    /* === java (nbt) -> bedrock conversion === */
+
+    /**
+     * Uses {@link MessageTranslator#convertNbtMessage(GeyserSession, Object)} to convert a Java text component,
+     * serialised to NBT, to a bedrock string.
+     *
+     * <p>This method has a few special cases:</p>
+     *
+     * <ul>
+     *     <li>For {@code null} messages, an empty string is returned.</li>
+     *     <li>For {@link String} tags, of which {@link String#isBlank()} returns true, the original, not-converted string is returned.</li>
+     *     <li>For empty {@link NbtList}s, an empty string is returned.</li>
+     *     <li>When {@link MessageTranslator#convertNbtMessage(GeyserSession, Object)} throws a {@link RuntimeException}, {@code fallback} is returned.</li>
+     * </ul>
+     *
+     * <p>Generally, prefer this method over {@link MessageTranslator#convertNbtMessage(GeyserSession, Object)}, as it is safer and handles edge-cases.</p>
+     *
+     * @param session the {@link GeyserSession} (used for determining the locale to use)
+     * @param tag the NBT tag to convert
+     * @param fallback the string to return when an error occurs during conversion
+     * @return the converted message to be sent to bedrock
+     */
+    public static String convertLenientNbtMessage(GeyserSession session, @Nullable Object tag, String fallback) {
+        return switch (tag) {
+            case null -> "";
+            case String message when message.isBlank() -> message;
+            case NbtList<?> list when list.isEmpty() -> "";
+            default -> {
+                try {
+                    yield convertNbtMessage(session, tag);
+                } catch (RuntimeException exception) {
+                    yield fallback;
+                }
+            }
+        };
+    }
+
+    /**
+     * Shorthand for {@link MessageTranslator#convertLenientNbtMessage(GeyserSession, Object, String)}, uses an empty string as fallback.
+     */
+    public static String convertLenientNbtMessage(GeyserSession session, @Nullable Object tag) {
+        return convertLenientNbtMessage(session, tag, "");
+    }
+
+    /**
+     * Shorthand method for {@link MessageTranslator#convertNbtMessage(Object, String)}.
+     *
+     * <p>Generally, prefer {@link MessageTranslator#convertLenientNbtMessage(GeyserSession, Object, String)} over this method, as it is safer and handles edge-cases.</p>
+     */
+    public static String convertNbtMessage(GeyserSession session, Object tag) {
+        return convertNbtMessage(tag, session.locale());
+    }
+
+    /**
+     * Parses the given NBT tag as a {@link Component} using {@link MessageTranslator#componentFromNbtTag(Object)}, then converts it
+     * to a bedrock message using {@link MessageTranslator#convertMessage(Component, String)}.
+     *
+     * @param tag the NBT tag to convert
+     * @param locale the locale to use
+     * @return the converted message to be sent to bedrock
+     */
     public static String convertNbtMessage(Object tag, String locale) {
         return convertMessage(componentFromNbtTag(tag), locale);
     }

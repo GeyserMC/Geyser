@@ -32,6 +32,7 @@ import org.cloudburstmc.nbt.NbtType;
 import org.geysermc.geyser.item.TooltipOptions;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.item.BedrockItemBuilder;
+import org.geysermc.geyser.translator.text.MessageTranslator;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentTypes;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.Filterable;
@@ -58,7 +59,8 @@ public class WritableBookItem extends Item {
         for (Filterable<String> page : bookContent.getPages()) {
             NbtMapBuilder pageBuilder = NbtMap.builder();
             pageBuilder.putString("photoname", "");
-            pageBuilder.putString("text", page.getRaw());
+            // **Writable** books don't contain text components, but their string can contain formatting codes
+            pageBuilder.putString("text", MessageTranslator.convertLegacyMessage(session, page.getRaw()));
             bedrockPages.add(pageBuilder.build());
         }
 
