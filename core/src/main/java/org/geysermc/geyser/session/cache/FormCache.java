@@ -93,8 +93,6 @@ public class FormCache {
 
         //Npc forms need to be handled differently
         if (form instanceof NpcFormImpl npcForm) {
-            GeyserImpl.getInstance().getLogger().debug("NPC Form sent");
-
             NpcDialoguePacket npcDialoguePacket = new NpcDialoguePacket();
             npcDialoguePacket.setNpcName(npcForm.title());
             npcDialoguePacket.setDialogue(npcForm.content());
@@ -123,14 +121,10 @@ public class FormCache {
             String actionJson = npcForm.actionJson;
             npcDialoguePacket.setActionJson(actionJson);
 
-            GeyserImpl.getInstance().getLogger().debug("jsonData: " + jsonData);
-            GeyserImpl.getInstance().getLogger().debug("actionJson: " + actionJson);
-            GeyserImpl.getInstance().getLogger().debug("npc_data: " + npcForm.npc_data);
-
             //a delay is needed here, otherwise the dialogue wont open
             session.scheduleInEventLoop(() -> {
                 session.sendUpstreamPacket(npcDialoguePacket);
-            }, 150, TimeUnit.MILLISECONDS);
+            }, 200, TimeUnit.MILLISECONDS);
         } else {
             ModalFormRequestPacket formRequestPacket = new ModalFormRequestPacket();
             formRequestPacket.setFormId(formId);
@@ -202,19 +196,20 @@ public class FormCache {
             // Copy them to ensure any response handler's sent form isn't instantly cleared
             Int2ObjectMap<Form> copy = new Int2ObjectOpenHashMap<>(this.forms);
             this.forms.clear();
+
             // Now close it
-            //Npc forms need to be handled differently
-            Form f = copy.get(0);
-            if (f instanceof NpcForm) {
-                NpcDialoguePacket packet = new NpcDialoguePacket();
-                packet.setNpcName("");
-                packet.setDialogue("");
-                packet.setSceneName("scene_name");
-                packet.setAction(NpcDialoguePacket.Action.CLOSE);
-                session.sendUpstreamPacket(packet);
-            } else {
-                session.sendUpstreamPacket(new ClientboundCloseFormPacket());
-            }
+            // Npc forms need to be handled differently, There is no way to tell which type of form is open,
+            // so we're sending both types of closing packets here to make sure either type gets closed
+            NpcDialoguePacket npcDialoguePacket = new NpcDialoguePacket();
+            npcDialoguePacket.setAction(NpcDialoguePacket.Action.CLOSE);
+            npcDialoguePacket.setSceneName(""+formIdCounter.get()); //assuming it matches up with what was sent
+            npcDialoguePacket.setDialogue("");
+            npcDialoguePacket.setActionJson("");
+            npcDialoguePacket.setNpcName("");
+            npcDialoguePacket.setUniqueEntityId(session.getNpcId());
+            session.sendUpstreamPacket(npcDialoguePacket);
+
+            session.sendUpstreamPacket(new ClientboundCloseFormPacket());
 
 
             for (Form form : copy.values()) {
