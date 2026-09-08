@@ -1,7 +1,7 @@
 [versions]
 base-api = "1.0.3"
 bstats = "3.1.0"
-cumulus = "1.1.2"
+cumulus = "2.0.0-SNAPSHOT"
 configurate = "4.2.0-GeyserMC-20251111.004649-11"
 configurate-core = "4.2.0-GeyserMC-20251111.004649-12"
 erosion = "1.1-20240521.000109-3"
@@ -62,8 +62,9 @@ runpaperversion = "26.2"
 runvelocityversion = "3.5.0-SNAPSHOT"
 
 [libraries]
-base-api = { group = "org.geysermc.api", name = "base-api", version.ref = "base-api" }
+#todo swap these back after pr is done (for some reason base-api's cumulus has priority over this one)
 cumulus = { group = "org.geysermc.cumulus", name = "cumulus", version.ref = "cumulus" }
+base-api = { group = "org.geysermc.api", name = "base-api", version.ref = "base-api" }
 events = { group = "org.geysermc.event", name = "events", version.ref = "events" }
 
 erosion-bukkit-common = { group = "org.geysermc.erosion", name = "bukkit-common", version.ref = "erosion" }

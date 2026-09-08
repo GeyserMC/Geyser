@@ -29,15 +29,24 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import lombok.RequiredArgsConstructor;
 import org.cloudburstmc.protocol.bedrock.data.AttributeData;
+import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.cloudburstmc.protocol.bedrock.packet.ClientboundCloseFormPacket;
 import org.cloudburstmc.protocol.bedrock.packet.ModalFormRequestPacket;
 import org.cloudburstmc.protocol.bedrock.packet.ModalFormResponsePacket;
+import org.cloudburstmc.protocol.bedrock.packet.NpcDialoguePacket;
+import org.cloudburstmc.protocol.bedrock.packet.NpcRequestPacket;
 import org.cloudburstmc.protocol.bedrock.packet.UpdateAttributesPacket;
 import org.geysermc.cumulus.form.Form;
+import org.geysermc.cumulus.form.NpcForm;
 import org.geysermc.cumulus.form.SimpleForm;
 import org.geysermc.cumulus.form.impl.FormDefinitions;
+import org.geysermc.cumulus.form.impl.npc.NpcFormImpl;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.entity.attribute.GeyserAttributeType;
+import org.geysermc.geyser.entity.type.Entity;
+import org.geysermc.geyser.entity.type.LivingEntity;
+import org.geysermc.geyser.entity.type.player.MannequinEntity;
+import org.geysermc.geyser.entity.type.player.PlayerEntity;
 import org.geysermc.geyser.session.GeyserSession;
 
 import java.util.Collections;
@@ -82,16 +91,57 @@ public class FormCache {
     private void sendForm(int formId, Form form) {
         String jsonData = formDefinitions.codecFor(form).jsonData(form);
 
-        ModalFormRequestPacket formRequestPacket = new ModalFormRequestPacket();
-        formRequestPacket.setFormId(formId);
-        formRequestPacket.setFormData(jsonData);
-        session.sendUpstreamPacket(formRequestPacket);
+        //Npc forms need to be handled differently
+        if (form instanceof NpcFormImpl npcForm) {
+            GeyserImpl.getInstance().getLogger().debug("NPC Form sent");
 
-        // Hack to fix the (url) image loading bug
-        if (form instanceof SimpleForm) {
-            // Two delays:
-            // First, 500ms, before we send the network stack latency packet
-            session.scheduleInEventLoop(() -> session.sendNetworkLatencyStackPacket(MAGIC_FORM_IMAGE_HACK_TIMESTAMP, false, () -> {
+            NpcDialoguePacket npcDialoguePacket = new NpcDialoguePacket();
+            npcDialoguePacket.setNpcName(npcForm.title());
+            npcDialoguePacket.setDialogue(npcForm.content());
+            npcDialoguePacket.setSceneName(""+formId); //This isn't visible to the player, so we're using this for formID
+            npcDialoguePacket.setAction(NpcDialoguePacket.Action.OPEN);
+
+            //Add NPC data
+            Entity entity = (Entity) session.entities().byUuid(npcForm.entityUUID());
+            if (entity == null) {
+                closeForms();
+                throw new NullPointerException("NpcForm Entity is null!");
+            }
+
+            //sanity check
+            if (!(entity instanceof LivingEntity)) {
+                closeForms();
+                throw new IllegalArgumentException("NpcForm Enity is not a LivingEntity!");
+            }
+
+            entity.getMetadata().put(EntityDataTypes.HAS_NPC, true);
+            entity.getMetadata().put(EntityDataTypes.NPC_DATA, npcForm.npc_data);
+            entity.updateBedrockMetadata();
+            session.setNpcId(entity.geyserId());
+
+            npcDialoguePacket.setUniqueEntityId(entity.geyserId());
+            String actionJson = npcForm.actionJson;
+            npcDialoguePacket.setActionJson(actionJson);
+
+            GeyserImpl.getInstance().getLogger().debug("jsonData: " + jsonData);
+            GeyserImpl.getInstance().getLogger().debug("actionJson: " + actionJson);
+            GeyserImpl.getInstance().getLogger().debug("npc_data: " + npcForm.npc_data);
+
+            //a delay is needed here, otherwise the dialogue wont open
+            session.scheduleInEventLoop(() -> {
+                session.sendUpstreamPacket(npcDialoguePacket);
+            }, 150, TimeUnit.MILLISECONDS);
+        } else {
+            ModalFormRequestPacket formRequestPacket = new ModalFormRequestPacket();
+            formRequestPacket.setFormId(formId);
+            formRequestPacket.setFormData(jsonData);
+            session.sendUpstreamPacket(formRequestPacket);
+
+            // Hack to fix the (url) image loading bug
+            if (form instanceof SimpleForm) {
+                // Two delays:
+                // First, 500ms, before we send the network stack latency packet
+                session.scheduleInEventLoop(() -> session.sendNetworkLatencyStackPacket(MAGIC_FORM_IMAGE_HACK_TIMESTAMP, false, () -> {
                     // Then, wait 500ms after we receive the response, then update attributes to get the image to show
                     session.scheduleInEventLoop(() -> {
                         // Hack to fix the url image loading bug
@@ -108,12 +158,28 @@ public class FormCache {
                         session.sendUpstreamPacket(attributesPacket);
                     }, 500, TimeUnit.MILLISECONDS);
                 }), 500, TimeUnit.MILLISECONDS);
+            }
         }
     }
 
     public void resendAllForms() {
         for (Int2ObjectMap.Entry<Form> entry : forms.int2ObjectEntrySet()) {
             sendForm(entry.getIntKey(), entry.getValue());
+        }
+    }
+
+    //Npc forms need to be handled differently
+    public void handleResponse(NpcRequestPacket response) {
+        Form form = forms.remove(Integer.parseInt(response.getSceneName()));
+        if (form == null) {
+            return;
+        }
+
+        try {
+            formDefinitions.definitionFor(form)
+                .handleFormResponse(form, ""+response.getActionType());
+        } catch (Exception e) {
+            GeyserImpl.getInstance().getLogger().error("Error while processing form response!", e);
         }
     }
 
@@ -137,7 +203,19 @@ public class FormCache {
             Int2ObjectMap<Form> copy = new Int2ObjectOpenHashMap<>(this.forms);
             this.forms.clear();
             // Now close it
-            session.sendUpstreamPacket(new ClientboundCloseFormPacket());
+            //Npc forms need to be handled differently
+            Form f = copy.get(0);
+            if (f instanceof NpcForm) {
+                NpcDialoguePacket packet = new NpcDialoguePacket();
+                packet.setNpcName("");
+                packet.setDialogue("");
+                packet.setSceneName("scene_name");
+                packet.setAction(NpcDialoguePacket.Action.CLOSE);
+                session.sendUpstreamPacket(packet);
+            } else {
+                session.sendUpstreamPacket(new ClientboundCloseFormPacket());
+            }
+
 
             for (Form form : copy.values()) {
                 try {
