@@ -24,7 +24,7 @@ dependencies {
     implementation(libs.cloud.fabric)
 }
 
-relocate("org.cloudburstmc.netty")
+relocate("io.github.sendablemetatype.netty")
 relocate("org.cloudburstmc.protocol")
 relocate("org.spongepowered.configurate")
 

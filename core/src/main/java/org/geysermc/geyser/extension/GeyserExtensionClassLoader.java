@@ -53,7 +53,9 @@ public class GeyserExtensionClassLoader extends URLClassLoader {
      * not bundle them still falls through to the Geyser copy.
      */
     private static final String[] CHILD_FIRST_CLASS_PREFIXES = {
-        "dev.kastle."
+        "dev.kastle.",
+        "io.github.sendablemetatype.netty.",
+        "io.github.sendablemetatype.webrtc."
     };
 
     /**
@@ -64,6 +66,8 @@ public class GeyserExtensionClassLoader extends URLClassLoader {
      */
     private static final String[] CHILD_FIRST_RESOURCE_PREFIXES = {
         "dev/kastle/",
+        "io/github/sendablemetatype/netty/",
+        "io/github/sendablemetatype/webrtc/",
         "libwebrtc-java-",
         "webrtc-java-"
     };

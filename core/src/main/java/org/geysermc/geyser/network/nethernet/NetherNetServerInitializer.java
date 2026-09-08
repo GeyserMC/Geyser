@@ -25,7 +25,7 @@
 
 package org.geysermc.geyser.network.nethernet;
 
-import dev.kastle.netty.channel.nethernet.codec.NetherNetFramingCodec;
+import io.github.sendablemetatype.netty.channel.nethernet.codec.NetherNetFramingCodec;
 import io.netty.channel.Channel;
 import io.netty.channel.DefaultEventLoopGroup;
 import io.netty.channel.group.ChannelGroup;

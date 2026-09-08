@@ -31,13 +31,13 @@ dependencies {
     // classifiers, so neither the natives nor (since shading them) the api
     // jar arrive on their own. Both must be explicit: the api jar shaded
     // flat, the natives shaded flat, or NetherNet dies at class load
-    // (NoClassDefFoundError: dev/kastle/webrtc/...) or native load.
-    shadowBundle("dev.kastle.webrtc:webrtc-java:${libs.versions.webrtc.java.get()}")
+    // (NoClassDefFoundError: io/github/sendablemetatype/webrtc/...) or native load.
+    shadowBundle("io.github.sendablemetatype.webrtc:webrtc-java:${libs.versions.webrtc.java.get()}")
     val webrtcNativePlatforms = (findProperty("webrtcNatives") as? String)
         ?.split(',')?.map { it.trim() }?.filter { it.isNotEmpty() }
-        ?: listOf("windows-x86_64", "windows-aarch64", "linux-x86_64", "linux-aarch64", "macos-x86_64", "macos-aarch64")
+        ?: listOf("windows-x86_64", "windows-aarch64", "linux-x86_64", "linux-aarch64", "linux-aarch32", "macos-x86_64", "macos-aarch64")
     webrtcNativePlatforms.forEach { platform ->
-        shadowBundle("dev.kastle.webrtc:webrtc-java:${libs.versions.webrtc.java.get()}:$platform")
+        shadowBundle("io.github.sendablemetatype.webrtc:webrtc-java:${libs.versions.webrtc.java.get()}:$platform")
     }
 
     // These are NOT transitively included, and instead shadowed (+ relocated, if not under the org.geyser namespace).
@@ -69,7 +69,7 @@ tasks.withType<Jar> {
     manifest.attributes["Main-Class"] = "org.geysermc.geyser.platform.fabric.GeyserFabricMain"
 }
 
-relocate("org.cloudburstmc.netty")
+relocate("io.github.sendablemetatype.netty")
 relocate("org.cloudburstmc.protocol")
 relocate("org.spongepowered.configurate")
 

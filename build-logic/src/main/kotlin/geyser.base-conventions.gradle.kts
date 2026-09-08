@@ -26,11 +26,7 @@ dependencies {
 }
 
 repositories {
-    // SendableMetatype webrtc-java fork builds (sendAsync, ICE selected
-    // candidate pair bridge), published as a maven layout git branch.
-    maven("https://raw.githubusercontent.com/SendableMetatype/webrtc-java/maven-repo/") {
-        content { includeGroup("dev.kastle.webrtc") }
-    }
+    // mavenLocal()
 
     mavenCentral()
 

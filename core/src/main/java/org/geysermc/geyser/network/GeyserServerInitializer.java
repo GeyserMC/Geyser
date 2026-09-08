@@ -30,7 +30,7 @@ import io.netty.channel.DefaultEventLoopGroup;
 import io.netty.util.concurrent.DefaultThreadFactory;
 import lombok.Getter;
 import org.checkerframework.checker.nullness.qual.NonNull;
-import org.cloudburstmc.netty.channel.raknet.config.RakChannelOption;
+import io.github.sendablemetatype.netty.channel.raknet.config.RakChannelOption;
 import org.cloudburstmc.protocol.bedrock.BedrockPeer;
 import org.cloudburstmc.protocol.bedrock.BedrockServerSession;
 import org.cloudburstmc.protocol.bedrock.netty.initializer.BedrockServerInitializer;

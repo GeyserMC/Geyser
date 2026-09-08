@@ -16,9 +16,9 @@ websocket = "1.5.1"
 protocol-connection = "623c4e4e"
 protocol-common = "623c4e4e"
 protocol-codec = "623c4e4e"
-raknet = "1.1.0.CR1-20260820.174333-6"
-nethernet = "b468b58104"
-webrtc-java = "1.0.4-edu.3"
+raknet = "1.0.0"
+nethernet = "1.0.0"
+webrtc-java = "0.17.0-sm.1"
 acme4j = "3.5.1"
 bouncycastle = "1.80"
 minecraftauth = "5.0.0"
@@ -148,9 +148,9 @@ gson-record-factory = { group = "com.github.Marcono1234", name = "gson-record-ty
 junit = { group = "org.junit.jupiter", name = "junit-jupiter", version.ref = "junit" }
 minecraftauth = { group = "net.raphimc", name = "MinecraftAuth", version.ref = "minecraftauth" }
 mcprotocollib = { group = "org.geysermc.mcprotocollib", name = "protocol", version.ref = "mcprotocollib" }
-raknet = { group = "org.cloudburstmc.netty", name = "netty-transport-raknet", version.ref = "raknet" }
-nethernet = { group = "com.github.SendableMetatype.NetworkCompatible", name = "netty-transport-nethernet", version.ref = "nethernet" }
-webrtc-java = { group = "dev.kastle.webrtc", name = "webrtc-java", version.ref = "webrtc-java" }
+raknet = { group = "io.github.sendablemetatype.netty", name = "netty-transport-raknet", version.ref = "raknet" }
+nethernet = { group = "io.github.sendablemetatype.netty", name = "netty-transport-nethernet", version.ref = "nethernet" }
+webrtc-java = { group = "io.github.sendablemetatype.webrtc", name = "webrtc-java", version.ref = "webrtc-java" }
 acme4j = { group = "org.shredzone.acme4j", name = "acme4j-client", version.ref = "acme4j" }
 bouncycastle-pkix = { group = "org.bouncycastle", name = "bcpkix-jdk18on", version.ref = "bouncycastle" }
 terminalconsoleappender = { group = "net.minecrell", name = "terminalconsoleappender", version.ref = "terminalconsoleappender" }

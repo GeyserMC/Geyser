@@ -26,7 +26,7 @@
 package org.geysermc.geyser.session;
 
 import com.google.gson.JsonObject;
-import dev.kastle.netty.channel.nethernet.NetherNetChannel;
+import io.github.sendablemetatype.netty.channel.nethernet.NetherNetChannel;
 import io.netty.channel.Channel;
 import io.netty.channel.EventLoop;
 import it.unimi.dsi.fastutil.Pair;
@@ -57,8 +57,8 @@ import org.cloudburstmc.math.vector.Vector2i;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtMap;
-import org.cloudburstmc.netty.channel.raknet.RakChildChannel;
-import org.cloudburstmc.netty.handler.codec.raknet.common.RakSessionCodec;
+import io.github.sendablemetatype.netty.channel.raknet.RakChildChannel;
+import io.github.sendablemetatype.netty.handler.codec.raknet.common.RakSessionCodec;
 import org.cloudburstmc.protocol.bedrock.BedrockDisconnectReasons;
 import org.cloudburstmc.protocol.bedrock.BedrockServerSession;
 import org.cloudburstmc.protocol.bedrock.data.Ability;

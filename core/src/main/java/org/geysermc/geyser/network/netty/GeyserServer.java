@@ -37,12 +37,12 @@ import io.netty.channel.uring.IoUring;
 import io.netty.util.concurrent.DefaultThreadFactory;
 import io.netty.util.concurrent.Future;
 import lombok.Getter;
-import org.cloudburstmc.netty.channel.raknet.RakChannelFactory;
-import org.cloudburstmc.netty.channel.raknet.config.DefaultRakServerThrottle;
-import org.cloudburstmc.netty.channel.raknet.config.RakChannelOption;
-import org.cloudburstmc.netty.channel.raknet.config.RakServerCookieMode;
-import org.cloudburstmc.netty.handler.codec.raknet.server.RakServerOfflineHandler;
-import org.cloudburstmc.netty.handler.codec.raknet.server.RakServerRateLimiter;
+import io.github.sendablemetatype.netty.channel.raknet.RakChannelFactory;
+import io.github.sendablemetatype.netty.channel.raknet.config.DefaultRakServerThrottle;
+import io.github.sendablemetatype.netty.channel.raknet.config.RakChannelOption;
+import io.github.sendablemetatype.netty.channel.raknet.config.RakServerCookieMode;
+import io.github.sendablemetatype.netty.handler.codec.raknet.server.RakServerOfflineHandler;
+import io.github.sendablemetatype.netty.handler.codec.raknet.server.RakServerRateLimiter;
 import org.cloudburstmc.protocol.bedrock.BedrockPong;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.event.connection.ConnectionRequestEvent;
@@ -71,8 +71,8 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 
-import static org.cloudburstmc.netty.channel.raknet.RakConstants.DEFAULT_GLOBAL_PACKET_LIMIT;
-import static org.cloudburstmc.netty.channel.raknet.RakConstants.DEFAULT_PACKET_LIMIT;
+import static io.github.sendablemetatype.netty.channel.raknet.RakConstants.DEFAULT_GLOBAL_PACKET_LIMIT;
+import static io.github.sendablemetatype.netty.channel.raknet.RakConstants.DEFAULT_PACKET_LIMIT;
 
 public final class GeyserServer {
     private static final boolean PRINT_DEBUG_PINGS = Boolean.parseBoolean(System.getProperty("Geyser.PrintPingsInDebugMode", "true"));

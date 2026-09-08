@@ -16,29 +16,28 @@ pluginManagement {
 
 rootProject.name = "geyser-parent"
 
-// Opt-in local development against the sibling NetworkCompatible checkout:
-// pass -PlocalNethernet to substitute the JitPack-pinned nethernet transport
-// with the local build. Normal and release builds keep using the pinned hash.
-if (extra.has("localNethernet")) {
-    val networkCompatible = file("../NetworkCompatible")
-    require(networkCompatible.isDirectory) {
-        "-PlocalNethernet was set but ${networkCompatible.absolutePath} does not exist"
+val localNetworkM = extra.has("localNetworkM") || extra.has("localRaknet") || extra.has("localNethernet")
+if (localNetworkM) {
+    val networkM = file(providers.gradleProperty("networkMDir").getOrElse("../NetworkM"))
+    require(networkM.resolve("settings.gradle.kts").isFile) {
+        "Local transport testing requires NetworkM at ${networkM.absolutePath}. " +
+            "Set -PnetworkMDir=/path/to/NetworkM to use another checkout."
     }
-    includeBuild(networkCompatible) {
+    includeBuild(networkM) {
         dependencySubstitution {
-            substitute(module("com.github.SendableMetatype.NetworkCompatible:netty-transport-nethernet"))
+            substitute(module("io.github.sendablemetatype.netty:netty-transport-raknet"))
+                .using(project(":transport-raknet"))
+            substitute(module("io.github.sendablemetatype.netty:netty-transport-nethernet"))
                 .using(project(":transport-nethernet"))
         }
     }
 }
 
-// Opt-in local development against the sibling CloudburstProtocol checkout:
-// pass -PlocalProtocol to substitute the JitPack-pinned protocol modules
-// with the local build. Normal and release builds keep using the pinned hash.
-if (extra.has("localProtocol")) {
+// The renamed transport packages require a matching Protocol build.
+if (extra.has("localProtocol") || localNetworkM) {
     val cloudburstProtocol = file("../CloudburstProtocol")
     require(cloudburstProtocol.isDirectory) {
-        "-PlocalProtocol was set but ${cloudburstProtocol.absolutePath} does not exist"
+        "Local Protocol sources are required at ${cloudburstProtocol.absolutePath}"
     }
     includeBuild(cloudburstProtocol) {
         dependencySubstitution {

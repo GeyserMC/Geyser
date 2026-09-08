@@ -34,7 +34,7 @@ import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.util.AttributeKey;
 import io.netty.util.internal.logging.InternalLogger;
 import io.netty.util.internal.logging.InternalLoggerFactory;
-import org.cloudburstmc.netty.channel.raknet.packet.RakMessage;
+import io.github.sendablemetatype.netty.channel.raknet.packet.RakMessage;
 
 import java.nio.charset.StandardCharsets;
 

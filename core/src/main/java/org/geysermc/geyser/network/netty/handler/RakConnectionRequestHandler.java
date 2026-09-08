@@ -33,14 +33,14 @@ import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.channel.socket.DatagramPacket;
 import lombok.RequiredArgsConstructor;
 import org.checkerframework.checker.nullness.qual.NonNull;
-import org.cloudburstmc.netty.channel.raknet.RakServerChannel;
-import org.cloudburstmc.netty.channel.raknet.config.RakChannelOption;
+import io.github.sendablemetatype.netty.channel.raknet.RakServerChannel;
+import io.github.sendablemetatype.netty.channel.raknet.config.RakChannelOption;
 import org.geysermc.geyser.network.netty.GeyserServer;
 
 import java.net.InetSocketAddress;
 
-import static org.cloudburstmc.netty.channel.raknet.RakConstants.ID_CONNECTION_BANNED;
-import static org.cloudburstmc.netty.channel.raknet.RakConstants.ID_OPEN_CONNECTION_REQUEST_1;
+import static io.github.sendablemetatype.netty.channel.raknet.RakConstants.ID_CONNECTION_BANNED;
+import static io.github.sendablemetatype.netty.channel.raknet.RakConstants.ID_OPEN_CONNECTION_REQUEST_1;
 
 @ChannelHandler.Sharable
 @RequiredArgsConstructor

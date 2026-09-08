@@ -11,7 +11,7 @@ dependencies {
 platformRelocate("net.kyori")
 platformRelocate("org.yaml")
 platformRelocate("it.unimi.dsi.fastutil")
-platformRelocate("org.cloudburstmc.netty")
+platformRelocate("io.github.sendablemetatype.netty")
 platformRelocate("org.bstats")
 platformRelocate("org.incendo")
 platformRelocate("io.leangen.geantyref") // provided by cloud and Configurate, should also be relocated

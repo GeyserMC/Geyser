@@ -29,10 +29,10 @@ import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import lombok.RequiredArgsConstructor;
-import org.cloudburstmc.netty.channel.raknet.RakPing;
-import org.cloudburstmc.netty.channel.raknet.RakPong;
-import org.cloudburstmc.netty.channel.raknet.RakServerChannel;
-import org.cloudburstmc.netty.channel.raknet.config.RakChannelOption;
+import io.github.sendablemetatype.netty.channel.raknet.RakPing;
+import io.github.sendablemetatype.netty.channel.raknet.RakPong;
+import io.github.sendablemetatype.netty.channel.raknet.RakServerChannel;
+import io.github.sendablemetatype.netty.channel.raknet.config.RakChannelOption;
 import org.geysermc.geyser.network.netty.GeyserServer;
 
 import java.net.InetSocketAddress;

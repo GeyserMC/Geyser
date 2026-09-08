@@ -25,13 +25,13 @@
 
 package org.geysermc.geyser.network.nethernet;
 
-import dev.kastle.netty.channel.nethernet.NetherNetAnswerDecorator;
-import dev.kastle.netty.channel.nethernet.NetherNetChannelFactory;
-import dev.kastle.netty.channel.nethernet.NetherNetServerStatus;
-import dev.kastle.netty.channel.nethernet.config.NetherChannelOption;
-import dev.kastle.netty.channel.nethernet.signaling.NetherNetHttpSignaling;
-import dev.kastle.netty.channel.nethernet.signaling.NetherNetXboxRpcSignaling;
-import dev.kastle.webrtc.PeerConnectionFactory;
+import io.github.sendablemetatype.netty.channel.nethernet.NetherNetAnswerDecorator;
+import io.github.sendablemetatype.netty.channel.nethernet.NetherNetChannelFactory;
+import io.github.sendablemetatype.netty.channel.nethernet.NetherNetServerStatus;
+import io.github.sendablemetatype.netty.channel.nethernet.config.NetherChannelOption;
+import io.github.sendablemetatype.netty.channel.nethernet.signaling.NetherNetHttpSignaling;
+import io.github.sendablemetatype.netty.channel.nethernet.signaling.NetherNetXboxRpcSignaling;
+import io.github.sendablemetatype.webrtc.PeerConnectionFactory;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
