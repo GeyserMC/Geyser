@@ -78,6 +78,8 @@ public class MessageTranslator {
     private static final String RESET = BASE + "r";
     private static final Pattern LOCALIZATION_PATTERN = Pattern.compile("%(?:(\\d+)\\$)?s");
 
+    private static final String ERROR_MESSAGE = "§cReport at Geyser";
+
     static {
         // Customize the formatting characters of our legacy serializer for bedrock edition
         List<CharacterAndFormat> formats = new ArrayList<>(CharacterAndFormat.defaults());
@@ -293,7 +295,12 @@ public class MessageTranslator {
      */
     public static String convertLegacyMessage(String message, String locale) {
         // Parse legacy message into component with LEGACY_JAVA_SERIALIZER, then convert component to bedrock string
-        return convertMessage(LEGACY_JAVA_SERIALIZER.deserialize(message), locale);
+        try {
+            Component deserialized = LEGACY_JAVA_SERIALIZER.deserialize(message);
+            return convertMessage(deserialized, locale);
+        } catch (RuntimeException exception) {
+            return ERROR_MESSAGE;
+        }
     }
 
     /**
@@ -345,7 +352,7 @@ public class MessageTranslator {
      * Shorthand for {@link MessageTranslator#convertLenientNbtMessage(GeyserSession, Object, String)}, uses {@code "Report at Geyser"} as fallback.
      */
     public static String convertLenientNbtMessage(GeyserSession session, @Nullable Object tag) {
-        return convertLenientNbtMessage(session, tag, "§cReport at Geyser");
+        return convertLenientNbtMessage(session, tag, ERROR_MESSAGE);
     }
 
     /**
@@ -492,7 +499,7 @@ public class MessageTranslator {
             return Collections.unmodifiableList(messages);
         } catch (RuntimeException exception) {
             GeyserImpl.getInstance().getLogger().debug("Failed to translate sign text from NBT tag: " + nbtTag, exception);
-            return List.of("§cReport at Geyser");
+            return List.of(ERROR_MESSAGE);
         }
     }
 
