@@ -62,9 +62,8 @@ runpaperversion = "26.2"
 runvelocityversion = "3.5.0-SNAPSHOT"
 
 [libraries]
-#todo swap these back after pr is done (for some reason base-api's cumulus has priority over this one)
-cumulus = { group = "org.geysermc.cumulus", name = "cumulus", version.ref = "cumulus" }
 base-api = { group = "org.geysermc.api", name = "base-api", version.ref = "base-api" }
+cumulus = { group = "org.geysermc.cumulus", name = "cumulus", version.ref = "cumulus" }
 events = { group = "org.geysermc.event", name = "events", version.ref = "events" }
 
 erosion-bukkit-common = { group = "org.geysermc.erosion", name = "bukkit-common", version.ref = "erosion" }

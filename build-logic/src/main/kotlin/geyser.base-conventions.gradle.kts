@@ -26,17 +26,12 @@ dependencies {
 }
 
 repositories {
-    mavenLocal()
+    // mavenLocal()
 
     mavenCentral()
 
     // Floodgate, Cumulus etc.
-    //maven("https://repo.opencollab.dev/main") //TODO reenable later
-    maven("https://repo.opencollab.dev/main") {
-        content {
-            excludeGroup("org.geysermc.cumulus")
-        }
-    }
+    maven("https://repo.opencollab.dev/main")
 
     // Paper, Velocity
     maven("https://repo.papermc.io/repository/maven-public")
