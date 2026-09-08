@@ -49,6 +49,7 @@ import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.util.JsonUtils;
 import org.geysermc.geyser.util.PluginMessageUtils;
 import org.java_websocket.client.WebSocketClient;
+import org.java_websocket.framing.CloseFrame;
 import org.java_websocket.handshake.ServerHandshake;
 
 public final class FloodgateSkinUploader {
@@ -78,6 +79,8 @@ public final class FloodgateSkinUploader {
      */
     @Getter private boolean allowSubscribers = false;
     private int subscribersCount;
+
+    private int protocolErrorCount = 0;
 
     public FloodgateSkinUploader(GeyserImpl geyser) {
         this.logger = geyser.getLogger();
@@ -179,6 +182,22 @@ public final class FloodgateSkinUploader {
             @Override
             public void onClose(int code, String reason, boolean remote) {
                 allowSubscribers = false;
+
+                // If we seem to get protocol errors quite a bit, try our alternative url.
+                // But if that one fails too for a few times, just revert back to our main url.
+                if (code == CloseFrame.PROTOCOL_ERROR) {
+                    boolean shouldSwitch = false;
+                    if (protocolErrorCount < 5) {
+                        shouldSwitch = ++protocolErrorCount == 5;
+                    }
+                    if (protocolErrorCount >= 5 && Constants.GLOBAL_API_WS_URI_ALT != null) {
+                        if (shouldSwitch) {
+                            uri = Constants.GLOBAL_API_WS_URI_ALT;
+                        } else if (++protocolErrorCount == 10) {
+                            uri = Constants.GLOBAL_API_WS_URI;
+                        }
+                    }
+                }
 
                 if (reason != null && !reason.isEmpty()) {
                     try {
