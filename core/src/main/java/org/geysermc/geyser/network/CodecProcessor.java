@@ -315,7 +315,6 @@ public class CodecProcessor {
             .updateSerializer(LabTablePacket.class, ILLEGAL_SERIALIZER)
             .updateSerializer(CodeBuilderSourcePacket.class, ILLEGAL_SERIALIZER)
             .updateSerializer(CreatePhotoPacket.class, ILLEGAL_SERIALIZER)
-            .updateSerializer(NpcRequestPacket.class, ILLEGAL_SERIALIZER)
             .updateSerializer(PhotoInfoRequestPacket.class, ILLEGAL_SERIALIZER)
             // Illegal unused serverbound packets that are deprecated
             .updateSerializer(ClientCheatAbilityPacket.class, ILLEGAL_SERIALIZER)

@@ -821,6 +821,9 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     @Setter
     private Map<String, byte[]> cookies = new Object2ObjectOpenHashMap<>();
 
+    @Setter
+    private long npcId;
+
     private final GeyserCameraData cameraData;
 
     private final GeyserEntityData entityData;
@@ -1954,22 +1957,6 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         return true;
     }
 
-    /**
-     * @deprecated since Cumulus version 1.1, and will be removed when Cumulus 2.0 releases. Please use the new forms instead.
-     */
-    @Deprecated
-    public void sendForm(org.geysermc.cumulus.Form<?> form) {
-        sendForm(form.newForm());
-    }
-
-    /**
-     * @deprecated since Cumulus version 1.1, and will be removed when Cumulus 2.0 releases. Please use the new forms instead.
-     */
-    @Deprecated
-    public void sendForm(org.geysermc.cumulus.util.FormBuilder<?, ?> formBuilder) {
-        sendForm(formBuilder.build());
-    }
-
     private void startGame() {
         this.upstream.getCodecHelper().setItemDefinitions(this.itemMappings);
         this.upstream.getCodecHelper().setBlockDefinitions(this.blockMappings);
@@ -2310,7 +2297,9 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         // Set command permission if OP permission level is high enough
         // This allows mobile players access to a GUI for doing commands. The commands there do not change above OPERATOR
         // and all commands there are accessible with OP permission level 2
-        CommandPermission commandPermission = opPermissionLevel >= 2 ? CommandPermission.GAME_DIRECTORS : CommandPermission.ANY;
+        // CommandPermission.GAME_DIRECTORS makes NPC dialogues open in edit mode
+        CommandPermission commandPermission = CommandPermission.ANY;
+        //CommandPermission commandPermission = opPermissionLevel >= 2 ? CommandPermission.GAME_DIRECTORS : CommandPermission.ANY;
         // Required to make command blocks destroyable
         PlayerPermission playerPermission = opPermissionLevel >= 2 ? PlayerPermission.OPERATOR : PlayerPermission.MEMBER;
 
