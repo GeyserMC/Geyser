@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2026 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2026 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,16 +23,24 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.network.netty;
+package org.geysermc.geyser.network.java;
 
-import org.geysermc.geyser.network.InvalidPacketHandler;
+import io.netty.channel.local.LocalChannel;
+import io.netty.channel.local.LocalServerChannel;
 
 /**
- * A wrapper for an {@link IllegalArgumentException} thrown for invalid packets only
- * Used in {@link InvalidPacketHandler} to identify the exception cause
+ * If the incoming channel if an instance of LocalChannelWithRemoteAddress, this server creates a LocalChannelWrapper
+ * for the other end and attaches the spoofed remote address
  */
-public class IllegalPacketException extends IllegalArgumentException {
-    public IllegalPacketException(String message) {
-        super(message);
+public class LocalServerChannelWrapper extends LocalServerChannel {
+    @Override
+    protected LocalChannel newLocalChannel(LocalChannel peer) {
+        // LocalChannel here should be an instance of LocalChannelWithRemoteAddress, which we can use to set the "remote address" on the other end
+        if (peer instanceof LocalChannelWithRemoteAddress) {
+            LocalChannelWrapper channel = new LocalChannelWrapper(this, peer);
+            channel.wrapper().remoteAddress(((LocalChannelWithRemoteAddress) peer).spoofedRemoteAddress());
+            return channel;
+        }
+        return super.newLocalChannel(peer);
     }
 }

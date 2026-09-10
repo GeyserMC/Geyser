@@ -36,7 +36,7 @@ import net.minecraft.gametest.framework.TestEnvironmentDefinition;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.network.GameProtocol;
+import org.geysermc.geyser.network.bedrock.GameProtocol;
 
 public class MinecraftVersionTestInstance extends GeyserTestInstance {
     public static final MapCodec<MinecraftVersionTestInstance> MAP_CODEC = RecordCodecBuilder.mapCodec(instance ->

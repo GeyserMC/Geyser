@@ -35,6 +35,9 @@ import org.cloudburstmc.protocol.bedrock.BedrockPeer;
 import org.cloudburstmc.protocol.bedrock.BedrockServerSession;
 import org.cloudburstmc.protocol.bedrock.netty.initializer.BedrockServerInitializer;
 import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.network.bedrock.GeyserBedrockPeer;
+import org.geysermc.geyser.network.bedrock.InvalidPacketHandler;
+import org.geysermc.geyser.network.bedrock.UpstreamPacketHandler;
 import org.geysermc.geyser.session.GeyserSession;
 
 public class GeyserServerInitializer extends BedrockServerInitializer {
