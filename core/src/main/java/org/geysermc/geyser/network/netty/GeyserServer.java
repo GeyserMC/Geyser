@@ -25,24 +25,9 @@
 
 package org.geysermc.geyser.network.netty;
 
-import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.Channel;
-import io.netty.channel.ChannelFuture;
-import io.netty.channel.ChannelFutureListener;
-import io.netty.channel.EventLoopGroup;
-import io.netty.channel.epoll.Epoll;
-import io.netty.channel.kqueue.KQueue;
-import io.netty.channel.socket.nio.NioDatagramChannel;
-import io.netty.channel.uring.IoUring;
-import io.netty.util.concurrent.DefaultThreadFactory;
-import io.netty.util.concurrent.Future;
 import lombok.Getter;
-import org.cloudburstmc.netty.channel.raknet.RakChannelFactory;
-import org.cloudburstmc.netty.channel.raknet.config.DefaultRakServerThrottle;
 import org.cloudburstmc.netty.channel.raknet.config.RakChannelOption;
-import org.cloudburstmc.netty.channel.raknet.config.RakServerCookieMode;
-import org.cloudburstmc.netty.handler.codec.raknet.server.RakServerOfflineHandler;
-import org.cloudburstmc.netty.handler.codec.raknet.server.RakServerRateLimiter;
 import org.cloudburstmc.protocol.bedrock.BedrockPong;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.event.connection.ConnectionRequestEvent;
@@ -51,16 +36,16 @@ import org.geysermc.geyser.configuration.GeyserConfig;
 import org.geysermc.geyser.event.type.GeyserBedrockPingEventImpl;
 import org.geysermc.geyser.network.CIDRMatcher;
 import org.geysermc.geyser.network.GameProtocol;
-import org.geysermc.geyser.network.GeyserServerInitializer;
-import org.geysermc.geyser.network.netty.handler.RakConnectionRequestHandler;
-import org.geysermc.geyser.network.netty.handler.RakPingHandler;
+import org.geysermc.geyser.network.GeyserSessionInitializer;
+import org.geysermc.geyser.network.netty.transport.GeyserBedrockTransport;
+import org.geysermc.geyser.network.netty.transport.GeyserDefineBedrockTransportsEvent;
+import org.geysermc.geyser.network.netty.transport.RakNetGeyserTransport;
 import org.geysermc.geyser.ping.GeyserPingInfo;
 import org.geysermc.geyser.ping.IGeyserPingPassthrough;
 import org.geysermc.geyser.skin.SkinProvider;
 import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.translator.text.MessageTranslator;
 import org.geysermc.geyser.util.WebUtils;
-import org.geysermc.mcprotocollib.network.helper.TransportHelper;
 
 import java.net.InetSocketAddress;
 import java.nio.charset.StandardCharsets;
@@ -68,11 +53,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.TimeUnit;
-import java.util.function.Supplier;
-
-import static org.cloudburstmc.netty.channel.raknet.RakConstants.DEFAULT_GLOBAL_PACKET_LIMIT;
-import static org.cloudburstmc.netty.channel.raknet.RakConstants.DEFAULT_PACKET_LIMIT;
 
 public final class GeyserServer {
     private static final boolean PRINT_DEBUG_PINGS = Boolean.parseBoolean(System.getProperty("Geyser.PrintPingsInDebugMode", "true"));
@@ -88,25 +68,18 @@ public final class GeyserServer {
      */
     private static final int MAGIC_RAKNET_LENGTH = 338;
 
-    // Let MCPL determine the transport type -> less code duplication and risk of ending up with 2 different types
-    private static final TransportHelper.TransportType TRANSPORT = TransportHelper.TRANSPORT_TYPE;
+    private final GeyserImpl geyser;
 
     /**
-     * See {@link EventLoopGroup#shutdownGracefully(long, long, TimeUnit)}
+     * Transport-agnostic session creation, shared across all bound transports.
      */
-    private static final int SHUTDOWN_QUIET_PERIOD_MS = 100;
-    private static final int SHUTDOWN_TIMEOUT_MS = 500;
+    @Getter
+    private final GeyserSessionInitializer sessionInitializer;
 
-    private final GeyserImpl geyser;
-    private EventLoopGroup group;
-    // Split childGroup may improve IO
-    private EventLoopGroup childGroup;
-    private final ServerBootstrap bootstrap;
-    private EventLoopGroup playerGroup;
-
-    private int listenCount;
-
-    private ChannelFuture[] bootstrapFutures;
+    /**
+     * The transports Geyser binds, as decided by {@link GeyserDefineBedrockTransportsEvent}.
+     */
+    private final List<GeyserBedrockTransport> transports = new ArrayList<>();
 
     // Keep track of connection attempts for dump info
     @Getter
@@ -119,119 +92,36 @@ public final class GeyserServer {
 
     public GeyserServer(GeyserImpl geyser, int threadCount) {
         this.geyser = geyser;
-        this.listenCount = Bootstraps.isReusePortAvailable() ?  Integer.getInteger("Geyser.ListenCount", 1) : 1;
-        GeyserImpl.getInstance().getLogger().debug("Listen thread count: " + listenCount);
-        this.group = TRANSPORT.eventLoopGroupFactory().apply(listenCount, new DefaultThreadFactory("GeyserServer", true));
-        this.childGroup = TRANSPORT.eventLoopGroupFactory().apply(threadCount, new DefaultThreadFactory("GeyserServerChild", true));
+        this.sessionInitializer = new GeyserSessionInitializer(geyser);
 
-        this.bootstrap = this.createBootstrap();
-        // setup SO_REUSEPORT if exists - or, if the option does not actually exist, reset listen count
-        // otherwise, we try to bind multiple times which wont work if so_reuseport is not valid
-        if (listenCount > 1 && !Bootstraps.setupBootstrap(this.bootstrap, TRANSPORT)) {
-            this.listenCount = 1;
+        this.transports.add(new RakNetGeyserTransport(geyser, threadCount, this.sessionInitializer));
+        geyser.eventBus().fire(new GeyserDefineBedrockTransportsEvent(this.transports));
+
+        if (this.transports.isEmpty()) {
+            geyser.getLogger().warning("No Bedrock transports registered; Geyser will not be reachable.");
         }
 
         this.broadcastPort = geyser.config().advanced().bedrock().broadcastPort();
     }
 
     public CompletableFuture<Void> bind(InetSocketAddress address) {
-        bootstrapFutures = new ChannelFuture[listenCount];
-        for (int i = 0; i < listenCount; i++) {
-            ChannelFuture future = bootstrap.bind(address);
-            modifyHandlers(future);
-            bootstrapFutures[i] = future;
+        List<CompletableFuture<Void>> futures = new ArrayList<>(this.transports.size());
+        for (GeyserBedrockTransport transport : this.transports) {
+            futures.add(transport.bind(this, address));
         }
-
-        return Bootstraps.allOf(bootstrapFutures);
-    }
-
-    private void modifyHandlers(ChannelFuture future) {
-        future.addListener((ChannelFutureListener) f -> {
-            if (!f.isSuccess()) {
-                GeyserImpl.getInstance().getLogger().warning("Not modifying handlers due to exception: " + f.cause());
-                return;
-            }
-
-            Channel channel = f.channel();
-            // Add our handlers
-            channel.pipeline()
-                .addBefore(RakServerOfflineHandler.NAME, RakConnectionRequestHandler.NAME, new RakConnectionRequestHandler(this))
-                .addAfter(RakServerOfflineHandler.NAME, RakPingHandler.NAME, new RakPingHandler(this));
-        });
+        return CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]));
     }
 
     public void shutdown() {
-        try {
-            Future<?> futureChildGroup = this.childGroup.shutdownGracefully(SHUTDOWN_QUIET_PERIOD_MS, SHUTDOWN_TIMEOUT_MS, TimeUnit.MILLISECONDS);
-            this.childGroup = null;
-            Future<?> futureGroup = this.group.shutdownGracefully(SHUTDOWN_QUIET_PERIOD_MS, SHUTDOWN_TIMEOUT_MS, TimeUnit.MILLISECONDS);
-            this.group = null;
-            Future<?> futurePlayerGroup = this.playerGroup.shutdownGracefully(SHUTDOWN_QUIET_PERIOD_MS, SHUTDOWN_TIMEOUT_MS, TimeUnit.MILLISECONDS);
-            this.playerGroup = null;
-
-            futureChildGroup.sync();
-            futureGroup.sync();
-            futurePlayerGroup.sync();
-
-            SkinProvider.shutdown();
-        } catch (InterruptedException e) {
-            GeyserImpl.getInstance().getLogger().severe("Exception in shutdown process", e);
-        }
-        for (ChannelFuture f : bootstrapFutures) {
-            f.channel().closeFuture().syncUninterruptibly();
-        }
-    }
-
-    @SuppressWarnings("Convert2MethodRef")
-    private ServerBootstrap createBootstrap() {
-        if (this.geyser.config().debugMode()) {
-            this.geyser.getLogger().debug("Transport type: " + TRANSPORT.method().name());
-            if (TRANSPORT.datagramChannelClass() == NioDatagramChannel.class) {
-                if (System.getProperties().contains("disableNativeEventLoop")) {
-                    this.geyser.getLogger().debug("EventLoop type is NIO because native event loops are disabled.");
-                } else {
-                    // Use lambda here, not method reference, or else NoClassDefFoundError for Epoll/KQueue will not be caught
-                    this.geyser.getLogger().debug("Reason for no Epoll: " + throwableOrCaught(() -> Epoll.unavailabilityCause()));
-                    this.geyser.getLogger().debug("Reason for no KQueue: " + throwableOrCaught(() -> KQueue.unavailabilityCause()));
-                    this.geyser.getLogger().debug("Reason for no IoUring: " + throwableOrCaught(() -> IoUring.unavailabilityCause()));
-                }
+        for (GeyserBedrockTransport transport : this.transports) {
+            try {
+                transport.shutdown();
+            } catch (Exception e) {
+                geyser.getLogger().severe("Exception while shutting down transport " + transport.id(), e);
             }
         }
-
-        this.geyser.getLogger().debug("Setting MTU to " + this.geyser.config().advanced().bedrock().mtu());
-
-        int rakPacketLimit = positivePropOrDefault("Geyser.RakPacketLimit", DEFAULT_PACKET_LIMIT);
-        this.geyser.getLogger().debug("Setting RakNet packet limit to " + rakPacketLimit);
-
-        int rakGlobalPacketLimit = positivePropOrDefault("Geyser.RakGlobalPacketLimit", DEFAULT_GLOBAL_PACKET_LIMIT);
-        this.geyser.getLogger().debug("Setting RakNet global packet limit to " + rakGlobalPacketLimit);
-
-        boolean rakSendCookie = Boolean.parseBoolean(System.getProperty("Geyser.RakSendCookie", "true"));
-        this.geyser.getLogger().debug("Setting RakNet send cookie to " + rakSendCookie);
-
-        int maxConnectionsPerAddress =  positivePropOrDefault("Geyser.MaxConnectionsPerAddress", 10);
-        this.geyser.getLogger().debug("Setting max connections per address to " + maxConnectionsPerAddress);
-
-        boolean rakRateLimitingDisabled = Boolean.parseBoolean(System.getProperty(
-            "Geyser.RakRateLimitingDisabled",
-            Boolean.toString(this.geyser.config().advanced().bedrock().useWaterdogpeForwarding())
-        ));
-        this.geyser.getLogger().debug("Disabling RakNet rate limiting " + rakRateLimitingDisabled);
-
-        GeyserServerInitializer serverInitializer = new GeyserServerInitializer(this.geyser, rakSendCookie);
-        playerGroup = serverInitializer.getEventLoopGroup();
-
-        return new ServerBootstrap()
-            .channelFactory(RakChannelFactory.server(TRANSPORT.datagramChannelClass()))
-            .group(group, childGroup)
-            .option(RakChannelOption.RAK_HANDLE_PING, true)
-            .option(RakChannelOption.RAK_MAX_MTU, this.geyser.config().advanced().bedrock().mtu())
-            .option(RakChannelOption.RAK_PACKET_LIMIT, rakRateLimitingDisabled ? 0 : rakPacketLimit)
-            .option(RakChannelOption.RAK_GLOBAL_PACKET_LIMIT, rakGlobalPacketLimit)
-            .option(RakChannelOption.RAK_SERVER_COOKIE_MODE, rakSendCookie ? RakServerCookieMode.ACTIVE : RakServerCookieMode.INVALID)
-            .option(RakChannelOption.RAK_PROXY_PROTOCOL, this.geyser.config().advanced().bedrock().useHaproxyProtocol())
-            .option(RakChannelOption.RAK_THROTTLE, rakRateLimitingDisabled ? null : new DefaultRakServerThrottle(maxConnectionsPerAddress, 4_000, 3))
-            .childHandler(serverInitializer);
+        this.sessionInitializer.getEventLoopGroup().shutdownGracefully();
+        SkinProvider.shutdown();
     }
 
     public boolean onConnectionRequest(InetSocketAddress inetSocketAddress, InetSocketAddress clientAddress) {
@@ -391,37 +281,5 @@ public final class GeyserServer {
             }
         }
         return Collections.unmodifiableList(matchers);
-    }
-
-    /**
-     * @return the throwable from the given supplier, or the throwable caught while calling the supplier.
-     */
-    private static Throwable throwableOrCaught(Supplier<Throwable> supplier) {
-        try {
-            return supplier.get();
-        } catch (Throwable throwable) {
-            return throwable;
-        }
-    }
-
-    private static int positivePropOrDefault(String property, int defaultValue) {
-        String value = System.getProperty(property);
-        try {
-            int parsed = value != null ? Integer.parseInt(value) : defaultValue;
-
-            if (parsed < 1) {
-                GeyserImpl.getInstance().getLogger().warning(
-                    "Non-postive integer value for " + property + ": " + value + ". Using default value: " + defaultValue
-                );
-                return defaultValue;
-            }
-
-            return parsed;
-        } catch (NumberFormatException e) {
-            GeyserImpl.getInstance().getLogger().warning(
-                "Invalid integer value for " + property + ": " + value + ". Using default value: " + defaultValue
-            );
-            return defaultValue;
-        }
     }
 }
