@@ -35,8 +35,8 @@ import org.geysermc.geyser.translator.collision.BlockCollision;
 import org.geysermc.geyser.translator.collision.CollisionRemapper;
 
 @EqualsAndHashCode(callSuper = true)
-@CollisionRemapper(regex = "glass_pane$|iron_bars$", usesParams = true, passDefaultBoxes = true)
-public class GlassPaneAndIronBarsCollision extends BlockCollision {
+@CollisionRemapper(regex = "glass_pane$|iron_bars$|copper_bars$", usesParams = true, passDefaultBoxes = true)
+public class GlassPaneAndBarsCollision extends BlockCollision {
     /**
      * 1 = north
      * 2 = east
@@ -49,7 +49,7 @@ public class GlassPaneAndIronBarsCollision extends BlockCollision {
      */
     private int facing;
 
-    public GlassPaneAndIronBarsCollision(BlockState state, BoundingBox[] defaultBoxes) {
+    public GlassPaneAndBarsCollision(BlockState state, BoundingBox[] defaultBoxes) {
         super(defaultBoxes);
         if (state.getValue(Properties.NORTH) && state.getValue(Properties.EAST)) {
             facing = 5;
