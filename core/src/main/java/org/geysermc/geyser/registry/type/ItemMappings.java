@@ -84,6 +84,7 @@ public class ItemMappings implements DefinitionRegistry<ItemDefinition> {
     IntSet nonVanillaCustomItemIds;
 
     Object2ObjectMap<CustomBlockData, ItemDefinition> customBlockItemDefinitions;
+    Int2ObjectMap<ItemMapping> customBlockModelItemMappings;
 
     /**
      * Gets an {@link ItemMapping} from the given {@link GeyserItemStack}.
@@ -160,6 +161,11 @@ public class ItemMappings implements DefinitionRegistry<ItemDefinition> {
         ItemMapping lightBlock = lightBlocks.get(definition.getRuntimeId());
         if (lightBlock != null) {
             return lightBlock;
+        }
+
+        ItemMapping customBlockModelItem = customBlockModelItemMappings.get(definition.getRuntimeId());
+        if (customBlockModelItem != null) {
+            return customBlockModelItem;
         }
 
         boolean isBlock = isValidBlockItem(data);
