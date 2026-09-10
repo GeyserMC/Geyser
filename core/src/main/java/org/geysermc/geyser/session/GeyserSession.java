@@ -326,6 +326,11 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     @Setter
     private TeleportCache unconfirmedTeleport;
 
+    /**
+     * When a pending bed click stops holding movement back. See {@link #isEnteringBed()}.
+     */
+    private long enteringBedUntil;
+
     @Setter
     private @Nullable Entity spectatedEntity;
 
@@ -2104,6 +2109,29 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
      */
     public int getNextItemNetId() {
         return itemNetId.getAndIncrement();
+    }
+
+    /**
+     * Records that we have asked the Java server to let the player sleep. The server moves the
+     * player onto the bed as soon as it accepts, but still measures any movement we forward
+     * against where they stood before. Forwarding anything before the bed metadata arrives
+     * trips the sleeping-movement check and gets the player bounced back out of the bed.
+     */
+    public void startEnteringBed() {
+        // Has to cover a full round trip to the Java server, which can be remote. A refused
+        // click sends no metadata back, so this also bounds how long it can hold movement.
+        this.enteringBedUntil = System.currentTimeMillis() + 1000L;
+    }
+
+    public void stopEnteringBed() {
+        this.enteringBedUntil = 0L;
+    }
+
+    /**
+     * @return whether a bed click is still waiting on the Java server's answer.
+     */
+    public boolean isEnteringBed() {
+        return System.currentTimeMillis() < this.enteringBedUntil;
     }
 
     public void confirmTeleport(Vector3f position) {
