@@ -138,6 +138,9 @@ public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommands
         Set<String> knownAliases = new HashSet<>();
         Map<BedrockCommandInfo, Set<String>> commands = new Object2ObjectOpenCustomHashMap<>(PARAM_STRATEGY);
         Int2ObjectMap<List<CommandNode>> commandArgs = new Int2ObjectOpenHashMap<>();
+        // One namespace of soft enum names per packet: identical value sets share a name so command
+        // aliases still deduplicate, while distinct sets are guaranteed distinct names
+        Map<String, String> softEnumNames = new HashMap<>();
 
         // Get the first node, it should be a root node
         CommandNode rootNode = nodes[packet.getFirstNodeIndex()];
@@ -159,7 +162,7 @@ public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommands
             }
 
             // Get and parse all params
-            CommandOverloadData[] params = getParams(session, nodes[nodeIndex], nodes);
+            CommandOverloadData[] params = getParams(session, nodes[nodeIndex], nodes, softEnumNames);
 
             // Insert the alias name into the command list
             String name = node.getName().toLowerCase(Locale.ROOT);
@@ -261,7 +264,7 @@ public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommands
      * @param allNodes    Every command node
      * @return An array of parameter option arrays
      */
-    private static CommandOverloadData[] getParams(GeyserSession session, CommandNode commandNode, CommandNode[] allNodes) {
+    private static CommandOverloadData[] getParams(GeyserSession session, CommandNode commandNode, CommandNode[] allNodes, Map<String, String> softEnumNames) {
         // Check if the command is an alias and redirect it
         if (commandNode.getRedirectIndex().isPresent()) {
             int redirectIndex = commandNode.getRedirectIndex().getAsInt();
@@ -272,7 +275,7 @@ public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommands
         if (commandNode.getChildIndices().length >= 1) {
             // Create the root param node and build all the children
             ParamInfo rootParam = new ParamInfo(commandNode, null);
-            rootParam.buildChildren(new CommandBuilderContext(session), allNodes);
+            rootParam.buildChildren(new CommandBuilderContext(session, softEnumNames), allNodes);
 
             List<CommandOverloadData> treeData = rootParam.getTree();
 
@@ -349,6 +352,7 @@ public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommands
     @MonotonicNonNull
     private static class CommandBuilderContext {
         private final GeyserSession session;
+        private final Map<String, String> softEnumNames;
         private Object biomesWithTags;
         private Object biomesNoTags;
         private String[] enchantments;
@@ -356,8 +360,9 @@ public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommands
         private String[] itemNames;
         private CommandEnumData teams;
 
-        CommandBuilderContext(GeyserSession session) {
+        CommandBuilderContext(GeyserSession session, Map<String, String> softEnumNames) {
             this.session = session;
+            this.softEnumNames = softEnumNames;
         }
 
         private Object getBiomes() {
@@ -459,7 +464,11 @@ public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommands
                             values.put(paramNode.getName(), Set.of());
 
                             // Re-create the command using the updated values
-                            CommandEnumData enumData = new CommandEnumData(enumParamInfo.getParamData().getEnumData().getName(), values, false);
+                            boolean soft = enumParamInfo.getParamData().getEnumData().isSoft() || needsSoftEnum(paramNode.getName());
+                            String enumName = soft
+                                ? softEnumName(context, enumParamInfo.getParamData().getName(), values)
+                                : enumParamInfo.getParamData().getEnumData().getName();
+                            CommandEnumData enumData = new CommandEnumData(enumName, values, soft);
                             CommandParamData commandParamData = new CommandParamData();
                             commandParamData.setName(enumParamInfo.getParamData().getName());
                             commandParamData.setOptional(this.paramNode.isExecutable());
@@ -474,7 +483,9 @@ public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommands
                         // Create a new subcommand with this exact type
                         LinkedHashMap<String, Set<CommandEnumConstraint>> map = new LinkedHashMap<>();
                         map.put(paramNode.getName(), Set.of());
-                        CommandEnumData enumData = new CommandEnumData(paramNode.getName(), map, false);
+                        boolean soft = needsSoftEnum(paramNode.getName());
+                        CommandEnumData enumData = new CommandEnumData(
+                            soft ? softEnumName(context, paramNode.getName(), map) : paramNode.getName(), map, soft);
 
                         // On setting optional:
                         // isExecutable is defined as a node "constitutes a valid command."
@@ -532,6 +543,26 @@ public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommands
         /**
          * Mitigates <a href="https://github.com/GeyserMC/Geyser/issues/3411">issue 3411</a>. Not a perfect solution.
          */
+        /**
+         * Bedrock rejects fixed enum values that are not lowercase ("Keywords in commands need to be
+         * lower case"), while soft enum values keep their case. Brigadier literals are case-sensitive,
+         * so the exact spelling has to survive the round trip. Vanilla BDS uses the same split.
+         */
+        private static boolean needsSoftEnum(String literal) {
+            return !literal.equals(literal.toLowerCase(Locale.ROOT));
+        }
+
+        /**
+         * Soft enums are registered globally by name on the client, while hard enum groups elsewhere
+         * may reuse the same first-literal name. Interning the name by the exact value set keeps it
+         * identical across command aliases, so they still deduplicate, and gives every distinct set
+         * its own name. The client only displays the values.
+         */
+        private static String softEnumName(CommandBuilderContext context, String literal, Map<String, Set<CommandEnumConstraint>> values) {
+            String signature = String.join(" ", new TreeSet<>(values.keySet()));
+            return context.softEnumNames.computeIfAbsent(signature, key -> literal + "_" + context.softEnumNames.size());
+        }
+
         private static String getEnumDataName(CommandNode node) {
             if (node.getProperties() instanceof ResourceProperties properties) {
                 Key registryKey = properties.getRegistryKey();
