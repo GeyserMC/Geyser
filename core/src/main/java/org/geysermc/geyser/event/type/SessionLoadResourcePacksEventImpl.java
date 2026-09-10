@@ -167,6 +167,11 @@ public class SessionLoadResourcePacksEventImpl extends SessionLoadResourcePacksE
         return packs.remove(uuid) != null;
     }
 
+    public void unregisterAll() {
+        sessionPackOptionOverrides.clear();
+        packs.clear();
+    }
+
     @Override
     public void allowVibrantVisuals(boolean enabled) {
         session.setAllowVibrantVisuals(enabled);
