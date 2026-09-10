@@ -130,7 +130,10 @@ public class JavaMerchantOffersTranslator extends PacketTranslator<ClientboundMe
             recipe.putInt("tier", packet.getVillagerLevel() > 0 ? packet.getVillagerLevel() - 1 : 0); // -1 crashes client
             recipe.put("buyA", getItemTag(session, toItemStack(trade.getItemCostA()), trade.getSpecialPriceDiff(), trade.getDemand(), trade.getPriceMultiplier()));
             recipe.put("buyB", getItemTag(session, toItemStack(trade.getItemCostB())));
-            recipe.putInt("uses", trade.getUses());
+            recipe.putInt("uses", Math.max(trade.getUses(),
+                    // Limit the total uses to within the max integer value
+                    // to avoid have no response when trading using touch or the Shift key by client bug since v1.21.30
+                    trade.getMaxUses() - Integer.MAX_VALUE));
             recipe.putByte("rewardExp", (byte) 1);
             tags.add(recipe.build());
         }
