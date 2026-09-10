@@ -2700,6 +2700,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
             return 0;
         }
 
+        // TODO fixme
         RakSessionCodec rakSessionCodec = ((RakChildChannel) getUpstream().getSession().getPeer().getChannel()).rakPipeline().get(RakSessionCodec.class);
         return (int) Math.floor(rakSessionCodec.getPing());
     }

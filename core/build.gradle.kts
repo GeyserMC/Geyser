@@ -55,9 +55,23 @@ dependencies {
         exclude("io.netty", "*")
     }
 
+    implementation(libs.nethernet.transport) {
+        exclude("io.netty", "*")
+    }
+    implementation(libs.nethernet.signalling) {
+        exclude("io.netty", "*")
+    }
+    // Needed for signalling
+    implementation(libs.netty.codec.http)
+    // Java bindings only, from libs/; no WebRTC natives are bundled yet
+    implementation(libs.libdatachannel)
+    // Host-owned DTLS certificates and the inbuilt signalling identity
+    implementation(libs.bouncycastle.pkix)
+    implementation(libs.bouncycastle.prov)
 
     // Network dependencies we are updating ourselves
     api(libs.netty.handler)
+    // TODO how do we handle this :=)
     implementation(libs.netty.codec.haproxy)
 
     api(libs.netty.transport.native.epoll) { artifact { classifier = "linux-x86_64" } }

@@ -83,8 +83,9 @@ import org.geysermc.geyser.extension.GeyserExtensionManager;
 import org.geysermc.geyser.impl.MinecraftVersionImpl;
 import org.geysermc.geyser.level.BedrockDimension;
 import org.geysermc.geyser.level.WorldManager;
+import org.geysermc.geyser.network.RaknetServer;
 import org.geysermc.geyser.network.bedrock.GameProtocol;
-import org.geysermc.geyser.network.GeyserServer;
+import org.geysermc.geyser.network.bedrock.nethernet.NetherNetServer;
 import org.geysermc.geyser.ping.GeyserLegacyPingPassthrough;
 import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.registry.Registries;
@@ -174,7 +175,8 @@ public class GeyserImpl implements GeyserApi, EventRegistrar {
 
     private ScoreboardUpdater scoreboardUpdater;
 
-    private GeyserServer geyserServer;
+    private RaknetServer geyserServer;
+    private NetherNetServer netherNetServer;
     private final GeyserBootstrap bootstrap;
 
     private final GeyserEventBus eventBus;
@@ -480,7 +482,7 @@ public class GeyserImpl implements GeyserApi, EventRegistrar {
             bedrockThreadCount = Math.max(1, SystemPropertyUtil.getInt("io.netty.eventLoopThreads", NettyRuntime.availableProcessors() * 2));
         }
 
-        this.geyserServer = new GeyserServer(this, bedrockThreadCount);
+        this.geyserServer = new RaknetServer(this, bedrockThreadCount);
         this.geyserServer.bind(new InetSocketAddress(config.bedrock().address(), config.bedrock().port()))
             .whenComplete((avoid, throwable) -> {
                 String address = config.bedrock().address();
@@ -501,6 +503,9 @@ public class GeyserImpl implements GeyserApi, EventRegistrar {
                     }
                 }
             }).join();
+
+        this.netherNetServer = new NetherNetServer(this);
+        this.netherNetServer.start();
 
         if (config.java().authType() == AuthType.FLOODGATE) {
             try {
@@ -603,7 +608,8 @@ public class GeyserImpl implements GeyserApi, EventRegistrar {
         runIfNonNull(metrics, MetricsBase::shutdown);
         runIfNonNull(scheduledThread, ScheduledExecutorService::shutdown);
         runIfNonNull(scoreboardUpdater, ScoreboardUpdater::shutdown);
-        runIfNonNull(geyserServer, GeyserServer::shutdown);
+        runIfNonNull(netherNetServer, NetherNetServer::shutdown);
+        runIfNonNull(geyserServer, RaknetServer::shutdown);
         runIfNonNull(skinUploader, FloodgateSkinUploader::close);
         runIfNonNull(newsHandler, NewsHandler::shutdown);
         runIfNonNull(erosionUnixListener, UnixSocketClientListener::close);

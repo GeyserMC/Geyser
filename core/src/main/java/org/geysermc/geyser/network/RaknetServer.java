@@ -71,7 +71,7 @@ import java.util.function.Supplier;
 import static org.cloudburstmc.netty.channel.raknet.RakConstants.DEFAULT_GLOBAL_PACKET_LIMIT;
 import static org.cloudburstmc.netty.channel.raknet.RakConstants.DEFAULT_PACKET_LIMIT;
 
-public final class GeyserServer {
+public final class RaknetServer {
     private static final boolean PRINT_DEBUG_PINGS = Boolean.parseBoolean(System.getProperty("Geyser.PrintPingsInDebugMode", "true"));
 
     /*
@@ -114,7 +114,7 @@ public final class GeyserServer {
      */
     private final int broadcastPort;
 
-    public GeyserServer(GeyserImpl geyser, int threadCount) {
+    public RaknetServer(GeyserImpl geyser, int threadCount) {
         this.geyser = geyser;
         this.listenCount = Bootstraps.isReusePortAvailable() ?  Integer.getInteger("Geyser.ListenCount", 1) : 1;
         GeyserImpl.getInstance().getLogger().debug("Listen thread count: " + listenCount);
@@ -266,7 +266,7 @@ public final class GeyserServer {
         return true;
     }
 
-    public BedrockPong onQuery(Channel channel, InetSocketAddress inetSocketAddress) {
+    public BedrockPong onQuery(long rakGuid, InetSocketAddress inetSocketAddress) {
         if (geyser.config().debugMode() && PRINT_DEBUG_PINGS) {
             String ip = geyser.config().logPlayerIpAddresses() ? inetSocketAddress.toString() : "<IP address withheld>";
             geyser.getLogger().debug(GeyserLocale.getLocaleStringLog("geyser.network.pinged", ip));
@@ -290,7 +290,7 @@ public final class GeyserServer {
                 .version(PING_VERSION)
                 .ipv4Port(this.broadcastPort)
                 .ipv6Port(this.broadcastPort)
-                .serverId(channel.config().getOption(RakChannelOption.RAK_GUID));
+                .serverId(rakGuid);
 
         if (config.motd().passthroughMotd() && pingInfo != null && pingInfo.getDescription() != null) {
             String[] motd = MessageTranslator.convertToPlainTextLenient(pingInfo.getDescription(), GeyserLocale.getDefaultLocale()).split("\n");
