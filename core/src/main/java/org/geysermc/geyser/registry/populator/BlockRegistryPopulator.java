@@ -304,7 +304,7 @@ public final class BlockRegistryPopulator {
                     netherPortalBlockDefinition = bedrockDefinition;
                 }
 
-                if (block == Blocks.BAMBOO || block == Blocks.POINTED_DRIPSTONE) {
+                if (block == Blocks.POINTED_DRIPSTONE) {
                     collisionIgnoredBlocks.add(javaRuntimeId);
                 }
 
