@@ -135,6 +135,9 @@ public class ConfigLoaderTest {
         assertEquals(19122, config.bedrock().port());
         assertTrue(config.bedrock().cloneRemotePort());
 
+        // Verify NetherNet signalling inherits the Bedrock port
+        assertEquals(19122, config.signalling().port());
+
         // Verify Java section (was remote)
         assertEquals(configClass == GeyserRemoteConfig.class ? "test.geysermc.org" : null, config.java().address());
         assertEquals(configClass == GeyserRemoteConfig.class ? 25564 : 0, config.java().port());

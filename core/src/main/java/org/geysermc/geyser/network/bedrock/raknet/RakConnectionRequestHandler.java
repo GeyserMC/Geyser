@@ -35,7 +35,7 @@ import lombok.RequiredArgsConstructor;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.cloudburstmc.netty.channel.raknet.RakServerChannel;
 import org.cloudburstmc.netty.channel.raknet.config.RakChannelOption;
-import org.geysermc.geyser.network.GeyserServer;
+import org.geysermc.geyser.network.RaknetServer;
 
 import java.net.InetSocketAddress;
 
@@ -47,7 +47,7 @@ import static org.cloudburstmc.netty.channel.raknet.RakConstants.ID_OPEN_CONNECT
 public class RakConnectionRequestHandler extends ChannelInboundHandlerAdapter {
     public static final String NAME = "rak-connection-request-handler";
 
-    private final GeyserServer server;
+    private final RaknetServer server;
 
     @Override
     public void channelRead(@NonNull ChannelHandlerContext ctx, @NonNull Object msg) {

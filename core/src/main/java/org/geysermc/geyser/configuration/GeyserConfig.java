@@ -45,12 +45,18 @@ import org.spongepowered.configurate.objectmapping.meta.Comment;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @ConfigSerializable
 public interface GeyserConfig {
     @Comment("Network settings for the Bedrock listener")
     BedrockConfig bedrock();
+
+    @Comment("""
+            Signalling settings. Signalling is the step that lets Bedrock players connect over WebRTC, found through signalling,
+            alongside the RakNet (UDP) listener configured above. Changes require a restart.""")
+    SignallingConfig signalling();
 
     @Comment("Network settings for the Java server connection")
     JavaConfig java();
@@ -210,6 +216,63 @@ public interface GeyserConfig {
         @Exclude
         default boolean resolveSrv() {
             return false;
+        }
+    }
+
+    @ConfigSerializable
+    interface SignallingConfig {
+        @Comment("""
+            Configures where signalling should be:
+            "builtin" runs local HTTP signalling over TCP on the Bedrock address and the port below,
+            "nxs" registers with the external NXS provider configured below, "hybrid" runs both, and "none" disables Signalling entirely.""")
+        default Mode mode() {
+            return Mode.BUILTIN;
+        }
+
+        @Comment("""
+            The TCP port that inbuilt signalling listens on. This must not be the Java server's port.
+            Only used when mode is "builtin", or "hybrid".""")
+        @DefaultNumeric(19132)
+        @NumericRange(from = 1, to = 65535)
+        int port();
+
+        @Comment("Settings for the external NXS signalling provider. Only used in the \"nxs\" and \"hybrid\" modes.")
+        NxsConfig nxs();
+
+        enum Mode {
+            BUILTIN,
+            NXS,
+            HYBRID,
+            NONE;
+
+            public boolean builtin() {
+                return this == BUILTIN || this == HYBRID;
+            }
+
+            public boolean nxs() {
+                return this == NXS || this == HYBRID;
+            }
+        }
+
+        @ConfigSerializable
+        interface NxsConfig {
+            @Comment("Additional reachable UDP endpoints, e.g. 198.51.100.1:19133 or [2001:db8::1]:19133. Configure forwarding separately.")
+            default List<String> advertiseAddresses() {
+                return List.of();
+            }
+
+            @Comment("Bearer token or file:/path/to/token. Empty uses anonymous registration.")
+            @DefaultString()
+            String token();
+
+            @Comment("NXS provider origin used for discovery and registration.")
+            @DefaultString("https://agent.warden.cloud")
+            String endpoint();
+
+            @Comment("Instance metadata, such as region or pool select placement. Other keys are registration tags.")
+            default Map<String, String> data() {
+                return Map.of();
+            }
         }
     }
 

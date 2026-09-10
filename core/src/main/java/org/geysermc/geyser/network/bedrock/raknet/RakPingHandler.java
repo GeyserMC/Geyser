@@ -33,7 +33,7 @@ import org.cloudburstmc.netty.channel.raknet.RakPing;
 import org.cloudburstmc.netty.channel.raknet.RakPong;
 import org.cloudburstmc.netty.channel.raknet.RakServerChannel;
 import org.cloudburstmc.netty.channel.raknet.config.RakChannelOption;
-import org.geysermc.geyser.network.GeyserServer;
+import org.geysermc.geyser.network.RaknetServer;
 
 import java.net.InetSocketAddress;
 
@@ -42,7 +42,7 @@ import java.net.InetSocketAddress;
 public class RakPingHandler extends SimpleChannelInboundHandler<RakPing> {
     public static final String NAME = "rak-ping-handler";
 
-    private final GeyserServer server;
+    private final RaknetServer server;
 
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, RakPing msg) {
@@ -50,7 +50,7 @@ public class RakPingHandler extends SimpleChannelInboundHandler<RakPing> {
 
         InetSocketAddress address = msg.getSender();
         InetSocketAddress clientAddress = ((RakServerChannel) ctx.channel()).getClientAddress(address);
-        RakPong pong = msg.reply(guid, this.server.onQuery(ctx.channel(), clientAddress).toByteBuf());
+        RakPong pong = msg.reply(guid, this.server.onQuery(guid, clientAddress).toByteBuf());
         ctx.writeAndFlush(pong);
     }
 }

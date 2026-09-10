@@ -17,6 +17,12 @@ protocol-connection = "3.0.0.Beta13-20260828.182244-20"
 protocol-common = "3.0.0.Beta13-20260828.182244-20"
 protocol-codec = "3.0.0.Beta13-20260828.182244-20"
 raknet = "1.1.0.CR1-20260820.174333-6"
+# NetherNet modules are substituted by the NetworkCompatible composite build, see settings.gradle.kts
+nethernet-transport = "1.8.0"
+nethernet-signalling = "1.1.0.CR1-SNAPSHOT"
+libdatachannel = "0.24.5.0-dev.deace2e216345ea851a930083b2b0246cc5008bd" # Local build of teamziax/libdatachannel-java (nxs-dev) in libs/
+bouncycastle-pkix = "1.85"
+bouncycastle-prov = "1.85.2"
 minecraftauth = "5.0.0"
 mcprotocollib = "26.2-20260824.124638-17"
 adventure = "5.2.0"
@@ -93,6 +99,7 @@ adventure-text-serializer-legacy = { group = "net.kyori", name = "adventure-text
 adventure-text-serializer-plain = { group = "net.kyori", name = "adventure-text-serializer-plain", version.ref = "adventure" }
 
 netty-codec-haproxy = { group = "io.netty", name = "netty-codec-haproxy", version.ref = "netty" }
+netty-codec-http = { group = "io.netty", name = "netty-codec-http", version.ref = "netty" }
 netty-handler = { group = "io.netty", name = "netty-handler", version.ref = "netty" }
 netty-transport-native-epoll = { group = "io.netty", name = "netty-transport-native-epoll", version.ref = "netty" }
 netty-transport-native-kqueue = { group = "io.netty", name = "netty-transport-native-kqueue", version.ref = "netty" }
@@ -144,6 +151,11 @@ junit = { group = "org.junit.jupiter", name = "junit-jupiter", version.ref = "ju
 minecraftauth = { group = "net.raphimc", name = "MinecraftAuth", version.ref = "minecraftauth" }
 mcprotocollib = { group = "org.geysermc.mcprotocollib", name = "protocol", version.ref = "mcprotocollib" }
 raknet = { group = "org.cloudburstmc.netty", name = "netty-transport-raknet", version.ref = "raknet" }
+nethernet-transport = { group = "org.cloudburstmc.netty", name = "netty-transport-nethernet", version.ref = "nethernet-transport" }
+nethernet-signalling = { group = "org.cloudburstmc.netty", name = "netty-external-signalling", version.ref = "nethernet-signalling" }
+libdatachannel = { group = "io.github.teamziax", name = "libdatachannel-java", version.ref = "libdatachannel" }
+bouncycastle-pkix = { group = "org.bouncycastle", name = "bcpkix-jdk18on", version.ref = "bouncycastle-pkix" }
+bouncycastle-prov = { group = "org.bouncycastle", name = "bcprov-jdk18on", version.ref = "bouncycastle-prov" }
 terminalconsoleappender = { group = "net.minecrell", name = "terminalconsoleappender", version.ref = "terminalconsoleappender" }
 velocity-proxy = { group = "com.velocitypowered", name = "velocity-proxy", version.ref = "velocity" }
 velocity-api = { group = "com.velocitypowered", name = "velocity-api", version.ref = "velocity" }
