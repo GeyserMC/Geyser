@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2023 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2026 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,7 +23,7 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.network.netty.handler;
+package org.geysermc.geyser.network.bedrock.raknet;
 
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
@@ -33,7 +33,7 @@ import org.cloudburstmc.netty.channel.raknet.RakPing;
 import org.cloudburstmc.netty.channel.raknet.RakPong;
 import org.cloudburstmc.netty.channel.raknet.RakServerChannel;
 import org.cloudburstmc.netty.channel.raknet.config.RakChannelOption;
-import org.geysermc.geyser.network.netty.GeyserServer;
+import org.geysermc.geyser.network.GeyserServer;
 
 import java.net.InetSocketAddress;
 

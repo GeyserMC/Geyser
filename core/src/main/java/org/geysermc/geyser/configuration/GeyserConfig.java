@@ -31,7 +31,7 @@ import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.network.AuthType;
 import org.geysermc.geyser.api.network.BedrockListener;
 import org.geysermc.geyser.api.network.RemoteServer;
-import org.geysermc.geyser.network.GameProtocol;
+import org.geysermc.geyser.network.bedrock.GameProtocol;
 import org.geysermc.geyser.text.AsteriskSerializer;
 import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.util.CooldownUtils;

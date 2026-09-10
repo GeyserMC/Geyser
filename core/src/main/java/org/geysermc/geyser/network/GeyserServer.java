@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2026 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,7 +23,7 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.network.netty;
+package org.geysermc.geyser.network;
 
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.Channel;
@@ -42,18 +42,15 @@ import org.cloudburstmc.netty.channel.raknet.config.DefaultRakServerThrottle;
 import org.cloudburstmc.netty.channel.raknet.config.RakChannelOption;
 import org.cloudburstmc.netty.channel.raknet.config.RakServerCookieMode;
 import org.cloudburstmc.netty.handler.codec.raknet.server.RakServerOfflineHandler;
-import org.cloudburstmc.netty.handler.codec.raknet.server.RakServerRateLimiter;
 import org.cloudburstmc.protocol.bedrock.BedrockPong;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.event.connection.ConnectionRequestEvent;
 import org.geysermc.geyser.command.defaults.ConnectionTestCommand;
 import org.geysermc.geyser.configuration.GeyserConfig;
 import org.geysermc.geyser.event.type.GeyserBedrockPingEventImpl;
-import org.geysermc.geyser.network.CIDRMatcher;
-import org.geysermc.geyser.network.GameProtocol;
-import org.geysermc.geyser.network.GeyserServerInitializer;
-import org.geysermc.geyser.network.netty.handler.RakConnectionRequestHandler;
-import org.geysermc.geyser.network.netty.handler.RakPingHandler;
+import org.geysermc.geyser.network.bedrock.GameProtocol;
+import org.geysermc.geyser.network.bedrock.raknet.RakConnectionRequestHandler;
+import org.geysermc.geyser.network.bedrock.raknet.RakPingHandler;
 import org.geysermc.geyser.ping.GeyserPingInfo;
 import org.geysermc.geyser.ping.IGeyserPingPassthrough;
 import org.geysermc.geyser.skin.SkinProvider;

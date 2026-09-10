@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2026 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,7 +23,7 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.network;
+package org.geysermc.geyser.network.bedrock;
 
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
@@ -34,9 +34,6 @@ import org.cloudburstmc.protocol.bedrock.codec.v2168.Bedrock_v2168;
 import org.cloudburstmc.protocol.bedrock.codec.v2168.Bedrock_v2168_hotfix4;
 import org.cloudburstmc.protocol.bedrock.codec.v2169.Bedrock_v2169;
 import org.cloudburstmc.protocol.bedrock.codec.v2192.Bedrock_v2192;
-import org.cloudburstmc.protocol.bedrock.codec.v924.Bedrock_v924;
-import org.cloudburstmc.protocol.bedrock.codec.v944.Bedrock_v944;
-import org.cloudburstmc.protocol.bedrock.codec.v975.Bedrock_v975;
 import org.cloudburstmc.protocol.bedrock.netty.codec.packet.BedrockPacketCodec;
 import org.geysermc.geyser.api.util.MinecraftVersion;
 import org.geysermc.geyser.impl.MinecraftVersionImpl;

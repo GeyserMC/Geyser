@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2023 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2026 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,27 +23,23 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.network;
+package org.geysermc.geyser.network.java;
 
-import io.netty.channel.Channel;
-import org.cloudburstmc.protocol.bedrock.BedrockPeer;
-import org.cloudburstmc.protocol.bedrock.BedrockSessionFactory;
+import io.netty.channel.local.LocalChannel;
 
 import java.net.SocketAddress;
 
-public class GeyserBedrockPeer extends BedrockPeer {
-    private SocketAddress proxiedAddress;
+/**
+ * Client -> server storing the spoofed remote address.
+ */
+public class LocalChannelWithRemoteAddress extends LocalChannel {
+    private SocketAddress spoofedAddress;
 
-    public GeyserBedrockPeer(Channel channel, BedrockSessionFactory sessionFactory) {
-        super(channel, sessionFactory);
+    public SocketAddress spoofedRemoteAddress() {
+        return spoofedAddress;
     }
 
-    public SocketAddress getRealAddress() {
-        SocketAddress proxied = this.proxiedAddress;
-        return proxied == null ? this.getSocketAddress() : proxied;
-    }
-
-    public void setProxiedAddress(SocketAddress proxiedAddress) {
-        this.proxiedAddress = proxiedAddress;
+    public void spoofedRemoteAddress(SocketAddress socketAddress) {
+        this.spoofedAddress = socketAddress;
     }
 }
