@@ -120,6 +120,7 @@ import org.geysermc.geyser.api.entity.EntityData;
 import org.geysermc.geyser.api.entity.type.player.GeyserPlayerEntity;
 import org.geysermc.geyser.api.event.bedrock.SessionDisconnectEvent;
 import org.geysermc.geyser.api.event.bedrock.SessionLoginEvent;
+import org.geysermc.geyser.api.network.AuthType;
 import org.geysermc.geyser.api.network.RemoteServer;
 import org.geysermc.geyser.api.skin.SkinData;
 import org.geysermc.geyser.api.util.PlatformType;
@@ -271,6 +272,8 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     private final GeyserImpl geyser;
     private final UpstreamSession upstream;
     private DownstreamSession downstream;
+    @Setter
+    private GeyserSession parentSession;
     /**
      * The loop where all packets and ticking is processed to prevent concurrency issues.
      * If this is manually called, ensure that any exceptions are properly handled.
@@ -1264,9 +1267,18 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
                 geyser.getLogger().info(GeyserLocale.getLocaleStringLog("geyser.network.disconnect", address, MessageTranslator.convertMessage(reason)));
             }
 
-            // Disconnect upstream if necessary
+            // Disconnect upstream if necessary. A sub-client shares one console's RakNet connection
+            // with every other local player, so it must never close the peer - that would eject the
+            // whole couch. BedrockSession#close is already a no-op for sub-clients, but that cuts
+            // both ways: nothing removes the closed session from the peer's sub-client map either,
+            // and the next SubClientLoginPacket for that slot would be routed to this dead session
+            // instead of creating a fresh one. So evict it explicitly.
             if (!upstream.isClosed()) {
-                upstream.disconnect(disconnectEvent.disconnectReason());
+                if (isSubClient()) {
+                    upstream.evictSubClientSession();
+                } else {
+                    upstream.disconnect(disconnectEvent.disconnectReason());
+                }
             }
 
             // Remove from session manager
@@ -1351,6 +1363,14 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
      * Called every Minecraft tick.
      */
     protected void tick() {
+        // A sub-client has no transport-level disconnect of its own to notice the parent leaving.
+        // The peer closing does cascade to every sub-client session, so this is only a backstop for
+        // a parent whose GeyserSession is torn down without the peer going down with it.
+        if (isSubClient() && parentSession != null && parentSession.isClosed()) {
+            disconnect("Parent session closed");
+            return;
+        }
+
         try {
             pistonCache.tick();
 
@@ -1729,7 +1749,11 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
 
     @Override
     public String locale() {
-        return clientData != null ? clientData.getLanguageCode() : GeyserLocale.getDefaultLocale();
+        if (clientData == null) {
+            return GeyserLocale.getDefaultLocale();
+        }
+        String languageCode = clientData.getLanguageCode();
+        return languageCode != null ? languageCode : GeyserLocale.getDefaultLocale();
     }
 
     @Override
@@ -2601,6 +2625,19 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     @Override
     public boolean isLinked() {
         return false; //todo
+    }
+
+    /**
+     * Whether this session is a split-screen sub-client: a second, third or fourth local player
+     * sharing one console's single RakNet connection with whoever signed in first.
+     *
+     * <p>Derived from the transport rather than from {@link #parentSession}. A session is a
+     * sub-client from the moment the peer creates it, which is well before sub-client login has run
+     * and found the parent - so keying this off {@code parentSession} reports {@code false} for a
+     * sub-client during login, which is exactly when the answer matters most.
+     */
+    public boolean isSubClient() {
+        return upstream.getSession().isSubClient();
     }
 
     @SuppressWarnings("ConstantConditions") // Need to enforce the parameter annotations

@@ -62,6 +62,31 @@ public class UpstreamSession {
     }
 
     /**
+     * @return this session's sub-client id: 0 for the primary, 1-3 for a split-screen guest.
+     */
+    public int getSubClientId() {
+        if (session.getPeer() instanceof GeyserBedrockPeer peer) {
+            return peer.subClientIdOf(session);
+        }
+        return session.isSubClient() ? -1 : 0;
+    }
+
+    /**
+     * Removes a split-screen sub-client's session from the console's shared peer, leaving the peer
+     * itself - and therefore every other local player on that console - untouched.
+     *
+     * @throws IllegalStateException if called for a primary session
+     */
+    public void evictSubClientSession() {
+        if (!session.isSubClient()) {
+            throw new IllegalStateException("evictSubClientSession called on a primary session");
+        }
+        if (session.getPeer() instanceof GeyserBedrockPeer peer) {
+            peer.removeSubClientSession(session);
+        }
+    }
+
+    /**
      * Queue a packet that must be delayed until after login.
      */
     public void queuePostStartGamePacket(BedrockPacket packet) {
