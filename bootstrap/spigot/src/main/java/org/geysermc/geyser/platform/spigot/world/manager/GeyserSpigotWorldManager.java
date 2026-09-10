@@ -31,11 +31,13 @@ import org.bukkit.block.Block;
 import org.bukkit.block.DecoratedPot;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.geysermc.erosion.bukkit.BukkitUtils;
 import org.geysermc.erosion.bukkit.SchedulerUtils;
 import org.geysermc.geyser.level.WorldManager;
 import org.geysermc.geyser.registry.BlockRegistries;
+import org.geysermc.geyser.registry.populator.CustomBlockRegistryPopulator;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.GameMode;
 
@@ -65,17 +67,37 @@ public class GeyserSpigotWorldManager extends WorldManager {
             return org.geysermc.geyser.level.block.type.Block.JAVA_AIR_ID;
         }
 
-        return getBlockNetworkId(world.getBlockAt(x, y, z));
+        return getBlockNetworkId(session, world.getBlockAt(x, y, z));
     }
 
     public int getBlockNetworkId(Block block) {
+        return getBlockNetworkId(null, block);
+    }
+
+    private int getBlockNetworkId(@Nullable GeyserSession session, Block block) {
         if (SchedulerUtils.FOLIA && !Bukkit.isOwnedByCurrentRegion(block)) {
-            // Terrible behavior, but this is basically what's always been happening behind the scenes anyway.
-            CompletableFuture<String> blockData = new CompletableFuture<>();
-            Bukkit.getRegionScheduler().execute(this.plugin, block.getLocation(), () -> blockData.complete(block.getBlockData().getAsString()));
-            return BlockRegistries.JAVA_BLOCK_STATE_IDENTIFIER_TO_ID.getOrDefault(blockData.join(), org.geysermc.geyser.level.block.type.Block.JAVA_AIR_ID);
+            CompletableFuture<Integer> blockData = new CompletableFuture<>();
+            Bukkit.getRegionScheduler().execute(this.plugin, block.getLocation(),
+                    () -> blockData.complete(resolve(session, block)));
+            return blockData.join();
         }
-        return BlockRegistries.JAVA_BLOCK_STATE_IDENTIFIER_TO_ID.getOrDefault(block.getBlockData().getAsString(), org.geysermc.geyser.level.block.type.Block.JAVA_AIR_ID); // TODO could just make this a BlockState lookup?
+        return resolve(session, block);
+    }
+
+    private int resolve(@Nullable GeyserSession session, Block block) {
+        if (session != null) {
+            Integer customState = resolveCustomBlockStateId(session, block.getX(), block.getY(), block.getZ());
+            if (customState != null) {
+                return customState;
+            }
+        }
+        return BlockRegistries.JAVA_BLOCK_STATE_IDENTIFIER_TO_ID.getOrDefault(block.getBlockData().getAsString(),
+                org.geysermc.geyser.level.block.type.Block.JAVA_AIR_ID);
+    }
+
+    protected final @Nullable Integer resolveCustomBlockStateId(GeyserSession session, int x, int y, int z) {
+        String state = CustomBlockRegistryPopulator.resolveJavaBlockState(session, x, y, z);
+        return state == null ? null : BlockRegistries.JAVA_BLOCK_STATE_IDENTIFIER_TO_ID.get(state);
     }
 
     @Override

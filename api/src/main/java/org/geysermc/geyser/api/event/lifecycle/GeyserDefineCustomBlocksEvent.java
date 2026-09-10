@@ -26,7 +26,9 @@
 package org.geysermc.geyser.api.event.lifecycle;
 
 import org.geysermc.geyser.api.block.custom.CustomBlockData;
+import org.geysermc.geyser.api.block.custom.CustomBlockBreakProgressProvider;
 import org.geysermc.geyser.api.block.custom.CustomBlockState;
+import org.geysermc.geyser.api.block.custom.CustomBlockStateProvider;
 import org.geysermc.geyser.api.block.custom.nonvanilla.JavaBlockState;
 import org.geysermc.event.Event;
 
@@ -36,6 +38,16 @@ import org.geysermc.event.Event;
  * This event will not be called if the "add-non-bedrock-items" setting is disabled in the Geyser config.
  */
 public abstract class GeyserDefineCustomBlocksEvent implements Event {
+
+    /**
+     * Registers a provider for resolving server-managed custom blocks to their
+     * mapped Java visual state.
+     */
+    public abstract void registerStateProvider(CustomBlockStateProvider provider);
+
+    /** Registers a provider for server-authoritative custom block mining progress. */
+    public abstract void registerBreakProgressProvider(CustomBlockBreakProgressProvider provider);
+
     /**
      * Registers the given {@link CustomBlockData} as a custom block
      *
