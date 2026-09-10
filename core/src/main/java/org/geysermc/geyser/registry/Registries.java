@@ -261,6 +261,14 @@ public final class Registries {
         GameRules.init();
     }
 
+    public static void reset() {
+        loaded = false;
+
+        ITEMS.clear();
+        TAGS.clear();
+        POTION_MIXES.clear();
+    }
+
     public static void populate() {
         PacketRegistryPopulator.populate();
         ItemRegistryPopulator.populate();
