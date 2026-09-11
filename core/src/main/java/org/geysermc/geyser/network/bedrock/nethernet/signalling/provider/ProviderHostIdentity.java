@@ -73,15 +73,15 @@ public final class ProviderHostIdentity {
         Path certificate = directory.resolve("host-cert.pem"), key = directory.resolve("host-key.pem");
         Path lockPath = directory.resolve("host-identity.lock");
         try (FileChannel channel = FileChannel.open(lockPath,
-                Set.of(StandardOpenOption.CREATE, StandardOpenOption.WRITE, LinkOption.NOFOLLOW_LINKS),
-                ownerOnly(posix, PRIVATE_FILE))) {
+            Set.of(StandardOpenOption.CREATE, StandardOpenOption.WRITE, LinkOption.NOFOLLOW_LINKS),
+            ownerOnly(posix, PRIVATE_FILE))) {
             try (var lock = channel.tryLock()) {
                 if (lock == null) throw new IOException("Provider DTLS identity is already being initialized");
                 if (Files.isSymbolicLink(certificate) || Files.isSymbolicLink(key))
                     throw new IOException("Provider PEM identity files must not be symbolic links");
                 boolean hasCertificate = Files.exists(certificate), hasKey = Files.exists(key);
                 if (hasCertificate != hasKey) throw new IOException(
-                        "Incomplete provider DTLS identity: restore the matching host-cert.pem and host-key.pem pair; refusing to replace existing identity");
+                    "Incomplete provider DTLS identity: restore the matching host-cert.pem and host-key.pem pair; refusing to replace existing identity");
                 if (hasCertificate) {
                     if (posix) Files.setPosixFilePermissions(key, PRIVATE_FILE);
                     return NativeHostIdentity.load(certificate, key);
@@ -93,9 +93,9 @@ public final class ProviderHostIdentity {
                 Instant now = Instant.now();
                 X500Name name = new X500Name("CN=NetherNet Host");
                 var builder = new JcaX509v3CertificateBuilder(name,
-                        new BigInteger(159, new SecureRandom()).add(BigInteger.ONE),
-                        Date.from(now.minus(1, ChronoUnit.DAYS)), Date.from(now.plus(3650, ChronoUnit.DAYS)),
-                        name, pair.getPublic());
+                    new BigInteger(159, new SecureRandom()).add(BigInteger.ONE),
+                    Date.from(now.minus(1, ChronoUnit.DAYS)), Date.from(now.plus(3650, ChronoUnit.DAYS)),
+                    name, pair.getPublic());
                 var signer = new JcaContentSignerBuilder("SHA256withECDSA").build(pair.getPrivate());
                 var cert = new JcaX509CertificateConverter().getCertificate(builder.build(signer));
                 cert.verify(pair.getPublic());
@@ -134,10 +134,10 @@ public final class ProviderHostIdentity {
 
     private static void writePem(Path path, String label, byte[] der, boolean posix) throws IOException {
         byte[] pem = ("-----BEGIN " + label + "-----\n"
-                + Base64.getMimeEncoder(64, new byte[]{'\n'}).encodeToString(der)
-                + "\n-----END " + label + "-----\n").getBytes(java.nio.charset.StandardCharsets.US_ASCII);
+            + Base64.getMimeEncoder(64, new byte[]{'\n'}).encodeToString(der)
+            + "\n-----END " + label + "-----\n").getBytes(java.nio.charset.StandardCharsets.US_ASCII);
         try (FileChannel file = FileChannel.open(path, Set.of(StandardOpenOption.CREATE_NEW, StandardOpenOption.WRITE),
-                ownerOnly(posix, PRIVATE_FILE))) {
+            ownerOnly(posix, PRIVATE_FILE))) {
             ByteBuffer buffer = ByteBuffer.wrap(pem);
             while (buffer.hasRemaining()) file.write(buffer);
             file.force(true);
