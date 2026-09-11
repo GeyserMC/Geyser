@@ -109,6 +109,11 @@ public class ConfigLoaderTest {
         migratedV4.node("java").comment(null);
         defaultConfig.node("java").comment(null);
 
+        // Except the transport: a fresh config defaults to NetherNet, a migrated one stays on both so
+        // that upgrading never takes RakNet away from an operator who was serving it
+        assertEquals("both", migratedV4.node("bedrock", "transport").getString());
+        migratedV4.node("bedrock", "transport").set(defaultConfig.node("bedrock", "transport").raw());
+
         // Metric uuids, if present, won't be equal, ofc
         var migratedUuid = migratedV4.node("metrics-uuid");
         if (!migratedUuid.virtual()) {
@@ -135,8 +140,9 @@ public class ConfigLoaderTest {
         assertEquals(19122, config.bedrock().port());
         assertTrue(config.bedrock().cloneRemotePort());
 
-        // Existing configs move to NetherNet, with WebRTC following the Bedrock port
-        assertEquals(GeyserConfig.BedrockConfig.Transport.NETHERNET, config.bedrock().transport());
+        // An existing config keeps serving RakNet as well, rather than silently dropping every RakNet
+        // client and every ConnectionRequestEvent listener on upgrade. WebRTC follows the Bedrock port.
+        assertEquals(GeyserConfig.BedrockConfig.Transport.BOTH, config.bedrock().transport());
         assertEquals(0, config.bedrock().webrtcPort());
 
         // Verify Java section (was remote)
