@@ -212,22 +212,9 @@ public final class RaknetServer {
             }
         }
 
-        String ip = geyser.config().logPlayerIpAddresses() ? clientAddress.toString() : "<IP address withheld>";
-
-        ConnectionRequestEvent requestEvent = new ConnectionRequestEvent(
-            clientAddress,
-            geyser.config().advanced().bedrock().useHaproxyProtocol() ? inetSocketAddress : null
-        );
-        geyser.eventBus().fire(requestEvent);
-        if (requestEvent.isCancelled()) {
-            geyser.getLogger().debug("Connection request from " + ip + " was cancelled using the API!");
-            connectionAttempts++;
-            return false;
-        }
-
-        geyser.getLogger().debug(GeyserLocale.getLocaleStringLog("geyser.network.attempt_connect", ip));
         connectionAttempts++;
-        return true;
+        return ConnectionRequests.accept(geyser, clientAddress,
+            geyser.config().advanced().bedrock().useHaproxyProtocol() ? inetSocketAddress : null);
     }
 
 
