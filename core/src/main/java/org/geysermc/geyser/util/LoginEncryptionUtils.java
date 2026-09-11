@@ -42,6 +42,7 @@ import org.geysermc.cumulus.response.result.FormResponseResult;
 import org.geysermc.cumulus.response.result.ValidFormResponseResult;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.network.bedrock.CodecProcessor;
+import org.geysermc.geyser.network.bedrock.nethernet.TransportIdentityBinding;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.auth.AuthData;
 import org.geysermc.geyser.session.auth.BedrockClientData;
@@ -101,6 +102,17 @@ public class LoginEncryptionUtils {
             BedrockClientData data = JsonUtils.fromJson(clientDataPayload, BedrockClientData.class);
             data.setOriginalString(jwt);
             session.setClientData(data);
+
+            // A proxy re-signs the chain with its own key, so the two only line up for a direct client
+            if (!geyser.config().advanced().bedrock().useWaterdogpeForwarding()) {
+                String mismatch = TransportIdentityBinding.mismatch(
+                        session.getUpstream().getSession().getPeer().getChannel(), identityPublicKey);
+                if (mismatch != null) {
+                    geyser.getLogger().info("Refused a login from " + session.getSocketAddress() + ", " + mismatch);
+                    session.disconnect(GeyserLocale.getLocaleStringLog("geyser.network.remote.invalid_xbox_account"));
+                    return;
+                }
+            }
 
             IdentityData extraData = result.identityClaims().extraData;
             String xuid = extraData.xuid;
