@@ -41,8 +41,5 @@ public interface ProviderHostFactory {
     CompletionStage<Host> open(ServerBootstrap bootstrap, InetSocketAddress udpBind, Map<String, String> options);
 
     record Host(ProviderTransport transport, Channel channel, List<String> warnings) {
-        public Host(ProviderTransport transport, Channel channel) {
-            this(transport, channel, List.of());
-        }
     }
 }

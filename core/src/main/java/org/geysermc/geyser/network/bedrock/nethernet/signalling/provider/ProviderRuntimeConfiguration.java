@@ -42,9 +42,9 @@ import java.util.*;
  * Validated NXS settings, with listener and status defaults inherited from Geyser.
  */
 public record ProviderRuntimeConfiguration(
-        URI origin, Path stateDirectory, String authorizationToken, String region, String pool,
-        Map<String, String> tags, String label, String bindAddress, int udpPort,
-        List<InetSocketAddress> advertisedEndpoints, int capacity
+    URI origin, Path stateDirectory, String authorizationToken, String region, String pool,
+    Map<String, String> tags, String label, String bindAddress, int udpPort,
+    List<InetSocketAddress> advertisedEndpoints, int capacity
 ) {
     public static ProviderRuntimeConfiguration resolve(GeyserConfig.SignallingConfig config, Path directory, String bedrockAddress, int webrtcPort, int maxPlayers) throws IOException {
         var nxs = config.nxs();
@@ -63,7 +63,7 @@ public record ProviderRuntimeConfiguration(
             if (pool == null) pool = "default";
         }
         Path state = directory.resolve("provider-state");
-        // The WebRTC port: the Bedrock port itself, unless RakNet also runs
+        // "webrtc-port", or the Bedrock port when that is 0
         String bind = bedrockAddress;
         int port = webrtcPort;
         if (port < 1 || port > 65535)
@@ -75,7 +75,7 @@ public record ProviderRuntimeConfiguration(
         if (capacity < 1 || capacity > 1000000) throw new IOException("Invalid inherited routing capacity");
         String label = "Geyser";
         var runtime = new ProviderRuntimeConfiguration(origin, state, token, region, pool, Map.copyOf(tags), label,
-                bind, port, List.copyOf(endpoints), capacity);
+            bind, port, List.copyOf(endpoints), capacity);
         try {
             runtime.clientConfiguration();
         } catch (IllegalArgumentException invalid) {
@@ -90,8 +90,8 @@ public record ProviderRuntimeConfiguration(
 
     public ProviderClient.Configuration clientConfiguration() {
         return new ProviderClient.Configuration(origin, profile(), label, ProviderClient.AUTOMATIC,
-                authorizationToken == null ? ProviderClient.ANONYMOUS_PROOF_OF_WORK : ProviderClient.BEARER_TOKEN,
-                authorizationToken, region, pool, tags);
+            authorizationToken == null ? ProviderClient.ANONYMOUS_PROOF_OF_WORK : ProviderClient.BEARER_TOKEN,
+            authorizationToken, region, pool, tags);
     }
 
     private static InetSocketAddress endpoint(String value) throws IOException {

@@ -92,7 +92,7 @@ public final class NetherNetServer implements EventRegistrar {
     private final GeyserImpl geyser;
     private final GeyserConfig.SignallingConfig config;
     /**
-     * The UDP port for WebRTC: the Bedrock port, unless RakNet also runs.
+     * The UDP port for WebRTC: "webrtc-port", or the Bedrock port if that is 0.
      */
     private final int webrtcPort;
     private final Path dataFolder;
@@ -118,8 +118,7 @@ public final class NetherNetServer implements EventRegistrar {
         this.geyser = geyser;
         GeyserConfig.BedrockConfig bedrock = geyser.config().bedrock();
         this.config = bedrock.signalling();
-        // With RakNet on the UDP side of the Bedrock port, WebRTC needs a UDP port of its own
-        this.webrtcPort = bedrock.transport().raknet() ? config.webrtcPort() : bedrock.port();
+        this.webrtcPort = bedrock.webrtcPort() == 0 ? bedrock.port() : bedrock.webrtcPort();
         this.dataFolder = geyser.getBootstrap().getConfigFolder().resolve("nethernet");
         this.pingResponder = new BedrockPingHandler(geyser);
     }
@@ -134,10 +133,17 @@ public final class NetherNetServer implements EventRegistrar {
         boolean provider = mode.nxs();
 
         GeyserConfig.BedrockConfig listener = geyser.config().bedrock();
+        InetAddress bindAddress = new InetSocketAddress(listener.address(), 0).getAddress();
+        if (bindAddress != null && bindAddress.isLoopbackAddress()) {
+            // ICE binds to this address too, and clients never offer loopback candidates, so no candidate pair can connect
+            logger().warning("The Bedrock address " + listener.address() + " is a loopback address, which WebRTC cannot connect over, " +
+                "so NetherNet connections will time out, even from this machine. Set \"address\" in the \"bedrock\" section to 0.0.0.0 " +
+                "or to this machine's LAN address.");
+        }
         if (listener.transport().raknet()) {
             if (webrtcPort == listener.port()) {
-                logger().error("\"webrtc-port\" in the \"signalling\" section must differ from the Bedrock port " + listener.port() +
-                    ", as RakNet uses its UDP side with the \"both\" transport. NetherNet will not start!");
+                logger().error("With the \"both\" transport, RakNet uses UDP port " + listener.port() + ", so NetherNet needs another one. " +
+                    "Set \"webrtc-port\" in the \"bedrock\" section to a free UDP port. NetherNet will not start!");
                 return;
             }
             if (listener.cloneRemotePort()) {
@@ -216,7 +222,7 @@ public final class NetherNetServer implements EventRegistrar {
 
             BedrockListener listener = geyser.config().bedrock();
             // The channel binds HTTP signalling over TCP to the Bedrock port, and by default pins ICE to its UDP side.
-            // With RakNet holding that, ICE goes to the WebRTC port instead.
+            // When "webrtc-port" is another port, ICE goes there instead.
             boolean separateIcePort = webrtcPort != listener.port();
             this.signaling = separateIcePort ? new SeparateIcePortSignaling(signallingBuilder.build()) : signallingBuilder.build();
 
