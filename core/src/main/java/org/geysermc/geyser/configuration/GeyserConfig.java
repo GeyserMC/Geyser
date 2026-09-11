@@ -135,6 +135,9 @@ public interface GeyserConfig {
             return Mode.BUILTIN;
         }
 
+        @Comment("Settings for the built-in signalling endpoint. Only used in the \"builtin\" and \"hybrid\" modes.")
+        BuiltinConfig builtin();
+
         @Comment("Settings for the external NXS signalling provider. Only used in the \"nxs\" and \"hybrid\" modes, or when built-in signalling cannot run.")
         NxsConfig nxs();
 
@@ -150,6 +153,30 @@ public interface GeyserConfig {
 
             public boolean nxs() {
                 return this == NXS || this == HYBRID;
+            }
+        }
+
+        @ConfigSerializable
+        interface BuiltinConfig {
+            @Comment("Serves signalling over HTTPS as well as HTTP, on the same port.")
+            HttpsConfig https();
+
+            @ConfigSerializable
+            interface HttpsConfig {
+                @Comment("""
+                    TLS certificate, as either a PEM chain with its key in "private-key", or a PKCS12 file
+                    leaving that empty. Players who reach signalling over TLS are never shown the first use
+                    prompt. Empty serves plaintext only.""")
+                @DefaultString()
+                String certificate();
+
+                @Comment("PEM private key for \"certificate\". Leave empty when that is a PKCS12 file.")
+                @DefaultString()
+                String privateKey();
+
+                @Comment("Password for the PKCS12, or for the PEM key if it is encrypted.")
+                @DefaultString()
+                String password();
             }
         }
 
@@ -463,7 +490,9 @@ public interface GeyserConfig {
 
         @Comment("""
                 Whether to expect HAPROXY protocol for connecting Bedrock clients.
-                This is useful only when you are running a UDP reverse proxy in front of your Geyser instance.
+                This is useful only when you are running a reverse proxy in front of your Geyser instance.
+                It covers RakNet over UDP, and the NetherNet signalling listener over TCP. A signalling
+                connection that carries no PROXY header is still served normally.
                 IF YOU DON'T KNOW WHAT THIS IS, DON'T TOUCH IT!""")
         @DefaultBoolean
         boolean useHaproxyProtocol();
@@ -471,6 +500,7 @@ public interface GeyserConfig {
         @Comment("""
                 A list of allowed HAPROXY protocol speaking proxy IP addresses/subnets. Only effective when "use-haproxy-protocol" is enabled, and
                 should really only be used when you are not able to use a proper firewall (usually true with shared hosting providers etc.).
+                Also the proxies whose forwarded client address the signalling listener trusts.
                 Keeping this list empty means there is no IP address whitelist.
                 IP addresses, subnets, and links to plain text files are supported.""")
         default List<String> haproxyProtocolWhitelistedIps() {

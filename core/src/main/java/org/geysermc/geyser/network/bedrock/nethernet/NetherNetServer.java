@@ -30,6 +30,7 @@ import org.cloudburstmc.netty.channel.nethernet.config.NetherChannelOption;
 import org.cloudburstmc.netty.channel.nethernet.signaling.NetherNetHTTPSignaling;
 import org.cloudburstmc.netty.channel.nethernet.signaling.NetherNetServerSignaling;
 import org.cloudburstmc.netty.util.nethernet.NetherNetLogging;
+import org.cloudburstmc.netty.util.nethernet.ServerIdentity;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelInitializer;
@@ -48,14 +49,13 @@ import org.geysermc.geyser.api.event.EventRegistrar;
 import org.geysermc.geyser.api.event.bedrock.SessionJoinEvent;
 import org.geysermc.geyser.api.network.BedrockListener;
 import org.geysermc.geyser.configuration.GeyserConfig;
+import org.geysermc.geyser.network.ProxyWhitelist;
 import org.geysermc.geyser.event.type.SessionDisconnectEventImpl;
 import org.geysermc.geyser.network.BedrockPingHandler;
 import org.geysermc.geyser.network.bedrock.nethernet.signalling.provider.GameOutcomeReporter;
 import org.geysermc.geyser.network.bedrock.nethernet.signalling.provider.GameOutcomeTransport;
 import org.geysermc.geyser.network.bedrock.nethernet.signalling.provider.GeyserStatusCollector;
-import org.geysermc.geyser.network.bedrock.nethernet.signalling.BuiltinIdentity;
 import org.geysermc.geyser.network.bedrock.nethernet.signalling.NativeProviderHostFactory;
-import org.geysermc.geyser.network.bedrock.nethernet.signalling.SeparateIcePortSignaling;
 import org.geysermc.geyser.network.bedrock.nethernet.signalling.provider.ProviderHostFactory;
 import org.geysermc.geyser.network.bedrock.nethernet.signalling.provider.ProviderRuntimeConfiguration;
 import org.geysermc.geyser.network.bedrock.nethernet.signalling.provider.ProviderRuntimeObservations;
@@ -193,11 +193,14 @@ public final class NetherNetServer implements EventRegistrar {
 
     private void startInbuilt() {
         // Created on the first start and kept afterwards, as clients pin its public key
-        Path identity;
+        ServerIdentity identity;
         try {
-            identity = BuiltinIdentity.ensure(dataFolder);
+            identity = ServerIdentity.fromPemOrCreate(dataFolder.resolve("identity.pem").toFile(),
+                    GeyserImpl.NAME + "-" + geyser.config().gameplay().serverName());
         } catch (Exception e) {
-            logger().error("Could not create or load the inbuilt signalling identity in " + dataFolder + ", inbuilt signalling will not start!", e);
+            logger().error("Could not create or load the inbuilt signalling identity in " + dataFolder
+                    + ", inbuilt signalling will not start! Only delete identity.pem if it cannot be restored; "
+                    + "a new identity makes every player confirm the server again", e);
             return;
         }
 
@@ -206,8 +209,13 @@ public final class NetherNetServer implements EventRegistrar {
             // Keep libdatachannel's own logging out of the way
             NetherNetLogging.setNativeLogLevel("WARN");
 
+            GeyserConfig.SignallingConfig.BuiltinConfig builtin = geyser.config().bedrock().signalling().builtin();
+
             NetherNetHTTPSignaling.Builder signallingBuilder = new NetherNetHTTPSignaling.Builder()
-                    .setIdentityKeystore(identity.toFile(), "")
+                    .setIdentity(identity)
+                    // The same "behind a proxy" settings RakNet uses, applied to the TCP listener
+                    .setTrustedProxies(ProxyWhitelist.get(geyser))
+                    .setProxyProtocol(geyser.config().advanced().bedrock().useHaproxyProtocol())
                     .setMotdProvider((host, remoteAddress) -> {
                         BedrockPong pong = pingResponder.onQuery(GUID, remoteAddress);
 
@@ -220,11 +228,23 @@ public final class NetherNetServer implements EventRegistrar {
                                 .build();
                     });
 
+            GeyserConfig.SignallingConfig.BuiltinConfig.HttpsConfig https = builtin.https();
+            if (!https.certificate().isBlank()) {
+                Path certificate = geyser.configDirectory().resolve(https.certificate());
+                if (https.privateKey().isBlank()) {
+                    signallingBuilder.setHttpsKeystore(certificate.toFile(), https.password());
+                } else {
+                    signallingBuilder.setHttpsPem(certificate.toFile(),
+                            geyser.configDirectory().resolve(https.privateKey()).toFile(),
+                            https.password().isBlank() ? null : https.password());
+                }
+            }
+
             BedrockListener listener = geyser.config().bedrock();
             // The channel binds HTTP signalling over TCP to the Bedrock port, and by default pins ICE to its UDP side.
             // When "webrtc-port" is another port, ICE goes there instead.
             boolean separateIcePort = webrtcPort != listener.port();
-            this.signaling = separateIcePort ? new SeparateIcePortSignaling(signallingBuilder.build()) : signallingBuilder.build();
+            this.signaling = signallingBuilder.setIceOnLocalPort(!separateIcePort).build();
 
             this.inbuiltEventLoopGroup = new MultiThreadIoEventLoopGroup(NioIoHandler.newFactory());
             this.inbuiltInitialiser = new NetherNetChannelInitialiser(geyser);
@@ -247,7 +267,11 @@ public final class NetherNetServer implements EventRegistrar {
 
             this.inbuiltChannel = b.bind(new InetSocketAddress(listener.address(), listener.port())).sync().channel();
 
-            logger().info("Builtin signalling started on http://" + listener.address() + ":" + listener.port()
+            // TLS is served on the same port as plaintext, so both schemes reach it when configured
+            String endpoint = https.certificate().isBlank()
+                    ? "http://" + listener.address() + ":" + listener.port()
+                    : "https:// and http:// on " + listener.address() + ":" + listener.port();
+            logger().info("Builtin signalling started on " + endpoint
                 + (separateIcePort ? ", with WebRTC on UDP port " + webrtcPort : ""));
         } catch (Throwable e) {
             // Throwable: the WebRTC natives are not available on every platform
