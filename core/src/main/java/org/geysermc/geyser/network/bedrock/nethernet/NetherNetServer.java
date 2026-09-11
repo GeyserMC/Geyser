@@ -31,6 +31,7 @@ import org.cloudburstmc.netty.channel.nethernet.signaling.NetherNetHTTPSignaling
 import org.cloudburstmc.netty.channel.nethernet.signaling.NetherNetServerSignaling;
 import org.cloudburstmc.netty.util.nethernet.NetherNetLogging;
 import org.cloudburstmc.netty.util.nethernet.ServerIdentity;
+import org.cloudburstmc.netty.util.nethernet.TokenTrust;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelInitializer;
@@ -216,6 +217,10 @@ public final class NetherNetServer implements EventRegistrar {
                     // The same "behind a proxy" settings RakNet uses, applied to the TCP listener
                     .setTrustedProxies(ProxyWhitelist.get(geyser))
                     .setProxyProtocol(geyser.config().advanced().bedrock().useHaproxyProtocol())
+                    // Behind a proxy the peer is the proxy, signing its own assertion. The same
+                    // setting already accepts the login chain it forwards
+                    .setTokenTrust(geyser.config().advanced().bedrock().validateBedrockLogin()
+                            ? TokenTrust.MINECRAFT_AUTH : TokenTrust.ANY)
                     .setMotdProvider((host, remoteAddress) -> {
                         BedrockPong pong = pingResponder.onQuery(GUID, remoteAddress);
 
