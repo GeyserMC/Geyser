@@ -26,7 +26,7 @@
 package org.geysermc.geyser.network.bedrock.nethernet.signalling;
 
 import com.google.gson.JsonParser;
-import dev.kastle.netty.channel.nethernet.admission.AdmissionGate;
+import org.cloudburstmc.netty.signalling.admission.AdmissionGate;
 import io.netty.bootstrap.ServerBootstrap;
 import org.cloudburstmc.netty.signalling.admission.EndpointAddress;
 import org.cloudburstmc.netty.signalling.admission.NativeProviderTransport;

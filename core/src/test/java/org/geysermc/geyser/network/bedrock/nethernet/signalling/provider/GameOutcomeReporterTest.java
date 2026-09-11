@@ -26,7 +26,7 @@
 package org.geysermc.geyser.network.bedrock.nethernet.signalling.provider;
 
 import com.google.gson.JsonObject;
-import dev.kastle.netty.channel.nethernet.admission.AdmissionPrincipal;
+import org.cloudburstmc.netty.signalling.admission.AdmissionPrincipal;
 import io.netty.channel.embedded.EmbeddedChannel;
 import org.cloudburstmc.netty.signalling.ProviderTransport;
 import org.cloudburstmc.protocol.bedrock.netty.BedrockPacketWrapper;

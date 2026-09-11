@@ -53,11 +53,6 @@ public interface GeyserConfig {
     @Comment("Network settings for the Bedrock listener")
     BedrockConfig bedrock();
 
-    @Comment("""
-            Signalling settings. Signalling is the step that lets Bedrock players connect over WebRTC, found through signalling,
-            alongside the RakNet (UDP) listener configured above. Changes require a restart.""")
-    SignallingConfig signalling();
-
     @Comment("Network settings for the Java server connection")
     JavaConfig java();
 
@@ -130,6 +125,64 @@ public interface GeyserConfig {
     }
 
     @ConfigSerializable
+    interface SignallingConfig {
+        @Comment("""
+            Configures where signalling should be:
+            "builtin" runs local HTTP signalling over TCP on the Bedrock address and port,
+            "nxs" registers with the external NXS provider configured below, "hybrid" runs both, and "none" disables signalling.
+            Built-in signalling cannot share the Java server's port, e.g. with clone-remote-port; the external signalling provider is used instead.""")
+        default Mode mode() {
+            return Mode.BUILTIN;
+        }
+
+        @Comment("""
+            The UDP port for WebRTC traffic with the "both" transport, as RakNet holds the UDP side of the Bedrock port.
+            It must differ from the Bedrock port, and allow UDP traffic. The "nethernet" transport uses the Bedrock port instead.""")
+        @DefaultNumeric(19133)
+        @NumericRange(from = 1, to = 65535)
+        int webrtcPort();
+
+        @Comment("Settings for the external NXS signalling provider. Only used in the \"nxs\" and \"hybrid\" modes, or when built-in signalling cannot run.")
+        NxsConfig nxs();
+
+        enum Mode {
+            BUILTIN,
+            NXS,
+            HYBRID,
+            NONE;
+
+            public boolean builtin() {
+                return this == BUILTIN || this == HYBRID;
+            }
+
+            public boolean nxs() {
+                return this == NXS || this == HYBRID;
+            }
+        }
+
+        @ConfigSerializable
+        interface NxsConfig {
+            @Comment("Additional reachable UDP endpoints, e.g. 198.51.100.1:19133 or [2001:db8::1]:19133. Configure forwarding separately.")
+            default List<String> advertiseAddresses() {
+                return List.of();
+            }
+
+            @Comment("Bearer token or file:/path/to/token. Empty uses anonymous registration.")
+            @DefaultString()
+            String token();
+
+            @Comment("NXS provider origin used for discovery and registration. Defaults to warden.")
+            @DefaultString("https://agent.warden.cloud")
+            String endpoint();
+
+            @Comment("Instance metadata, such as region or pool select placement. Other keys are registration tags.")
+            default Map<String, String> data() {
+                return Map.of();
+            }
+        }
+    }
+
+    @ConfigSerializable
     interface BedrockConfig extends BedrockListener {
         @Comment("""
                 The IP address that Geyser will bind on to listen for incoming Bedrock connections.
@@ -142,11 +195,22 @@ public interface GeyserConfig {
 
         @Comment("""
             The port that will Geyser will listen on for incoming Bedrock connections.
-            Since Minecraft: Bedrock Edition uses UDP, this port must allow UDP traffic.""")
+            Since Minecraft: Bedrock Edition uses UDP, this port must allow UDP traffic.
+            Built-in signalling also uses this port over TCP, unless it is the Java server's port.""")
         @Override
         @DefaultNumeric(19132)
         @NumericRange(from = 0, to = 65535)
         int port();
+
+        @Comment("""
+            How Bedrock players connect to the port above. Changes require a restart.
+            "both" accepts RakNet on the UDP port, and NetherNet (WebRTC) through signalling on the same port over TCP.
+              WebRTC traffic then uses "webrtc-port" in the signalling section, since RakNet holds the UDP port.
+            "raknet" only accepts RakNet, the original UDP protocol. It is deprecated, and removed in Minecraft: Bedrock Edition 26.50.
+            "nethernet" only accepts NetherNet, with signalling and WebRTC both on the port above.""")
+        default Transport transport() {
+            return Transport.BOTH;
+        }
 
         @Comment("""
                 Some hosting services change your Java port everytime you start the server and require the same port to be used for Bedrock.
@@ -154,6 +218,11 @@ public interface GeyserConfig {
         @DefaultBoolean
         @PluginSpecific
         boolean cloneRemotePort();
+
+        @Comment("""
+            Signalling is how Bedrock players find and set up a NetherNet (WebRTC) connection to this server.
+            Only used with the "both" and "nethernet" transports. Changes require a restart.""")
+        SignallingConfig signalling();
 
         void address(String address);
         void port(int port);
@@ -180,6 +249,21 @@ public interface GeyserConfig {
         @Override
         default String serverName() {
             return GeyserImpl.getInstance().config().gameplay().serverName();
+        }
+
+        enum Transport {
+            BOTH,
+            // Deprecated, removed in Minecraft: Bedrock Edition 26.50
+            RAKNET,
+            NETHERNET;
+
+            public boolean raknet() {
+                return this == BOTH || this == RAKNET;
+            }
+
+            public boolean nethernet() {
+                return this == BOTH || this == NETHERNET;
+            }
         }
     }
 
@@ -216,63 +300,6 @@ public interface GeyserConfig {
         @Exclude
         default boolean resolveSrv() {
             return false;
-        }
-    }
-
-    @ConfigSerializable
-    interface SignallingConfig {
-        @Comment("""
-            Configures where signalling should be:
-            "builtin" runs local HTTP signalling over TCP on the Bedrock address and the port below,
-            "nxs" registers with the external NXS provider configured below, "hybrid" runs both, and "none" disables Signalling entirely.""")
-        default Mode mode() {
-            return Mode.BUILTIN;
-        }
-
-        @Comment("""
-            The TCP port that inbuilt signalling listens on. This must not be the Java server's port.
-            Only used when mode is "builtin", or "hybrid".""")
-        @DefaultNumeric(19132)
-        @NumericRange(from = 1, to = 65535)
-        int port();
-
-        @Comment("Settings for the external NXS signalling provider. Only used in the \"nxs\" and \"hybrid\" modes.")
-        NxsConfig nxs();
-
-        enum Mode {
-            BUILTIN,
-            NXS,
-            HYBRID,
-            NONE;
-
-            public boolean builtin() {
-                return this == BUILTIN || this == HYBRID;
-            }
-
-            public boolean nxs() {
-                return this == NXS || this == HYBRID;
-            }
-        }
-
-        @ConfigSerializable
-        interface NxsConfig {
-            @Comment("Additional reachable UDP endpoints, e.g. 198.51.100.1:19133 or [2001:db8::1]:19133. Configure forwarding separately.")
-            default List<String> advertiseAddresses() {
-                return List.of();
-            }
-
-            @Comment("Bearer token or file:/path/to/token. Empty uses anonymous registration.")
-            @DefaultString()
-            String token();
-
-            @Comment("NXS provider origin used for discovery and registration.")
-            @DefaultString("https://agent.warden.cloud")
-            String endpoint();
-
-            @Comment("Instance metadata, such as region or pool select placement. Other keys are registration tags.")
-            default Map<String, String> data() {
-                return Map.of();
-            }
         }
     }
 

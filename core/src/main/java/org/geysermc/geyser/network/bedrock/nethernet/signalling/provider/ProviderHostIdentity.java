@@ -25,11 +25,11 @@
 
 package org.geysermc.geyser.network.bedrock.nethernet.signalling.provider;
 
-import dev.kastle.netty.channel.nethernet.admission.NativeHostIdentity;
 import org.bouncycastle.asn1.x500.X500Name;
 import org.bouncycastle.cert.jcajce.JcaX509CertificateConverter;
 import org.bouncycastle.cert.jcajce.JcaX509v3CertificateBuilder;
 import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
+import org.cloudburstmc.netty.signalling.admission.NativeHostIdentity;
 
 import java.io.IOException;
 import java.math.BigInteger;
@@ -40,6 +40,8 @@ import java.nio.file.Files;
 import java.nio.file.LinkOption;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
+import java.nio.file.attribute.FileAttribute;
+import java.nio.file.attribute.PosixFilePermission;
 import java.nio.file.attribute.PosixFilePermissions;
 import java.security.KeyPairGenerator;
 import java.security.SecureRandom;
@@ -55,21 +57,24 @@ import java.util.Set;
  * Host-owned DTLS identity; first start creates it, all later starts preserve it.
  */
 public final class ProviderHostIdentity {
+    private static final Set<PosixFilePermission> PRIVATE_DIRECTORY = PosixFilePermissions.fromString("rwx------");
+    private static final Set<PosixFilePermission> PRIVATE_FILE = PosixFilePermissions.fromString("rw-------");
+
     private ProviderHostIdentity() {
     }
 
     public static NativeHostIdentity ensure(Path directory) throws Exception {
-        var privateDirectory = PosixFilePermissions.fromString("rwx------");
-        var privateFile = PosixFilePermissions.fromString("rw-------");
-        Files.createDirectories(directory, PosixFilePermissions.asFileAttribute(privateDirectory));
+        // Windows has no POSIX permissions; there the files inherit the config folder's ACL
+        boolean posix = directory.getFileSystem().supportedFileAttributeViews().contains("posix");
+        Files.createDirectories(directory, ownerOnly(posix, PRIVATE_DIRECTORY));
         if (Files.isSymbolicLink(directory))
             throw new IOException("Provider identity directory must not be a symbolic link");
-        Files.setPosixFilePermissions(directory, privateDirectory);
+        if (posix) Files.setPosixFilePermissions(directory, PRIVATE_DIRECTORY);
         Path certificate = directory.resolve("host-cert.pem"), key = directory.resolve("host-key.pem");
         Path lockPath = directory.resolve("host-identity.lock");
         try (FileChannel channel = FileChannel.open(lockPath,
                 Set.of(StandardOpenOption.CREATE, StandardOpenOption.WRITE, LinkOption.NOFOLLOW_LINKS),
-                PosixFilePermissions.asFileAttribute(privateFile))) {
+                ownerOnly(posix, PRIVATE_FILE))) {
             try (var lock = channel.tryLock()) {
                 if (lock == null) throw new IOException("Provider DTLS identity is already being initialized");
                 if (Files.isSymbolicLink(certificate) || Files.isSymbolicLink(key))
@@ -78,7 +83,7 @@ public final class ProviderHostIdentity {
                 if (hasCertificate != hasKey) throw new IOException(
                         "Incomplete provider DTLS identity: restore the matching host-cert.pem and host-key.pem pair; refusing to replace existing identity");
                 if (hasCertificate) {
-                    Files.setPosixFilePermissions(key, privateFile);
+                    if (posix) Files.setPosixFilePermissions(key, PRIVATE_FILE);
                     return NativeHostIdentity.load(certificate, key);
                 }
 
@@ -97,13 +102,16 @@ public final class ProviderHostIdentity {
                 byte[] encodedKey = pair.getPrivate().getEncoded();
                 boolean createdKey = false, createdCertificate = false;
                 try {
-                    writePem(key, "PRIVATE KEY", encodedKey);
+                    writePem(key, "PRIVATE KEY", encodedKey, posix);
                     createdKey = true;
-                    writePem(certificate, "CERTIFICATE", cert.getEncoded());
+                    writePem(certificate, "CERTIFICATE", cert.getEncoded(), posix);
                     createdCertificate = true;
                     NativeHostIdentity identity = NativeHostIdentity.load(certificate, key);
-                    try (FileChannel parent = FileChannel.open(directory, StandardOpenOption.READ)) {
-                        parent.force(true);
+                    if (posix) {
+                        // Windows cannot open a directory as a channel to sync it
+                        try (FileChannel parent = FileChannel.open(directory, StandardOpenOption.READ)) {
+                            parent.force(true);
+                        }
                     }
                     return identity;
                 } catch (Exception failure) {
@@ -120,12 +128,16 @@ public final class ProviderHostIdentity {
         }
     }
 
-    private static void writePem(Path path, String label, byte[] der) throws IOException {
+    private static FileAttribute<?>[] ownerOnly(boolean posix, Set<PosixFilePermission> permissions) {
+        return posix ? new FileAttribute<?>[]{PosixFilePermissions.asFileAttribute(permissions)} : new FileAttribute<?>[0];
+    }
+
+    private static void writePem(Path path, String label, byte[] der, boolean posix) throws IOException {
         byte[] pem = ("-----BEGIN " + label + "-----\n"
                 + Base64.getMimeEncoder(64, new byte[]{'\n'}).encodeToString(der)
                 + "\n-----END " + label + "-----\n").getBytes(java.nio.charset.StandardCharsets.US_ASCII);
         try (FileChannel file = FileChannel.open(path, Set.of(StandardOpenOption.CREATE_NEW, StandardOpenOption.WRITE),
-                PosixFilePermissions.asFileAttribute(PosixFilePermissions.fromString("rw-------")))) {
+                ownerOnly(posix, PRIVATE_FILE))) {
             ByteBuffer buffer = ByteBuffer.wrap(pem);
             while (buffer.hasRemaining()) file.write(buffer);
             file.force(true);

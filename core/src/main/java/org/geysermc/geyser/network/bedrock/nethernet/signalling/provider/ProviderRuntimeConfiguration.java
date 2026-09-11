@@ -34,6 +34,7 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.InetSocketAddress;
 import java.nio.file.Files;
+import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.util.*;
 
@@ -45,7 +46,7 @@ public record ProviderRuntimeConfiguration(
         Map<String, String> tags, String label, String bindAddress, int udpPort,
         List<InetSocketAddress> advertisedEndpoints, int capacity
 ) {
-    public static ProviderRuntimeConfiguration resolve(GeyserConfig.SignallingConfig config, Path directory, String bedrockAddress, int bedrockPort, int maxPlayers) throws IOException {
+    public static ProviderRuntimeConfiguration resolve(GeyserConfig.SignallingConfig config, Path directory, String bedrockAddress, int webrtcPort, int maxPlayers) throws IOException {
         var nxs = config.nxs();
         URI origin;
         try {
@@ -62,10 +63,11 @@ public record ProviderRuntimeConfiguration(
             if (pool == null) pool = "default";
         }
         Path state = directory.resolve("provider-state");
+        // The WebRTC port: the Bedrock port itself, unless RakNet also runs
         String bind = bedrockAddress;
-        int port = bedrockPort + 1;
-        if (port < 1 || port > 65535 || port == bedrockPort)
-            throw new IOException("NXS needs a separate UDP port; Geyser's Bedrock port must leave room for port + 1");
+        int port = webrtcPort;
+        if (port < 1 || port > 65535)
+            throw new IOException("NXS needs a fixed UDP port between 1 and 65535");
         Set<InetSocketAddress> endpoints = new LinkedHashSet<>();
         for (String address : nxs.advertiseAddresses()) endpoints.add(endpoint(address));
         if (endpoints.size() > 32) throw new IOException("nxs.advertise-addresses allows at most 32 endpoints");
@@ -110,7 +112,7 @@ public record ProviderRuntimeConfiguration(
     private static String token(String value, Path directory) throws IOException {
         if (value == null || value.isBlank()) return null;
         value = value.trim();
-        boolean file = value.startsWith("file:") || value.startsWith("/") || value.startsWith("./") || value.startsWith("../");
+        boolean file = value.startsWith("file:") || value.startsWith("/") || value.startsWith("./") || value.startsWith("../") || absolutePath(value);
         if (file) {
             try {
                 Path source = path(directory, value.startsWith("file:") ? value.substring(5) : value);
@@ -123,6 +125,17 @@ public record ProviderRuntimeConfiguration(
         if (value.isBlank() || value.length() > 16384 || value.chars().anyMatch(c -> c <= 32 || c == 127))
             throw new IOException("nxs.token must contain one non-empty bearer token");
         return value;
+    }
+
+    /**
+     * @return whether the value is an absolute path, e.g. C:\token on Windows, so it is never sent as the token itself
+     */
+    private static boolean absolutePath(String value) {
+        try {
+            return Path.of(value).isAbsolute();
+        } catch (InvalidPathException notAPath) {
+            return false;
+        }
     }
 
     private static Path path(Path directory, String value) {

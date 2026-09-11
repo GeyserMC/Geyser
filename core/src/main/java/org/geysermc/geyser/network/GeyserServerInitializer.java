@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2026 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -30,7 +30,6 @@ import io.netty.channel.DefaultEventLoopGroup;
 import io.netty.util.concurrent.DefaultThreadFactory;
 import lombok.Getter;
 import org.checkerframework.checker.nullness.qual.NonNull;
-import org.cloudburstmc.netty.channel.raknet.config.RakChannelOption;
 import org.cloudburstmc.protocol.bedrock.BedrockPeer;
 import org.cloudburstmc.protocol.bedrock.BedrockServerSession;
 import org.cloudburstmc.protocol.bedrock.netty.initializer.BedrockServerInitializer;
@@ -40,24 +39,19 @@ import org.geysermc.geyser.network.bedrock.InvalidPacketHandler;
 import org.geysermc.geyser.network.bedrock.UpstreamPacketHandler;
 import org.geysermc.geyser.session.GeyserSession;
 
-public class GeyserServerInitializer extends BedrockServerInitializer {
-    private final GeyserImpl geyser;
-    private final boolean rakCookiesEnabled;
+/**
+ * Shared by every Bedrock transport: turns each new Bedrock session into a {@link GeyserSession}.
+ * Subclasses only set up the transport specific part of the pipeline.
+ */
+public abstract class GeyserServerInitializer extends BedrockServerInitializer {
+    protected final GeyserImpl geyser;
     // There is a constructor that doesn't require inputting threads, but older Netty versions don't have it
     @Getter
-    private final DefaultEventLoopGroup eventLoopGroup = new DefaultEventLoopGroup(0, new DefaultThreadFactory("Geyser player thread"));
+    private final DefaultEventLoopGroup eventLoopGroup;
 
-    public GeyserServerInitializer(GeyserImpl geyser, boolean rakCookiesEnabled) {
+    protected GeyserServerInitializer(GeyserImpl geyser, String playerThreadName) {
         this.geyser = geyser;
-        this.rakCookiesEnabled = rakCookiesEnabled;
-    }
-
-    @Override
-    protected void preInitChannel(Channel channel) throws Exception {
-        if (!rakCookiesEnabled) {
-            channel.setOption(RakChannelOption.RAK_PROTOCOL_VERSION, 11);
-        }
-        super.preInitChannel(channel);
+        this.eventLoopGroup = new DefaultEventLoopGroup(0, new DefaultThreadFactory(playerThreadName));
     }
 
     @Override

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2026 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2026 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,35 +23,26 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.network.bedrock.nethernet;
+package org.geysermc.geyser.network.bedrock.raknet;
 
 import io.netty.channel.Channel;
-import org.cloudburstmc.protocol.bedrock.BedrockSessionFactory;
-import org.geysermc.geyser.network.bedrock.GeyserBedrockPeer;
+import org.cloudburstmc.netty.channel.raknet.config.RakChannelOption;
+import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.network.GeyserServerInitializer;
 
-import javax.crypto.SecretKey;
+public class RakServerInitializer extends GeyserServerInitializer {
+    private final boolean rakCookiesEnabled;
 
-public class NetherNetPeer extends GeyserBedrockPeer {
-    /**
-     * NetherNet compression behaves like RakNet protocol 11: none until network settings, prefixed afterwards.
-     */
-    private static final int EQUIVALENT_RAK_VERSION = 11;
-
-    public NetherNetPeer(Channel channel, BedrockSessionFactory sessionFactory) {
-        super(channel, sessionFactory);
+    public RakServerInitializer(GeyserImpl geyser, boolean rakCookiesEnabled) {
+        super(geyser, "Geyser player thread");
+        this.rakCookiesEnabled = rakCookiesEnabled;
     }
 
     @Override
-    public void enableEncryption(SecretKey secretKey) {
-        // No-op: DTLS already encrypts the data channel
-    }
-
-    /**
-     * A NetherNet channel has no RakNet protocol version; {@link #setCompression(org.cloudburstmc.protocol.bedrock.data.PacketCompressionAlgorithm)}
-     * uses this to pick the compression strategy.
-     */
-    @Override
-    public int getRakVersion() {
-        return EQUIVALENT_RAK_VERSION;
+    protected void preInitChannel(Channel channel) throws Exception {
+        if (!rakCookiesEnabled) {
+            channel.setOption(RakChannelOption.RAK_PROTOCOL_VERSION, 11);
+        }
+        super.preInitChannel(channel);
     }
 }

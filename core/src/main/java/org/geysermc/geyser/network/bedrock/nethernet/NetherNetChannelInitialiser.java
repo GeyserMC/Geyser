@@ -26,86 +26,65 @@
 package org.geysermc.geyser.network.bedrock.nethernet;
 
 import io.netty.channel.Channel;
-import io.netty.channel.ChannelInitializer;
-import io.netty.channel.DefaultEventLoopGroup;
-import io.netty.util.concurrent.DefaultThreadFactory;
-import lombok.Getter;
 import org.cloudburstmc.protocol.bedrock.BedrockPeer;
-import org.cloudburstmc.protocol.bedrock.BedrockServerSession;
+import org.cloudburstmc.protocol.bedrock.netty.codec.batch.BedrockBatchEncoder;
+import org.cloudburstmc.protocol.bedrock.netty.codec.compression.CompressionCodec;
 import org.cloudburstmc.protocol.bedrock.netty.codec.compression.CompressionStrategy;
+import org.cloudburstmc.protocol.bedrock.netty.codec.compression.NoopCompression;
 import org.cloudburstmc.protocol.bedrock.netty.codec.compression.SimpleCompressionStrategy;
-import org.cloudburstmc.protocol.bedrock.netty.codec.compression.ZlibCompression;
 import org.cloudburstmc.protocol.bedrock.netty.codec.packet.BedrockPacketCodec;
 import org.cloudburstmc.protocol.bedrock.netty.codec.packet.BedrockPacketCodec_v3;
-import org.cloudburstmc.protocol.common.util.Zlib;
-import org.geysermc.geyser.network.bedrock.nethernet.codec.NetherNetPacketDecoder;
-import org.geysermc.geyser.network.bedrock.nethernet.codec.NetherNetPacketEncoder;
 import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.network.bedrock.InvalidPacketHandler;
+import org.geysermc.geyser.network.GeyserServerInitializer;
 import org.geysermc.geyser.network.bedrock.GameProtocol;
+import org.geysermc.geyser.network.bedrock.nethernet.codec.NetherNetFrameCodec;
+import org.geysermc.geyser.network.bedrock.nethernet.codec.NetherNetPacketEncoder;
 import org.geysermc.geyser.network.bedrock.nethernet.signalling.provider.GameOutcomeReporter;
-import org.geysermc.geyser.network.bedrock.UpstreamPacketHandler;
-import org.geysermc.geyser.session.GeyserSession;
 
 /**
- * Closely mirrors {@link org.geysermc.geyser.network.GeyserServerInitializer} but with the addition of NetherNet packet encoder/decoder and a different peer implementation.
+ * The RakNet pipeline minus RakNet: no 0xFE frame ID, and no Bedrock encryption as DTLS already covers the data channel.
  */
-public class NetherNetChannelInitialiser extends ChannelInitializer<Channel> {
-    private static final CompressionStrategy ZLIB_RAW_STRATEGY = new SimpleCompressionStrategy(new ZlibCompression(Zlib.RAW));
+public class NetherNetChannelInitialiser extends GeyserServerInitializer {
+    private static final CompressionStrategy NOOP_STRATEGY = new SimpleCompressionStrategy(new NoopCompression());
 
-    private final GeyserImpl geyser;
     private final GameOutcomeReporter outcomes;
-
-    @Getter
-    private final DefaultEventLoopGroup eventLoopGroup;
 
     public NetherNetChannelInitialiser(GeyserImpl geyser) {
         this(geyser, new GameOutcomeReporter());
     }
 
     public NetherNetChannelInitialiser(GeyserImpl geyser, GameOutcomeReporter outcomes) {
-        this.geyser = geyser;
+        super(geyser, "Geyser NetherNet player thread");
         this.outcomes = outcomes;
-        this.eventLoopGroup = new DefaultEventLoopGroup(0, new DefaultThreadFactory("Geyser NetherNet player thread"));
     }
 
     @Override
-    protected void initChannel(Channel channel) throws Exception {
+    protected void preInitChannel(Channel channel) {
+        // Nothing is compressed until the peer sets compression after RequestNetworkSettings
         channel.pipeline()
-                .addLast(NetherNetPacketDecoder.NAME, new NetherNetPacketDecoder())
-                .addLast(NetherNetPacketEncoder.NAME, new NetherNetPacketEncoder())
-                .addLast(BedrockPacketCodec.NAME, new BedrockPacketCodec_v3())
-                .addLast(GameOutcomeReporter.HANDLER_NAME, outcomes.observer(protocol -> GameProtocol.getBedrockCodec(protocol) != null))
-                .addLast(BedrockPeer.NAME, new NetherNetPeer(channel, this::createSession));
+                .addLast(NetherNetFrameCodec.NAME, NetherNetFrameCodec.INSTANCE)
+                .addLast(CompressionCodec.NAME, new CompressionCodec(NOOP_STRATEGY, false));
     }
 
-    public static CompressionStrategy getCompression() {
-        return ZLIB_RAW_STRATEGY;
+    @Override
+    protected void initPacketCodec(Channel channel) {
+        // The parent picks this by RakNet protocol version, which a NetherNet channel does not have
+        channel.pipeline().addLast(BedrockPacketCodec.NAME, new BedrockPacketCodec_v3());
     }
 
-    private BedrockServerSession createSession(BedrockPeer peer, int subClientId) {
-        BedrockServerSession session = new BedrockServerSession(peer, subClientId);
-        initSession(session);
-        return session;
+    @Override
+    protected void postInitChannel(Channel channel) {
+        // TODO TEST batching: the BedrockBatchEncoder added by BedrockChannelInitializer batches every packet written between
+        //  flushes into one message, like RakNet. The channel fragments large messages itself, so dropping this replace should
+        //  be all that's needed. Until that is tested, keep sending one packet per message.
+        channel.pipeline().replace(BedrockBatchEncoder.NAME, NetherNetPacketEncoder.NAME, NetherNetPacketEncoder.INSTANCE);
+
+        channel.pipeline().addBefore(BedrockPeer.NAME, GameOutcomeReporter.HANDLER_NAME,
+                outcomes.observer(protocol -> GameProtocol.getBedrockCodec(protocol) != null));
     }
 
-    protected void initSession(BedrockServerSession bedrockServerSession) {
-        try {
-            bedrockServerSession.setLogging(this.geyser.config().debugMode());
-            GeyserSession session = new GeyserSession(this.geyser, bedrockServerSession, this.eventLoopGroup.next());
-
-            if (!bedrockServerSession.isSubClient()) {
-                Channel channel = bedrockServerSession.getPeer().getChannel();
-                // Added after BedrockPeer, not BedrockPacketCodec to ensure exceptions thrown while dispatching
-                // to the packet handler also get here if no other handler exists
-                channel.pipeline().addAfter(BedrockPeer.NAME, InvalidPacketHandler.NAME, new InvalidPacketHandler(session));
-            }
-
-            bedrockServerSession.setPacketHandler(new UpstreamPacketHandler(this.geyser, session));
-        } catch (Throwable e) {
-            // Error must be caught or it will be swallowed
-            this.geyser.getLogger().error("Error occurred while initializing player!", e);
-            bedrockServerSession.disconnect(e.getMessage());
-        }
+    @Override
+    protected BedrockPeer createPeer(Channel channel) {
+        return new NetherNetPeer(channel, this::createSession);
     }
 }

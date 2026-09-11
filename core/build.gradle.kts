@@ -63,7 +63,7 @@ dependencies {
     }
     // Needed for signalling
     implementation(libs.netty.codec.http)
-    // Java bindings only, from libs/; no WebRTC natives are bundled yet
+    // WebRTC lib, with natives for linux x86_64/aarch64, windows x86_64 and macos x86_64/arm64
     implementation(libs.libdatachannel)
     // Host-owned DTLS certificates and the inbuilt signalling identity
     implementation(libs.bouncycastle.pkix)

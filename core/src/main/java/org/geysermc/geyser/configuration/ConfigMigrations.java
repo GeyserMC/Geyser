@@ -187,25 +187,9 @@ public class ConfigMigrations {
             .addVersion(7, ConfigurationTransformation.builder()
                 .addAction(path("gameplay", "show-cooldown"), rename(new Object[] { "gameplay", "cooldown-type" }))
                 .build())
-            .addVersion(8, ConfigurationTransformation.builder()
-                // NetherNet's inbuilt signalling (TCP) defaults to the port players already use for Bedrock
-                .addAction(path("bedrock"), (path, value) -> {
-                    ConfigurationNode root = value.parent();
-                    if (root == null) {
-                        return null;
-                    }
-                    int port = value.node("port").getInt(19132);
-                    root.node("signalling", "port").set(port);
-
-                    if (value.node("clone-remote-port").getBoolean() && bootstrap != null) {
-                        // TODO what do we do here? Warden by default? Port multiplexing?
-                        bootstrap.getGeyserLogger().warning("clone-remote-port is enabled, but NetherNet's inbuilt signalling cannot share the Java server's port! " +
-                            "Its TCP port (\"port\" in the \"nethernet\" section) has been set to " + port + "; change it to a TCP port your host allows, " +
-                            "or set \"mode\" in the \"nethernet\" section to \"none\".");
-                    }
-                    return null;
-                })
-                .build())
+            // Adds "transport" and "signalling" to the bedrock section. Nothing to move, but the version change
+            // makes the loader write existing configs back, so the new options show up in them.
+            .addVersion(8, ConfigurationTransformation.empty())
         .build();
 
     static TransformAction renameAndMove(String... newPath) {
