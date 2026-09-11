@@ -292,8 +292,8 @@ public final class NetherNetServer implements EventRegistrar {
         }
         return config
             .withEnableIceUdpMux(true)
-            .withPortRangeBegin((short) port)
-            .withPortRangeEnd((short) port);
+            .withPortRangeBegin(port)
+            .withPortRangeEnd(port);
     }
 
     private void startProvider() {
