@@ -43,6 +43,7 @@ import org.geysermc.cumulus.response.result.ValidFormResponseResult;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.network.bedrock.CodecProcessor;
 import org.geysermc.geyser.network.bedrock.nethernet.TransportIdentityBinding;
+import org.geysermc.geyser.network.bedrock.nethernet.NetherNetPeer;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.auth.AuthData;
 import org.geysermc.geyser.session.auth.BedrockClientData;
@@ -149,6 +150,12 @@ public class LoginEncryptionUtils {
     }
 
     private static void startEncryptionHandshake(GeyserSession session, PublicKey key) throws Exception {
+        if (session.getUpstream().getSession().getPeer() instanceof NetherNetPeer) {
+            // The data channel is already encrypted by DTLS, so the peer ignores an encryption key.
+            // Sending the handshake anyway would have the client encrypt what the server cannot read.
+            return;
+        }
+
         KeyPair serverKeyPair = EncryptionUtils.createKeyPair();
         byte[] token = EncryptionUtils.generateRandomToken();
 
