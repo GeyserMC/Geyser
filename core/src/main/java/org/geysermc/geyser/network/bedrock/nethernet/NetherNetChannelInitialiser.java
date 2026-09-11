@@ -35,11 +35,14 @@ import org.cloudburstmc.protocol.bedrock.netty.codec.compression.SimpleCompressi
 import org.cloudburstmc.protocol.bedrock.netty.codec.packet.BedrockPacketCodec;
 import org.cloudburstmc.protocol.bedrock.netty.codec.packet.BedrockPacketCodec_v3;
 import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.network.ConnectionRequests;
 import org.geysermc.geyser.network.GeyserServerInitializer;
 import org.geysermc.geyser.network.bedrock.GameProtocol;
 import org.geysermc.geyser.network.bedrock.nethernet.codec.NetherNetFrameCodec;
 import org.geysermc.geyser.network.bedrock.nethernet.codec.NetherNetPacketEncoder;
 import org.geysermc.geyser.network.bedrock.nethernet.signalling.provider.GameOutcomeReporter;
+
+import java.net.InetSocketAddress;
 
 /**
  * The RakNet pipeline minus RakNet: no 0xFE frame ID, and no Bedrock encryption as DTLS already covers the data channel.
@@ -60,6 +63,14 @@ public class NetherNetChannelInitialiser extends GeyserServerInitializer {
 
     @Override
     protected void preInitChannel(Channel channel) {
+        // Extensions refuse peers by address here, the same gate RakNet applies before a session exists.
+        // NetherNet carries no PROXY protocol, so the peer address is the client address.
+        if (channel.remoteAddress() instanceof InetSocketAddress clientAddress
+                && !ConnectionRequests.accept(geyser, clientAddress, null)) {
+            channel.close();
+            return;
+        }
+
         // Nothing is compressed until the peer sets compression after RequestNetworkSettings
         channel.pipeline()
                 .addLast(NetherNetFrameCodec.NAME, NetherNetFrameCodec.INSTANCE)
