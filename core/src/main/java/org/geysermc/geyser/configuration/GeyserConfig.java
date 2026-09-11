@@ -176,6 +176,7 @@ public interface GeyserConfig {
 
                 @Comment("Password for the PKCS12, or for the PEM key if it is encrypted.")
                 @DefaultString()
+                @AsteriskSerializer.Secret
                 String password();
             }
         }
@@ -189,6 +190,7 @@ public interface GeyserConfig {
 
             @Comment("Bearer token or file:/path/to/token. Empty uses anonymous registration.")
             @DefaultString()
+            @AsteriskSerializer.Secret
             String token();
 
             @Comment("NXS provider origin used for discovery and registration. Defaults to warden.")

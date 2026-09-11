@@ -111,7 +111,8 @@ public class DumpInfo {
         try {
             // Workaround for JsonAdapter not being allowed on methods
             ConfigurationOptions options = InterfaceDefaultOptions.addTo(ConfigurationOptions.defaults(), builder ->
-                    builder.addProcessor(AsteriskSerializer.Asterisk.class, String.class, AsteriskSerializer.CONFIGURATE_SERIALIZER))
+                    builder.addProcessor(AsteriskSerializer.Asterisk.class, String.class, AsteriskSerializer.CONFIGURATE_SERIALIZER)
+                            .addProcessor(AsteriskSerializer.Secret.class, String.class, AsteriskSerializer.CONFIGURATE_SECRET))
                 .shouldCopyDefaults(false);
 
             ConfigurationNode configNode = CommentedConfigurationNode.root(options);
