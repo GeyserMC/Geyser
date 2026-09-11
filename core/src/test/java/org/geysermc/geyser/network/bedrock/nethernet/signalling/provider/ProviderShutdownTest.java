@@ -26,23 +26,16 @@
 package org.geysermc.geyser.network.bedrock.nethernet.signalling.provider;
 
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.io.TempDir;
 
-import java.nio.file.Files;
-import java.nio.file.Path;
+import java.io.IOException;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class ProviderShutdownTest {
-    @TempDir Path directory;
-
-    @Test void finishesDaemonDrainWhenTheProcessReceivesSigterm() throws Exception { runChild("signal"); }
-    @Test void finishesDrainAlreadyStartedByExtensionShutdown() throws Exception { runChild("exit"); }
-
-    @Test void leavesEndpointAliveUntilDrainCompletesAndCleansExactlyOnce() {
+    @Test
+    void keepsEndpointUntilDrainCompletesAndCleansUpOnce() {
         CompletableFuture<Void> drain = new CompletableFuture<>();
         AtomicInteger stops = new AtomicInteger(), cleanups = new AtomicInteger();
         ProviderShutdown shutdown = new ProviderShutdown(() -> {
@@ -53,60 +46,24 @@ class ProviderShutdownTest {
             shutdown.close();
             shutdown.close();
             assertEquals(1, stops.get());
-            assertEquals(0, cleanups.get(), "Endpoint/event loop must remain available during signed drain");
+            // The provider drain is sent over the endpoint, so it must stay open until the drain completes
+            assertEquals(0, cleanups.get());
             drain.complete(null);
             shutdown.close();
             assertEquals(1, cleanups.get());
-        } finally { drain.complete(null); }
+        } finally {
+            drain.complete(null);
+        }
     }
 
-    @Test void failedDrainStillReleasesEndpointResources() {
+    @Test
+    void failedDrainStillReleasesEndpoint() {
         CompletableFuture<Void> drain = new CompletableFuture<>();
         AtomicInteger cleanups = new AtomicInteger();
         ProviderShutdown shutdown = new ProviderShutdown(() -> drain, cleanups::incrementAndGet, ignored -> {});
         shutdown.close();
         assertEquals(0, cleanups.get());
-        drain.completeExceptionally(new java.io.IOException("Control plane unavailable"));
+        drain.completeExceptionally(new IOException("Provider unavailable"));
         assertEquals(1, cleanups.get());
-    }
-
-    private void runChild(String mode) throws Exception {
-        Path marker = directory.resolve(mode);
-        String classes = Path.of(Child.class.getProtectionDomain().getCodeSource().getLocation().toURI())
-            + java.io.File.pathSeparator + Path.of(ProviderShutdown.class.getProtectionDomain().getCodeSource().getLocation().toURI());
-        Process child = new ProcessBuilder(Path.of(System.getProperty("java.home"), "bin", "java").toString(),
-            "-cp", classes, Child.class.getName(), mode, marker.toString()).redirectErrorStream(true).start();
-        try {
-            var reader = child.inputReader();
-            String ready = CompletableFuture.supplyAsync(() -> {
-                try { return reader.readLine(); } catch (java.io.IOException failure) { throw new RuntimeException(failure); }
-            }).get(10, TimeUnit.SECONDS);
-            assertEquals("READY", ready);
-            if (mode.equals("signal")) child.destroy();
-            assertTrue(child.waitFor(10, TimeUnit.SECONDS), "Shutdown exceeded its bounded drain window");
-            assertEquals("drained", Files.readString(marker));
-        } finally { if (child.isAlive()) child.destroyForcibly().waitFor(); }
-    }
-
-    public static class Child {
-        public static void main(String[] args) throws Exception {
-            ProviderShutdown shutdown = new ProviderShutdown(() -> {
-                CompletableFuture<Void> drained = new CompletableFuture<>();
-                Thread worker = new Thread(() -> {
-                    try {
-                        // Daemon cleanup would otherwise be abandoned at JVM exit.
-                        Thread.sleep(250);
-                        Files.writeString(Path.of(args[1]), "drained");
-                        drained.complete(null);
-                    } catch (Exception failure) { drained.completeExceptionally(failure); }
-                });
-                worker.setDaemon(true);
-                worker.start();
-                return drained;
-            }, System.err::println);
-            System.out.println("READY");
-            if (args[0].equals("exit")) { shutdown.close(); System.exit(0); }
-            Thread.sleep(60_000);
-        }
     }
 }

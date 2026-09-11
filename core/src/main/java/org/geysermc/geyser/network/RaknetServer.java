@@ -42,25 +42,18 @@ import org.cloudburstmc.netty.channel.raknet.config.DefaultRakServerThrottle;
 import org.cloudburstmc.netty.channel.raknet.config.RakChannelOption;
 import org.cloudburstmc.netty.channel.raknet.config.RakServerCookieMode;
 import org.cloudburstmc.netty.handler.codec.raknet.server.RakServerOfflineHandler;
-import org.cloudburstmc.protocol.bedrock.BedrockPong;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.event.connection.ConnectionRequestEvent;
-import org.geysermc.geyser.command.defaults.ConnectionTestCommand;
 import org.geysermc.geyser.configuration.GeyserConfig;
-import org.geysermc.geyser.event.type.GeyserBedrockPingEventImpl;
-import org.geysermc.geyser.network.bedrock.GameProtocol;
+import org.geysermc.geyser.network.bedrock.raknet.Bootstraps;
 import org.geysermc.geyser.network.bedrock.raknet.RakConnectionRequestHandler;
 import org.geysermc.geyser.network.bedrock.raknet.RakPingHandler;
-import org.geysermc.geyser.ping.GeyserPingInfo;
-import org.geysermc.geyser.ping.IGeyserPingPassthrough;
-import org.geysermc.geyser.skin.SkinProvider;
+import org.geysermc.geyser.network.bedrock.raknet.RakServerInitializer;
 import org.geysermc.geyser.text.GeyserLocale;
-import org.geysermc.geyser.translator.text.MessageTranslator;
 import org.geysermc.geyser.util.WebUtils;
 import org.geysermc.mcprotocollib.network.helper.TransportHelper;
 
 import java.net.InetSocketAddress;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -72,19 +65,6 @@ import static org.cloudburstmc.netty.channel.raknet.RakConstants.DEFAULT_GLOBAL_
 import static org.cloudburstmc.netty.channel.raknet.RakConstants.DEFAULT_PACKET_LIMIT;
 
 public final class RaknetServer {
-    private static final boolean PRINT_DEBUG_PINGS = Boolean.parseBoolean(System.getProperty("Geyser.PrintPingsInDebugMode", "true"));
-
-    /*
-    The following constants are all used to ensure the ping does not reach a length where it is unparsable by the Bedrock client
-     */
-    private static final String PING_VERSION = GameProtocol.DEFAULT_BEDROCK_VERSION;
-    private static final int PING_VERSION_BYTES_LENGTH = PING_VERSION.getBytes(StandardCharsets.UTF_8).length;
-    private static final int BRAND_BYTES_LENGTH = GeyserImpl.NAME.getBytes(StandardCharsets.UTF_8).length;
-    /**
-     * The MOTD, sub-MOTD and Minecraft version ({@link #PING_VERSION_BYTES_LENGTH}) combined cannot reach this length.
-     */
-    private static final int MAGIC_RAKNET_LENGTH = 338;
-
     // Let MCPL determine the transport type -> less code duplication and risk of ending up with 2 different types
     private static final TransportHelper.TransportType TRANSPORT = TransportHelper.TRANSPORT_TYPE;
 
@@ -109,10 +89,7 @@ public final class RaknetServer {
     @Getter
     private int connectionAttempts = 0;
 
-    /**
-     * The port to broadcast in the pong. This can be different from the port the server is bound to, e.g. due to port forwarding.
-     */
-    private final int broadcastPort;
+    private final BedrockPingHandler pingResponder;
 
     public RaknetServer(GeyserImpl geyser, int threadCount) {
         this.geyser = geyser;
@@ -128,7 +105,7 @@ public final class RaknetServer {
             this.listenCount = 1;
         }
 
-        this.broadcastPort = geyser.config().advanced().bedrock().broadcastPort();
+        this.pingResponder = new BedrockPingHandler(geyser);
     }
 
     public CompletableFuture<Void> bind(InetSocketAddress address) {
@@ -153,7 +130,7 @@ public final class RaknetServer {
             // Add our handlers
             channel.pipeline()
                 .addBefore(RakServerOfflineHandler.NAME, RakConnectionRequestHandler.NAME, new RakConnectionRequestHandler(this))
-                .addAfter(RakServerOfflineHandler.NAME, RakPingHandler.NAME, new RakPingHandler(this));
+                .addAfter(RakServerOfflineHandler.NAME, RakPingHandler.NAME, new RakPingHandler(this.pingResponder));
         });
     }
 
@@ -169,8 +146,6 @@ public final class RaknetServer {
             futureChildGroup.sync();
             futureGroup.sync();
             futurePlayerGroup.sync();
-
-            SkinProvider.shutdown();
         } catch (InterruptedException e) {
             GeyserImpl.getInstance().getLogger().severe("Exception in shutdown process", e);
         }
@@ -215,7 +190,7 @@ public final class RaknetServer {
         ));
         this.geyser.getLogger().debug("Disabling RakNet rate limiting " + rakRateLimitingDisabled);
 
-        GeyserServerInitializer serverInitializer = new GeyserServerInitializer(this.geyser, rakSendCookie);
+        RakServerInitializer serverInitializer = new RakServerInitializer(this.geyser, rakSendCookie);
         playerGroup = serverInitializer.getEventLoopGroup();
 
         return new ServerBootstrap()
@@ -264,101 +239,6 @@ public final class RaknetServer {
         geyser.getLogger().debug(GeyserLocale.getLocaleStringLog("geyser.network.attempt_connect", ip));
         connectionAttempts++;
         return true;
-    }
-
-    public BedrockPong onQuery(long rakGuid, InetSocketAddress inetSocketAddress) {
-        if (geyser.config().debugMode() && PRINT_DEBUG_PINGS) {
-            String ip = geyser.config().logPlayerIpAddresses() ? inetSocketAddress.toString() : "<IP address withheld>";
-            geyser.getLogger().debug(GeyserLocale.getLocaleStringLog("geyser.network.pinged", ip));
-        }
-
-        GeyserConfig config = geyser.config();
-
-        GeyserPingInfo pingInfo = null;
-        if (config.motd().passthroughMotd() || config.motd().passthroughPlayerCounts()) {
-            IGeyserPingPassthrough pingPassthrough = geyser.getBootstrap().getGeyserPingPassthrough();
-            if (pingPassthrough != null) {
-                pingInfo = pingPassthrough.getPingInformation(inetSocketAddress);
-            }
-        }
-
-        BedrockPong pong = new BedrockPong()
-                .edition("MCPE")
-                .gameType("Survival") // Can only be Survival or Creative as of 1.16.210.59
-                .nintendoLimited(false)
-                .protocolVersion(GameProtocol.DEFAULT_BEDROCK_PROTOCOL)
-                .version(PING_VERSION)
-                .ipv4Port(this.broadcastPort)
-                .ipv6Port(this.broadcastPort)
-                .serverId(rakGuid);
-
-        if (config.motd().passthroughMotd() && pingInfo != null && pingInfo.getDescription() != null) {
-            String[] motd = MessageTranslator.convertToPlainTextLenient(pingInfo.getDescription(), GeyserLocale.getDefaultLocale()).split("\n");
-            String mainMotd = (motd.length > 0) ? motd[0] : config.motd().primaryMotd(); // First line of the motd.
-            String subMotd = (motd.length > 1) ? motd[1] : config.motd().secondaryMotd(); // Second line of the motd if present, otherwise default.
-
-            pong.motd(mainMotd.trim());
-            pong.subMotd(subMotd.trim()); // Trimmed to shift it to the left, prevents the universe from collapsing on us just because we went 2 characters over the text box's limit.
-        } else {
-            pong.motd(config.motd().primaryMotd());
-            pong.subMotd(config.motd().secondaryMotd());
-        }
-
-        // Placed here to prevent overriding values set in the ping event.
-        if (config.motd().passthroughPlayerCounts() && pingInfo != null) {
-            pong.playerCount(pingInfo.getPlayers().getOnline());
-            pong.maximumPlayerCount(pingInfo.getPlayers().getMax());
-        } else {
-            pong.playerCount(geyser.getSessionManager().getSessions().size());
-            pong.maximumPlayerCount(config.motd().maxPlayers());
-        }
-
-        this.geyser.eventBus().fire(new GeyserBedrockPingEventImpl(pong, inetSocketAddress));
-
-        // https://github.com/GeyserMC/Geyser/issues/3388
-        pong.motd(pong.motd().replace(';', ':'));
-        pong.subMotd(pong.subMotd().replace(';', ':'));
-
-        // Fallbacks to prevent errors and allow Bedrock to see the server
-        if (pong.motd() == null || pong.motd().isBlank()) {
-            pong.motd(GeyserImpl.NAME);
-        }
-        if (pong.subMotd() == null || pong.subMotd().isBlank()) {
-            // Sub-MOTD cannot be empty as of 1.16.210.59
-            pong.subMotd(GeyserImpl.NAME);
-        }
-
-        if (ConnectionTestCommand.CONNECTION_TEST_MOTD != null) {
-            // Force-override as we are testing the connection and want to verify we are connecting to the right server through the MOTD
-            pong.motd(ConnectionTestCommand.CONNECTION_TEST_MOTD);
-            pong.subMotd(GeyserImpl.NAME);
-        }
-
-        // The ping will not appear if the MOTD + sub-MOTD is of a certain length.
-        // We don't know why, though
-        byte[] motdArray = pong.motd().getBytes(StandardCharsets.UTF_8);
-        int subMotdLength = pong.subMotd().getBytes(StandardCharsets.UTF_8).length;
-        if (motdArray.length + subMotdLength > (MAGIC_RAKNET_LENGTH - PING_VERSION_BYTES_LENGTH)) {
-            // Shorten the sub-MOTD first since that only appears locally
-            if (subMotdLength > BRAND_BYTES_LENGTH) {
-                pong.subMotd(GeyserImpl.NAME);
-                subMotdLength = BRAND_BYTES_LENGTH;
-            }
-            if (motdArray.length > (MAGIC_RAKNET_LENGTH - PING_VERSION_BYTES_LENGTH - subMotdLength)) {
-                // If the top MOTD is still too long, we chop it down
-                byte[] newMotdArray = new byte[MAGIC_RAKNET_LENGTH - PING_VERSION_BYTES_LENGTH - subMotdLength];
-                System.arraycopy(motdArray, 0, newMotdArray, 0, newMotdArray.length);
-                pong.motd(new String(newMotdArray, StandardCharsets.UTF_8));
-            }
-        }
-
-        //Bedrock will not even attempt a connection if the client thinks the server is full
-        //so we have to fake it not being full
-        if (pong.playerCount() >= pong.maximumPlayerCount()) {
-            pong.maximumPlayerCount(pong.playerCount() + 1);
-        }
-
-        return pong;
     }
 
     private List<CIDRMatcher> whitelistedIPsMatchers = null;

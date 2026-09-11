@@ -23,7 +23,7 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.network;
+package org.geysermc.geyser.network.bedrock.raknet;
 
 import io.netty.bootstrap.AbstractBootstrap;
 import io.netty.channel.Channel;

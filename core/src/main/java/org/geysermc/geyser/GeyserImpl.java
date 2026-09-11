@@ -476,36 +476,18 @@ public class GeyserImpl implements GeyserApi, EventRegistrar {
             logger.debug("Epoll is not available; Erosion's Unix socket handling will not work.");
         }
 
-        int bedrockThreadCount = Integer.getInteger("Geyser.BedrockNetworkThreads", -1);
-        if (bedrockThreadCount == -1) {
-            // Copy the code from Netty's default thread count fallback
-            bedrockThreadCount = Math.max(1, SystemPropertyUtil.getInt("io.netty.eventLoopThreads", NettyRuntime.availableProcessors() * 2));
+        // RakNet takes the UDP side of the Bedrock port; NetherNet signalling its TCP side, and WebRTC
+        // the UDP side too if RakNet is not running
+        GeyserConfig.BedrockConfig.Transport transport = config.bedrock().transport();
+        this.geyserServer = null;
+        this.netherNetServer = null;
+        if (transport.raknet()) {
+            startRaknet(config, logger);
         }
-
-        this.geyserServer = new RaknetServer(this, bedrockThreadCount);
-        this.geyserServer.bind(new InetSocketAddress(config.bedrock().address(), config.bedrock().port()))
-            .whenComplete((avoid, throwable) -> {
-                String address = config.bedrock().address();
-                String port = String.valueOf(config.bedrock().port()); // otherwise we get commas
-
-                if (throwable == null) {
-                    if ("0.0.0.0".equals(address)) {
-                        // basically just hide it in the log because some people get confused and try to change it
-                        logger.info(GeyserLocale.getLocaleStringLog("geyser.core.start.ip_suppressed", port));
-                    } else {
-                        logger.info(GeyserLocale.getLocaleStringLog("geyser.core.start", address, port));
-                    }
-                } else {
-                    logger.severe(GeyserLocale.getLocaleStringLog("geyser.core.fail", address, port));
-                    if (!"0.0.0.0".equals(address)) {
-                        logger.info(Component.text("Suggestion: try setting `address` under `bedrock` in the Geyser config back to 0.0.0.0", NamedTextColor.GREEN));
-                        logger.info(Component.text("Then, restart this server.", NamedTextColor.GREEN));
-                    }
-                }
-            }).join();
-
-        this.netherNetServer = new NetherNetServer(this);
-        this.netherNetServer.start();
+        if (transport.nethernet()) {
+            this.netherNetServer = new NetherNetServer(this);
+            this.netherNetServer.start();
+        }
 
         if (config.java().authType() == AuthType.FLOODGATE) {
             try {
@@ -596,6 +578,36 @@ public class GeyserImpl implements GeyserApi, EventRegistrar {
         return session.transfer(address, port);
     }
 
+    private void startRaknet(GeyserConfig config, GeyserLogger logger) {
+        int bedrockThreadCount = Integer.getInteger("Geyser.BedrockNetworkThreads", -1);
+        if (bedrockThreadCount == -1) {
+            // Copy the code from Netty's default thread count fallback
+            bedrockThreadCount = Math.max(1, SystemPropertyUtil.getInt("io.netty.eventLoopThreads", NettyRuntime.availableProcessors() * 2));
+        }
+
+        this.geyserServer = new RaknetServer(this, bedrockThreadCount);
+        this.geyserServer.bind(new InetSocketAddress(config.bedrock().address(), config.bedrock().port()))
+            .whenComplete((avoid, throwable) -> {
+                String address = config.bedrock().address();
+                String port = String.valueOf(config.bedrock().port()); // otherwise we get commas
+
+                if (throwable == null) {
+                    if ("0.0.0.0".equals(address)) {
+                        // basically just hide it in the log because some people get confused and try to change it
+                        logger.info(GeyserLocale.getLocaleStringLog("geyser.core.start.ip_suppressed", port));
+                    } else {
+                        logger.info(GeyserLocale.getLocaleStringLog("geyser.core.start", address, port));
+                    }
+                } else {
+                    logger.severe(GeyserLocale.getLocaleStringLog("geyser.core.fail", address, port));
+                    if (!"0.0.0.0".equals(address)) {
+                        logger.info(Component.text("Suggestion: try setting `address` under `bedrock` in the Geyser config back to 0.0.0.0", NamedTextColor.GREEN));
+                        logger.info(Component.text("Then, restart this server.", NamedTextColor.GREEN));
+                    }
+                }
+            }).join();
+    }
+
     public void disable() {
         bootstrap.getGeyserLogger().info(GeyserLocale.getLocaleStringLog("geyser.core.shutdown"));
 
@@ -610,6 +622,7 @@ public class GeyserImpl implements GeyserApi, EventRegistrar {
         runIfNonNull(scoreboardUpdater, ScoreboardUpdater::shutdown);
         runIfNonNull(netherNetServer, NetherNetServer::shutdown);
         runIfNonNull(geyserServer, RaknetServer::shutdown);
+        SkinProvider.shutdown();
         runIfNonNull(skinUploader, FloodgateSkinUploader::close);
         runIfNonNull(newsHandler, NewsHandler::shutdown);
         runIfNonNull(erosionUnixListener, UnixSocketClientListener::close);

@@ -26,37 +26,37 @@
 package org.geysermc.geyser.network.bedrock.nethernet.codec;
 
 import io.netty.buffer.ByteBuf;
+import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
-import io.netty.handler.codec.ByteToMessageDecoder;
-import org.cloudburstmc.protocol.common.util.VarInts;
+import io.netty.handler.codec.MessageToMessageCodec;
+import org.cloudburstmc.protocol.bedrock.netty.BedrockBatchWrapper;
+import org.cloudburstmc.protocol.bedrock.netty.codec.FrameIdCodec;
 
 import java.util.List;
 
-public class NetherNetPacketDecoder extends ByteToMessageDecoder {
-    public static final String NAME = "nethernet-decoder";
+/**
+ * NetherNet's counterpart to {@link FrameIdCodec}. The channel already
+ * reassembles fragments, so every message is exactly one (compressed) batch, without RakNet's 0xFE frame ID.
+ */
+@ChannelHandler.Sharable
+public class NetherNetFrameCodec extends MessageToMessageCodec<ByteBuf, BedrockBatchWrapper> {
+    public static final String NAME = "nethernet-frame-codec";
+    public static final NetherNetFrameCodec INSTANCE = new NetherNetFrameCodec();
 
     @Override
-    protected void decode(ChannelHandlerContext ctx, ByteBuf in, List<Object> out) throws Exception {
-        if (!in.isReadable()) {
+    protected void encode(ChannelHandlerContext ctx, BedrockBatchWrapper msg, List<Object> out) {
+        if (msg.getCompressed() == null) {
+            throw new IllegalStateException("Bedrock batch was not compressed");
+        }
+        // Slice so the channel, which fragments by absolute index, always sees a reader index of 0
+        out.add(msg.getCompressed().retainedSlice());
+    }
+
+    @Override
+    protected void decode(ChannelHandlerContext ctx, ByteBuf msg, List<Object> out) {
+        if (!msg.isReadable()) {
             return;
         }
-
-        in.markReaderIndex();
-        int length;
-        try {
-            length = VarInts.readUnsignedInt(in);
-        } catch (Exception e) {
-            // Not enough bytes for VarInt or invalid
-            in.resetReaderIndex();
-            return;
-        }
-
-        if (in.readableBytes() < length) {
-            // Not enough bytes for the full packet
-            in.resetReaderIndex();
-            return;
-        }
-
-        out.add(in.readRetainedSlice(length));
+        out.add(BedrockBatchWrapper.newInstance(msg.readRetainedSlice(msg.readableBytes()), null));
     }
 }

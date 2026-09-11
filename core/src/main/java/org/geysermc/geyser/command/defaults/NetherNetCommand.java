@@ -25,7 +25,7 @@
 
 package org.geysermc.geyser.command.defaults;
 
-import dev.kastle.netty.channel.nethernet.admission.NativeAdmissionServerChannel;
+import org.cloudburstmc.netty.signalling.admission.NativeAdmissionServerChannel;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.netty.signalling.ProviderClient;
 import org.cloudburstmc.netty.signalling.ServerStatus;

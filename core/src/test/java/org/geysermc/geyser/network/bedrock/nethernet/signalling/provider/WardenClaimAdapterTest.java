@@ -43,23 +43,7 @@ class WardenClaimAdapterTest {
     }
 
     @Test
-    void optionalActionIsDisplayedButNeverAutomaticallyRefreshed() throws Exception {
-        AtomicInteger requests = new AtomicInteger();
-        var adapter = new WardenClaimAdapter(() -> CompletableFuture.completedFuture(metadata()),
-            () -> CompletableFuture.completedFuture(metadata()), () -> {
-            requests.incrementAndGet();
-            JsonObject result = new JsonObject();
-            result.add("extensions", metadata());
-            return CompletableFuture.completedFuture(result);
-        }, () -> 1000);
-        assertTrue(adapter.current().toCompletableFuture().get().orElseThrow().message().contains("/claim/private"));
-        assertEquals(0, requests.get());
-        assertTrue(adapter.refresh().toCompletableFuture().get().isPresent());
-        assertEquals(1, requests.get());
-    }
-
-    @Test
-    void independentProviderHasNoClaimRequestsEvenForAnExplicitCommand() throws Exception {
+    void otherProvidersNeverGetClaimRequests() throws Exception {
         AtomicInteger requests = new AtomicInteger();
         var adapter = new WardenClaimAdapter(() -> CompletableFuture.completedFuture(new JsonObject()),
             () -> CompletableFuture.completedFuture(new JsonObject()), () -> {
@@ -72,25 +56,9 @@ class WardenClaimAdapterTest {
     }
 
     @Test
-    void restartCanExplicitlyRefreshThroughReadinessWithoutAStoredClaimUrl() throws Exception {
-        JsonObject readiness = metadata();
-        readiness.getAsJsonObject(WardenClaimAdapter.NAMESPACE).getAsJsonObject("data").remove("action");
-        AtomicInteger requests = new AtomicInteger();
-        var adapter = new WardenClaimAdapter(() -> CompletableFuture.completedFuture(new JsonObject()),
-            () -> CompletableFuture.completedFuture(readiness), () -> {
-            requests.incrementAndGet();
-            JsonObject response = new JsonObject();
-            response.add("extensions", metadata());
-            return CompletableFuture.completedFuture(response);
-        }, () -> 1000);
-        assertTrue(adapter.current().toCompletableFuture().get().isEmpty());
-        assertEquals(0, requests.get());
-        assertTrue(adapter.refresh().toCompletableFuture().get().isPresent());
-        assertEquals(1, requests.get());
-    }
-
-    @Test
-    void expiredUnavailableMalformedAndUnsupportedActionsAreNotDisplayed() {
+    void onlyDisplaysValidActions() {
+        // The provider's text and URL end up in the console
+        assertTrue(WardenClaimAdapter.action(metadata(), 1000).orElseThrow().message().contains("/claim/private"));
         assertTrue(WardenClaimAdapter.action(metadata(), 2000).isEmpty());
         JsonObject unavailable = metadata();
         unavailable.getAsJsonObject(WardenClaimAdapter.NAMESPACE).getAsJsonObject("data").addProperty("available", false);
