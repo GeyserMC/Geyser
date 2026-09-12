@@ -42,7 +42,7 @@ import org.geysermc.cumulus.response.result.FormResponseResult;
 import org.geysermc.cumulus.response.result.ValidFormResponseResult;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.network.bedrock.CodecProcessor;
-import org.geysermc.geyser.network.bedrock.nethernet.TransportIdentityBinding;
+import org.cloudburstmc.netty.util.nethernet.TransportIdentityBinding;
 import org.geysermc.geyser.network.bedrock.nethernet.NetherNetPeer;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.auth.AuthData;

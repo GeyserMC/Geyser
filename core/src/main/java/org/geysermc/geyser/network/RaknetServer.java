@@ -25,6 +25,7 @@
 
 package org.geysermc.geyser.network;
 
+import org.cloudburstmc.netty.util.nethernet.TrustedProxies;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
@@ -206,7 +207,7 @@ public final class RaknetServer {
     public boolean onConnectionRequest(InetSocketAddress inetSocketAddress, InetSocketAddress clientAddress) {
         List<String> allowedProxyIPs = geyser.config().advanced().bedrock().haproxyProtocolWhitelistedIps();
         if (geyser.config().advanced().bedrock().useHaproxyProtocol() && !allowedProxyIPs.isEmpty()) {
-            if (!ProxyWhitelist.get(geyser).contains(inetSocketAddress.getAddress())) {
+            if (!TrustedProxies.parse(geyser.config().advanced().bedrock().haproxyProtocolWhitelistedIps()).contains(inetSocketAddress.getAddress())) {
                 connectionAttempts++;
                 return false;
             }
