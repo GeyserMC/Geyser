@@ -1,4 +1,4 @@
-<img src="https://res.cloudinary.com/dnqnmpfbt/image/upload/v1776060273/Edugeyser_logo_with_vibrant_geyser_burst_tem6rz.png" alt="EduGeyser" width="600"/>
+<img src="https://edugeyser.org/img/site/geyser.png" alt="EduGeyser" width="480"/>
 
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
