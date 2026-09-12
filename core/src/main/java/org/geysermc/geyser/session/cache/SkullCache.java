@@ -55,6 +55,8 @@ import java.util.Map;
 import java.util.UUID;
 
 public class SkullCache {
+    private static final Comparator<Skull> DISTANCE_COMPARATOR = Comparator.comparingInt(Skull::getDistanceSquared);
+
     private final int maxVisibleSkulls;
     private final boolean cullingEnabled;
 
@@ -121,7 +123,7 @@ public class SkullCache {
             skull.distanceSquared = position.distanceSquared(lastPlayerPosition.getX(), lastPlayerPosition.getY(), lastPlayerPosition.getZ());
             if (skull.distanceSquared < skullRenderDistanceSquared) {
                 // Keep list in order
-                int i = Collections.binarySearch(inRangeSkulls, skull, Comparator.comparingInt(Skull::getDistanceSquared));
+                int i = Collections.binarySearch(inRangeSkulls, skull, DISTANCE_COMPARATOR);
                 if (i < 0) { // skull.distanceSquared is a new distance value
                     i = -i - 1;
                 }
@@ -175,7 +177,7 @@ public class SkullCache {
                     inRangeSkulls.add(skull);
                 }
             }
-            inRangeSkulls.sort(Comparator.comparingInt(Skull::getDistanceSquared));
+            inRangeSkulls.sort(DISTANCE_COMPARATOR);
 
             for (int i = inRangeSkulls.size() - 1; i >= 0; i--) {
                 if (i < maxVisibleSkulls) {

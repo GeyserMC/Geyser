@@ -39,7 +39,7 @@ import org.geysermc.geyser.level.block.GeyserMaterialInstance;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.IntStream;
+//import java.util.stream.IntStream;
 
 @Data
 public class CustomSkull {
@@ -51,7 +51,7 @@ public class CustomSkull {
     private static final String BITS_B_PROPERTY = "geyser_skull:bits_b";
 
     private static final int[] ROTATIONS = {0, -90, 180, 90};
-
+    private static final String[] QUADRANT_NAMES = {"a", "b", "c", "d"}; // made it static
     private static final BoxComponent FLOOR_BOX = new BoxComponent(
             -4, 0, -4,
             8, 8, 8
@@ -85,8 +85,8 @@ public class CustomSkull {
         customBlockData = new GeyserCustomBlockData.Builder()
                 .name("player_skull_" + skinHash)
                 .components(components)
-                .intProperty(BITS_A_PROPERTY, IntStream.rangeClosed(0, 6).boxed().toList()) // This gives us exactly 21 block states
-                .intProperty(BITS_B_PROPERTY, IntStream.rangeClosed(0, 2).boxed().toList())
+                .intProperty(BITS_A_PROPERTY, List.of(0, 1, 2, 3, 4, 5, 6)) // This gives us exactly 21 block states
+                .intProperty(BITS_B_PROPERTY, List.of(0, 1, 2))
                 .permutations(permutations)
                 .build();
     }
@@ -126,7 +126,7 @@ public class CustomSkull {
     }
 
     private void addFloorPermutations(List<CustomBlockPermutation> permutations) {
-        String[] quadrantNames = {"a", "b", "c", "d"};
+       // String[] quadrantNames = {"a", "b", "c", "d"};
 
         for (int quadrant = 0; quadrant < 4; quadrant++) {
             for (int i = 0; i < 4; i++) {
@@ -135,7 +135,7 @@ public class CustomSkull {
                         .selectionBox(FLOOR_BOX)
                         .collisionBox(FLOOR_BOX)
                         .geometry(new GeyserGeometryComponent.Builder()
-                                .identifier("geometry.geyser.player_skull_floor_" + quadrantNames[i])
+                                .identifier("geometry.geyser.player_skull_floor_" + QUADRANT_NAMES(i))
                                 .build())
                         .transformation(new TransformationComponent(0, ROTATIONS[quadrant], 0))
                         .build();
