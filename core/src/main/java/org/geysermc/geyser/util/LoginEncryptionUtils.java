@@ -129,6 +129,16 @@ public class LoginEncryptionUtils {
                     session.disconnect("Did not receive IP and xuid forwarded from the proxy!");
                     return;
                 }
+                // This listener already delegates player authentication to its configured proxy.
+                // Complete the pending admission lifecycle only after the forwarded fields passed
+                // the existing validation above, so gameplay can outlive the ticket's login deadline.
+                String mismatch = TransportIdentityBinding.acceptForwardedIdentity(
+                        session.getUpstream().getSession().getPeer().getChannel());
+                if (mismatch != null) {
+                    geyser.getLogger().info("Refused a login from " + session.getSocketAddress() + ", " + mismatch);
+                    session.disconnect(GeyserLocale.getLocaleStringLog("geyser.network.remote.invalid_xbox_account"));
+                    return;
+                }
             }
             session.setAuthData(new AuthData(extraData.displayName, extraData.identity, xuid, issuedAt, extraData.minecraftId));
 
