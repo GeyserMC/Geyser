@@ -236,7 +236,7 @@ public interface GeyserConfig {
             How Bedrock players connect. Changes require a restart.
             "nethernet" accepts NetherNet (WebRTC), which players find through the signalling configured below.
             "both" accepts NetherNet and RakNet, which then need separate UDP ports; see "webrtc-port".
-            "raknet" only accepts RakNet, the original UDP protocol. It is deprecated, and removed in Minecraft: Bedrock Edition 26.50.""")
+            "raknet" only accepts RakNet, the original UDP protocol. It is deprecated, and will be removed in Minecraft: Bedrock Edition 26.60.""")
         default Transport transport() {
             return Transport.NETHERNET;
         }
@@ -283,7 +283,7 @@ public interface GeyserConfig {
         enum Transport {
             NETHERNET,
             BOTH,
-            // Deprecated, removed in Minecraft: Bedrock Edition 26.50
+            // Deprecated, removed in Minecraft: Bedrock Edition 26.60
             RAKNET;
 
             public boolean raknet() {
