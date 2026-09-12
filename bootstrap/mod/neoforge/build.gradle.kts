@@ -64,6 +64,11 @@ dependencies {
         shadowBundle("io.github.sendablemetatype.webrtc:webrtc-java:${libs.versions.webrtc.java.get()}:$platform")
     }
 
+    // NeoForge loads nested jars into its plugin layer, which cannot see the
+    // WebRTC classes shaded into this mod jar in the game layer. Shading the
+    // NetherNet transport next to them keeps both in the same module.
+    shadowBundle(libs.nethernet)
+
     implementation(libs.cloud.neoforge)
     include(libs.cloud.neoforge)
 }

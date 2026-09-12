@@ -46,6 +46,7 @@ dependencies {
     shadowBundle(libs.protocol.common)
     shadowBundle(libs.protocol.codec)
     shadowBundle(libs.raknet)
+    shadowBundle(libs.nethernet)
     shadowBundle(libs.mcprotocollib)
 
     // Shade + relocate configurate as we're using a fork
