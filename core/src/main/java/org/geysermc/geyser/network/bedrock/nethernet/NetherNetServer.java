@@ -361,6 +361,7 @@ public final class NetherNetServer implements EventRegistrar {
                         return;
                     }
                     logger().info(ProviderRuntimeObservations.registrationMessage(registration));
+                    logger().info(ProviderRuntimeObservations.delegatedIdentityMessage(origin));
                     WardenClaimAdapter claim = wardenClaim;
                     if (claim != null)
                         claim.current().thenAccept(action -> action.ifPresent(value -> logger().info(value.message())));
