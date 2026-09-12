@@ -70,6 +70,13 @@ There are a few things Geyser is unable to support due to various differences be
 2. Navigate to the Geyser root directory and run `git submodule update --init --recursive`. This command downloads all the needed submodules for Geyser and is a crucial step in this process.
 3. Run `gradlew build` and locate to `bootstrap/build` folder.
 
+Two opt-in properties build against checkouts placed next to this one instead of the pinned versions:
+
+- `-PlocalNetworkM` uses the sibling NetworkM checkout for both the RakNet and NetherNet transports. `-PlocalRaknet` and `-PlocalNethernet` are aliases for it. Set `-PnetworkMDir=/path/to/NetworkM` to use another checkout.
+- `-PlocalProtocol` uses the sibling CloudburstProtocol checkout for the protocol modules.
+
+They can be combined. Without them, builds use the pinned versions.
+
 ## Contributing
 Any contributions are appreciated. Please feel free to reach out to us on [Discord](https://discord.gg/geysermc) if
 you're interested in helping out with Geyser.
