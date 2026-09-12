@@ -25,6 +25,7 @@
 
 package org.geysermc.geyser.network.bedrock.nethernet.signalling.provider;
 
+import org.cloudburstmc.netty.signalling.provider.ProviderRuntimeConfiguration;
 import org.geysermc.geyser.configuration.GeyserConfig;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -60,15 +61,25 @@ class ProviderConfigurationTest {
             .build().load().get(GeyserConfig.SignallingConfig.class);
     }
 
+    /** What {@code NetherNetServer} hands the resolver, so this covers that mapping too. */
+    private static ProviderRuntimeConfiguration resolve(GeyserConfig.SignallingConfig config, Path dir,
+                                                        String bindAddress, int udpPort, int capacity)
+        throws IOException {
+        var nxs = config.nxs();
+        return ProviderRuntimeConfiguration.resolve(
+            new ProviderRuntimeConfiguration.Settings(nxs.endpoint(), nxs.token(), nxs.advertiseAddresses(), nxs.data()),
+            dir, bindAddress, udpPort, capacity, "Geyser");
+    }
+
     private static ProviderRuntimeConfiguration runtime(Path dir, String yaml) throws IOException {
-        return ProviderRuntimeConfiguration.resolve(config(yaml), dir, "::", 20000, 40);
+        return resolve(config(yaml), dir, "::", 20000, 40);
     }
 
     @Test
     void externalSignallingDefaultsToWarden(@TempDir Path dir) throws Exception {
         var config = config("{}");
         assertEquals(GeyserConfig.SignallingConfig.Mode.BUILTIN, config.mode());
-        assertEquals("https://agent.warden.cloud", ProviderRuntimeConfiguration.resolve(config, dir, "::", 20000, 40).origin().toString());
+        assertEquals("https://agent.warden.cloud", resolve(config, dir, "::", 20000, 40).origin().toString());
     }
 
     @Test
@@ -143,7 +154,7 @@ class ProviderConfigurationTest {
     void rejectsInvalidModesAndPorts(@TempDir Path dir) throws Exception {
         assertThrows(IOException.class, () -> config("mode: invalid\n"));
         // The provider endpoint needs a fixed port; 0 would be ephemeral
-        assertThrows(IOException.class, () -> ProviderRuntimeConfiguration.resolve(config(PROVIDER), dir, "0.0.0.0", 0, 20));
-        assertEquals(65535, ProviderRuntimeConfiguration.resolve(config(PROVIDER), dir, "0.0.0.0", 65535, 20).udpPort());
+        assertThrows(IOException.class, () -> resolve(config(PROVIDER), dir, "0.0.0.0", 0, 20));
+        assertEquals(65535, resolve(config(PROVIDER), dir, "0.0.0.0", 65535, 20).udpPort());
     }
 }
