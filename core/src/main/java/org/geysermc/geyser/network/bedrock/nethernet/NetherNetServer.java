@@ -25,6 +25,7 @@
 
 package org.geysermc.geyser.network.bedrock.nethernet;
 
+import org.cloudburstmc.netty.util.nethernet.TrustedProxies;
 import org.cloudburstmc.netty.channel.nethernet.NetherNetChannelFactory;
 import org.cloudburstmc.netty.channel.nethernet.config.NetherChannelOption;
 import org.cloudburstmc.netty.channel.nethernet.signaling.NetherNetHTTPSignaling;
@@ -50,7 +51,6 @@ import org.geysermc.geyser.api.event.EventRegistrar;
 import org.geysermc.geyser.api.event.bedrock.SessionJoinEvent;
 import org.geysermc.geyser.api.network.BedrockListener;
 import org.geysermc.geyser.configuration.GeyserConfig;
-import org.geysermc.geyser.network.ProxyWhitelist;
 import org.geysermc.geyser.event.type.SessionDisconnectEventImpl;
 import org.geysermc.geyser.network.BedrockPingHandler;
 import org.geysermc.geyser.network.bedrock.nethernet.signalling.provider.GameOutcomeReporter;
@@ -59,7 +59,7 @@ import org.geysermc.geyser.network.bedrock.nethernet.signalling.provider.GeyserS
 import org.geysermc.geyser.network.bedrock.nethernet.signalling.NativeProviderHostFactory;
 import org.geysermc.geyser.network.bedrock.nethernet.signalling.provider.ProviderHostFactory;
 import org.geysermc.geyser.network.bedrock.nethernet.signalling.provider.ProviderRuntimeConfiguration;
-import org.geysermc.geyser.network.bedrock.nethernet.signalling.provider.ProviderRuntimeObservations;
+import org.cloudburstmc.netty.signalling.provider.ProviderRuntimeObservations;
 import org.geysermc.geyser.network.bedrock.nethernet.signalling.provider.ProviderShutdown;
 import org.geysermc.geyser.network.bedrock.nethernet.signalling.provider.WardenClaimAdapter;
 import org.geysermc.geyser.session.GeyserSession;
@@ -215,7 +215,7 @@ public final class NetherNetServer implements EventRegistrar {
             NetherNetHTTPSignaling.Builder signallingBuilder = new NetherNetHTTPSignaling.Builder()
                     .setIdentity(identity)
                     // The same "behind a proxy" settings RakNet uses, applied to the TCP listener
-                    .setTrustedProxies(ProxyWhitelist.get(geyser))
+                    .setTrustedProxies(TrustedProxies.parse(geyser.config().advanced().bedrock().haproxyProtocolWhitelistedIps()))
                     .setProxyProtocol(geyser.config().advanced().bedrock().useHaproxyProtocol())
                     // Behind a proxy the peer is the proxy, signing its own assertion. The same
                     // setting already accepts the login chain it forwards

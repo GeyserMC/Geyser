@@ -25,6 +25,7 @@
 
 package org.geysermc.geyser;
 
+import org.cloudburstmc.netty.util.nethernet.TrustedProxies;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import io.netty.channel.epoll.Epoll;
@@ -83,7 +84,6 @@ import org.geysermc.geyser.extension.GeyserExtensionManager;
 import org.geysermc.geyser.impl.MinecraftVersionImpl;
 import org.geysermc.geyser.level.BedrockDimension;
 import org.geysermc.geyser.level.WorldManager;
-import org.geysermc.geyser.network.ProxyWhitelist;
 import org.geysermc.geyser.network.RaknetServer;
 import org.geysermc.geyser.network.bedrock.GameProtocol;
 import org.geysermc.geyser.network.bedrock.nethernet.NetherNetServer;
@@ -658,7 +658,7 @@ public class GeyserImpl implements GeyserApi, EventRegistrar {
         isReloading = true;
         this.eventBus.fire(new GeyserPreReloadEvent(this.extensionManager, this.eventBus));
         // The config may name different proxies, so the resolved whitelist has to be fetched again
-        ProxyWhitelist.invalidate();
+        TrustedProxies.invalidate();
 
         bootstrap.onGeyserDisable();
         bootstrap.onGeyserEnable();
