@@ -31,6 +31,7 @@ import org.cloudburstmc.netty.channel.nethernet.config.NetherChannelOption;
 import org.cloudburstmc.netty.channel.nethernet.signaling.NetherNetHTTPSignaling;
 import org.cloudburstmc.netty.channel.nethernet.signaling.NetherNetServerSignaling;
 import org.cloudburstmc.netty.util.nethernet.NetherNetLogging;
+import org.cloudburstmc.netty.util.nethernet.SecretValue;
 import org.cloudburstmc.netty.util.nethernet.ServerIdentity;
 import org.cloudburstmc.netty.util.nethernet.TokenTrust;
 import io.netty.bootstrap.ServerBootstrap;
@@ -236,12 +237,13 @@ public final class NetherNetServer implements EventRegistrar {
             GeyserConfig.SignallingConfig.BuiltinConfig.HttpsConfig https = builtin.https();
             if (!https.certificate().isBlank()) {
                 Path certificate = geyser.configDirectory().resolve(https.certificate());
+                String password = SecretValue.resolve(https.password(), geyser.configDirectory());
                 if (https.privateKey().isBlank()) {
-                    signallingBuilder.setHttpsKeystore(certificate.toFile(), https.password());
+                    signallingBuilder.setHttpsKeystore(certificate.toFile(), password);
                 } else {
                     signallingBuilder.setHttpsPem(certificate.toFile(),
                             geyser.configDirectory().resolve(https.privateKey()).toFile(),
-                            https.password().isBlank() ? null : https.password());
+                            password.isBlank() ? null : password);
                 }
             }
 
