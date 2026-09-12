@@ -104,8 +104,10 @@ public class LoginEncryptionUtils {
             data.setOriginalString(jwt);
             session.setClientData(data);
 
-            // A proxy re-signs the chain with its own key, so the two only line up for a direct client
-            if (!geyser.config().advanced().bedrock().useWaterdogpeForwarding()) {
+            // A proxy re-signs the chain with its own key, so the two only line up for a direct client.
+            // Every other transport binds the chain through the encryption handshake below instead.
+            if (!geyser.config().advanced().bedrock().useWaterdogpeForwarding()
+                    && session.getUpstream().getSession().getPeer() instanceof NetherNetPeer) {
                 String mismatch = TransportIdentityBinding.mismatch(
                         session.getUpstream().getSession().getPeer().getChannel(), identityPublicKey);
                 if (mismatch != null) {
