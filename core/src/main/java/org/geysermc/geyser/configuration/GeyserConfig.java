@@ -174,7 +174,9 @@ public interface GeyserConfig {
                 @DefaultString()
                 String privateKey();
 
-                @Comment("Password for the PKCS12, or for the PEM key if it is encrypted.")
+                @Comment("""
+                    Password for the PKCS12, or for the PEM key if it is encrypted.
+                    A "file:/path/to/password" reads it from that file instead. Prefer a locked down file over putting it here.""")
                 @DefaultString()
                 @AsteriskSerializer.Secret
                 String password();
