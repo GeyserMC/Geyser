@@ -58,7 +58,7 @@ import org.geysermc.geyser.network.bedrock.nethernet.signalling.provider.GameOut
 import org.geysermc.geyser.network.bedrock.nethernet.signalling.provider.GeyserStatusCollector;
 import org.geysermc.geyser.network.bedrock.nethernet.signalling.NativeProviderHostFactory;
 import org.geysermc.geyser.network.bedrock.nethernet.signalling.provider.ProviderHostFactory;
-import org.geysermc.geyser.network.bedrock.nethernet.signalling.provider.ProviderRuntimeConfiguration;
+import org.cloudburstmc.netty.signalling.provider.ProviderRuntimeConfiguration;
 import org.cloudburstmc.netty.signalling.provider.ProviderRuntimeObservations;
 import org.geysermc.geyser.network.bedrock.nethernet.signalling.provider.ProviderShutdown;
 import org.geysermc.geyser.network.bedrock.nethernet.signalling.provider.WardenClaimAdapter;
@@ -307,7 +307,10 @@ public final class NetherNetServer implements EventRegistrar {
             ProviderTransport initializingTransport = null;
             try {
                 BedrockListener listener = geyser.config().bedrock();
-                ProviderRuntimeConfiguration runtime = ProviderRuntimeConfiguration.resolve(config, dataFolder, listener.address(), webrtcPort, collectServerStatus().maxPlayers());
+                var nxs = config.nxs();
+                ProviderRuntimeConfiguration runtime = ProviderRuntimeConfiguration.resolve(
+                    new ProviderRuntimeConfiguration.Settings(nxs.endpoint(), nxs.token(), nxs.advertiseAddresses(), nxs.data()),
+                    dataFolder, listener.address(), webrtcPort, collectServerStatus().maxPlayers(), "Geyser");
                 URI origin = runtime.origin();
                 var statePath = runtime.stateDirectory();
                 ProviderTransport transport;
