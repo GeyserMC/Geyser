@@ -13,9 +13,9 @@ guava = "29.0-jre"
 gson = "2.3.1" # Provided by Spigot 1.8.8 TODO bump to 2.8.1 or similar (Spigot 1.16.5 version) after Merge
 gson-runtime = "2.10.1"
 websocket = "1.5.1"
-protocol-connection = "623c4e4e"
-protocol-common = "623c4e4e"
-protocol-codec = "623c4e4e"
+protocol-connection = "fc1911b9"
+protocol-common = "fc1911b9"
+protocol-codec = "fc1911b9"
 raknet = "1.0.0"
 nethernet = "1.0.0"
 webrtc-java = "0.17.0-sm.1"
@@ -160,9 +160,9 @@ viaproxy = { group = "net.raphimc", name = "ViaProxy", version.ref = "viaproxy" 
 viaversion = { group = "com.viaversion", name = "viaversion", version.ref = "viaversion" }
 websocket = { group = "org.java-websocket", name = "Java-WebSocket", version.ref = "websocket" }
 
-protocol-common = { group = "com.github.SendableMetatype.education-edition-support", name = "common", version.ref = "protocol-common" }
-protocol-codec = { group = "com.github.SendableMetatype.education-edition-support", name = "bedrock-codec", version.ref = "protocol-codec" }
-protocol-connection = { group = "com.github.SendableMetatype.education-edition-support", name = "bedrock-connection", version.ref = "protocol-connection" }
+protocol-common = { group = "com.github.EduGeyser.education-edition-support", name = "common", version.ref = "protocol-common" }
+protocol-codec = { group = "com.github.EduGeyser.education-edition-support", name = "bedrock-codec", version.ref = "protocol-codec" }
+protocol-connection = { group = "com.github.EduGeyser.education-edition-support", name = "bedrock-connection", version.ref = "protocol-connection" }
 
 math = { group = "org.cloudburstmc.math", name = "immutable", version = "2.0" }
 
