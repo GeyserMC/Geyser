@@ -52,6 +52,7 @@ public class CustomSkull {
     private static final int[] ROTATIONS = {0, -90, 180, 90};
     
     private static final String[] QUADRANT_NAMES = {"a", "b", "c", "d"}; 
+
     private static final BoxComponent FLOOR_BOX = new BoxComponent(
             -4, 0, -4,
             8, 8, 8
@@ -128,6 +129,7 @@ public class CustomSkull {
     private void addFloorPermutations(List<CustomBlockPermutation> permutations) {
         for (int quadrant = 0; quadrant < 4; quadrant++) {
             for (int i = 0; i < 4; i++) {
+
                 int floorRotation = 4 * quadrant + i;
                 CustomBlockComponents components = new GeyserCustomBlockComponents.Builder()
                         .selectionBox(FLOOR_BOX)
