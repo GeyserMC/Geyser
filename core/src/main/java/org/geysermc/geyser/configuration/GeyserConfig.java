@@ -125,20 +125,20 @@ public interface GeyserConfig {
     }
 
     @ConfigSerializable
-    interface SignallingConfig {
+    interface SignalingConfig {
         @Comment("""
-            Configures where signalling should be:
-            "builtin" runs local HTTP signalling over TCP on the Bedrock address and port,
-            "nxs" registers with the external NXS provider configured below, "hybrid" runs both, and "none" disables signalling.
-            Built-in signalling cannot share the Java server's port, e.g. with clone-remote-port; the external signalling provider is used instead.""")
+            Configures where signaling should be:
+            "builtin" runs local HTTP signaling over TCP on the Bedrock address and port,
+            "nxs" registers with the external NXS provider configured below, "hybrid" runs both, and "none" disables signaling.
+            Built-in signaling cannot share the Java server's port, e.g. with clone-remote-port; the external signaling provider is used instead.""")
         default Mode mode() {
             return Mode.BUILTIN;
         }
 
-        @Comment("Settings for the built-in signalling endpoint. Only used in the \"builtin\" and \"hybrid\" modes.")
+        @Comment("Settings for the built-in signaling endpoint. Only used in the \"builtin\" and \"hybrid\" modes.")
         BuiltinConfig builtin();
 
-        @Comment("Settings for the external NXS signalling provider. Only used in the \"nxs\" and \"hybrid\" modes, or when built-in signalling cannot run.")
+        @Comment("Settings for the external NXS signaling provider. Only used in the \"nxs\" and \"hybrid\" modes, or when built-in signaling cannot run.")
         NxsConfig nxs();
 
         enum Mode {
@@ -158,14 +158,14 @@ public interface GeyserConfig {
 
         @ConfigSerializable
         interface BuiltinConfig {
-            @Comment("Serves signalling over HTTPS as well as HTTP, on the same port.")
+            @Comment("Serves signaling over HTTPS as well as HTTP, on the same port.")
             HttpsConfig https();
 
             @ConfigSerializable
             interface HttpsConfig {
                 @Comment("""
                     TLS certificate, as either a PEM chain with its key in "private-key", or a PKCS12 file
-                    leaving that empty. Players who reach signalling over TLS are never shown the first use
+                    leaving that empty. Players who reach signaling over TLS are never shown the first use
                     prompt. Empty serves plaintext only.""")
                 @DefaultString()
                 String certificate();
@@ -219,7 +219,7 @@ public interface GeyserConfig {
 
         @Comment("""
             The port that will Geyser will listen on for incoming Bedrock connections.
-            Built-in signalling uses this port over TCP, unless it is the Java server's port, and RakNet uses it over UDP.""")
+            Built-in signaling uses this port over TCP, unless it is the Java server's port, and RakNet uses it over UDP.""")
         @Override
         @DefaultNumeric(19132)
         @NumericRange(from = 0, to = 65535)
@@ -234,7 +234,7 @@ public interface GeyserConfig {
 
         @Comment("""
             How Bedrock players connect. Changes require a restart.
-            "nethernet" accepts NetherNet (WebRTC), which players find through the signalling configured below.
+            "nethernet" accepts NetherNet (WebRTC), which players find through the signaling configured below.
             "both" accepts NetherNet and RakNet, which then need separate UDP ports; see "webrtc-port".
             "raknet" only accepts RakNet, the original UDP protocol. It is deprecated, and will be removed in Minecraft: Bedrock Edition 26.60.""")
         default Transport transport() {
@@ -249,9 +249,9 @@ public interface GeyserConfig {
         boolean cloneRemotePort();
 
         @Comment("""
-            Signalling is how Bedrock players find and set up a NetherNet (WebRTC) connection to this server.
+            Signaling is how Bedrock players find and set up a NetherNet (WebRTC) connection to this server.
             Only used with the "both" and "nethernet" transports. Changes require a restart.""")
-        SignallingConfig signalling();
+        SignalingConfig signaling();
 
         void address(String address);
         void port(int port);
@@ -495,7 +495,7 @@ public interface GeyserConfig {
         @Comment("""
                 Whether to expect HAPROXY protocol for connecting Bedrock clients.
                 This is useful only when you are running a reverse proxy in front of your Geyser instance.
-                It covers RakNet over UDP, and the NetherNet signalling listener over TCP. A signalling
+                It covers RakNet over UDP, and the NetherNet signaling listener over TCP. A signaling
                 connection that carries no PROXY header is still served normally.
                 IF YOU DON'T KNOW WHAT THIS IS, DON'T TOUCH IT!""")
         @DefaultBoolean
@@ -504,7 +504,7 @@ public interface GeyserConfig {
         @Comment("""
                 A list of allowed HAPROXY protocol speaking proxy IP addresses/subnets. Only effective when "use-haproxy-protocol" is enabled, and
                 should really only be used when you are not able to use a proper firewall (usually true with shared hosting providers etc.).
-                Also the proxies whose forwarded client address the signalling listener trusts.
+                Also the proxies whose forwarded client address the signaling listener trusts.
                 Keeping this list empty means there is no IP address whitelist.
                 IP addresses, subnets, and links to plain text files are supported.""")
         default List<String> haproxyProtocolWhitelistedIps() {

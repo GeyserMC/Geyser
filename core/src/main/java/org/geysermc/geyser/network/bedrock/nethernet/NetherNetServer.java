@@ -41,10 +41,12 @@ import io.netty.channel.EventLoopGroup;
 import io.netty.channel.MultiThreadIoEventLoopGroup;
 import io.netty.channel.nio.NioIoHandler;
 import org.checkerframework.checker.nullness.qual.Nullable;
-import org.cloudburstmc.netty.signalling.ProviderClient;
-import org.cloudburstmc.netty.signalling.ProviderStateStore;
-import org.cloudburstmc.netty.signalling.ProviderTransport;
-import org.cloudburstmc.netty.signalling.ServerStatus;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import org.cloudburstmc.netty.signaling.ProviderClient;
+import org.cloudburstmc.netty.signaling.ProviderStateStore;
+import org.cloudburstmc.netty.signaling.ProviderTransport;
+import org.cloudburstmc.netty.signaling.ServerStatus;
 import org.cloudburstmc.protocol.bedrock.BedrockPong;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.GeyserLogger;
@@ -54,15 +56,14 @@ import org.geysermc.geyser.api.network.BedrockListener;
 import org.geysermc.geyser.configuration.GeyserConfig;
 import org.geysermc.geyser.event.type.SessionDisconnectEventImpl;
 import org.geysermc.geyser.network.BedrockPingHandler;
-import org.geysermc.geyser.network.bedrock.nethernet.signalling.provider.GameOutcomeReporter;
-import org.geysermc.geyser.network.bedrock.nethernet.signalling.provider.GameOutcomeTransport;
-import org.geysermc.geyser.network.bedrock.nethernet.signalling.provider.GeyserStatusCollector;
-import org.cloudburstmc.netty.signalling.provider.NativeProviderHostFactory;
-import org.cloudburstmc.netty.signalling.provider.ProviderHostFactory;
-import org.cloudburstmc.netty.signalling.provider.ProviderRuntimeConfiguration;
-import org.cloudburstmc.netty.signalling.provider.ProviderShutdown;
-import org.cloudburstmc.netty.signalling.provider.ProviderRuntimeObservations;
-import org.geysermc.geyser.network.bedrock.nethernet.signalling.provider.WardenClaimAdapter;
+import org.geysermc.geyser.network.bedrock.nethernet.signaling.provider.GameOutcomeReporter;
+import org.geysermc.geyser.network.bedrock.nethernet.signaling.provider.GameOutcomeTransport;
+import org.geysermc.geyser.network.bedrock.nethernet.signaling.provider.GeyserStatusCollector;
+import org.cloudburstmc.netty.signaling.provider.NativeProviderHostFactory;
+import org.cloudburstmc.netty.signaling.provider.ProviderHostFactory;
+import org.cloudburstmc.netty.signaling.provider.ProviderRuntimeConfiguration;
+import org.cloudburstmc.netty.signaling.provider.ProviderShutdown;
+import org.geysermc.geyser.network.bedrock.nethernet.signaling.provider.WardenClaimAdapter;
 import org.geysermc.geyser.session.GeyserSession;
 import tel.schich.libdatachannel.LibDataChannelArchDetect;
 import tel.schich.libdatachannel.PeerConnectionConfiguration;
@@ -84,7 +85,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 
 /**
- * The NetherNet (WebRTC) transport, used instead of RakNet: inbuilt HTTP signalling, NXS provider registration, or both,
+ * The NetherNet (WebRTC) transport, used instead of RakNet: inbuilt HTTP signaling, NXS provider registration, or both,
  * all on the Bedrock address and port.
  * Its state (signing identity, provider registration and DTLS identity) lives in the "nethernet" folder next to the config.
  */
@@ -92,7 +93,7 @@ public final class NetherNetServer implements EventRegistrar {
     private static final long GUID = new Random().nextLong();
 
     private final GeyserImpl geyser;
-    private final GeyserConfig.SignallingConfig config;
+    private final GeyserConfig.SignalingConfig config;
     /**
      * The UDP port for WebRTC: "webrtc-port", or the Bedrock port if that is 0.
      */
@@ -119,16 +120,16 @@ public final class NetherNetServer implements EventRegistrar {
     public NetherNetServer(GeyserImpl geyser) {
         this.geyser = geyser;
         GeyserConfig.BedrockConfig bedrock = geyser.config().bedrock();
-        this.config = bedrock.signalling();
+        this.config = bedrock.signaling();
         this.webrtcPort = bedrock.webrtcPort() == 0 ? bedrock.port() : bedrock.webrtcPort();
         this.dataFolder = geyser.getBootstrap().getConfigFolder().resolve("nethernet");
         this.pingResponder = new BedrockPingHandler(geyser);
     }
 
     public void start() {
-        GeyserConfig.SignallingConfig.Mode mode = config.mode();
-        if (mode == GeyserConfig.SignallingConfig.Mode.NONE) {
-            logger().warning("Signalling is disabled, so Bedrock players cannot connect over NetherNet.");
+        GeyserConfig.SignalingConfig.Mode mode = config.mode();
+        if (mode == GeyserConfig.SignalingConfig.Mode.NONE) {
+            logger().warning("Signaling is disabled, so Bedrock players cannot connect over NetherNet.");
             return;
         }
         boolean inbuilt = mode.builtin();
@@ -159,11 +160,11 @@ public final class NetherNetServer implements EventRegistrar {
             inbuilt = false;
             if (!provider) {
                 provider = true;
-                logger().warning("Builtin signalling cannot share the Bedrock port " + listener.port() + " with the Java server; " +
-                    "using the external signalling provider " + config.nxs().endpoint() + " instead.");
+                logger().warning("Builtin signaling cannot share the Bedrock port " + listener.port() + " with the Java server; " +
+                    "using the external signaling provider " + config.nxs().endpoint() + " instead.");
             } else {
-                logger().warning("Builtin signalling cannot share the Bedrock port " + listener.port() + " with the Java server; " +
-                    "only the external signalling provider is used.");
+                logger().warning("Builtin signaling cannot share the Bedrock port " + listener.port() + " with the Java server; " +
+                    "only the external signaling provider is used.");
             }
         }
 
@@ -200,8 +201,8 @@ public final class NetherNetServer implements EventRegistrar {
             identity = ServerIdentity.fromPemOrCreate(dataFolder.resolve("identity.pem").toFile(),
                     GeyserImpl.NAME + "-" + geyser.config().gameplay().serverName());
         } catch (Exception e) {
-            logger().error("Could not create or load the inbuilt signalling identity in " + dataFolder
-                    + ", inbuilt signalling will not start! Only delete identity.pem if it cannot be restored; "
+            logger().error("Could not create or load the inbuilt signaling identity in " + dataFolder
+                    + ", inbuilt signaling will not start! Only delete identity.pem if it cannot be restored; "
                     + "a new identity makes every player confirm the server again", e);
             return;
         }
@@ -211,9 +212,9 @@ public final class NetherNetServer implements EventRegistrar {
             // Keep libdatachannel's own logging out of the way
             NetherNetLogging.setNativeLogLevel("WARN");
 
-            GeyserConfig.SignallingConfig.BuiltinConfig builtin = geyser.config().bedrock().signalling().builtin();
+            GeyserConfig.SignalingConfig.BuiltinConfig builtin = geyser.config().bedrock().signaling().builtin();
 
-            NetherNetHTTPSignaling.Builder signallingBuilder = new NetherNetHTTPSignaling.Builder()
+            NetherNetHTTPSignaling.Builder signalingBuilder = new NetherNetHTTPSignaling.Builder()
                     .setIdentity(identity)
                     // The same "behind a proxy" settings RakNet uses, applied to the TCP listener
                     .setTrustedProxies(TrustedProxies.parse(geyser.config().advanced().bedrock().haproxyProtocolWhitelistedIps()))
@@ -234,24 +235,24 @@ public final class NetherNetServer implements EventRegistrar {
                                 .build();
                     });
 
-            GeyserConfig.SignallingConfig.BuiltinConfig.HttpsConfig https = builtin.https();
+            GeyserConfig.SignalingConfig.BuiltinConfig.HttpsConfig https = builtin.https();
             if (!https.certificate().isBlank()) {
                 Path certificate = geyser.configDirectory().resolve(https.certificate());
                 String password = SecretValue.resolve(https.password(), geyser.configDirectory());
                 if (https.privateKey().isBlank()) {
-                    signallingBuilder.setHttpsKeystore(certificate.toFile(), password);
+                    signalingBuilder.setHttpsKeystore(certificate.toFile(), password);
                 } else {
-                    signallingBuilder.setHttpsPem(certificate.toFile(),
+                    signalingBuilder.setHttpsPem(certificate.toFile(),
                             geyser.configDirectory().resolve(https.privateKey()).toFile(),
                             password.isBlank() ? null : password);
                 }
             }
 
             BedrockListener listener = geyser.config().bedrock();
-            // The channel binds HTTP signalling over TCP to the Bedrock port, and by default pins ICE to its UDP side.
+            // The channel binds HTTP signaling over TCP to the Bedrock port, and by default pins ICE to its UDP side.
             // When "webrtc-port" is another port, ICE goes there instead.
             boolean separateIcePort = webrtcPort != listener.port();
-            this.signaling = signallingBuilder.setIceOnLocalPort(!separateIcePort).build();
+            this.signaling = signalingBuilder.setIceOnLocalPort(!separateIcePort).build();
 
             this.inbuiltEventLoopGroup = new MultiThreadIoEventLoopGroup(NioIoHandler.newFactory());
             this.inbuiltInitialiser = new NetherNetChannelInitialiser(geyser);
@@ -278,13 +279,13 @@ public final class NetherNetServer implements EventRegistrar {
             String endpoint = https.certificate().isBlank()
                     ? "http://" + listener.address() + ":" + listener.port()
                     : "https:// and http:// on " + listener.address() + ":" + listener.port();
-            logger().info("Builtin signalling started on " + endpoint
+            logger().info("Builtin signaling started on " + endpoint
                 + (separateIcePort ? ", with WebRTC on UDP port " + webrtcPort : ""));
         } catch (Throwable e) {
             // Throwable: the WebRTC natives are not available on every platform
             closeInbuiltResources();
-            logger().warning("Inbuilt signalling could not bind or initialize; check that nothing else uses the Bedrock port over TCP.");
-            logger().debug("Inbuilt signalling failure: " + e);
+            logger().warning("Inbuilt signaling could not bind or initialize; check that nothing else uses the Bedrock port over TCP.");
+            logger().debug("Inbuilt signaling failure: " + e);
         }
     }
 
@@ -337,7 +338,7 @@ public final class NetherNetServer implements EventRegistrar {
                 initializingTransport = transport;
                 transport = new GameOutcomeTransport(transport, gameOutcomes);
                 ProviderClient client = new ProviderClient(runtime.clientConfiguration(), store, transport,
-                        () -> providerStatusSupplier.get(), () -> ProviderRuntimeObservations.health(geyser.getSessionManager().size(), runtime.capacity(), System.currentTimeMillis(), GeyserImpl.VERSION), message -> logger().warning(message));
+                        () -> providerStatusSupplier.get(), () -> health(runtime.capacity()), message -> logger().warning(message));
                 store = null; // ProviderClient now owns its lifetime.
                 initializingTransport = null;
                 synchronized (providerLifecycle) {
@@ -360,8 +361,10 @@ public final class NetherNetServer implements EventRegistrar {
                         stopProvider();
                         return;
                     }
-                    logger().info(ProviderRuntimeObservations.registrationMessage(registration));
-                    logger().info(ProviderRuntimeObservations.delegatedIdentityMessage(origin));
+                    logger().info(registrationMessage(registration));
+                    // Says where logins are vouched for, without putting provider credentials in the log
+                    logger().info("NetherNet client identities are authenticated by external signaling provider "
+                        + origin.getHost() + "; direct login keys are checked against its admission tickets");
                     WardenClaimAdapter claim = wardenClaim;
                     if (claim != null)
                         claim.current().thenAccept(action -> action.ifPresent(value -> logger().info(value.message())));
@@ -409,6 +412,22 @@ public final class NetherNetServer implements EventRegistrar {
 
     public @Nullable ProviderClient providerClient() {
         return providerClient;
+    }
+
+    private ProviderClient.Health health(int capacity) {
+        int players = geyser.getSessionManager().size();
+        return new ProviderClient.Health(true, true, capacity,
+            Math.min(1, (double) players / Math.max(1, capacity)), "nethernet", GeyserImpl.VERSION,
+            new ProviderClient.PlayerCount(players, System.currentTimeMillis()));
+    }
+
+    private static String registrationMessage(JsonObject registration) {
+        String instanceId = registration.get("instanceId").getAsString();
+        JsonElement address = registration.get("publicAddress");
+        return address != null && !address.isJsonNull()
+            ? "Provider address: " + address.getAsString() + " (instance " + instanceId + ")"
+            : "Provider instance registered: " + instanceId
+                + "; public addresses are managed on its attached Signal Servers";
     }
 
     public @Nullable WardenClaimAdapter wardenClaim() {

@@ -40,7 +40,7 @@ import org.geysermc.geyser.network.GeyserServerInitializer;
 import org.geysermc.geyser.network.bedrock.GameProtocol;
 import org.geysermc.geyser.network.bedrock.nethernet.codec.NetherNetFrameCodec;
 import org.geysermc.geyser.network.bedrock.nethernet.codec.NetherNetPacketEncoder;
-import org.geysermc.geyser.network.bedrock.nethernet.signalling.provider.GameOutcomeReporter;
+import org.geysermc.geyser.network.bedrock.nethernet.signaling.provider.GameOutcomeReporter;
 
 import java.net.InetSocketAddress;
 

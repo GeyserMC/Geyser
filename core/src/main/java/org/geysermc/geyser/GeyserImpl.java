@@ -477,7 +477,7 @@ public class GeyserImpl implements GeyserApi, EventRegistrar {
             logger.debug("Epoll is not available; Erosion's Unix socket handling will not work.");
         }
 
-        // RakNet takes the UDP side of the Bedrock port; NetherNet signalling its TCP side, and WebRTC
+        // RakNet takes the UDP side of the Bedrock port; NetherNet signaling its TCP side, and WebRTC
         // the UDP side too if RakNet is not running
         GeyserConfig.BedrockConfig.Transport transport = config.bedrock().transport();
         this.geyserServer = null;

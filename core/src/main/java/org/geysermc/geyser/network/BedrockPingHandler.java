@@ -40,7 +40,7 @@ import java.net.InetSocketAddress;
 import java.nio.charset.StandardCharsets;
 
 /**
- * Handles Bedrock pings (either via raknet, or providing to the signalling server for nethernet).
+ * Handles Bedrock pings (either via raknet, or providing to the signaling server for nethernet).
  */
 public final class BedrockPingHandler {
     private static final boolean PRINT_DEBUG_PINGS = Boolean.parseBoolean(System.getProperty("Geyser.PrintPingsInDebugMode", "true"));

@@ -23,10 +23,10 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.network.bedrock.nethernet.signalling.provider;
+package org.geysermc.geyser.network.bedrock.nethernet.signaling.provider;
 
 import org.cloudburstmc.protocol.bedrock.BedrockPong;
-import org.cloudburstmc.netty.signalling.ServerStatus;
+import org.cloudburstmc.netty.signaling.ServerStatus;
 
 /**
  * The Bedrock query supplies protocol/version; actual Geyser sessions supply players.

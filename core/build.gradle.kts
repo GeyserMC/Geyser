@@ -58,14 +58,14 @@ dependencies {
     implementation(libs.nethernet.transport) {
         exclude("io.netty", "*")
     }
-    implementation(libs.nethernet.signalling) {
+    implementation(libs.nethernet.signaling) {
         exclude("io.netty", "*")
     }
-    // Needed for signalling
+    // Needed for signaling
     implementation(libs.netty.codec.http)
     // WebRTC lib, with natives for linux x86_64/aarch64, windows x86_64 and macos x86_64/arm64
     implementation(libs.libdatachannel)
-    // Host-owned DTLS certificates and the inbuilt signalling identity
+    // Host-owned DTLS certificates and the inbuilt signaling identity
     implementation(libs.bouncycastle.pkix)
     implementation(libs.bouncycastle.prov)
 

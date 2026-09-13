@@ -38,10 +38,10 @@ class DumpSecretsTest {
 
     /** The same node the dump is built from, so the test cannot drift away from it. */
     private static CommentedConfigurationNode dumped() throws Exception {
-        GeyserConfig.SignallingConfig config = YamlConfigurationLoader.builder()
+        GeyserConfig.SignalingConfig config = YamlConfigurationLoader.builder()
             .source(() -> new BufferedReader(new StringReader(CONFIG)))
             .defaultOptions(InterfaceDefaultOptions::addTo)
-            .build().load().get(GeyserConfig.SignallingConfig.class);
+            .build().load().get(GeyserConfig.SignalingConfig.class);
 
         ConfigurationOptions options = InterfaceDefaultOptions.addTo(ConfigurationOptions.defaults(), builder ->
                 builder.addProcessor(AsteriskSerializer.Asterisk.class, String.class, AsteriskSerializer.CONFIGURATE_SERIALIZER)
