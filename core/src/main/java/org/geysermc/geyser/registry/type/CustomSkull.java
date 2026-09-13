@@ -40,7 +40,6 @@ import org.geysermc.geyser.level.block.GeyserMaterialInstance;
 import java.util.ArrayList;
 import java.util.List;
 
-
 @Data
 public class CustomSkull {
     private final String skinHash;
@@ -127,7 +126,6 @@ public class CustomSkull {
 
     private void addFloorPermutations(List<CustomBlockPermutation> permutations) {
     
-
         for (int quadrant = 0; quadrant < 4; quadrant++) {
             for (int i = 0; i < 4; i++) {
                 int floorRotation = 4 * quadrant + i;

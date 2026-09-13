@@ -56,7 +56,6 @@ import java.util.UUID;
 
 public class SkullCache {
     private static final Comparator<Skull> DISTANCE_COMPARATOR = Comparator.comparingInt(Skull::getDistanceSquared);
-
     private final int maxVisibleSkulls;
     private final boolean cullingEnabled;
 
