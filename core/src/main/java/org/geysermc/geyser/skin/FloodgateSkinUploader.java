@@ -309,7 +309,7 @@ public final class FloodgateSkinUploader {
     public void close() {
         if (!closed) {
             closed = true;
-            client.close();
+            client.closeConnection(CloseFrame.NORMAL, "Geyser is shutting down");
         }
     }
 }
