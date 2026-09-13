@@ -39,7 +39,7 @@ import org.geysermc.geyser.level.block.GeyserMaterialInstance;
 
 import java.util.ArrayList;
 import java.util.List;
-//import java.util.stream.IntStream;
+
 
 @Data
 public class CustomSkull {
@@ -51,7 +51,7 @@ public class CustomSkull {
     private static final String BITS_B_PROPERTY = "geyser_skull:bits_b";
 
     private static final int[] ROTATIONS = {0, -90, 180, 90};
-    private static final String[] QUADRANT_NAMES = {"a", "b", "c", "d"}; // made it static
+    private static final String[] QUADRANT_NAMES = {"a", "b", "c", "d"}; 
     private static final BoxComponent FLOOR_BOX = new BoxComponent(
             -4, 0, -4,
             8, 8, 8
@@ -126,7 +126,7 @@ public class CustomSkull {
     }
 
     private void addFloorPermutations(List<CustomBlockPermutation> permutations) {
-       // String[] quadrantNames = {"a", "b", "c", "d"};
+    
 
         for (int quadrant = 0; quadrant < 4; quadrant++) {
             for (int i = 0; i < 4; i++) {
@@ -135,7 +135,7 @@ public class CustomSkull {
                         .selectionBox(FLOOR_BOX)
                         .collisionBox(FLOOR_BOX)
                         .geometry(new GeyserGeometryComponent.Builder()
-                                .identifier("geometry.geyser.player_skull_floor_" + QUADRANT_NAMES(i))
+                                .identifier("geometry.geyser.player_skull_floor_" + QUADRANT_NAMES[i])
                                 .build())
                         .transformation(new TransformationComponent(0, ROTATIONS[quadrant], 0))
                         .build();
