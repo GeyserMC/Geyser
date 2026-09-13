@@ -108,11 +108,8 @@ public class LoginEncryptionUtils {
             // Every other transport binds the chain through the encryption handshake below instead.
             if (!geyser.config().advanced().bedrock().useWaterdogpeForwarding()
                     && session.getUpstream().getSession().getPeer() instanceof NetherNetPeer) {
-                String mismatch = TransportIdentityBinding.mismatch(
-                        session.getUpstream().getSession().getPeer().getChannel(), identityPublicKey);
-                if (mismatch != null) {
-                    geyser.getLogger().info("Refused a login from " + session.getSocketAddress() + ", " + mismatch);
-                    session.disconnect(GeyserLocale.getLocaleStringLog("geyser.network.remote.invalid_xbox_account"));
+                if (refusedByBinding(geyser, session, TransportIdentityBinding.mismatch(
+                        session.getUpstream().getSession().getPeer().getChannel(), identityPublicKey))) {
                     return;
                 }
             }
@@ -129,14 +126,11 @@ public class LoginEncryptionUtils {
                     session.disconnect("Did not receive IP and xuid forwarded from the proxy!");
                     return;
                 }
-                // This listener already delegates player authentication to its configured proxy.
-                // Complete the pending admission lifecycle only after the forwarded fields passed
-                // the existing validation above, so gameplay can outlive the ticket's login deadline.
-                String mismatch = TransportIdentityBinding.acceptForwardedIdentity(
-                        session.getUpstream().getSession().getPeer().getChannel());
-                if (mismatch != null) {
-                    geyser.getLogger().info("Refused a login from " + session.getSocketAddress() + ", " + mismatch);
-                    session.disconnect(GeyserLocale.getLocaleStringLog("geyser.network.remote.invalid_xbox_account"));
+                // The proxy authenticated this player, so there is no key of theirs to compare.
+                // Spending the binding is what stops the admission expiring under a live session,
+                // and it only happens once the forwarded fields above have been accepted.
+                if (refusedByBinding(geyser, session, TransportIdentityBinding.acceptForwardedIdentity(
+                        session.getUpstream().getSession().getPeer().getChannel()))) {
                     return;
                 }
             }
@@ -177,6 +171,21 @@ public class LoginEncryptionUtils {
 
         SecretKey encryptionKey = EncryptionUtils.getSecretKey(serverKeyPair.getPrivate(), key, token);
         session.getUpstream().getSession().enableEncryption(encryptionKey);
+    }
+
+    /**
+     * Disconnects the session when the transport identity binding turned the login away.
+     *
+     * @param refusal why the binding refused it, or null when it did not
+     * @return whether the login was refused, and the session already disconnected
+     */
+    private static boolean refusedByBinding(GeyserImpl geyser, GeyserSession session, String refusal) {
+        if (refusal == null) {
+            return false;
+        }
+        geyser.getLogger().info("Refused a login from " + session.getSocketAddress() + ", " + refusal);
+        session.disconnect(GeyserLocale.getLocaleStringLog("geyser.network.remote.invalid_xbox_account"));
+        return true;
     }
 
     private static void sendEncryptionFailedMessage(GeyserImpl geyser) {
