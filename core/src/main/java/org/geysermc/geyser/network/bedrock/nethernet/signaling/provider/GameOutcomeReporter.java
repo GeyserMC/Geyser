@@ -23,7 +23,7 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.network.bedrock.nethernet.signalling.provider;
+package org.geysermc.geyser.network.bedrock.nethernet.signaling.provider;
 
 import com.google.gson.JsonObject;
 import io.netty.channel.Channel;
@@ -31,7 +31,7 @@ import io.netty.channel.ChannelDuplexHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelPromise;
 import io.netty.util.AttributeKey;
-import org.cloudburstmc.netty.signalling.admission.AdmissionPrincipal;
+import org.cloudburstmc.netty.signaling.admission.AdmissionPrincipal;
 import org.cloudburstmc.protocol.bedrock.netty.BedrockPacketWrapper;
 import org.cloudburstmc.protocol.bedrock.packet.DisconnectPacket;
 import org.cloudburstmc.protocol.bedrock.packet.RequestNetworkSettingsPacket;

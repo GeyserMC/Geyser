@@ -25,16 +25,16 @@
 
 package org.geysermc.geyser.command.defaults;
 
-import org.cloudburstmc.netty.signalling.admission.NativeAdmissionServerChannel;
+import org.cloudburstmc.netty.signaling.admission.NativeAdmissionServerChannel;
 import org.checkerframework.checker.nullness.qual.Nullable;
-import org.cloudburstmc.netty.signalling.ProviderClient;
-import org.cloudburstmc.netty.signalling.ServerStatus;
+import org.cloudburstmc.netty.signaling.ProviderClient;
+import org.cloudburstmc.netty.signaling.ServerStatus;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.util.TriState;
 import org.geysermc.geyser.command.GeyserCommand;
 import org.geysermc.geyser.command.GeyserCommandSource;
 import org.geysermc.geyser.network.bedrock.nethernet.NetherNetServer;
-import org.geysermc.geyser.network.bedrock.nethernet.signalling.provider.WardenClaimAdapter;
+import org.geysermc.geyser.network.bedrock.nethernet.signaling.provider.WardenClaimAdapter;
 import org.incendo.cloud.CommandManager;
 import org.incendo.cloud.context.CommandContext;
 

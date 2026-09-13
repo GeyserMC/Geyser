@@ -23,9 +23,9 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.network.bedrock.nethernet.signalling.provider;
+package org.geysermc.geyser.network.bedrock.nethernet.signaling.provider;
 
-import org.cloudburstmc.netty.signalling.provider.ProviderRuntimeConfiguration;
+import org.cloudburstmc.netty.signaling.provider.ProviderRuntimeConfiguration;
 import org.geysermc.geyser.configuration.GeyserConfig;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -48,14 +48,14 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
  */
 class ProviderConfigurationTest {
 
-    private static GeyserConfig.SignallingConfig config(String yaml) throws IOException {
+    private static GeyserConfig.SignalingConfig config(String yaml) throws IOException {
         return YamlConfigurationLoader.builder()
             .source(() -> new BufferedReader(new StringReader(yaml)))
             .defaultOptions(InterfaceDefaultOptions::addTo)
-            .build().load().get(GeyserConfig.SignallingConfig.class);
+            .build().load().get(GeyserConfig.SignalingConfig.class);
     }
 
-    private static ProviderRuntimeConfiguration resolve(GeyserConfig.SignallingConfig config, Path dir)
+    private static ProviderRuntimeConfiguration resolve(GeyserConfig.SignalingConfig config, Path dir)
         throws IOException {
         var nxs = config.nxs();
         return ProviderRuntimeConfiguration.resolve(
@@ -64,10 +64,10 @@ class ProviderConfigurationTest {
     }
 
     @Test
-    void signallingIsBuiltinAndPointsAtWardenUntilConfigured(@TempDir Path dir) throws Exception {
+    void signalingIsBuiltinAndPointsAtWardenUntilConfigured(@TempDir Path dir) throws Exception {
         var config = config("{}");
 
-        assertEquals(GeyserConfig.SignallingConfig.Mode.BUILTIN, config.mode());
+        assertEquals(GeyserConfig.SignalingConfig.Mode.BUILTIN, config.mode());
         assertEquals("https://agent.warden.cloud", resolve(config, dir).origin().toString());
     }
 

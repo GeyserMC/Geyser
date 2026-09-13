@@ -23,10 +23,10 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.network.bedrock.nethernet.signalling.provider;
+package org.geysermc.geyser.network.bedrock.nethernet.signaling.provider;
 
 import com.google.gson.JsonObject;
-import org.cloudburstmc.netty.signalling.ProviderTransport;
+import org.cloudburstmc.netty.signaling.ProviderTransport;
 
 import java.util.ArrayList;
 import java.util.List;

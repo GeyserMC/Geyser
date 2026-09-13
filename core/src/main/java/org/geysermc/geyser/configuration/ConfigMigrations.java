@@ -187,7 +187,7 @@ public class ConfigMigrations {
             .addVersion(7, ConfigurationTransformation.builder()
                 .addAction(path("gameplay", "show-cooldown"), rename(new Object[] { "gameplay", "cooldown-type" }))
                 .build())
-            // Adds "transport" and "signalling" to the bedrock section. An existing config was serving RakNet,
+            // Adds "transport" and "signaling" to the bedrock section. An existing config was serving RakNet,
             // so it keeps serving it rather than silently adopting the new NetherNet default, which would drop
             // every ConnectionRequestEvent listener and every RakNet client along with it.
             .addVersion(8, ConfigurationTransformation.builder()

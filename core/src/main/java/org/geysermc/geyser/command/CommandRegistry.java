@@ -173,7 +173,7 @@ public class CommandRegistry implements EventRegistrar {
         registerBuiltInCommand(new CustomOptionsCommand("options", "geyser.commands.options.desc", "geyser.command.options"));
         registerBuiltInCommand(new QuickActionsCommand("quickactions", "geyser.commands.quickactions.desc", "geyser.command.quickactions"));
         registerBuiltInCommand(new GameruleCommand("gamerules", "geyser.commands.gamerules.desc", "geyser.command.gamerules"));
-        registerBuiltInCommand(new NetherNetCommand(geyser, "nethernet", "Inspect NetherNet signalling status, Warden ownership and diagnostics", "geyser.command.nethernet"));
+        registerBuiltInCommand(new NetherNetCommand(geyser, "nethernet", "Inspect NetherNet signaling status, Warden ownership and diagnostics", "geyser.command.nethernet"));
 
         if (this.geyser.platformType() == PlatformType.STANDALONE) {
             registerBuiltInCommand(new StopCommand(geyser, "stop", "geyser.commands.stop.desc", "geyser.command.stop"));

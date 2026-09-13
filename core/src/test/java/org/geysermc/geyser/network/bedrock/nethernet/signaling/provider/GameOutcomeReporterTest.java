@@ -23,12 +23,12 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.network.bedrock.nethernet.signalling.provider;
+package org.geysermc.geyser.network.bedrock.nethernet.signaling.provider;
 
 import com.google.gson.JsonObject;
-import org.cloudburstmc.netty.signalling.admission.AdmissionPrincipal;
+import org.cloudburstmc.netty.signaling.admission.AdmissionPrincipal;
 import io.netty.channel.embedded.EmbeddedChannel;
-import org.cloudburstmc.netty.signalling.ProviderTransport;
+import org.cloudburstmc.netty.signaling.ProviderTransport;
 import org.cloudburstmc.protocol.bedrock.netty.BedrockPacketWrapper;
 import org.cloudburstmc.protocol.bedrock.packet.DisconnectPacket;
 import org.cloudburstmc.protocol.bedrock.packet.RequestNetworkSettingsPacket;
