@@ -56,6 +56,33 @@ class WardenClaimAdapterTest {
     }
 
     @Test
+    void findsAClaimThatOnlyReadinessCarries() throws Exception {
+        // Warden answers registration with no extensions at all and publishes the claim in
+        // readiness, so registration alone never finds one
+        AtomicInteger requests = new AtomicInteger();
+        var adapter = new WardenClaimAdapter(() -> CompletableFuture.completedFuture(new JsonObject()),
+            () -> CompletableFuture.completedFuture(metadata()), () -> {
+            requests.incrementAndGet();
+            return CompletableFuture.completedFuture(new JsonObject());
+        }, () -> 1000);
+
+        assertTrue(adapter.current().toCompletableFuture().get().orElseThrow().message().contains("/claim/private"));
+        assertEquals(0, requests.get(), "reading the claim must never post to the provider");
+    }
+
+    @Test
+    void prefersTheClaimRegistrationCarriesOverReadiness() throws Exception {
+        JsonObject stale = metadata();
+        stale.getAsJsonObject(WardenClaimAdapter.NAMESPACE).getAsJsonObject("data").getAsJsonObject("action")
+            .addProperty("url", "https://panel.warden.cloud/claim/from-readiness");
+        var adapter = new WardenClaimAdapter(() -> CompletableFuture.completedFuture(metadata()),
+            () -> CompletableFuture.completedFuture(stale),
+            () -> CompletableFuture.completedFuture(new JsonObject()), () -> 1000);
+
+        assertTrue(adapter.current().toCompletableFuture().get().orElseThrow().message().contains("/claim/private"));
+    }
+
+    @Test
     void onlyDisplaysValidActions() {
         // The provider's text and URL end up in the console
         assertTrue(WardenClaimAdapter.action(metadata(), 1000).orElseThrow().message().contains("/claim/private"));
