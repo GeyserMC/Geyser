@@ -67,8 +67,17 @@ public final class WardenClaimAdapter {
         this.now = now;
     }
 
+    /**
+     * The action the provider is advertising, from registration if it carried one and from
+     * readiness otherwise.
+     */
     public CompletionStage<Optional<Action>> current() {
-        return extensions.get().thenApply(metadata -> action(metadata, now.getAsLong()));
+        return extensions.get().thenCompose(registration -> {
+            Optional<Action> registered = action(registration, now.getAsLong());
+            return registered.isPresent()
+                ? CompletableFuture.completedFuture(registered)
+                : readinessExtensions.get().thenApply(readiness -> action(readiness, now.getAsLong()));
+        });
     }
 
     /**
