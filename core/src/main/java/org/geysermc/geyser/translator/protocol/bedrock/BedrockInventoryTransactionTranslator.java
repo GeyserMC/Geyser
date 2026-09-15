@@ -336,6 +336,18 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                                 } else {
                                     session.setPlacedBucket(true);
                                 }
+
+                                if (blockState.block() instanceof DoorBlock) {
+                                    BlockUtils.restoreCorrectBlock(session, packet.getBlockPosition(), packet.getHotbarSlot());
+                                    String doubleBlockHalf = blockState.getValue(Properties.DOUBLE_BLOCK_HALF, "lower");
+                                    Vector3i otherHalf = "lower".equals(doubleBlockHalf) ? packet.getBlockPosition().up() : packet.getBlockPosition().down();
+                                    BlockState otherState = session.getGeyser().getWorldManager().blockAt(session, otherHalf);
+                                    if (otherState.block() instanceof DoorBlock) {
+                                        BlockUtils.restoreCorrectBlock(session, otherHalf, packet.getHotbarSlot());
+                                    }
+                                } else if (blockState.getValueNullable(Properties.WATERLOGGED) == null) {
+                                    BlockUtils.restoreCorrectBlock(session, packet.getBlockPosition(), packet.getHotbarSlot());
+                                }
                             }
 
                             // Fix https://github.com/GeyserMC/Geyser/issues/5295
