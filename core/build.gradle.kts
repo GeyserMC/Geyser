@@ -71,7 +71,6 @@ dependencies {
 
     // Network dependencies we are updating ourselves
     api(libs.netty.handler)
-    // TODO how do we handle this :=)
     implementation(libs.netty.codec.haproxy)
 
     api(libs.netty.transport.native.epoll) { artifact { classifier = "linux-x86_64" } }

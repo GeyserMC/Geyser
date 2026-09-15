@@ -443,7 +443,7 @@ public class GeyserImpl implements GeyserApi, EventRegistrar {
                 config.bedrock().transport(transport);
                 logger.info("Transport set from system property: " + transport.name().toLowerCase(Locale.ROOT));
             } catch (IllegalArgumentException e) {
-                logger.error("Invalid transport from system property: " + transportProperty + "! Defaulting to configured transport.");
+                logger.error("Invalid transport from system property: " + transportProperty + "! Use \"nethernet\", \"both\" or \"raknet\". Defaulting to configured transport.");
             }
         }
 
@@ -454,7 +454,7 @@ public class GeyserImpl implements GeyserApi, EventRegistrar {
                 config.bedrock().signaling().mode(mode);
                 logger.info("Signaling mode set from system property: " + mode.name().toLowerCase(Locale.ROOT));
             } catch (IllegalArgumentException e) {
-                logger.error("Invalid signaling mode from system property: " + signalingModeProperty + "! Defaulting to configured signaling mode.");
+                logger.error("Invalid signaling mode from system property: " + signalingModeProperty + "! Use \"builtin\", \"hybrid\", \"nxs\" or \"none\". Defaulting to configured signaling mode.");
             }
         }
 
@@ -470,14 +470,14 @@ public class GeyserImpl implements GeyserApi, EventRegistrar {
                 }
                 config.bedrock().webrtcPort(parsedPort);
                 webrtcPortPropertyApplied = true;
-                logger.info("WebRTC port set from system property: " + parsedPort);
+                logger.info("NetherNet (WebRTC) port set from system property: " + parsedPort);
             } catch (NumberFormatException e) {
                 logger.error(String.format("Invalid WebRTC port from system property: %s! Defaulting to configured port.", webrtcPort + " (" + e.getMessage() + ")"));
             }
         }
         if (!webrtcPortPropertyApplied && udpPortPropertyApplied && config.bedrock().transport() == GeyserConfig.BedrockConfig.Transport.NETHERNET) {
             config.bedrock().webrtcPort(0);
-            logger.info("WebRTC port set from the UDP port system property: " + config.bedrock().port());
+            logger.info("NetherNet (WebRTC) port set from the Bedrock port system property: " + config.bedrock().port());
         }
 
         // Now that the Bedrock port may have been changed, also check the broadcast port (configurable on all platforms)

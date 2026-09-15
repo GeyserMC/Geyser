@@ -129,7 +129,8 @@ public final class NetherNetServer implements EventRegistrar {
     public void start() {
         GeyserConfig.SignalingConfig.Mode mode = config.mode();
         if (mode == GeyserConfig.SignalingConfig.Mode.NONE) {
-            logger().warning("Signaling is disabled, so Bedrock players cannot connect over NetherNet.");
+            logger().warning("Signaling \"mode\" is set to \"none\", so Bedrock players cannot join over NetherNet. " +
+                "Set it to \"builtin\" in the \"signaling\" section of the config to allow them.");
             return;
         }
         boolean inbuilt = mode.builtin();
@@ -139,19 +140,19 @@ public final class NetherNetServer implements EventRegistrar {
         InetAddress bindAddress = new InetSocketAddress(listener.address(), 0).getAddress();
         if (bindAddress != null && bindAddress.isLoopbackAddress()) {
             // ICE binds to this address too, and clients never offer loopback candidates, so no candidate pair can connect
-            logger().warning("The Bedrock address " + listener.address() + " is a loopback address, which WebRTC cannot connect over, " +
-                "so NetherNet connections will time out, even from this machine. Set \"address\" in the \"bedrock\" section to 0.0.0.0 " +
-                "or to this machine's LAN address.");
+            logger().warning("The Bedrock \"address\" " + listener.address() + " only accepts connections from this machine, and NetherNet " +
+                "cannot work that way: every player will time out, including ones on this machine. " +
+                "Set \"address\" in the \"bedrock\" section to 0.0.0.0, or to this machine's local network address.");
         }
         if (listener.transport().raknet()) {
             if (webrtcPort == listener.port()) {
-                logger().error("With the \"both\" transport, RakNet uses UDP port " + listener.port() + ", so NetherNet needs another one. " +
-                    "Set \"webrtc-port\" in the \"bedrock\" section to a free UDP port. NetherNet will not start!");
+                logger().error("NetherNet will not start! With the \"both\" transport, RakNet and NetherNet each need their own UDP port, " +
+                    "but both are set to " + listener.port() + ". Set \"webrtc-port\" in the \"bedrock\" section to a different free port.");
                 return;
             }
             if (listener.cloneRemotePort()) {
-                logger().warning("clone-remote-port is enabled, but the \"both\" transport also needs UDP port " + webrtcPort + " for NetherNet. " +
-                    "If your host only allows one port, set \"transport\" in the \"bedrock\" section to \"nethernet\" or \"raknet\".");
+                logger().warning("\"clone-remote-port\" is enabled, but the \"both\" transport also needs UDP port " + webrtcPort + " for NetherNet. " +
+                    "If your host only gives you one port, set \"transport\" in the \"bedrock\" section to \"nethernet\".");
             }
         }
 
@@ -160,11 +161,11 @@ public final class NetherNetServer implements EventRegistrar {
             inbuilt = false;
             if (!provider) {
                 provider = true;
-                logger().warning("Builtin signaling cannot share the Bedrock port " + listener.port() + " with the Java server; " +
-                    "using the external signaling provider " + config.nxs().endpoint() + " instead.");
+                logger().warning("Built-in signaling cannot use port " + listener.port() + " because the Java server already uses it. " +
+                    "Bedrock players will find this server through the external signaling service at " + config.nxs().endpoint() + " instead.");
             } else {
-                logger().warning("Builtin signaling cannot share the Bedrock port " + listener.port() + " with the Java server; " +
-                    "only the external signaling provider is used.");
+                logger().warning("Built-in signaling cannot use port " + listener.port() + " because the Java server already uses it. " +
+                    "Only the external signaling service will be used.");
             }
         }
 
@@ -172,15 +173,15 @@ public final class NetherNetServer implements EventRegistrar {
             // Picks this platform's WebRTC library out of the ones bundled for every platform
             LibDataChannelArchDetect.initialize();
         } catch (LinkageError e) {
-            logger().error("NetherNet is not supported on " + System.getProperty("os.name") + " (" + System.getProperty("os.arch") + "); " +
-                "set \"transport\" in the \"bedrock\" section of the config to \"raknet\".", e);
+            logger().error("NetherNet is not available on " + System.getProperty("os.name") + " (" + System.getProperty("os.arch") + "). " +
+                "Bedrock players can still join over RakNet: set \"transport\" in the \"bedrock\" section of the config to \"raknet\".", e);
             return;
         }
 
         try {
             Files.createDirectories(dataFolder);
         } catch (IOException e) {
-            logger().error("Failed to create the NetherNet data folder, NetherNet will not start!", e);
+            logger().error("NetherNet will not start! Could not create its data folder at " + dataFolder + ".", e);
             return;
         }
 
@@ -201,9 +202,9 @@ public final class NetherNetServer implements EventRegistrar {
             identity = ServerIdentity.fromPemOrCreate(dataFolder.resolve("identity.pem").toFile(),
                     GeyserImpl.NAME + "-" + geyser.config().gameplay().serverName());
         } catch (Exception e) {
-            logger().error("Could not create or load the inbuilt signaling identity in " + dataFolder
-                    + ", inbuilt signaling will not start! Only delete identity.pem if it cannot be restored; "
-                    + "a new identity makes every player confirm the server again", e);
+            logger().error("Built-in signaling will not start! Could not load or create this server's identity file, "
+                    + dataFolder.resolve("identity.pem") + ". Only delete that file if it cannot be recovered: "
+                    + "a new identity means every player has to confirm this server again.", e);
             return;
         }
 
@@ -279,13 +280,14 @@ public final class NetherNetServer implements EventRegistrar {
             String endpoint = https.certificate().isBlank()
                     ? "http://" + listener.address() + ":" + listener.port()
                     : "https:// and http:// on " + listener.address() + ":" + listener.port();
-            logger().info("Builtin signaling started on " + endpoint
-                + (separateIcePort ? ", with WebRTC on UDP port " + webrtcPort : ""));
+            logger().info("Built-in signaling started on " + endpoint
+                + (separateIcePort ? ", with NetherNet on UDP port " + webrtcPort : ""));
         } catch (Throwable e) {
             // Throwable: the WebRTC natives are not available on every platform
             closeInbuiltResources();
-            logger().warning("Inbuilt signaling could not bind or initialize; check that nothing else uses the Bedrock port over TCP.");
-            logger().debug("Inbuilt signaling failure: " + e);
+            logger().warning("Built-in signaling could not start. Make sure no other program is using TCP port "
+                + geyser.config().bedrock().port() + ". Enable debug mode for more details.");
+            logger().debug("Built-in signaling failure: " + e);
         }
     }
 
@@ -357,14 +359,13 @@ public final class NetherNetServer implements EventRegistrar {
                 }
                 client.start().whenComplete((registration, failure) -> {
                     if (failure != null) {
-                        logger().error("Provider startup failed: " + providerFailure(failure));
+                        logger().error("Could not register with the external signaling service: " + providerFailure(failure));
                         stopProvider();
                         return;
                     }
                     logger().info(registrationMessage(registration));
                     // Says where logins are vouched for, without putting provider credentials in the log
-                    logger().info("NetherNet client identities are authenticated by external signaling provider "
-                        + origin.getHost() + "; direct login keys are checked against its admission tickets");
+                    logger().info("Player logins over NetherNet are verified by the external signaling service at " + origin.getHost() + ".");
                     WardenClaimAdapter claim = wardenClaim;
                     if (claim != null)
                         claim.current().thenAccept(action -> action.ifPresent(value -> logger().info(value.message())));
@@ -372,7 +373,7 @@ public final class NetherNetServer implements EventRegistrar {
             } catch (Throwable e) {
                 // Throwable: the WebRTC natives are not available on every platform
                 if (initializingTransport != null) initializingTransport.close();
-                logger().error("Provider startup failed: " + (e instanceof IOException ? e.getMessage() : providerFailure(e)));
+                logger().error("Could not start the external signaling service: " + (e instanceof IOException ? e.getMessage() : providerFailure(e)));
                 closeNetworkResources();
             } finally {
                 if (store != null) try {
@@ -425,9 +426,9 @@ public final class NetherNetServer implements EventRegistrar {
         String instanceId = registration.get("instanceId").getAsString();
         JsonElement address = registration.get("publicAddress");
         return address != null && !address.isJsonNull()
-            ? "Provider address: " + address.getAsString() + " (instance " + instanceId + ")"
-            : "Provider instance registered: " + instanceId
-                + "; public addresses are managed on its attached Signal Servers";
+            ? "Registered with the external signaling service. Players can join at " + address.getAsString() + " (instance " + instanceId + ")."
+            : "Registered with the external signaling service (instance " + instanceId + "). "
+                + "The addresses players join with are managed by the service.";
     }
 
     public @Nullable WardenClaimAdapter wardenClaim() {

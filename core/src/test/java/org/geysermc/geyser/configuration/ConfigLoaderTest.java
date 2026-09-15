@@ -109,8 +109,7 @@ public class ConfigLoaderTest {
         migratedV4.node("java").comment(null);
         defaultConfig.node("java").comment(null);
 
-        // Except the transport: a fresh config defaults to NetherNet, a migrated one stays on both so
-        // that upgrading never takes RakNet away from an operator who was serving it
+        // Except the transport: a fresh config defaults to RakNet, a migrated one is set to both
         assertEquals("both", migratedV4.node("bedrock", "transport").getString());
         migratedV4.node("bedrock", "transport").set(defaultConfig.node("bedrock", "transport").raw());
 
