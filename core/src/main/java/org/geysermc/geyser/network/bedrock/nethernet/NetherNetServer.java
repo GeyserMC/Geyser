@@ -140,7 +140,7 @@ public final class NetherNetServer implements EventRegistrar {
         InetAddress bindAddress = new InetSocketAddress(listener.address(), 0).getAddress();
         if (bindAddress != null && bindAddress.isLoopbackAddress()) {
             // ICE binds to this address too, and clients never offer loopback candidates, so no candidate pair can connect
-            logger().warning("The Bedrock \"address\" " + listener.address() + " only accepts connections from this machine, and NetherNet " +
+            logger().warning("The Bedrock \"address\" " + listener.address() + " is a loopback address which only accepts connections from this machine. NetherNet " +
                 "cannot work that way: every player will time out, including ones on this machine. " +
                 "Set \"address\" in the \"bedrock\" section to 0.0.0.0, or to this machine's local network address.");
         }
@@ -151,8 +151,8 @@ public final class NetherNetServer implements EventRegistrar {
                 return;
             }
             if (listener.cloneRemotePort()) {
-                logger().warning("\"clone-remote-port\" is enabled, but the \"both\" transport also needs UDP port " + webrtcPort + " for NetherNet. " +
-                    "If your host only gives you one port, set \"transport\" in the \"bedrock\" section to \"nethernet\".");
+                logger().warning("\"clone-remote-port\" is enabled, but the \"both\" transport also needs a separate TCP port for NetherNet. " +
+                    "If your host only gives you one port, set \"transport\" in the \"bedrock\" section to \"raknet\".");
             }
         }
 
@@ -162,7 +162,7 @@ public final class NetherNetServer implements EventRegistrar {
             if (!provider) {
                 provider = true;
                 logger().warning("Built-in signaling cannot use port " + listener.port() + " because the Java server already uses it. " +
-                    "Bedrock players will find this server through the external signaling service at " + config.nxs().endpoint() + " instead.");
+                    "Bedrock players can still find this server through the external signaling service at " + config.nxs().endpoint() + " instead.");
             } else {
                 logger().warning("Built-in signaling cannot use port " + listener.port() + " because the Java server already uses it. " +
                     "Only the external signaling service will be used.");
