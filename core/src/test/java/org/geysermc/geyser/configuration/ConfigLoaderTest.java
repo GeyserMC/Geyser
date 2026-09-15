@@ -137,9 +137,7 @@ public class ConfigLoaderTest {
         assertEquals(19122, config.bedrock().port());
         assertTrue(config.bedrock().cloneRemotePort());
 
-        // An existing config keeps serving RakNet as well, rather than silently dropping every RakNet
-        // client and every ConnectionRequestEvent listener on upgrade. WebRTC follows the Bedrock port.
-        assertEquals(GeyserConfig.BedrockConfig.Transport.BOTH, config.bedrock().transport());
+        assertEquals(GeyserConfig.BedrockConfig.Transport.RAKNET, config.bedrock().transport());
         assertEquals(0, config.bedrock().webrtcPort());
 
         // Verify Java section (was remote)
