@@ -135,6 +135,8 @@ public interface GeyserConfig {
             return Mode.BUILTIN;
         }
 
+        void mode(Mode mode);
+
         @Comment("Settings for the built-in signaling endpoint. Only used in the \"builtin\" and \"hybrid\" modes.")
         BuiltinConfig builtin();
 
@@ -255,6 +257,8 @@ public interface GeyserConfig {
 
         void address(String address);
         void port(int port);
+        void webrtcPort(int port);
+        void transport(Transport transport);
 
         @Exclude
         @Override

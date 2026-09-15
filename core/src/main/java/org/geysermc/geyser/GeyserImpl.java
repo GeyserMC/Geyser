@@ -363,6 +363,7 @@ public class GeyserImpl implements GeyserApi, EventRegistrar {
             throw new UnsupportedOperationException("This hosting/service provider does not support applications running on the UDP port");
         }
         boolean portPropertyApplied = false;
+        boolean udpPortPropertyApplied = false;
         String pluginUdpAddress = System.getProperty("geyserUdpAddress", System.getProperty("pluginUdpAddress", ""));
 
         if (platformType() != PlatformType.STANDALONE) {
@@ -396,6 +397,7 @@ public class GeyserImpl implements GeyserApi, EventRegistrar {
                         logger.info("Port set from system property to match Java server.");
                     }
                     portPropertyApplied = true;
+                    udpPortPropertyApplied = true;
                 }
             }
 
@@ -416,6 +418,7 @@ public class GeyserImpl implements GeyserApi, EventRegistrar {
                 } else {
                     logger.info("Port set from system property: " + port);
                 }
+                udpPortPropertyApplied = true;
             }
 
 
@@ -431,6 +434,50 @@ public class GeyserImpl implements GeyserApi, EventRegistrar {
                     config.java().authType(AuthType.FLOODGATE);
                 }
             }
+        }
+
+        String transportProperty = System.getProperty("geyserTransport", "");
+        if (!transportProperty.isEmpty()) {
+            try {
+                GeyserConfig.BedrockConfig.Transport transport = GeyserConfig.BedrockConfig.Transport.valueOf(transportProperty.toUpperCase(Locale.ROOT));
+                config.bedrock().transport(transport);
+                logger.info("Transport set from system property: " + transport.name().toLowerCase(Locale.ROOT));
+            } catch (IllegalArgumentException e) {
+                logger.error("Invalid transport from system property: " + transportProperty + "! Defaulting to configured transport.");
+            }
+        }
+
+        String signalingModeProperty = System.getProperty("geyserSignalingMode", "");
+        if (!signalingModeProperty.isEmpty()) {
+            try {
+                GeyserConfig.SignalingConfig.Mode mode = GeyserConfig.SignalingConfig.Mode.valueOf(signalingModeProperty.toUpperCase(Locale.ROOT));
+                config.bedrock().signaling().mode(mode);
+                logger.info("Signaling mode set from system property: " + mode.name().toLowerCase(Locale.ROOT));
+            } catch (IllegalArgumentException e) {
+                logger.error("Invalid signaling mode from system property: " + signalingModeProperty + "! Defaulting to configured signaling mode.");
+            }
+        }
+
+        // The explicit WebRTC port property always wins. Without it, and with only NetherNet, WebRTC is the only
+        // UDP service, so it follows the UDP port property; with "both", RakNet keeps that port.
+        String webrtcPort = System.getProperty("geyserWebrtcPort", "");
+        boolean webrtcPortPropertyApplied = false;
+        if (!webrtcPort.isEmpty()) {
+            try {
+                int parsedPort = Integer.parseInt(webrtcPort);
+                if (parsedPort < 1 || parsedPort > 65535) {
+                    throw new NumberFormatException("The WebRTC port must be between 1 and 65535 inclusive!");
+                }
+                config.bedrock().webrtcPort(parsedPort);
+                webrtcPortPropertyApplied = true;
+                logger.info("WebRTC port set from system property: " + parsedPort);
+            } catch (NumberFormatException e) {
+                logger.error(String.format("Invalid WebRTC port from system property: %s! Defaulting to configured port.", webrtcPort + " (" + e.getMessage() + ")"));
+            }
+        }
+        if (!webrtcPortPropertyApplied && udpPortPropertyApplied && config.bedrock().transport() == GeyserConfig.BedrockConfig.Transport.NETHERNET) {
+            config.bedrock().webrtcPort(0);
+            logger.info("WebRTC port set from the UDP port system property: " + config.bedrock().port());
         }
 
         // Now that the Bedrock port may have been changed, also check the broadcast port (configurable on all platforms)
