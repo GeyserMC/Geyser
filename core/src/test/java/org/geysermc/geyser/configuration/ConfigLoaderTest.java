@@ -109,9 +109,7 @@ public class ConfigLoaderTest {
         migratedV4.node("java").comment(null);
         defaultConfig.node("java").comment(null);
 
-        // Except the transport: a fresh config defaults to RakNet, a migrated one is set to both
-        assertEquals("both", migratedV4.node("bedrock", "transport").getString());
-        migratedV4.node("bedrock", "transport").set(defaultConfig.node("bedrock", "transport").raw());
+        assertEquals("raknet", migratedV4.node("bedrock", "transport").getString());
 
         // Metric uuids, if present, won't be equal, ofc
         var migratedUuid = migratedV4.node("metrics-uuid");
