@@ -26,7 +26,6 @@
 package org.geysermc.geyser.translator.protocol.java;
 
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
-import org.cloudburstmc.protocol.bedrock.data.inventory.crafting.recipe.RecipeData;
 import org.cloudburstmc.protocol.bedrock.data.inventory.crafting.recipe.ShapedRecipeData;
 import org.cloudburstmc.protocol.bedrock.data.inventory.crafting.recipe.ShapelessRecipeData;
 import org.cloudburstmc.protocol.bedrock.data.inventory.crafting.recipe.SmithingTransformRecipeData;
@@ -37,7 +36,7 @@ import org.geysermc.geyser.inventory.recipe.GeyserRecipe;
 import org.geysermc.geyser.inventory.recipe.GeyserShapedRecipe;
 import org.geysermc.geyser.inventory.recipe.GeyserShapelessRecipe;
 import org.geysermc.geyser.inventory.recipe.GeyserSmithingRecipe;
-import org.geysermc.geyser.network.GameProtocol;
+import org.geysermc.geyser.network.bedrock.GameProtocol;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
@@ -51,7 +50,6 @@ import org.geysermc.mcprotocollib.protocol.data.game.recipe.display.slot.Smithin
 import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.ClientboundRecipeBookAddPacket;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -82,7 +80,7 @@ public class JavaRecipeBookAddTranslator extends PacketTranslator<ClientboundRec
             // Hacky fix: on 26.20 and above, the client crashes when there are no furnace recipes. Furnace recipes also have to be shapeless.
             // Before this fix, Geyser did not translate furnace recipes at all.
             // TODO rewrite this, but properly
-            if (display instanceof FurnaceRecipeDisplay furnaceRecipe && GameProtocol.is26_20orHigher(session.protocolVersion())) {
+            if (display instanceof FurnaceRecipeDisplay furnaceRecipe) {
                 GeyserShapelessRecipe geyserRecipe = new GeyserShapelessRecipe(contents.id(), netId, furnaceRecipe, contents.category());
                 knownFurnaceRecipes.add(GeyserShapelessRecipe.FurnaceRecipeType.fromCategory(contents.category()));
 
