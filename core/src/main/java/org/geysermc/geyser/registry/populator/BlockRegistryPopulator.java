@@ -38,6 +38,7 @@ import it.unimi.dsi.fastutil.objects.Object2ObjectMaps;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectIntPair;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
+import lombok.extern.slf4j.Slf4j;
 import org.cloudburstmc.nbt.NBTInputStream;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
@@ -45,9 +46,7 @@ import org.cloudburstmc.nbt.NbtType;
 import org.cloudburstmc.nbt.NbtUtils;
 import org.cloudburstmc.protocol.bedrock.codec.v1001.Bedrock_v1001;
 import org.cloudburstmc.protocol.bedrock.codec.v2168.Bedrock_v2168;
-import org.cloudburstmc.protocol.bedrock.codec.v924.Bedrock_v924;
-import org.cloudburstmc.protocol.bedrock.codec.v944.Bedrock_v944;
-import org.cloudburstmc.protocol.bedrock.codec.v975.Bedrock_v975;
+import org.cloudburstmc.protocol.bedrock.codec.v2192.Bedrock_v2192;
 import org.cloudburstmc.protocol.bedrock.data.BlockPropertyData;
 import org.cloudburstmc.protocol.bedrock.data.definitions.BlockDefinition;
 import org.geysermc.geyser.GeyserImpl;
@@ -60,13 +59,13 @@ import org.geysermc.geyser.level.block.type.Block;
 import org.geysermc.geyser.level.block.type.BlockState;
 import org.geysermc.geyser.level.block.type.FlowerPotBlock;
 import org.geysermc.geyser.registry.BlockRegistries;
-import org.geysermc.geyser.registry.populator.conversion.ChaosCubedConverter;
-import org.geysermc.geyser.registry.populator.conversion.GoldenDandelionConverter;
+import org.geysermc.geyser.registry.populator.conversion.ICanHasStates;
 import org.geysermc.geyser.registry.type.BlockMappings;
 import org.geysermc.geyser.registry.type.GeyserBedrockBlock;
 import org.geysermc.geyser.util.JsonUtils;
 
 import java.io.DataInputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -83,6 +82,7 @@ import java.util.zip.GZIPInputStream;
 /**
  * Populates the block registries.
  */
+@Slf4j
 public final class BlockRegistryPopulator {
     /**
      * The stage of population
@@ -122,11 +122,9 @@ public final class BlockRegistryPopulator {
 
     private static void registerBedrockBlocks() {
         var blockMappers = ImmutableMap.<ObjectIntPair<String>, Remapper>builder()
-                .put(ObjectIntPair.of("26_0", Bedrock_v924.CODEC.getProtocolVersion()), GoldenDandelionConverter::convertBlock)
-                .put(ObjectIntPair.of("26_10", Bedrock_v944.CODEC.getProtocolVersion()), ChaosCubedConverter::convertBlock)
-                .put(ObjectIntPair.of("26_20", Bedrock_v975.CODEC.getProtocolVersion()), ChaosCubedConverter::convertBlock)
-                .put(ObjectIntPair.of("26_30", Bedrock_v1001.CODEC.getProtocolVersion()), tag -> tag)
-                .put(ObjectIntPair.of("26_40", Bedrock_v2168.CODEC.getProtocolVersion()), tag -> tag)
+                .put(ObjectIntPair.of("26_30", Bedrock_v1001.CODEC.getProtocolVersion()), ICanHasStates::convertBlock)
+                .put(ObjectIntPair.of("26_40", Bedrock_v2168.CODEC.getProtocolVersion()), ICanHasStates::convertBlock)
+                .put(ObjectIntPair.of("26_50", Bedrock_v2192.CODEC.getProtocolVersion()), tag -> tag)
             .build();
 
         // We can keep this strong as nothing should be garbage collected
@@ -163,6 +161,21 @@ public final class BlockRegistryPopulator {
             List<NbtMap> customBlockStates = new ArrayList<>();
             List<CustomBlockState> customExtBlockStates = new ArrayList<>();
             int[] remappedVanillaIds = new int[0];
+
+            // TODO Make this throw once we drop any version below 26.50, as it's required in 26.50+
+            InputStream stream = GeyserImpl.getInstance().getBootstrap().getResourceOrNull(String.format("bedrock/data_driven_blocks.%s.nbt", palette.key()));
+            if (stream != null) {
+                // Data-driven blocks!!!
+                try (stream; NBTInputStream nbtInputStream = new NBTInputStream(new DataInputStream(new GZIPInputStream(stream)))) {
+                    NbtMap dataDrivenBlocks = (NbtMap) nbtInputStream.readTag();
+                    for (Map.Entry<String, Object> entry : dataDrivenBlocks.entrySet()) {
+                        customBlockProperties.add(new BlockPropertyData(entry.getKey(), (NbtMap) entry.getValue()));
+                    }
+                } catch (IOException e) {
+                    throw new AssertionError("Unable to get data driven blocks from runtime definitions", e);
+                }
+            }
+
             if (BlockRegistries.CUSTOM_BLOCKS.get().length != 0) {
                 CustomBlockRegistryPopulator.BLOCK_ID.set(CustomBlockRegistryPopulator.START_OFFSET);
                 for (CustomBlockData customBlock : BlockRegistries.CUSTOM_BLOCKS.get()) {
