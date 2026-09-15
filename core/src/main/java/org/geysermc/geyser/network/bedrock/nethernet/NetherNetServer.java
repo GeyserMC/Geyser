@@ -90,7 +90,7 @@ import java.util.stream.Collectors;
 
 /**
  * The NetherNet (WebRTC) transport, used instead of RakNet: inbuilt HTTP signaling, NXS provider registration, or both,
- * all on the Bedrock address and port.
+ * all on the Bedrock address, and on the Bedrock port unless "webrtc-port" or -DgeyserSignalingPort move them.
  * Its state (signing identity, provider registration and DTLS identity) lives in the "nethernet" folder next to the config.
  */
 public final class NetherNetServer implements EventRegistrar {
@@ -102,6 +102,10 @@ public final class NetherNetServer implements EventRegistrar {
      * The UDP port for WebRTC: "webrtc-port", or the Bedrock port if that is 0.
      */
     private final int webrtcPort;
+    /**
+     * The TCP port built-in signaling listens on.
+     */
+    private final int signalingPort;
     private final Path dataFolder;
     private final BedrockPingHandler pingResponder;
 
@@ -126,6 +130,7 @@ public final class NetherNetServer implements EventRegistrar {
         GeyserConfig.BedrockConfig bedrock = geyser.config().bedrock();
         this.config = bedrock.signaling();
         this.webrtcPort = bedrock.webrtcPort() == 0 ? bedrock.port() : bedrock.webrtcPort();
+        this.signalingPort = config.port();
         this.dataFolder = geyser.getBootstrap().getConfigFolder().resolve("nethernet");
         this.pingResponder = new BedrockPingHandler(geyser);
     }
@@ -148,28 +153,22 @@ public final class NetherNetServer implements EventRegistrar {
                 "cannot work that way: every player will time out, including ones on this machine. " +
                 "Set \"address\" in the \"bedrock\" section to 0.0.0.0, or to this machine's local network address.");
         }
-        if (listener.transport().raknet()) {
-            if (webrtcPort == listener.port()) {
-                logger().error("NetherNet will not start! With the \"both\" transport, RakNet and NetherNet each need their own UDP port, " +
-                    "but both are set to " + listener.port() + ". Set \"webrtc-port\" in the \"bedrock\" section to a different free port.");
-                return;
-            }
-            if (listener.cloneRemotePort()) {
-                logger().warning("\"clone-remote-port\" is enabled, but the \"both\" transport also needs a separate TCP port for NetherNet. " +
-                    "If your host only gives you one port, set \"transport\" in the \"bedrock\" section to \"raknet\".");
-            }
+        if (listener.transport().raknet() && webrtcPort == listener.raknetPort()) {
+            logger().error("NetherNet will not start! With the \"both\" transport, RakNet and NetherNet each need their own UDP port, " +
+                "but both are set to " + webrtcPort + ". Set \"webrtc-port\" in the \"bedrock\" section to a different free port.");
+            return;
         }
 
-        if (inbuilt && listener.port() == geyser.config().java().port()) {
+        if (inbuilt && signalingPort == geyser.config().java().port()) {
             // e.g. clone-remote-port: the Java server owns that TCP port
             inbuilt = false;
+            String reason = "Built-in signaling cannot use port " + signalingPort + " because the Java server already uses it. ";
             if (!provider) {
                 provider = true;
-                logger().warning("Built-in signaling cannot use port " + listener.port() + " because the Java server already uses it. " +
-                    "Bedrock players can still find this server through the external signaling service at " + config.nxs().endpoint() + " instead.");
+                logger().warning(reason + "Bedrock players can still find this server through the external signaling service at "
+                    + config.nxs().endpoint() + " instead.");
             } else {
-                logger().warning("Built-in signaling cannot use port " + listener.port() + " because the Java server already uses it. " +
-                    "Only the external signaling service will be used.");
+                logger().warning(reason + "Only the external signaling service will be used.");
             }
         }
 
@@ -255,9 +254,9 @@ public final class NetherNetServer implements EventRegistrar {
             }
 
             BedrockListener listener = geyser.config().bedrock();
-            // The channel binds HTTP signaling over TCP to the Bedrock port, and by default pins ICE to its UDP side.
-            // When "webrtc-port" is another port, ICE goes there instead.
-            boolean separateIcePort = webrtcPort != listener.port();
+            // The channel binds HTTP signaling over TCP to the signaling port, and by default pins ICE to its UDP side.
+            // When the WebRTC port is another port, ICE goes there instead.
+            boolean separateIcePort = webrtcPort != signalingPort;
             this.signaling = signalingBuilder.setIceOnLocalPort(!separateIcePort).build();
 
             this.inbuiltEventLoopGroup = new MultiThreadIoEventLoopGroup(NioIoHandler.newFactory());
@@ -279,19 +278,19 @@ public final class NetherNetServer implements EventRegistrar {
                 });
             }
 
-            this.inbuiltChannel = b.bind(new InetSocketAddress(listener.address(), listener.port())).sync().channel();
+            this.inbuiltChannel = b.bind(new InetSocketAddress(listener.address(), signalingPort)).sync().channel();
 
             // TLS is served on the same port as plaintext, so both schemes reach it when configured
             String endpoint = https.certificate().isBlank()
-                    ? "http://" + listener.address() + ":" + listener.port()
-                    : "https:// and http:// on " + listener.address() + ":" + listener.port();
+                    ? "http://" + listener.address() + ":" + signalingPort
+                    : "https:// and http:// on " + listener.address() + ":" + signalingPort;
             logger().info("Built-in signaling started on " + endpoint
                 + (separateIcePort ? ", with NetherNet on UDP port " + webrtcPort : ""));
         } catch (Throwable e) {
             // Throwable: the WebRTC natives are not available on every platform
             closeInbuiltResources();
             logger().warning("Built-in signaling could not start. Make sure no other program is using TCP port "
-                + geyser.config().bedrock().port() + ". Enable debug mode for more details.");
+                + signalingPort + ". Enable debug mode for more details.");
             logger().debug("Built-in signaling failure: " + e);
         }
     }

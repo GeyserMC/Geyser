@@ -36,6 +36,7 @@ import org.geysermc.geyser.text.AsteriskSerializer;
 import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.util.CooldownUtils;
 import org.spongepowered.configurate.interfaces.meta.Exclude;
+import org.spongepowered.configurate.interfaces.meta.Field;
 import org.spongepowered.configurate.interfaces.meta.defaults.DefaultBoolean;
 import org.spongepowered.configurate.interfaces.meta.defaults.DefaultNumeric;
 import org.spongepowered.configurate.interfaces.meta.defaults.DefaultString;
@@ -139,6 +140,15 @@ public interface GeyserConfig {
 
         void mode(Mode mode);
 
+        /**
+         * The TCP port built-in signaling binds, set by {@code -DgeyserSignalingPort} when a host routes it separately.
+         * Resolved to the Bedrock port on startup when the property is unset.
+         */
+        @Field
+        int port();
+
+        void port(int port);
+
         @Comment("Settings for built-in signaling. Only used in the \"builtin\" and \"hybrid\" modes.")
         BuiltinConfig builtin();
 
@@ -223,6 +233,8 @@ public interface GeyserConfig {
         @AsteriskSerializer.Asterisk
         String address();
 
+        void address(String address);
+
         @Comment("""
             The port that Geyser will listen on for incoming Bedrock connections.
             Built-in signaling uses this port over TCP, and RakNet uses it over UDP.""")
@@ -231,12 +243,26 @@ public interface GeyserConfig {
         @NumericRange(from = 0, to = 65535)
         int port();
 
+        void port(int port);
+
         @Comment("""
             The UDP port that NetherNet connections use. 0 means the same port as above.
             If raknet and nethernet transport mode are used in parallel, then this port has to be different to the port above.""")
         @DefaultNumeric(0)
         @NumericRange(from = 0, to = 65535)
         int webrtcPort();
+
+        void webrtcPort(int port);
+
+        /**
+         * The UDP port RakNet binds, set by {@code -DgeyserRaknetPort} when a host routes it separately.
+         * {@link #port()} stays the port players connect to, so the broadcast port keeps following it.
+         * Resolved to {@link #port()} on startup when the property is unset.
+         */
+        @Field
+        int raknetPort();
+
+        void raknetPort(int port);
 
         @Comment("""
             How Bedrock players connect. Changes require a restart.
@@ -246,6 +272,8 @@ public interface GeyserConfig {
         default Transport transport() {
             return Transport.RAKNET;
         }
+
+        void transport(Transport transport);
 
         @Comment("""
                 Some hosting services change your Java port everytime you start the server and require the same port to be used for Bedrock.
@@ -258,11 +286,6 @@ public interface GeyserConfig {
             Signaling is how Bedrock players find this server and start a NetherNet connection to it.
             Only used with the "nethernet" and "both" transports. Changes require a restart.""")
         SignalingConfig signaling();
-
-        void address(String address);
-        void port(int port);
-        void webrtcPort(int port);
-        void transport(Transport transport);
 
         @Exclude
         @Override
