@@ -45,7 +45,7 @@ import org.geysermc.geyser.api.GeyserApi;
 import org.geysermc.geyser.api.entity.custom.CustomEntityDefinition;
 import org.geysermc.geyser.api.extension.Extension;
 import org.geysermc.geyser.api.util.MinecraftVersion;
-import org.geysermc.geyser.network.GameProtocol;
+import org.geysermc.geyser.network.bedrock.GameProtocol;
 import org.geysermc.geyser.pack.ResourcePackHolder;
 import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.registry.Registries;
@@ -111,7 +111,8 @@ public class DumpInfo {
         try {
             // Workaround for JsonAdapter not being allowed on methods
             ConfigurationOptions options = InterfaceDefaultOptions.addTo(ConfigurationOptions.defaults(), builder ->
-                    builder.addProcessor(AsteriskSerializer.Asterisk.class, String.class, AsteriskSerializer.CONFIGURATE_SERIALIZER))
+                    builder.addProcessor(AsteriskSerializer.Asterisk.class, String.class, AsteriskSerializer.CONFIGURATE_SERIALIZER)
+                            .addProcessor(AsteriskSerializer.Secret.class, String.class, AsteriskSerializer.CONFIGURATE_SECRET))
                 .shouldCopyDefaults(false);
 
             ConfigurationNode configNode = CommentedConfigurationNode.root(options);

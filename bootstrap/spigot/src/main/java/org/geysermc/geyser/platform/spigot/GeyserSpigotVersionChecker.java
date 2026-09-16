@@ -29,7 +29,7 @@ import com.viaversion.viaversion.api.Via;
 import org.bukkit.Bukkit;
 import org.bukkit.UnsafeValues;
 import org.geysermc.geyser.GeyserLogger;
-import org.geysermc.geyser.network.GameProtocol;
+import org.geysermc.geyser.network.bedrock.GameProtocol;
 import org.geysermc.geyser.text.GeyserLocale;
 
 import java.lang.reflect.InvocationTargetException;

@@ -28,6 +28,7 @@ package org.geysermc.geyser.scoreboard.network.playerlist;
 import static org.geysermc.geyser.scoreboard.network.util.AssertUtils.assertNextPacket;
 import static org.geysermc.geyser.scoreboard.network.util.AssertUtils.assertNoNextPacket;
 import static org.geysermc.geyser.scoreboard.network.util.GeyserMockContextScoreboard.mockContextScoreboard;
+import static org.geysermc.geyser.scoreboard.network.util.GeyserMockContextScoreboard.spawnPlayerSilently;
 
 import java.util.List;
 import net.kyori.adventure.text.Component;
@@ -37,12 +38,17 @@ import org.cloudburstmc.protocol.bedrock.data.ScoreInfo;
 import org.cloudburstmc.protocol.bedrock.packet.RemoveObjectivePacket;
 import org.cloudburstmc.protocol.bedrock.packet.SetDisplayObjectivePacket;
 import org.cloudburstmc.protocol.bedrock.packet.SetScorePacket;
+import org.geysermc.geyser.entity.type.player.PlayerEntity;
+import org.geysermc.geyser.translator.protocol.java.entity.player.JavaPlayerInfoRemoveTranslator;
+import org.geysermc.geyser.translator.protocol.java.scoreboard.JavaResetScorePacket;
 import org.geysermc.geyser.translator.protocol.java.scoreboard.JavaSetDisplayObjectiveTranslator;
 import org.geysermc.geyser.translator.protocol.java.scoreboard.JavaSetObjectiveTranslator;
 import org.geysermc.geyser.translator.protocol.java.scoreboard.JavaSetScoreTranslator;
 import org.geysermc.mcprotocollib.protocol.data.game.scoreboard.ObjectiveAction;
 import org.geysermc.mcprotocollib.protocol.data.game.scoreboard.ScoreType;
 import org.geysermc.mcprotocollib.protocol.data.game.scoreboard.ScoreboardPosition;
+import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.ClientboundPlayerInfoRemovePacket;
+import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.scoreboard.ClientboundResetScorePacket;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.scoreboard.ClientboundSetDisplayObjectivePacket;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.scoreboard.ClientboundSetObjectivePacket;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.scoreboard.ClientboundSetScorePacket;
@@ -196,6 +202,151 @@ public class BasicPlayerlistScoreboardTests {
                 packet.setAction(SetScorePacket.Action.SET);
                 // session player name is Tim203
                 packet.setInfos(List.of(new ScoreInfo(3, "2", 1, ScoreInfo.ScorerType.PLAYER, 1)));
+                return packet;
+            });
+        });
+    }
+
+    @Test
+    void removeScore() {
+        mockContextScoreboard(context -> {
+            var setObjectiveTranslator = new JavaSetObjectiveTranslator();
+            var setDisplayObjectiveTranslator = new JavaSetDisplayObjectiveTranslator();
+            var setScoreTranslator = new JavaSetScoreTranslator();
+            var resetScoreTranslator = new JavaResetScorePacket();
+
+            context.translate(
+                setObjectiveTranslator,
+                new ClientboundSetObjectivePacket(
+                    "objective1",
+                    ObjectiveAction.ADD,
+                    Component.text("objective1"),
+                    ScoreType.INTEGER,
+                    null
+                )
+            );
+
+            spawnPlayerSilently(context, "player1", 2);
+
+            context.translate(setScoreTranslator, new ClientboundSetScorePacket("player1", "objective1", 1));
+            assertNoNextPacket(context);
+
+            context.translate(
+                setDisplayObjectiveTranslator,
+                new ClientboundSetDisplayObjectivePacket(ScoreboardPosition.PLAYER_LIST, "objective1")
+            );
+            assertNextPacket(context, () -> {
+                var packet = new SetDisplayObjectivePacket();
+                packet.setObjectiveId("0");
+                packet.setDisplayName("objective1");
+                packet.setCriteria("dummy");
+                packet.setDisplaySlot("list");
+                packet.setSortOrder(1);
+                return packet;
+            });
+            assertNextPacket(context, () -> {
+                var packet = new SetScorePacket();
+                packet.setAction(SetScorePacket.Action.SET);
+                packet.setInfos(List.of(
+                    new ScoreInfo(1, "0", 1, ScoreInfo.ScorerType.PLAYER, 2)
+                ));
+                return packet;
+            });
+            assertNoNextPacket(context);
+
+            context.translate(resetScoreTranslator, new ClientboundResetScorePacket("player1", "objective1"));
+            assertNextPacket(context, () -> {
+                var packet = new SetScorePacket();
+                packet.setAction(SetScorePacket.Action.REMOVE);
+                packet.setInfos(List.of(new ScoreInfo(1, "0", 0)));
+                return packet;
+            });
+            assertNoNextPacket(context);
+
+            // There used to be a bug where the score was marked as removed (as can be seen in the lines above),
+            // but was not actually properly removed and thus resend as deleted on each update.
+            // This bit tests that specifically
+            context.translate(setScoreTranslator, new ClientboundSetScorePacket("Tim203", "objective1", 2));
+            assertNextPacket(context, () -> {
+                var packet = new SetScorePacket();
+                packet.setAction(SetScorePacket.Action.SET);
+                packet.setInfos(List.of(
+                    new ScoreInfo(2, "0", 2, ScoreInfo.ScorerType.PLAYER, 1)
+                ));
+                return packet;
+            });
+            assertNoNextPacket(context);
+        });
+    }
+
+    @Test
+    void removePlayerShouldRemoveScore() {
+        mockContextScoreboard(context -> {
+            var setObjectiveTranslator = new JavaSetObjectiveTranslator();
+            var setDisplayObjectiveTranslator = new JavaSetDisplayObjectiveTranslator();
+            var setScoreTranslator = new JavaSetScoreTranslator();
+            var playerInfoRemoveTranslator = new JavaPlayerInfoRemoveTranslator();
+
+            context.translate(
+                setObjectiveTranslator,
+                new ClientboundSetObjectivePacket(
+                    "objective1",
+                    ObjectiveAction.ADD,
+                    Component.text("objective1"),
+                    ScoreType.INTEGER,
+                    null
+                )
+            );
+
+            context.translate(setScoreTranslator, new ClientboundSetScorePacket("Tim203", "objective1", 1));
+            context.translate(setScoreTranslator, new ClientboundSetScorePacket("player1", "objective1", 2));
+            assertNoNextPacket(context);
+
+            context.translate(
+                setDisplayObjectiveTranslator,
+                new ClientboundSetDisplayObjectivePacket(ScoreboardPosition.PLAYER_LIST, "objective1")
+            );
+            assertNextPacket(context, () -> {
+                var packet = new SetDisplayObjectivePacket();
+                packet.setObjectiveId("0");
+                packet.setDisplayName("objective1");
+                packet.setCriteria("dummy");
+                packet.setDisplaySlot("list");
+                packet.setSortOrder(1);
+                return packet;
+            });
+            assertNextPacket(context, () -> {
+                var packet = new SetScorePacket();
+                packet.setAction(SetScorePacket.Action.SET);
+                // session player name is Tim203
+                packet.setInfos(List.of(new ScoreInfo(1, "0", 1, ScoreInfo.ScorerType.PLAYER, 1)));
+                return packet;
+            });
+            assertNoNextPacket(context);
+
+            PlayerEntity player1 = spawnPlayerSilently(context, "player1", 2);
+
+            //todo currently the player spawn itself is not a trigger to update the scoreboard
+            assertNoNextPacket(context);
+            context.session().getWorldCache().getScoreboard().onUpdate();
+
+            assertNextPacket(context, () -> {
+                var packet = new SetScorePacket();
+                packet.setAction(SetScorePacket.Action.SET);
+                packet.setInfos(List.of(new ScoreInfo(2, "0", 2, ScoreInfo.ScorerType.PLAYER, 2)));
+                return packet;
+            });
+
+            context.translate(playerInfoRemoveTranslator, new ClientboundPlayerInfoRemovePacket(List.of(player1.getTabListUuid())));
+
+            //todo currently the removal of a player itself is not a trigger to update the scoreboard
+            assertNoNextPacket(context);
+            context.session().getWorldCache().getScoreboard().onUpdate();
+
+            assertNextPacket(context, () -> {
+                var packet = new SetScorePacket();
+                packet.setAction(SetScorePacket.Action.REMOVE);
+                packet.setInfos(List.of(new ScoreInfo(2, "0", 0)));
                 return packet;
             });
         });

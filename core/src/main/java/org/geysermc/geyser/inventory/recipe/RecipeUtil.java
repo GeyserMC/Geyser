@@ -28,6 +28,7 @@ package org.geysermc.geyser.inventory.recipe;
 import com.google.common.collect.Lists;
 import it.unimi.dsi.fastutil.Pair;
 import it.unimi.dsi.fastutil.ints.IntComparators;
+import it.unimi.dsi.fastutil.ints.IntList;
 import it.unimi.dsi.fastutil.ints.IntObjectMutablePair;
 import it.unimi.dsi.fastutil.ints.IntObjectPair;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
@@ -147,18 +148,18 @@ public class RecipeUtil {
             return Collections.singletonList(ItemDescriptorWithCount.fromItem(item));
         }
         if (slotDisplay instanceof TagSlotDisplay(Key tag)) {
-            int[] items = session.getTagCache().getRaw(new Tag<>(JavaRegistries.ITEM, tag)); // I don't like this...
-            if (items == null || items.length == 0) {
+            IntList items = session.getTagCache().getRaw(new Tag<>(JavaRegistries.ITEM, tag)); // I don't like this...
+            if (items == null || items.isEmpty()) {
                 return Collections.singletonList(ItemDescriptorWithCount.EMPTY);
-            } else if (items.length == 1) {
-                return Collections.singletonList(fromItem(session, items[0]));
+            } else if (items.size() == 1) {
+                return Collections.singletonList(fromItem(session, items.getInt(0)));
             } else {
                 // Cache is implemented as, presumably, an item tag will be used multiple times in succession
                 // (E.G. a chest with planks tags)
                 if (TAG_TO_ITEM_DESCRIPTOR_CACHE.get().firstInt() != session.protocolVersion()) {
                     TAG_TO_ITEM_DESCRIPTOR_CACHE.get().first(session.protocolVersion()).second().clear();
                 }
-                return TAG_TO_ITEM_DESCRIPTOR_CACHE.get().second().computeIfAbsent(items, key -> {
+                return TAG_TO_ITEM_DESCRIPTOR_CACHE.get().second().computeIfAbsent(items.toIntArray(), key -> {
                     List<ItemDescriptorWithCount> tagDescriptor = lookupBedrockTag(session, key);
                     if (tagDescriptor != null) {
                         return tagDescriptor;
