@@ -42,21 +42,23 @@ public class JavaEntityPositionSyncTranslator extends PacketTranslator<Clientbou
         Entity entity = session.getEntityCache().getEntityByJavaId(packet.getId());
         if (entity == null) return;
 
-        Vector3d pos = packet.getPosition();
-        Vector3f target = pos.toFloat();
-        // Compute before the cached position is overwritten. Java clients snap rather than
-        // interpolate a sync farther than 64 blocks; Bedrock needs teleport semantics there too
-        boolean teleported = entity.position().distanceSquared(target) > 4096;
+        Vector3d pos = packet.getEndPosition();
+        if (pos != null) { // FIXME 26.3 stepped sync
+            Vector3f target = pos.toFloat();
+            // Compute before the cached position is overwritten. Java clients snap rather than
+            // interpolate a sync farther than 64 blocks; Bedrock needs teleport semantics there too
+            boolean teleported = entity.position().distanceSquared(target) > 4096;
 
-        if (entity instanceof ClientVehicle clientVehicle) {
-            // Ignore if player is controlling
-            if (clientVehicle.shouldSimulateMovement()) {
-                return;
+            if (entity instanceof ClientVehicle clientVehicle) {
+                // Ignore if player is controlling
+                if (clientVehicle.shouldSimulateMovement()) {
+                    return;
+                }
+                clientVehicle.getVehicleComponent().moveAbsolute(pos.getX(), pos.getY(), pos.getZ());
             }
-            clientVehicle.getVehicleComponent().moveAbsolute(pos.getX(), pos.getY(), pos.getZ());
-        }
 
-        // As in Entity#teleport, the head yaw follows the yaw
-        entity.moveAbsolute(target, packet.getYRot(), packet.getXRot(), packet.getYRot(), packet.isOnGround(), teleported);
+            // As in Entity#teleport, the head yaw follows the yaw
+            entity.moveAbsolute(target, packet.getYRot(), packet.getXRot(), packet.getYRot(), packet.isOnGround(), teleported);
+        }
     }
 }

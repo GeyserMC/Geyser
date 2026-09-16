@@ -48,7 +48,6 @@ import org.geysermc.mcprotocollib.protocol.data.game.item.component.Equippable;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.FoodProperties;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.KineticWeapon;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.PiercingWeapon;
-import org.geysermc.mcprotocollib.protocol.data.game.item.component.SwingAnimation;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.ToolData;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.UseCooldown;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.UseEffects;
@@ -147,8 +146,9 @@ public class ComponentConverters {
         registerConverter(JavaItemDataComponents.PIERCING_WEAPON, (itemMap, value) -> itemMap.put(DataComponentTypes.PIERCING_WEAPON,
             new PiercingWeapon(false, false, null, null)));
 
-        registerConverter(JavaItemDataComponents.SWING_ANIMATION, (itemMap, value) -> itemMap.put(DataComponentTypes.SWING_ANIMATION,
-            new SwingAnimation(SwingAnimation.Type.WHACK, value.duration())));
+        // FIXME 26.3 deprecate in API, add new components, convert the deprecated swing_animation to the respective new components
+        /*registerConverter(JavaItemDataComponents.SWING_ANIMATION, (itemMap, value) -> itemMap.put(DataComponentTypes.SWING_ANIMATION,
+            new SwingAnimation(SwingAnimation.Type.WHACK, value.duration())));*/
 
         registerConverter(JavaItemDataComponents.USE_EFFECTS, (itemMap, value) -> itemMap.put(DataComponentTypes.USE_EFFECTS,
             new UseEffects(false, true, value.speedMultiplier())));

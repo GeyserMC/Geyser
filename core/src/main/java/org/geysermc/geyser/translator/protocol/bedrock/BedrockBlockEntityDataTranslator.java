@@ -37,6 +37,9 @@ import org.geysermc.geyser.translator.protocol.Translator;
 import org.geysermc.geyser.translator.text.MessageTranslator;
 import org.geysermc.geyser.util.SignUtils;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Translator(packet = BlockEntityDataPacket.class)
 public class BedrockBlockEntityDataTranslator extends PacketTranslator<BlockEntityDataPacket> {
 
@@ -55,7 +58,7 @@ public class BedrockBlockEntityDataTranslator extends PacketTranslator<BlockEnti
             StringBuilder newMessage = new StringBuilder();
             // While Bedrock's sign lines are one string, Java's is an array of each line
             // (Initialized all with empty strings because it complains about null)
-            String[] lines = new String[] {"", "", "", ""};
+            List<String> lines = new ArrayList<>(List.of("", "", "", ""));
             int iterator = 0;
             // Keep track of the width of each character
             // If it goes over the maximum, we need to start a new line to match Java
@@ -71,7 +74,7 @@ public class BedrockBlockEntityDataTranslator extends PacketTranslator<BlockEnti
                     widthCount = 0;
                     // Saves if we're moving a word to the next line
                     String word = null;
-                    if (wentOverMax && iterator < lines.length - 1) {
+                    if (wentOverMax && iterator < lines.size() - 1) {
                         // If we went over the max, we want to try to wrap properly like Bedrock does.
                         // So we look for a space in the Bedrock user's text to imply a word.
                         int index = newMessage.lastIndexOf(" ");
@@ -82,11 +85,11 @@ public class BedrockBlockEntityDataTranslator extends PacketTranslator<BlockEnti
                             newMessage.delete(index, newMessage.length());
                         }
                     }
-                    lines[iterator] = newMessage.toString();
+                    lines.set(iterator, newMessage.toString());
                     iterator++;
                     // Bedrock, for whatever reason, can hold a message out of the bounds of the four lines
                     // We don't care about that so we discard that
-                    if (iterator > lines.length - 1) {
+                    if (iterator > lines.size() - 1) {
                         break;
                     }
                     newMessage = new StringBuilder();
@@ -106,7 +109,7 @@ public class BedrockBlockEntityDataTranslator extends PacketTranslator<BlockEnti
                 } else newMessage.append(character);
             }
             // Put the final line on since it isn't done in the for loop
-            if (iterator < lines.length) lines[iterator] = newMessage.toString();
+            if (iterator < lines.size()) lines.set(iterator, newMessage.toString());
             Vector3i pos = Vector3i.from(tag.getInt("x"), tag.getInt("y"), tag.getInt("z"));
             ServerboundSignUpdatePacket signUpdatePacket = new ServerboundSignUpdatePacket(pos, lines, session.getWorldCache().isEditingSignOnFront());
             session.sendDownstreamGamePacket(signUpdatePacket);

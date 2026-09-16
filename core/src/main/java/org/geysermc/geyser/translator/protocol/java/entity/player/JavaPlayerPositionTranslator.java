@@ -160,7 +160,7 @@ public class JavaPlayerPositionTranslator extends PacketTranslator<ClientboundPl
 
     private void acceptTeleport(GeyserSession session, Vector3d position, float yaw, float pitch, int id) {
         // Confirm the teleport when we receive it to match Java edition
-        ServerboundAcceptTeleportationPacket teleportConfirmPacket = new ServerboundAcceptTeleportationPacket(id);
+        ServerboundAcceptTeleportationPacket teleportConfirmPacket = new ServerboundAcceptTeleportationPacket(id, position.getX(), position.getY(), position.getZ(), yaw, pitch);
         session.sendDownstreamGamePacket(teleportConfirmPacket);
         // Servers (especially ones like Hypixel) expect exact coordinates given back to them.
         ServerboundMovePlayerPosRotPacket positionPacket = new ServerboundMovePlayerPosRotPacket(false, false, position.getX(), position.getY(), position.getZ(), yaw, pitch);

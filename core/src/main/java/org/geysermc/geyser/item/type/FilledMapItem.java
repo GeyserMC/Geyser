@@ -29,7 +29,6 @@ import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
 import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.registry.type.ItemMappings;
 import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentTypes;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
 
 public class FilledMapItem extends MapItem {
@@ -40,7 +39,7 @@ public class FilledMapItem extends MapItem {
     @Override
     public ItemData.Builder translateToBedrock(GeyserSession session, int count, DataComponents components, ItemMapping mapping, ItemMappings mappings) {
         ItemData.Builder builder = super.translateToBedrock(session, count, components, mapping, mappings);
-        if (components == null) {
+        /*if (components == null) {
             // This is a fallback for maps with no nbt (Change added back in June 2020; is it needed in 2023?)
             //return builder.tag(NbtMap.builder().putInt("map", 0).build()); TODO if this is *still* broken, let's move it to translateComponentsToBedrock
             return builder;
@@ -55,7 +54,7 @@ public class FilledMapItem extends MapItem {
                     case 12741452 -> builder.damage(14); // Trial Chamber
                 }
             }
-        }
+        }*/ // FIXME 26.3 this largely won't be needed anymore, edit mappings-gen to use MapItem for explorer maps, remove this class, then set metadata in MapItem
         return builder;
     }
 }

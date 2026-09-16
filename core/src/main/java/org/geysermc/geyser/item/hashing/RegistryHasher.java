@@ -72,7 +72,6 @@ import org.geysermc.mcprotocollib.protocol.data.game.item.component.KineticWeapo
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.MobEffectDetails;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.MobEffectInstance;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.SuspiciousStewEffect;
-import org.geysermc.mcprotocollib.protocol.data.game.item.component.SwingAnimation;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.ToolData;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.TypedEntityData;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.Unit;
@@ -84,7 +83,6 @@ import org.geysermc.mcprotocollib.protocol.data.game.level.sound.Sound;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.IntStream;
@@ -158,8 +156,7 @@ public interface RegistryHasher<DirectType> extends MinecraftHasher<Integer> {
     RegistryHasher<Instrument> INSTRUMENT = registry(JavaRegistries.INSTRUMENT, DIRECT_INSTRUMENT);
 
     MinecraftHasher<ArmorTrim.TrimMaterial> DIRECT_TRIM_MATERIAL = MinecraftHasher.mapBuilder(builder -> builder
-        .accept("asset_name", MinecraftHasher.STRING, ArmorTrim.TrimMaterial::assetBase)
-        .optional("override_armor_assets", MinecraftHasher.map(KEY, STRING), ArmorTrim.TrimMaterial::assetOverrides, Map.of())
+        .accept("palette_id", MinecraftHasher.KEY, ArmorTrim.TrimMaterial::paletteId)
         .accept("description", ComponentHasher.COMPONENT, ArmorTrim.TrimMaterial::description));
 
     RegistryHasher<ArmorTrim.TrimMaterial> TRIM_MATERIAL = registry(JavaRegistries.TRIM_MATERIAL, DIRECT_TRIM_MATERIAL);
@@ -344,8 +341,6 @@ public interface RegistryHasher<DirectType> extends MinecraftHasher<Integer> {
         .accept("max_duration_ticks", MinecraftHasher.INT, KineticWeapon.Condition::maxDurationTicks)
         .optional("min_speed", MinecraftHasher.FLOAT, KineticWeapon.Condition::minSpeed, 0.0F)
         .optional("min_relative_speed", MinecraftHasher.FLOAT, KineticWeapon.Condition::minRelativeSpeed, 0.0F));
-
-    MinecraftHasher<SwingAnimation.Type> SWING_ANIMATION_TYPE = MinecraftHasher.fromEnum();
 
     MinecraftHasher<ArmorTrim> ARMOR_TRIM = MinecraftHasher.mapBuilder(builder -> builder
         .accept("material", TRIM_MATERIAL.holder(), ArmorTrim::material)
