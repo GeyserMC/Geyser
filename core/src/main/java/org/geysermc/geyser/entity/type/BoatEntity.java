@@ -254,7 +254,8 @@ public class BoatEntity extends Entity implements Tickable, Leashable, ClientVeh
         MANGROVE,
         BAMBOO,
         CHERRY,
-        PALE_OAK;
+        PALE_OAK,
+        POPLAR;
 
         BoatVariant() {}
     }

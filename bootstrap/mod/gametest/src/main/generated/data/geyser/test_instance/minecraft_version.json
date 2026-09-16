@@ -1,4 +1,6 @@
 {
   "type": "geyser:minecraft_version",
-  "version": "26.3"
+  "version": "26.3",
+  "required": false,
+  "COMMENT": "MCPL is not at release yet"
 }
