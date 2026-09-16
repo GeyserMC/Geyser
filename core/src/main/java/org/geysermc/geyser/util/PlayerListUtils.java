@@ -111,6 +111,9 @@ public class PlayerListUtils {
         entry.setPlatformChatId("");
         entry.setTeacher(false);
         entry.setTrustedSkin(true);
+        // Unused since waypoint colours are sent via the waypoint packet, but still sent over the network
+        // Thanks Bedrock (last tested as of 26.50)
+        entry.setColor(Color.LIGHT_GRAY);
         return entry;
     }
 
