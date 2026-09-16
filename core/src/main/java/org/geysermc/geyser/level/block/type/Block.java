@@ -213,7 +213,7 @@ public class Block {
         private final Map<Property<?>, List<Comparable<?>>> states = new LinkedHashMap<>();
         private boolean requiresCorrectToolForDrops = false;
         private BlockEntityType blockEntityType = null;
-        private PistonBehavior pushReaction = PistonBehavior.NORMAL;
+        private PistonBehavior pushReaction = PistonBehavior.PUSH_PULL;
         private float destroyTime;
 
         // We'll use this field after building
