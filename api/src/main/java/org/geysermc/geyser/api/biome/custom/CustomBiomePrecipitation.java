@@ -34,7 +34,7 @@ import org.jetbrains.annotations.ApiStatus;
  * but they are not rain or snow; those follow the Java biome's climate. A biome can have
  * at most one precipitation type.
  *
- * @since 2.11.1
+ * @since 2.11.3
  */
 @ApiStatus.NonExtendable
 public interface CustomBiomePrecipitation {
@@ -43,7 +43,7 @@ public interface CustomBiomePrecipitation {
      * The particle type shown in this biome.
      *
      * @return the ambient particle type
-     * @since 2.11.1
+     * @since 2.11.3
      */
     Type type();
 
@@ -52,7 +52,7 @@ public interface CustomBiomePrecipitation {
      * deltas use a white ash density of {@code 2.0}.
      *
      * @return the particle density
-     * @since 2.11.1
+     * @since 2.11.3
      */
     float density();
 
@@ -64,7 +64,7 @@ public interface CustomBiomePrecipitation {
      * @return a new precipitation instance
      * @throws NullPointerException when the type is null
      * @throws IllegalArgumentException when the density is negative or not finite
-     * @since 2.11.1
+     * @since 2.11.3
      */
     static CustomBiomePrecipitation of(Type type, float density) {
         return GeyserApi.api().provider(CustomBiomePrecipitation.class, type, density);
@@ -73,7 +73,7 @@ public interface CustomBiomePrecipitation {
     /**
      * The available precipitation particle types.
      *
-     * @since 2.11.1
+     * @since 2.11.3
      */
     enum Type {
         /**

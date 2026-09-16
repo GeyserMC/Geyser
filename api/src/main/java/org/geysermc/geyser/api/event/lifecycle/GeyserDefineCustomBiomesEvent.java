@@ -45,7 +45,7 @@ import java.util.Map;
  * <p>This event will not be called if the "enable-custom-content" setting is disabled
  * in the Geyser config.</p>
  *
- * @since 2.11.1
+ * @since 2.11.3
  */
 @ApiStatus.NonExtendable
 public interface GeyserDefineCustomBiomesEvent extends Event {
@@ -55,7 +55,7 @@ public interface GeyserDefineCustomBiomesEvent extends Event {
      * identifier of the Java biome they were registered for.
      *
      * @return an unmodifiable map of the registered definitions
-     * @since 2.11.1
+     * @since 2.11.3
      */
     Map<Identifier, CustomBiomeDefinition> customBiomeDefinitions();
 
@@ -68,7 +68,7 @@ public interface GeyserDefineCustomBiomesEvent extends Event {
      * @param javaIdentifier the identifier of the Java biome to register the definition for
      * @param definition the custom biome definition to register
      * @throws CustomBiomeDefinitionRegisterException when an error occurred while registering the biome
-     * @since 2.11.1
+     * @since 2.11.3
      */
     void register(Identifier javaIdentifier, CustomBiomeDefinition definition);
 }

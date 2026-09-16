@@ -31,7 +31,7 @@ import java.io.Serial;
 
 /**
  * Thrown when there was an error registering the custom biome definition. The exception message will have details as to what went wrong.
- * @since 2.11.1
+ * @since 2.11.3
  */
 @ApiStatus.NonExtendable
 public class CustomBiomeDefinitionRegisterException extends RuntimeException {

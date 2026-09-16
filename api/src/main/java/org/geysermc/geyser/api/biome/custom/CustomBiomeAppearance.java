@@ -41,7 +41,7 @@ import java.awt.Color;
  * is set, the other is completed from the vanilla Bedrock default fog ({@code #44AFF5},
  * fully opaque at 60 blocks).</p>
  *
- * @since 2.11.1
+ * @since 2.11.3
  */
 @ApiStatus.NonExtendable
 public interface CustomBiomeAppearance {
@@ -51,7 +51,7 @@ public interface CustomBiomeAppearance {
      * uses it as the daytime zenith tint; the horizon and the vanilla night colors remain.
      *
      * @return the sky color
-     * @since 2.11.1
+     * @since 2.11.3
      */
     @Nullable Color skyColor();
 
@@ -61,7 +61,7 @@ public interface CustomBiomeAppearance {
      * does not apply this value as of Bedrock 1.26.44.
      *
      * @return the fog color
-     * @since 2.11.1
+     * @since 2.11.3
      */
     @Nullable Color fogColor();
 
@@ -71,7 +71,7 @@ public interface CustomBiomeAppearance {
      * exact rendered color can differ.
      *
      * @return the water surface color
-     * @since 2.11.1
+     * @since 2.11.3
      */
     @Nullable Color waterSurfaceColor();
 
@@ -81,7 +81,7 @@ public interface CustomBiomeAppearance {
      * this value as of Bedrock 1.26.44.
      *
      * @return the water surface opacity
-     * @since 2.11.1
+     * @since 2.11.3
      */
     @Nullable Float waterSurfaceOpacity();
 
@@ -91,7 +91,7 @@ public interface CustomBiomeAppearance {
      * nearby submerged surfaces still pick up the tint.
      *
      * @return the underwater fog color
-     * @since 2.11.1
+     * @since 2.11.3
      */
     @Nullable Color waterFogColor();
 
@@ -100,7 +100,7 @@ public interface CustomBiomeAppearance {
      * not set.
      *
      * @return the underwater fog end distance
-     * @since 2.11.1
+     * @since 2.11.3
      */
     @Nullable Float waterFogEndDistance();
 
@@ -108,7 +108,7 @@ public interface CustomBiomeAppearance {
      * The grass tint, or null to let the client derive one from the biome's climate.
      *
      * @return the grass color
-     * @since 2.11.1
+     * @since 2.11.3
      */
     @Nullable Color grassColor();
 
@@ -116,7 +116,7 @@ public interface CustomBiomeAppearance {
      * The foliage tint, or null to let the client derive one from the biome's climate.
      *
      * @return the foliage color
-     * @since 2.11.1
+     * @since 2.11.3
      */
     @Nullable Color foliageColor();
 
@@ -124,7 +124,7 @@ public interface CustomBiomeAppearance {
      * The dry foliage tint, or null to use the client's default.
      *
      * @return the dry foliage color
-     * @since 2.11.1
+     * @since 2.11.3
      */
     @Nullable Color dryFoliageColor();
 
@@ -132,7 +132,7 @@ public interface CustomBiomeAppearance {
      * The ambient ash or spore particles shown in this biome, or null for none.
      *
      * @return the biome's ambient ash or spore particles
-     * @since 2.11.1
+     * @since 2.11.3
      */
     @Nullable CustomBiomePrecipitation precipitation();
 
@@ -140,7 +140,7 @@ public interface CustomBiomeAppearance {
      * Creates a builder for a custom biome appearance.
      *
      * @return a new appearance builder
-     * @since 2.11.1
+     * @since 2.11.3
      */
     static Builder builder() {
         return GeyserApi.api().provider(Builder.class);
@@ -148,7 +148,7 @@ public interface CustomBiomeAppearance {
 
     /**
      * The builder for a custom biome appearance.
-     * @since 2.11.1
+     * @since 2.11.3
      */
     interface Builder extends GenericBuilder<CustomBiomeAppearance> {
 
@@ -158,7 +158,7 @@ public interface CustomBiomeAppearance {
          * @param skyColor the sky color
          * @see CustomBiomeAppearance#skyColor()
          * @return this builder
-         * @since 2.11.1
+         * @since 2.11.3
          */
         @This
         Builder skyColor(Color skyColor);
@@ -169,7 +169,7 @@ public interface CustomBiomeAppearance {
          * @param fogColor the fog color
          * @see CustomBiomeAppearance#fogColor()
          * @return this builder
-         * @since 2.11.1
+         * @since 2.11.3
          */
         @This
         Builder fogColor(Color fogColor);
@@ -180,7 +180,7 @@ public interface CustomBiomeAppearance {
          * @param waterSurfaceColor the water surface color
          * @see CustomBiomeAppearance#waterSurfaceColor()
          * @return this builder
-         * @since 2.11.1
+         * @since 2.11.3
          */
         @This
         Builder waterSurfaceColor(Color waterSurfaceColor);
@@ -192,7 +192,7 @@ public interface CustomBiomeAppearance {
          * @param waterSurfaceOpacity the water surface opacity
          * @see CustomBiomeAppearance#waterSurfaceOpacity()
          * @return this builder
-         * @since 2.11.1
+         * @since 2.11.3
          */
         @This
         Builder waterSurfaceOpacity(float waterSurfaceOpacity);
@@ -203,7 +203,7 @@ public interface CustomBiomeAppearance {
          * @param waterFogColor the underwater fog color
          * @see CustomBiomeAppearance#waterFogColor()
          * @return this builder
-         * @since 2.11.1
+         * @since 2.11.3
          */
         @This
         Builder waterFogColor(Color waterFogColor);
@@ -214,7 +214,7 @@ public interface CustomBiomeAppearance {
          * @param waterFogEndDistance the underwater fog end distance
          * @see CustomBiomeAppearance#waterFogEndDistance()
          * @return this builder
-         * @since 2.11.1
+         * @since 2.11.3
          */
         @This
         Builder waterFogEndDistance(float waterFogEndDistance);
@@ -225,7 +225,7 @@ public interface CustomBiomeAppearance {
          * @param grassColor the grass color
          * @see CustomBiomeAppearance#grassColor()
          * @return this builder
-         * @since 2.11.1
+         * @since 2.11.3
          */
         @This
         Builder grassColor(Color grassColor);
@@ -236,7 +236,7 @@ public interface CustomBiomeAppearance {
          * @param foliageColor the foliage color
          * @see CustomBiomeAppearance#foliageColor()
          * @return this builder
-         * @since 2.11.1
+         * @since 2.11.3
          */
         @This
         Builder foliageColor(Color foliageColor);
@@ -247,7 +247,7 @@ public interface CustomBiomeAppearance {
          * @param dryFoliageColor the dry foliage color
          * @see CustomBiomeAppearance#dryFoliageColor()
          * @return this builder
-         * @since 2.11.1
+         * @since 2.11.3
          */
         @This
         Builder dryFoliageColor(Color dryFoliageColor);
@@ -258,7 +258,7 @@ public interface CustomBiomeAppearance {
          * @param precipitation the ambient ash or spore particles
          * @see CustomBiomeAppearance#precipitation()
          * @return this builder
-         * @since 2.11.1
+         * @since 2.11.3
          */
         @This
         Builder precipitation(CustomBiomePrecipitation precipitation);
@@ -269,7 +269,7 @@ public interface CustomBiomeAppearance {
          * @return the created appearance
          * @throws IllegalArgumentException when no value was set, when a numeric value is
          * out of range, or when the precipitation was not created through {@link CustomBiomePrecipitation#of}
-         * @since 2.11.1
+         * @since 2.11.3
          */
         @Override
         CustomBiomeAppearance build();
