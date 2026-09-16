@@ -107,13 +107,13 @@ public class CustomBiomesLoaderTest {
         assertEquals(Identifier.of("example:swamp_recolor"), swamp.bedrockIdentifier());
 
         // Without a geyser identifier, a Java identifier that is valid on Bedrock is reused
-        CustomBiomeDefinition derived = biomes.get(Identifier.of("example:derived"));
+        CustomBiomeDefinition derived = biomes.get(Identifier.of("example:reused_identifier"));
         assertNotNull(derived);
-        assertEquals(Identifier.of("example:derived"), derived.bedrockIdentifier());
+        assertEquals(Identifier.of("example:reused_identifier"), derived.bedrockIdentifier());
         assertEquals(new Color(0x5f9f45), Objects.requireNonNull(derived.appearance()).grassColor());
 
         // A Java identifier Bedrock can't express becomes a digest in the reserved namespace
-        CustomBiomeDefinition digest = biomes.get(Identifier.of("my_datapack:cave/derived"));
+        CustomBiomeDefinition digest = biomes.get(Identifier.of("my_datapack:cave/derived_identifier"));
         assertNotNull(digest);
         assertEquals("geyser", digest.bedrockIdentifier().namespace());
         assertTrue(digest.bedrockIdentifier().path().startsWith("auto_"));

@@ -38,12 +38,12 @@
         "bedrock_identifier": "example:swamp_recolor"
       }
     },
-    "example:derived": {
+    "example:reused_identifier": {
       "effects": {
         "grass_color": "#5f9f45"
       }
     },
-    "my_datapack:cave/derived": {
+    "my_datapack:cave/derived_identifier": {
       "attributes": {
         "minecraft:visual/sky_color": "#123456"
       },
