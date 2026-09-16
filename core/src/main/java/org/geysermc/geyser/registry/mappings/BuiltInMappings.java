@@ -306,8 +306,11 @@ public class BuiltInMappings {
                     .build())
                 .materialInstance(
                     "*",
-                    MaterialInstance.builder().texture(fallbackOutside ? outsideTexture : insideTexture)
-                        .ambientOcclusion(true).faceDimming(true).build()
+                    MaterialInstance.builder()
+                        .texture(fallbackOutside ? outsideTexture : insideTexture)
+                        .ambientOcclusion(true)
+                        .faceDimming(true)
+                        .build()
                 );
 
             for (Map.Entry<String, Object> entry : state.properties().entrySet()) {
@@ -315,8 +318,11 @@ public class BuiltInMappings {
                 if (outside != fallbackOutside) {
                     components.materialInstance(
                         entry.getKey(),
-                        MaterialInstance.builder().texture(outside ? outsideTexture : insideTexture)
-                            .ambientOcclusion(true).faceDimming(true).build()
+                        MaterialInstance.builder()
+                            .texture(outside ? outsideTexture : insideTexture)
+                            .ambientOcclusion(true)
+                            .faceDimming(true)
+                            .build()
                     );
                 }
             }
