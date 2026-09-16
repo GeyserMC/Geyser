@@ -57,10 +57,9 @@ public class BiomeMappingsReader_v1 implements MappingsReader<Identifier, Custom
     public void read(Path file, JsonObject root, JsonObject mappings, BiConsumer<Identifier, CustomBiomeDefinition> consumer) {
         UUID packUuid;
         try {
-            // A file can name a provided resource pack that styles its biomes in place of the generated one
-            packUuid = MappingsUtil.readOrDefault(root, "pack_uuid", NodeReader.UUID, null, "custom biome mappings");
+            packUuid = readPackUuid(root);
         } catch (InvalidCustomMappingsFileException exception) {
-            GeyserImpl.getInstance().getLogger().error("Error reading pack_uuid in custom mappings file: " + file, exception);
+            GeyserImpl.getInstance().getLogger().error("Error reading mapping_options in custom mappings file: " + file, exception);
             return;
         }
         // Sorted so registration conflicts don't depend on the file's property order
@@ -79,12 +78,25 @@ public class BiomeMappingsReader_v1 implements MappingsReader<Identifier, Custom
     }
 
     /**
+     * A file can name a provided resource pack that styles its biomes in place of the generated one,
+     * under {@code mapping_options.biomes.pack_uuid}.
+     */
+    private @Nullable UUID readPackUuid(JsonObject root) throws InvalidCustomMappingsFileException {
+        JsonObject options = readObject(root, "mapping_options", "custom biome mappings");
+        JsonObject biomeOptions = options == null ? null : readObject(options, "biomes", "custom biome mappings");
+        if (biomeOptions == null) {
+            return null;
+        }
+        return MappingsUtil.readOrDefault(biomeOptions, "pack_uuid", NodeReader.UUID, null, "custom biome mappings");
+    }
+
+    /**
      * Reads one biome. Colors are read from the same {@code effects} and {@code attributes}
      * keys a Java biome uses, so the plain values of a Java biome definition can be copied
      * in as-is; the optional {@code geyser} object holds what Bedrock needs on top of that.
      * When no Bedrock identifier is named, one is derived from the Java identifier. In a
-     * file that names a {@code pack_uuid}, that pack provides the visuals, so appearance
-     * values are rejected.
+     * file whose biome options name a {@code pack_uuid}, that pack provides the visuals, so
+     * appearance values are rejected.
      */
     private CustomBiomeDefinition readDefinition(Identifier javaIdentifier, JsonObject object, @Nullable UUID packUuid, String... context) throws InvalidCustomMappingsFileException {
         JsonObject geyser = readObject(object, "geyser", context);
