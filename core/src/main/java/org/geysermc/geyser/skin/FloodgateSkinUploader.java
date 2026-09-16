@@ -298,7 +298,11 @@ public final class FloodgateSkinUploader {
         long additionalTime = ThreadLocalRandom.current().nextInt(7);
         // we don't have to check the result. onClose will handle that for us
         geyser.getScheduledThread()
-                .schedule(client::reconnect, 8 + additionalTime, TimeUnit.SECONDS);
+                .schedule(() -> {
+                    if (!closed) {
+                        client.reconnect();
+                    }
+                }, 8 + additionalTime, TimeUnit.SECONDS);
     }
 
     public FloodgateSkinUploader start() {
