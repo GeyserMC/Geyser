@@ -93,5 +93,7 @@ public class JavaFinishConfigurationTranslator extends PacketTranslator<Clientbo
         session.getComponentCache().resolveComponents();
         // This MUST be called after components are resolved. It uses both the collected data-driven registry information and the resolved components
         session.getTrimRecipes().initializeBedrockTrimRecipes(session);
+
+        session.getCustomBiomeCache().reconcile();
     }
 }

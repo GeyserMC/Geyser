@@ -27,6 +27,9 @@ package org.geysermc.geyser.registry.loader;
 
 import org.geysermc.geyser.api.bedrock.camera.CameraFade;
 import org.geysermc.geyser.api.bedrock.camera.CameraPosition;
+import org.geysermc.geyser.api.biome.custom.CustomBiomeAppearance;
+import org.geysermc.geyser.api.biome.custom.CustomBiomeDefinition;
+import org.geysermc.geyser.api.biome.custom.CustomBiomePrecipitation;
 import org.geysermc.geyser.api.block.custom.CustomBlockData;
 import org.geysermc.geyser.api.block.custom.NonVanillaCustomBlockData;
 import org.geysermc.geyser.api.block.custom.component.CustomBlockComponents;
@@ -76,6 +79,9 @@ import org.geysermc.geyser.api.predicate.item.TrimMaterialPredicate;
 import org.geysermc.geyser.api.util.Holders;
 import org.geysermc.geyser.api.util.Identifier;
 import org.geysermc.geyser.api.waypoint.CustomWaypointStyle;
+import org.geysermc.geyser.biome.custom.GeyserCustomBiomeAppearance;
+import org.geysermc.geyser.biome.custom.GeyserCustomBiomeDefinition;
+import org.geysermc.geyser.biome.custom.GeyserCustomBiomePrecipitation;
 import org.geysermc.geyser.entity.BedrockEntityDefinition;
 import org.geysermc.geyser.entity.CustomBedrockEntityDefinition;
 import org.geysermc.geyser.entity.GeyserEntityType;
@@ -219,6 +225,11 @@ public class ProviderRegistryLoader implements RegistryLoader<Map<Class<?>, Prov
 
         // waypoints
         providers.put(CustomWaypointStyle.VanillaBuilder.class, args -> new VanillaWaypoint.Builder((int) args[0], (int) args[1]));
+
+        // custom biomes
+        providers.put(CustomBiomeDefinition.Builder.class, args -> new GeyserCustomBiomeDefinition.Builder((Identifier) args[0]));
+        providers.put(CustomBiomeAppearance.Builder.class, args -> new GeyserCustomBiomeAppearance.Builder());
+        providers.put(CustomBiomePrecipitation.class, args -> new GeyserCustomBiomePrecipitation((CustomBiomePrecipitation.Type) args[0], (float) args[1]));
 
         return providers;
     }

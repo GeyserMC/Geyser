@@ -23,23 +23,19 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.registry.mappings;
+package org.geysermc.geyser.level;
 
-import com.google.gson.JsonObject;
+/**
+ * Represents the information we store from a Java biome.
+ *
+ * @param bedrockId the Bedrock biome ID used when translating chunks of this biome.
+ * @param temperature the biome's base temperature.
+ * @param downfall the biome's base downfall.
+ * @param hasPrecipitation whether rain or snow falls in this biome.
+ */
+public record JavaBiome(int bedrockId, float temperature, float downfall, boolean hasPrecipitation) {
 
-import java.nio.file.Path;
-import java.util.function.BiConsumer;
-
-@FunctionalInterface
-public interface MappingsReader<K, V> {
-
-    void read(Path file, JsonObject mappings, BiConsumer<K, V> consumer);
-
-    /**
-     * Reads a mappings file with access to its root object, for readers that consume
-     * file-level keys next to {@code format_version}. Defaults to ignoring the root.
-     */
-    default void read(Path file, JsonObject root, JsonObject mappings, BiConsumer<K, V> consumer) {
-        read(file, mappings, consumer);
+    public JavaBiome withBedrockId(int bedrockId) {
+        return new JavaBiome(bedrockId, temperature, downfall, hasPrecipitation);
     }
 }

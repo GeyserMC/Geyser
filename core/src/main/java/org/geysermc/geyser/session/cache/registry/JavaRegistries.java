@@ -38,6 +38,7 @@ import org.geysermc.geyser.inventory.item.BannerPattern;
 import org.geysermc.geyser.inventory.item.GeyserInstrument;
 import org.geysermc.geyser.item.enchantment.Enchantment;
 import org.geysermc.geyser.item.type.Item;
+import org.geysermc.geyser.level.JavaBiome;
 import org.geysermc.geyser.level.JavaDimension;
 import org.geysermc.geyser.level.JukeboxSong;
 import org.geysermc.geyser.level.PaintingType;
@@ -72,7 +73,7 @@ public class JavaRegistries {
 
     public static final JavaRegistryKey<ChatType> CHAT_TYPE = create("chat_type");
     public static final JavaRegistryKey<JavaDimension> DIMENSION_TYPE = create("dimension_type");
-    public static final JavaRegistryKey<Integer> BIOME = create("worldgen/biome");
+    public static final JavaRegistryKey<JavaBiome> BIOME = create("worldgen/biome");
     public static final JavaRegistryKey<Enchantment> ENCHANTMENT = create("enchantment");
     public static final JavaRegistryKey<BannerPattern> BANNER_PATTERN = create("banner_pattern");
     public static final JavaRegistryKey<GeyserInstrument> INSTRUMENT = create("instrument");

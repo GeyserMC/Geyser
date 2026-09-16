@@ -176,6 +176,7 @@ import org.geysermc.geyser.session.cache.BookEditCache;
 import org.geysermc.geyser.session.cache.BundleCache;
 import org.geysermc.geyser.session.cache.ChunkCache;
 import org.geysermc.geyser.session.cache.ComponentCache;
+import org.geysermc.geyser.session.cache.CustomBiomeCache;
 import org.geysermc.geyser.session.cache.EntityCache;
 import org.geysermc.geyser.session.cache.EntityEffectCache;
 import org.geysermc.geyser.session.cache.FormCache;
@@ -304,6 +305,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     private final BundleCache bundleCache;
     private final ChunkCache chunkCache;
     private final ComponentCache componentCache;
+    private final CustomBiomeCache customBiomeCache;
     private final EntityCache entityCache;
     private final EntityEffectCache effectCache;
     private final FormCache formCache;
@@ -867,6 +869,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         this.bundleCache = new BundleCache(this);
         this.chunkCache = new ChunkCache(this);
         this.componentCache = new ComponentCache(this);
+        this.customBiomeCache = new CustomBiomeCache(this);
         this.entityCache = new EntityCache(this);
         this.effectCache = new EntityEffectCache();
         this.formCache = new FormCache(this);
@@ -926,7 +929,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
             geyser.getLogger().debug("Extending overworld dimension to " + minY + " - " + maxY);
 
             DimensionDataPacket dimensionDataPacket = new DimensionDataPacket();
-            dimensionDataPacket.getDefinitions().add(new DimensionDefinition("minecraft:overworld", maxY, minY, 5, 3, GeyserIntegratedPackUtil.INTEGRATED_PACK_UUID, "minecraft:plains"));
+            dimensionDataPacket.getDefinitions().add(new DimensionDefinition("minecraft:overworld", maxY, minY, 5, 3, GeyserIntegratedPackUtil.INTEGRATED_PACK_UUID, ""));
             upstream.sendPacket(dimensionDataPacket);
         }
 
@@ -958,7 +961,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
      */
     private void sendRegistryDefinitions() {
         BiomeDefinitionListPacket biomeDefinitionListPacket = new BiomeDefinitionListPacket();
-        biomeDefinitionListPacket.setBiomes(Registries.BIOMES.get());
+        biomeDefinitionListPacket.setBiomes(customBiomeCache.loginDefinitions());
         upstream.sendPacket(biomeDefinitionListPacket);
 
         AvailableEntityIdentifiersPacket entityPacket = new AvailableEntityIdentifiersPacket();

@@ -124,7 +124,8 @@ public interface JavaRegistry<T> extends Iterable<RegistryEntryData<T>> {
     }
 
     /**
-     * All entries of this registry, as a list.
+     * All entries of this registry, as a list. The returned list is the registry's live
+     * backing list: replacing entries in place is permitted and visible to all accessors.
      */
     List<RegistryEntryData<T>> entries();
 }

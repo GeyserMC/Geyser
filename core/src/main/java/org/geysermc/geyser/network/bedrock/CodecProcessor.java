@@ -35,7 +35,7 @@ import org.cloudburstmc.protocol.bedrock.codec.v1001.serializer.MobArmorEquipmen
 import org.cloudburstmc.protocol.bedrock.codec.v2168.Bedrock_v2168;
 import org.cloudburstmc.protocol.bedrock.codec.v2168.serializer.MovePlayerSerializer_v2168;
 import org.cloudburstmc.protocol.bedrock.codec.v2168.serializer.PlayerSkinSerializer_v2168;
-import org.cloudburstmc.protocol.bedrock.codec.v2192.serializer.BossEventSerializer_v2192;
+import org.cloudburstmc.protocol.bedrock.codec.v2193.serializer.BossEventSerializer_v2193;
 import org.cloudburstmc.protocol.bedrock.codec.v291.serializer.MobEquipmentSerializer_v291;
 import org.cloudburstmc.protocol.bedrock.codec.v291.serializer.MoveEntityAbsoluteSerializer_v291;
 import org.cloudburstmc.protocol.bedrock.codec.v291.serializer.PlayerHotbarSerializer_v291;
@@ -200,7 +200,7 @@ public class CodecProcessor {
         }
     };
 
-    private static final BedrockPacketSerializer<BossEventPacket> BOSS_EVENT_SERIALIZER_V2192 = new BossEventSerializer_v2192() {
+    private static final BedrockPacketSerializer<BossEventPacket> BOSS_EVENT_SERIALIZER_V2193 = new BossEventSerializer_v2193() {
         @Override
         public void deserialize(ByteBuf buffer, BedrockCodecHelper helper, BossEventPacket packet) {
         }
@@ -384,10 +384,10 @@ public class CodecProcessor {
             codecBuilder.updateSerializer(PlayerSkinPacket.class, PLAYER_SKIN_SERIALIZER_V2168);
         }
 
-        if (codec.getProtocolVersion() < 2192) { // 26.50
+        if (codec.getProtocolVersion() < 2193) { // 26.50
             codecBuilder.updateSerializer(BossEventPacket.class, BOSS_EVENT_SERIALIZER_V1001);
         } else {
-            codecBuilder.updateSerializer(BossEventPacket.class, BOSS_EVENT_SERIALIZER_V2192);
+            codecBuilder.updateSerializer(BossEventPacket.class, BOSS_EVENT_SERIALIZER_V2193);
         }
 
         return codecBuilder.build();

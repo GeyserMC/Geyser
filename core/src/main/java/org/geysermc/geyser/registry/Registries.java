@@ -37,6 +37,7 @@ import org.cloudburstmc.protocol.bedrock.data.biome.BiomeDefinitions;
 import org.cloudburstmc.protocol.bedrock.data.inventory.crafting.PotionMixData;
 import org.cloudburstmc.protocol.bedrock.packet.BedrockPacket;
 import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.api.biome.custom.CustomBiomeDefinition;
 import org.geysermc.geyser.api.util.Identifier;
 import org.geysermc.geyser.api.waypoint.CustomWaypointStyle;
 import org.geysermc.geyser.entity.BedrockEntityDefinition;
@@ -58,6 +59,7 @@ import org.geysermc.geyser.registry.loader.SoundRegistryLoader;
 import org.geysermc.geyser.registry.loader.SoundTranslatorRegistryLoader;
 import org.geysermc.geyser.registry.loader.WaypointStyleLoader;
 import org.geysermc.geyser.registry.mappings.MappingsType;
+import org.geysermc.geyser.registry.populator.CustomBiomeRegistryPopulator;
 import org.geysermc.geyser.registry.populator.DataComponentRegistryPopulator;
 import org.geysermc.geyser.registry.populator.ItemRegistryPopulator;
 import org.geysermc.geyser.registry.populator.PacketRegistryPopulator;
@@ -114,14 +116,20 @@ public final class Registries {
     public static final SimpleDeferredRegistry<NbtMap> BIOMES_NBT = SimpleDeferredRegistry.create("bedrock/biome_definitions.dat", RegistryLoaders.NBT);
 
     /**
-     * A registry holding biome data for all known biomes.
+     * A registry holding the vanilla Bedrock biome definitions.
      */
     public static final SimpleDeferredRegistry<BiomeDefinitions> BIOMES = SimpleDeferredRegistry.create("bedrock/stripped_biome_definitions.json", RegistryLoaders.BIOME_LOADER);
 
     /**
-     * A mapped registry which stores Java biome identifiers and their Bedrock biome identifier.
+     * A mapped registry which stores each Java biome identifier and the numeric ID of the
+     * vanilla Bedrock biome it maps to.
      */
     public static final SimpleDeferredRegistry<Object2IntMap<String>> BIOME_IDENTIFIERS = SimpleDeferredRegistry.create("mappings/biomes.json", BiomeIdentifierRegistryLoader::new);
+
+    /**
+     * A mapped registry which stores Java biome identifiers to the custom biome definitions registered for them.
+     */
+    public static final SimpleMappedRegistry<Identifier, CustomBiomeDefinition> CUSTOM_BIOMES = SimpleMappedRegistry.create(RegistryLoaders.empty(Object2ObjectOpenHashMap::new));
 
     /**
      * A mapped registry which stores a block entity identifier to its {@link BlockEntityTranslator}.
@@ -265,6 +273,7 @@ public final class Registries {
         PacketRegistryPopulator.populate();
         ItemRegistryPopulator.populate();
         TagRegistryPopulator.populate();
+        CustomBiomeRegistryPopulator.populate();
 
         // potion mixes depend on other registries
         POTION_MIXES.load();

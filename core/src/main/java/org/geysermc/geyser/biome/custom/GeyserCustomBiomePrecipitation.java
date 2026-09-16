@@ -23,23 +23,18 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.registry.mappings;
+package org.geysermc.geyser.biome.custom;
 
-import com.google.gson.JsonObject;
+import org.geysermc.geyser.api.biome.custom.CustomBiomePrecipitation;
 
-import java.nio.file.Path;
-import java.util.function.BiConsumer;
+import java.util.Objects;
 
-@FunctionalInterface
-public interface MappingsReader<K, V> {
+public record GeyserCustomBiomePrecipitation(Type type, float density) implements CustomBiomePrecipitation {
 
-    void read(Path file, JsonObject mappings, BiConsumer<K, V> consumer);
-
-    /**
-     * Reads a mappings file with access to its root object, for readers that consume
-     * file-level keys next to {@code format_version}. Defaults to ignoring the root.
-     */
-    default void read(Path file, JsonObject root, JsonObject mappings, BiConsumer<K, V> consumer) {
-        read(file, mappings, consumer);
+    public GeyserCustomBiomePrecipitation {
+        Objects.requireNonNull(type, "type may not be null");
+        if (!Float.isFinite(density) || density < 0.0F) {
+            throw new IllegalArgumentException("Precipitation density must be finite and non-negative, got " + density);
+        }
     }
 }
