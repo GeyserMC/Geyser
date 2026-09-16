@@ -17,7 +17,7 @@ protocol-connection = "3.0.0.Beta13-20260916.122344-26"
 protocol-common = "3.0.0.Beta13-20260916.122344-26"
 protocol-codec = "3.0.0.Beta13-20260916.122344-26"
 # CloudburstMC/Network, "nethernet" branch; RakNet and NetherNet come from the same build
-network = "2.0.0.CR3-20260915.150851-9"
+network = "2.0.0.CR3-20260916.135337-10"
 # opencollab-incubator/libdatachannel-java, which builds opencollab-incubator/libdatachannel and libjuice into its natives
 libdatachannel = "0.24.5.0-SNAPSHOT"
 bouncycastle-pkix = "1.85"
