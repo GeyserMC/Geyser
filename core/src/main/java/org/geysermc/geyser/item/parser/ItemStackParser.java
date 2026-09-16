@@ -172,9 +172,6 @@ public final class ItemStackParser {
         });
         registerSimple(DataComponentTypes.ITEM_MODEL, String.class, MinecraftKey::key);
         registerSimple(DataComponentTypes.MAP_COLOR, Integer.class);
-        registerSimple(DataComponentTypes.POT_DECORATIONS, List.class, list -> list.stream()
-            .map(item -> javaItemIdentifierToNetworkId((String) item))
-            .toList());
         register(DataComponentTypes.POTION_CONTENTS, NbtMap.class, (session, map) -> {
             Potion potion = Potion.getByJavaIdentifier(map.getString("potion"));
             int customColour = map.getInt("custom_color", -1);

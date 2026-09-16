@@ -33,6 +33,7 @@ import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.item.BedrockItemBuilder;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentTypes;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.PotDecorations;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
 
 import java.util.ArrayList;
@@ -48,12 +49,14 @@ public class DecoratedPotItem extends BlockItem {
     public void translateComponentsToBedrock(@NonNull GeyserSession session, @NonNull DataComponents components, @NonNull TooltipOptions tooltip, @NonNull BedrockItemBuilder builder) {
         super.translateComponentsToBedrock(session, components, tooltip, builder);
 
-        List<Integer> decorations = components.get(DataComponentTypes.POT_DECORATIONS); // TODO maybe unbox in MCProtocolLib
+        PotDecorations decorations = components.get(DataComponentTypes.POT_DECORATIONS);
         if (decorations != null) {
-            List<String> sherds = new ArrayList<>(decorations.size());
-            for (Integer decoration : decorations) {
-                ItemMapping mapping = session.getItemMappings().getMapping(decoration);
-                sherds.add(mapping.getBedrockIdentifier());
+            List<String> sherds = new ArrayList<>(4);
+            for (org.geysermc.mcprotocollib.protocol.data.game.item.ItemStack decoration : List.of(decorations.back(), decorations.left(), decorations.right(), decorations.front())) {
+                if (decoration != null) {
+                    ItemMapping mapping = session.getItemMappings().getMapping(decoration.getId());
+                    sherds.add(mapping.getBedrockIdentifier());
+                }
             }
             builder.putList("sherds", NbtType.STRING, sherds);
         }

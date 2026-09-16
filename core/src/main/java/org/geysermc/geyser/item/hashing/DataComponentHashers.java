@@ -258,7 +258,7 @@ public class DataComponentHashers {
         register(DataComponentTypes.NOTE_BLOCK_SOUND, MinecraftHasher.KEY);
         register(DataComponentTypes.BANNER_PATTERNS, RegistryHasher.BANNER_PATTERN_LAYER.list());
         register(DataComponentTypes.BASE_COLOR, MinecraftHasher.DYE_COLOR);
-        register(DataComponentTypes.POT_DECORATIONS, RegistryHasher.ITEM.list());
+        register(DataComponentTypes.POT_DECORATIONS, RegistryHasher.POT_DECORATIONS);
         register(DataComponentTypes.CONTAINER, RegistryHasher.ITEM_CONTAINER_CONTENTS);
         register(DataComponentTypes.BLOCK_STATE, MinecraftHasher.map(MinecraftHasher.STRING, MinecraftHasher.STRING).cast(BlockStateProperties::getProperties));
         register(DataComponentTypes.BEES, RegistryHasher.BEEHIVE_OCCUPANT.list());

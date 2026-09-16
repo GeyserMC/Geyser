@@ -88,7 +88,7 @@ public final class TrimRecipes {
 
         ItemMapping trimItem = null;
         for (Holder<ArmorTrim.TrimMaterial> provider : trimMaterialProviders.keySet()) {
-            if ((provider.isCustom() && java.data().assetBase().equals(provider.custom().assetBase())) || (provider.isId() && provider.id() == java.id())) {
+            if ((provider.isCustom() && java.data().paletteId().equals(provider.custom().paletteId())) || (provider.isId() && provider.id() == java.id())) {
                 trimItem = session.getItemMappings().getMapping(trimMaterialProviders.get(provider));
                 break;
             }
@@ -120,8 +120,7 @@ public final class TrimRecipes {
     }
 
     public static ArmorTrim.TrimMaterial readTrimMaterial(RegistryEntryContext context) {
-        // Not parsing override_armor_assets as we don't use it and can safely pass an empty map instead
-        return new ArmorTrim.TrimMaterial(context.data().getString("asset_name"), Map.of(), MessageTranslator.componentFromNbtTag(context.data().get("description")));
+        return new ArmorTrim.TrimMaterial(MinecraftKey.key(context.data().getString("palette")), MessageTranslator.componentFromNbtTag(context.data().get("description")));
     }
 
     public static ArmorTrim.TrimPattern readTrimPattern(RegistryEntryContext context) {

@@ -71,6 +71,7 @@ import org.geysermc.mcprotocollib.protocol.data.game.item.component.JukeboxSong;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.KineticWeapon;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.MobEffectDetails;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.MobEffectInstance;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.PotDecorations;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.SuspiciousStewEffect;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.SwingAnimation;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.ToolData;
@@ -158,8 +159,7 @@ public interface RegistryHasher<DirectType> extends MinecraftHasher<Integer> {
     RegistryHasher<Instrument> INSTRUMENT = registry(JavaRegistries.INSTRUMENT, DIRECT_INSTRUMENT);
 
     MinecraftHasher<ArmorTrim.TrimMaterial> DIRECT_TRIM_MATERIAL = MinecraftHasher.mapBuilder(builder -> builder
-        .accept("asset_name", MinecraftHasher.STRING, ArmorTrim.TrimMaterial::assetBase)
-        .optional("override_armor_assets", MinecraftHasher.map(KEY, STRING), ArmorTrim.TrimMaterial::assetOverrides, Map.of())
+        .accept("palette", KEY, ArmorTrim.TrimMaterial::paletteId)
         .accept("description", ComponentHasher.COMPONENT, ArmorTrim.TrimMaterial::description));
 
     RegistryHasher<ArmorTrim.TrimMaterial> TRIM_MATERIAL = registry(JavaRegistries.TRIM_MATERIAL, DIRECT_TRIM_MATERIAL);
@@ -253,6 +253,12 @@ public interface RegistryHasher<DirectType> extends MinecraftHasher<Integer> {
         .accept("id", ITEM, ItemStack::getId)
         .optional("count", INT, ItemStack::getAmount, 1)
         .optionalNullable("components", DATA_COMPONENTS, ItemStack::getDataComponentsPatch));
+
+    MinecraftHasher<PotDecorations> POT_DECORATIONS = MinecraftHasher.mapBuilder(builder -> builder
+        .optionalNullable("back", ITEM_STACK, PotDecorations::back)
+        .optionalNullable("left", ITEM_STACK, PotDecorations::left)
+        .optionalNullable("right", ITEM_STACK, PotDecorations::right)
+        .optionalNullable("front", ITEM_STACK, PotDecorations::front));
 
     // Encoding of hidden effects is unfortunately not possible
     MapBuilder<MobEffectDetails> MOB_EFFECT_DETAILS = builder -> builder

@@ -42,7 +42,7 @@ public class JavaEntityPositionSyncTranslator extends PacketTranslator<Clientbou
         Entity entity = session.getEntityCache().getEntityByJavaId(packet.getId());
         if (entity == null) return;
 
-        Vector3d pos = packet.getPosition();
+        Vector3d pos = packet.getEndPosition();
         Vector3f target = pos.toFloat();
         // Compute before the cached position is overwritten. Java clients snap rather than
         // interpolate a sync farther than 64 blocks; Bedrock needs teleport semantics there too

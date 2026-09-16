@@ -115,8 +115,10 @@ public class GeyserModWorldManager extends GeyserWorldManager {
             //noinspection resource - level() is just a getter
             BlockEntity blockEntity = player.level().getChunkAt(blockPos).getBlockEntity(blockPos);
             if (blockEntity instanceof DecoratedPotBlockEntity pot) {
-                List<String> sherds = pot.getDecorations().ordered()
-                        .stream().map(item -> BuiltInRegistries.ITEM.getKey(item).toString())
+                List<String> sherds = java.util.stream.Stream.of(pot.getDecorations().back(), pot.getDecorations().left(),
+                        pot.getDecorations().right(), pot.getDecorations().front())
+                    .flatMap(java.util.Optional::stream)
+                    .map(item -> BuiltInRegistries.ITEM.getKey(item.item().value()).toString())
                         .toList();
                 apply.accept(sherds);
             }
