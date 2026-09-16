@@ -40,7 +40,7 @@ cloud-minecraft-modded = "2.0.0"
 commodore = "2.2"
 bungeecord = "1.21-R0.4-20250913.044521-9"
 bungeecord-api = "26.1-R0.1-SNAPSHOT"
-velocity = "4.2.1-SNAPSHOT"
+velocity = "3.5.0-SNAPSHOT"
 viaproxy = "3.4.12"
 fabric-loader = "0.19.5"
 fabric-api = "0.160.6+26.3"
@@ -64,7 +64,7 @@ runtask = "3.0.2"
 
 # run tasks versions
 runpaperversion = "26.3"
-runvelocityversion = "4.2.1-SNAPSHOT"
+runvelocityversion = "3.5.0-SNAPSHOT"
 
 [libraries]
 base-api = { group = "org.geysermc.api", name = "base-api", version.ref = "base-api" }
