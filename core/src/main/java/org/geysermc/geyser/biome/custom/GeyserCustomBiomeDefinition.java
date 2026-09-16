@@ -81,7 +81,7 @@ public final class GeyserCustomBiomeDefinition implements CustomBiomeDefinition 
             }
             if (tag.startsWith("minecraft:")) {
                 throw new IllegalArgumentException(
-                    "Biome tags cannot use the minecraft: prefix: " + tag);
+                    "Biome tags cannot use the minecraft namespace: " + tag);
             }
         }
 
