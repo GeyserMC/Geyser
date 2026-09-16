@@ -24,6 +24,10 @@
     {
       "component": "minecraft:shulker/color",
       "value": "purple"
+    },
+    {
+      "component": "minecraft:cushion/color",
+      "value": "light_blue"
     }
   ]
 }

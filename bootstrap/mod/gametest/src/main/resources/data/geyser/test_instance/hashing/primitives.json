@@ -52,6 +52,10 @@
     {
       "component": "minecraft:ominous_bottle_amplifier",
       "value": 3
+    },
+    {
+      "component": "minecraft:waxed",
+      "value": {}
     }
   ]
 }

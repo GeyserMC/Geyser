@@ -71,7 +71,11 @@ import org.geysermc.mcprotocollib.protocol.data.game.item.component.JukeboxSong;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.KineticWeapon;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.MobEffectDetails;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.MobEffectInstance;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.ResolvableFloat;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.ResolvableInt;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.SignText;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.SuspiciousStewEffect;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.SwingAnimation;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.ToolData;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.TypedEntityData;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.Unit;
@@ -182,6 +186,10 @@ public interface RegistryHasher<DirectType> extends MinecraftHasher<Integer> {
 
     RegistryHasher<BannerPatternLayer.BannerPattern> BANNER_PATTERN = registry(JavaRegistries.BANNER_PATTERN, DIRECT_BANNER_PATTERN);
 
+    RegistryHasher<?> DECORATED_POT_PATTERN = registry(JavaRegistries.DECORATED_POT_PATTERN);
+
+    RegistryHasher<?> BLOCK_TRANSFORMER = registry(JavaRegistries.BLOCK_TRANSFORMER);
+
     RegistryHasher<?> WOLF_VARIANT = registry(JavaRegistries.WOLF_VARIANT);
 
     RegistryHasher<?> WOLF_SOUND_VARIANT = registry(JavaRegistries.WOLF_SOUND_VARIANT);
@@ -250,6 +258,14 @@ public interface RegistryHasher<DirectType> extends MinecraftHasher<Integer> {
         .accept("id", ITEM, ItemStack::getId)
         .optional("count", INT, ItemStack::getAmount, 1)
         .optionalNullable("components", DATA_COMPONENTS, ItemStack::getDataComponentsPatch));
+
+    MinecraftHasher<ResolvableInt> RESOLVABLE_INT = MinecraftHasher.either(
+        MinecraftHasher.INT, resolvableInt -> resolvableInt.isConstant() ? resolvableInt.value() : null,
+        MinecraftHasher.KEY, ResolvableInt::key);
+
+    MinecraftHasher<ResolvableFloat> RESOLVABLE_FLOAT = MinecraftHasher.either(
+        MinecraftHasher.FLOAT, resolvableFloat -> resolvableFloat.isConstant() ? resolvableFloat.value() : null,
+        MinecraftHasher.KEY, ResolvableFloat::key);
 
     // Encoding of hidden effects is unfortunately not possible
     MapBuilder<MobEffectDetails> MOB_EFFECT_DETAILS = builder -> builder
@@ -342,6 +358,12 @@ public interface RegistryHasher<DirectType> extends MinecraftHasher<Integer> {
         .optional("min_speed", MinecraftHasher.FLOAT, KineticWeapon.Condition::minSpeed, 0.0F)
         .optional("min_relative_speed", MinecraftHasher.FLOAT, KineticWeapon.Condition::minRelativeSpeed, 0.0F));
 
+    MinecraftHasher<SwingAnimation.Type> SWING_ANIMATION_TYPE = MinecraftHasher.fromEnum();
+
+    MinecraftHasher<SwingAnimation> SWING_ANIMATION = MinecraftHasher.mapBuilder(builder -> builder
+        .optional("type", SWING_ANIMATION_TYPE, SwingAnimation::type, SwingAnimation.Type.WHACK)
+        .optional("duration", MinecraftHasher.INT, SwingAnimation::duration, 6));
+
     MinecraftHasher<ArmorTrim> ARMOR_TRIM = MinecraftHasher.mapBuilder(builder -> builder
         .accept("material", TRIM_MATERIAL.holder(), ArmorTrim::material)
         .accept("pattern", TRIM_PATTERN.holder(), ArmorTrim::pattern));
@@ -365,6 +387,12 @@ public interface RegistryHasher<DirectType> extends MinecraftHasher<Integer> {
             .accept(TypedEntityData::tag, MapBuilder.inlineNbtMap()))
         .accept("ticks_in_hive", INT, BeehiveOccupant::getTicksInHive)
         .accept("min_ticks_in_hive", INT, BeehiveOccupant::getMinTicksInHive));
+
+    MinecraftHasher<SignText> SIGN_TEXT = MinecraftHasher.mapBuilder(builder -> builder
+        .acceptList("messages", ComponentHasher.COMPONENT, SignText::messages)
+        .optionalNullable("filtered_messages", ComponentHasher.COMPONENT.list(), SignText::filteredMessages)
+        .accept("color", MinecraftHasher.DYE_COLOR, SignText::color)
+        .accept("has_glowing_text", MinecraftHasher.BOOL, SignText::hasGlowingText));
 
     /**
      * Creates a hasher that uses the {@link JavaRegistryKey#key(GeyserSession, int)} method to turn a network ID into a {@link Key}, and then encodes this key.

@@ -1,0 +1,40 @@
+{
+  "type": "geyser:component_hash",
+  "components": [
+    {
+      "component": "minecraft:sign_text_front",
+      "value": {
+        "messages": [
+          "a",
+          "simple",
+          {
+            "text": "sign",
+            "color": "red"
+          },
+          "!"
+        ],
+        "color": "white",
+        "has_glowing_text": false
+      }
+    },
+    {
+      "component": "minecraft:sign_text_back",
+      "value": {
+        "messages": [
+          "a",
+          "censored",
+          "sign",
+          ":<"
+        ],
+        "filtered_messages": [
+          "a",
+          "####",
+          "sign",
+          ":<"
+        ],
+        "color": "red",
+        "has_glowing_text": true
+      }
+    }
+  ]
+}
