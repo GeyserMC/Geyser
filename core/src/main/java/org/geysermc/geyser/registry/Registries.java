@@ -49,6 +49,7 @@ import org.geysermc.geyser.pack.ResourcePackHolder;
 import org.geysermc.geyser.registry.loader.BiomeIdentifierRegistryLoader;
 import org.geysermc.geyser.registry.loader.BlockEntityRegistryLoader;
 import org.geysermc.geyser.registry.loader.ParticleTypesRegistryLoader;
+import org.geysermc.geyser.registry.loader.PotPatternRegistryLoader;
 import org.geysermc.geyser.registry.loader.ProviderRegistryLoader;
 import org.geysermc.geyser.registry.loader.RegistryLoaders;
 import org.geysermc.geyser.registry.loader.SoundEventsRegistryLoader;
