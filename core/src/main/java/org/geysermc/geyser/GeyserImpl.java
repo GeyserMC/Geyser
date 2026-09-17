@@ -251,8 +251,8 @@ public class GeyserImpl implements GeyserApi, EventRegistrar {
         }
         logger.info("******************************************");
 
-        eventBus.subscribe(this, GeyserDefineCustomBlocksEvent.class, BuiltInMappings::registerBlocks);
-        eventBus.subscribe(this, GeyserDefineCustomItemsEvent.class, BuiltInMappings::registerItems);
+        eventBus.subscribe(this, GeyserDefineCustomBlocksEvent.class, BuiltInMappings::onRegisterBlocks);
+        eventBus.subscribe(this, GeyserDefineCustomItemsEvent.class, BuiltInMappings::onRegisterItems);
 
         /*
         First load the registries and then populate them.
