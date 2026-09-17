@@ -91,7 +91,9 @@ public class DataComponentReaders {
         register(new AttackRangeReader());
         register(new KineticWeaponReader());
         register(new UnitReader<>(JavaItemDataComponents.PIERCING_WEAPON, JavaPiercingWeaponImpl.INSTANCE));
-        register(new SwingAnimationReader());
+        // Deprecated since 26.3
+        register(new SwingAnimationReader(JavaItemDataComponents.SWING_ANIMATION));
+        register(new SwingAnimationReader(JavaItemDataComponents.ATTACK_ANIMATION));
         register(new UseEffectsReader());
     }
 }
