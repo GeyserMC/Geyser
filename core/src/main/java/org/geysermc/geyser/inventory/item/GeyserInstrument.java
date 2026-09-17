@@ -44,7 +44,7 @@ import java.util.Locale;
 public interface GeyserInstrument {
 
     static GeyserInstrument read(RegistryEntryContext context) {
-        NbtMap data = context.data();
+        NbtMap data = context.dataAsMap();
         String soundEvent = SoundUtils.readSoundEvent(data, "instrument " + context.id());
         float range = data.getFloat("range");
         BedrockInstrument bedrockInstrument = BedrockInstrument.getByJavaIdentifier(context.id());

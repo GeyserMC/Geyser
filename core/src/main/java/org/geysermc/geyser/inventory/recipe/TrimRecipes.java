@@ -121,11 +121,11 @@ public final class TrimRecipes {
 
     public static ArmorTrim.TrimMaterial readTrimMaterial(RegistryEntryContext context) {
         // Not parsing override_armor_assets as we don't use it and can safely pass an empty map instead
-        return new ArmorTrim.TrimMaterial(MinecraftKey.key(context.data().getString("palette_id")), MessageTranslator.componentFromNbtTag(context.data().get("description")));
+        return new ArmorTrim.TrimMaterial(MinecraftKey.key(context.dataAsMap().getString("palette_id")), MessageTranslator.componentFromNbtTag(context.dataAsMap().get("description")));
     }
 
     public static ArmorTrim.TrimPattern readTrimPattern(RegistryEntryContext context) {
-        return new ArmorTrim.TrimPattern(MinecraftKey.key(context.data().getString("asset_id")), MessageTranslator.componentFromNbtTag(context.data().get("description")), context.data().getBoolean("decal", false));
+        return new ArmorTrim.TrimPattern(MinecraftKey.key(context.dataAsMap().getString("asset_id")), MessageTranslator.componentFromNbtTag(context.dataAsMap().get("description")), context.dataAsMap().getBoolean("decal", false));
     }
 
     private static Map<Holder<ArmorTrim.TrimMaterial>, Item> getTrimMaterialProviders(GeyserSession session) {

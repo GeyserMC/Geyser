@@ -1,7 +1,5 @@
 {
   "type": "geyser:component_hash",
-  "COMMENT": "Requires fix in MCPL, registry data can now be any tag and this one is a list",
-  "required": false,
   "component": "minecraft:block_transformer",
   "value": [
     "minecraft:shovel",
