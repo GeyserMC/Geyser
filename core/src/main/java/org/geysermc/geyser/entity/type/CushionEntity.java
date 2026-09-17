@@ -25,6 +25,7 @@
 
 package org.geysermc.geyser.entity.type;
 
+import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.geysermc.geyser.entity.spawn.EntitySpawnContext;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.IntEntityMetadata;
 
@@ -32,9 +33,13 @@ public class CushionEntity extends Entity {
 
     public CushionEntity(EntitySpawnContext context) {
         super(context);
+        // The default colour is white, or 15 on bedrock, which Java doesn't send
+        metadata.put(EntityDataTypes.VARIANT, 15);
     }
 
     public void setDyeColor(IntEntityMetadata dyeColor) {
-
+        int color = dyeColor.getPrimitiveValue();
+        // Every color is offset 15 in bedrock edition
+        metadata.put(EntityDataTypes.VARIANT, Math.abs(color - 15));
     }
 }
