@@ -26,6 +26,7 @@
 package org.geysermc.geyser.translator.protocol.java.level;
 
 import it.unimi.dsi.fastutil.objects.Object2ObjectMaps;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.nbt.NbtType;
@@ -37,12 +38,15 @@ import org.geysermc.geyser.level.block.property.Properties;
 import org.geysermc.geyser.level.block.type.Block;
 import org.geysermc.geyser.level.block.type.BlockState;
 import org.geysermc.geyser.level.physics.Direction;
+import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.cache.PistonCache;
 import org.geysermc.geyser.translator.level.block.entity.BlockEntityTranslator;
+import org.geysermc.geyser.translator.level.block.entity.DecoratedPotBlockEntityTranslator;
 import org.geysermc.geyser.translator.level.block.entity.PistonBlockEntity;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
+import org.geysermc.geyser.util.MinecraftKey;
 import org.geysermc.mcprotocollib.protocol.data.game.level.block.value.BellValue;
 import org.geysermc.mcprotocollib.protocol.data.game.level.block.value.BlockValue;
 import org.geysermc.mcprotocollib.protocol.data.game.level.block.value.ChestValue;
@@ -53,6 +57,9 @@ import org.geysermc.mcprotocollib.protocol.data.game.level.block.value.NoteBlock
 import org.geysermc.mcprotocollib.protocol.data.game.level.block.value.PistonValue;
 import org.geysermc.mcprotocollib.protocol.data.game.level.block.value.PistonValueType;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.level.ClientboundBlockEventPacket;
+
+import java.util.List;
+import java.util.Map;
 
 @Translator(packet = ClientboundBlockEventPacket.class)
 public class JavaBlockEventTranslator extends PacketTranslator<ClientboundBlockEventPacket> {
@@ -155,7 +162,7 @@ public class JavaBlockEventTranslator extends PacketTranslator<ClientboundBlockE
                 blockEntityPacket.setBlockPosition(position);
 
                 NbtMapBuilder builder = BlockEntityTranslator.getConstantBedrockTag("DecoratedPot", position);
-                builder.putList("sherds", NbtType.STRING, sherds);
+                builder.putList("sherds", NbtType.STRING, javaSherdsToBedrock(sherds));
                 builder.putByte("animation", switch (potValue.getWobbleStyle()) {
                     case POSITIVE -> (byte) 2;
                     case NEGATIVE -> (byte) 1;
@@ -167,6 +174,21 @@ public class JavaBlockEventTranslator extends PacketTranslator<ClientboundBlockE
         } else if (session.getGeyser().getLogger().isDebug()) {
             session.getGeyser().getLogger().debug("Unhandled block event packet: " + packet);
         }
+    }
+
+    private static List<String> javaSherdsToBedrock(Map<String, String> sherds) {
+        String back = javaSherdToBedrock(sherds.get("back"));
+        String left = javaSherdToBedrock(sherds.get("left"));
+        String right = javaSherdToBedrock(sherds.get("right"));
+        String front = javaSherdToBedrock(sherds.get("front"));
+        return List.of(back, left, right, front);
+    }
+
+    private static String javaSherdToBedrock(@Nullable String sherd) {
+        if (sherd == null) {
+            return DecoratedPotBlockEntityTranslator.DEFAULT_BEDROCK_ITEM;
+        }
+        return Registries.DECORATED_POT_ASSETS.getOrDefault(MinecraftKey.key(sherd), DecoratedPotBlockEntityTranslator.DEFAULT_PATTERN).toString();
     }
 
     private static boolean isSticky(BlockState state) {

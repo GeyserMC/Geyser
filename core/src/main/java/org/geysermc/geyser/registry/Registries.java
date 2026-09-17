@@ -50,6 +50,7 @@ import org.geysermc.geyser.pack.ResourcePackHolder;
 import org.geysermc.geyser.registry.loader.BiomeIdentifierRegistryLoader;
 import org.geysermc.geyser.registry.loader.BlockEntityRegistryLoader;
 import org.geysermc.geyser.registry.loader.ParticleTypesRegistryLoader;
+import org.geysermc.geyser.registry.loader.PotPatternRegistryLoader;
 import org.geysermc.geyser.registry.loader.PotionMixRegistryLoader;
 import org.geysermc.geyser.registry.loader.ProviderRegistryLoader;
 import org.geysermc.geyser.registry.loader.RegistryLoaders;
@@ -122,6 +123,8 @@ public final class Registries {
      * A mapped registry which stores Java biome identifiers and their Bedrock biome identifier.
      */
     public static final SimpleDeferredRegistry<Object2IntMap<String>> BIOME_IDENTIFIERS = SimpleDeferredRegistry.create("mappings/biomes.json", BiomeIdentifierRegistryLoader::new);
+
+    public static final SimpleMappedDeferredRegistry<Key, Key> DECORATED_POT_ASSETS = SimpleMappedDeferredRegistry.create("mappings/decorated_pot_patterns.json", PotPatternRegistryLoader::new);
 
     /**
      * A mapped registry which stores a block entity identifier to its {@link BlockEntityTranslator}.
@@ -247,6 +250,7 @@ public final class Registries {
         BIOMES_NBT.load();
         BIOMES.load();
         BIOME_IDENTIFIERS.load();
+        DECORATED_POT_ASSETS.load();
         BLOCK_ENTITIES.load();
         PARTICLES.load();
         // load potion mixes later

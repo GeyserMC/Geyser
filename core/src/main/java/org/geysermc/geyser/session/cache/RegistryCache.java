@@ -58,6 +58,7 @@ import org.geysermc.geyser.session.cache.registry.SimpleJavaRegistry;
 import org.geysermc.geyser.session.dialog.Dialog;
 import org.geysermc.geyser.text.ChatDecoration;
 import org.geysermc.geyser.translator.level.BiomeTranslator;
+import org.geysermc.geyser.translator.level.block.entity.DecoratedPotBlockEntityTranslator;
 import org.geysermc.geyser.translator.protocol.java.entity.JavaDamageEventTranslator;
 import org.geysermc.geyser.util.MinecraftKey;
 import org.geysermc.mcprotocollib.protocol.MinecraftProtocol;
@@ -96,7 +97,7 @@ public final class RegistryCache implements JavaRegistryProvider {
         register(JavaRegistries.DAMAGE_TYPE, JavaDamageEventTranslator::readDamageCause);
         register(JavaRegistries.DIALOG, Dialog::readDialog);
         register(JavaRegistries.WORLD_CLOCK, RegistryReader.UNIT);
-        register(JavaRegistries.DECORATED_POT_PATTERN, RegistryReader.UNIT);
+        register(JavaRegistries.DECORATED_POT_PATTERN, DecoratedPotBlockEntityTranslator::readDecoratedPotPattern);
         register(JavaRegistries.BLOCK_TRANSFORMER, RegistryReader.UNIT);
 
         register(JavaRegistries.CAT_VARIANT, VariantHolder.reader(CatEntity.BuiltInVariant.class, CatEntity.BuiltInVariant.BLACK));

@@ -25,15 +25,14 @@
 
 package org.geysermc.geyser.platform.mod.world;
 
+import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import net.minecraft.SharedConstants;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Holder;
 import net.minecraft.core.component.DataComponents;
-import net.minecraft.resources.Identifier;
-import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerChunkCache;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.item.ItemStackTemplate;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
@@ -48,10 +47,9 @@ import org.geysermc.geyser.network.bedrock.GameProtocol;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.GameMode;
 
-import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.function.Consumer;
-import java.util.stream.Stream;
 
 public class GeyserModWorldManager extends GeyserWorldManager {
 
@@ -109,7 +107,7 @@ public class GeyserModWorldManager extends GeyserWorldManager {
     }
 
     @Override
-    public void getDecoratedPotData(GeyserSession session, Vector3i pos, Consumer<List<String>> apply) {
+    public void getDecoratedPotData(GeyserSession session, Vector3i pos, Consumer<Map<String, String>> apply) {
         server.execute(() -> {
             ServerPlayer player = getPlayer(session);
             if (player == null) {
@@ -122,18 +120,19 @@ public class GeyserModWorldManager extends GeyserWorldManager {
             BlockEntity blockEntity = player.level().getChunkAt(blockPos).getBlockEntity(blockPos);
             if (blockEntity instanceof DecoratedPotBlockEntity pot) {
                 PotDecorations decorations = pot.getDecorations();
-                // FIXME 26.3 - this API likely needs updating
-                List<String> sherds = Stream.of(decorations.back(), decorations.left(), decorations.right(), decorations.front())
-                    .map(optional -> optional
-                        .flatMap(decoration -> Optional.ofNullable(decoration.get(DataComponents.PROVIDES_POTTERY_PATTERN)))
-                        .flatMap(Holder::unwrapKey)
-                        .map(ResourceKey::identifier)
-                        .map(Identifier::toString)
-                        .orElse("unregistered_sadface"))
-                    .toList();
-                apply.accept(sherds);
+                Map<String, String> toApply = new Object2ObjectOpenHashMap<>();
+                decorations.back().flatMap(GeyserModWorldManager::extractPotteryPattern).ifPresent(pattern -> toApply.put("back", pattern));
+                decorations.left().flatMap(GeyserModWorldManager::extractPotteryPattern).ifPresent(pattern -> toApply.put("left", pattern));
+                decorations.right().flatMap(GeyserModWorldManager::extractPotteryPattern).ifPresent(pattern -> toApply.put("right", pattern));
+                decorations.front().flatMap(GeyserModWorldManager::extractPotteryPattern).ifPresent(pattern -> toApply.put("front", pattern));
+                apply.accept(toApply);
             }
         });
+    }
+
+    private static Optional<String> extractPotteryPattern(ItemStackTemplate template) {
+        return Optional.ofNullable(template.get(DataComponents.PROVIDES_POTTERY_PATTERN))
+            .map(holder -> holder.value().assetId().toString());
     }
 
     private ServerPlayer getPlayer(GeyserSession session) {
