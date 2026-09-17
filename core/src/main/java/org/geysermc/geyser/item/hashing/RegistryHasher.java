@@ -155,6 +155,7 @@ public interface RegistryHasher<DirectType> extends MinecraftHasher<Integer> {
         .accept("sound_event", SOUND_EVENT, Instrument::soundEvent)
         .accept("use_duration", FLOAT, Instrument::useDuration)
         .accept("range", FLOAT, Instrument::range)
+        .optional("durability_damage", INT, Instrument::durabilityDamage, 0)
         .accept("description", ComponentHasher.COMPONENT, Instrument::description));
 
     RegistryHasher<Instrument> INSTRUMENT = registry(JavaRegistries.INSTRUMENT, DIRECT_INSTRUMENT);

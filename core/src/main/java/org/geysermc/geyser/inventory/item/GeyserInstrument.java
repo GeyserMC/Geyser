@@ -60,7 +60,7 @@ public interface GeyserInstrument {
      */
     String description();
 
-    BedrockInstrument bedrockInstrument();
+    @Nullable BedrockInstrument bedrockInstrument();
 
     /**
      * @return the ID of the Bedrock counterpart for this instrument. If there is none ({@link #bedrockInstrument()} is null), then -1 is returned.
