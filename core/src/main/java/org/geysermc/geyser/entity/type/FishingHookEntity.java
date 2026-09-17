@@ -26,13 +26,18 @@
 package org.geysermc.geyser.entity.type;
 
 import lombok.Getter;
+import org.cloudburstmc.math.GenericMath;
 import org.cloudburstmc.math.vector.Vector3f;
+import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
+import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.cloudburstmc.protocol.bedrock.packet.PlaySoundPacket;
+import org.cloudburstmc.protocol.bedrock.packet.SetEntityMotionPacket;
 import org.geysermc.erosion.util.BlockPositionIterator;
 import org.geysermc.geyser.entity.spawn.EntitySpawnContext;
 import org.geysermc.geyser.entity.type.player.PlayerEntity;
 import org.geysermc.geyser.level.block.BlockStateValues;
+import org.geysermc.geyser.level.block.Fluid;
 import org.geysermc.geyser.level.block.type.Block;
 import org.geysermc.geyser.level.physics.BoundingBox;
 import org.geysermc.geyser.level.physics.CollisionManager;
@@ -58,6 +63,11 @@ public class FishingHookEntity extends ProjectileEntity {
 
     private final BoundingBox boundingBox;
 
+    // The top lava block near the hook, or MIN_VALUE when there is none; see bedrockPosition
+    private int lavaTopY = Integer.MIN_VALUE;
+    private Vector3i lavaScanCell;
+    private boolean lavaHoverActive = false;
+
     public FishingHookEntity(EntitySpawnContext context, PlayerEntity owner) {
         super(context.headYaw(0));
 
@@ -74,6 +84,62 @@ public class FishingHookEntity extends ProjectileEntity {
         if (owner == session.getPlayerEntity()) {
             session.setFishingHook(this);
             castByPlayer = true;
+        }
+
+        updateLavaTop(position);
+    }
+
+    // The client kills the bobber if it touches lava, so we keep it hovering above it.
+    // Lower may work but needs testing; 0.3 is safe for now.
+    @Override
+    public Vector3f bedrockPosition() {
+        Vector3f bedrockPosition = super.bedrockPosition();
+        if (lavaTopY == Integer.MIN_VALUE) {
+            return bedrockPosition;
+        }
+        float lowest = lavaTopY + 1.3F;
+        if (bedrockPosition.getY() >= lowest) {
+            return bedrockPosition;
+        }
+        return Vector3f.from(bedrockPosition.getX(), lowest, bedrockPosition.getZ());
+    }
+
+    /**
+     * Looks for lava around the hook, once per block the hook is in. The client also removes a hook
+     * that is next to lava, so the neighbouring blocks count too. Hooks in water are skipped.
+     */
+    private void updateLavaTop(Vector3f position) {
+        Vector3i cell = Vector3i.from(GenericMath.floor(position.getX()), GenericMath.floor(position.getY()), GenericMath.floor(position.getZ()));
+        if (cell.equals(lavaScanCell)) {
+            return;
+        }
+        lavaScanCell = cell;
+        lavaTopY = Integer.MIN_VALUE;
+        if (BlockStateValues.getFluid(session.getGeyser().getWorldManager().getBlockAt(session, cell)) == Fluid.WATER) {
+            return;
+        }
+        for (int dx = -1; dx <= 1; dx++) {
+            for (int dz = -1; dz <= 1; dz++) {
+                for (int y = cell.getY() + 1; y >= cell.getY() - 1; y--) {
+                    int state = session.getGeyser().getWorldManager().getBlockAt(session, cell.getX() + dx, y, cell.getZ() + dz);
+                    if (BlockStateValues.getFluid(state) == Fluid.LAVA) {
+                        lavaTopY = Math.max(lavaTopY, y);
+                        break;
+                    }
+                }
+            }
+        }
+        if (lavaTopY != Integer.MIN_VALUE && !lavaHoverActive) {
+            // Take the hook away from the client's own simulation before that carries it into the lava
+            lavaHoverActive = true;
+            setFlag(EntityFlag.HAS_GRAVITY, false);
+            if (isValid()) {
+                updateBedrockMetadata();
+                SetEntityMotionPacket motionPacket = new SetEntityMotionPacket();
+                motionPacket.setRuntimeEntityId(geyserId);
+                motionPacket.setMotion(Vector3f.ZERO);
+                session.sendUpstreamPacket(motionPacket);
+            }
         }
     }
 
@@ -172,6 +238,7 @@ public class FishingHookEntity extends ProjectileEntity {
         }
         inWater = touchingWater;
 
+        updateLavaTop(position);
         if (!collided) {
             super.moveAbsoluteImmediate(position, yaw, pitch, headYaw, isOnGround, teleported);
         } else {
