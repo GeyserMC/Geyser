@@ -71,10 +71,12 @@ final class BedrockMovePlayer {
             session.getBookEditCache().checkForSend();
         }
 
-        if (entity.getBedPosition() != null) {
+        if (entity.getBedPosition() != null || session.isEnteringBed()) {
             // https://github.com/GeyserMC/Geyser/issues/5001
             // Bedrock 1.21.22 started sending a MovePlayerPacket as soon as it got into a bed.
             // This trips up Fabric.
+            // https://github.com/GeyserMC/Geyser/issues/6600
+            // The same applies while a bed click is still pending. See GeyserSession#startEnteringBed.
             return;
         }
 
