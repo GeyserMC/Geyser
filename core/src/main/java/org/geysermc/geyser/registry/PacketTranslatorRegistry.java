@@ -28,6 +28,7 @@ package org.geysermc.geyser.registry;
 import org.cloudburstmc.protocol.bedrock.packet.ServerboundDiagnosticsPacket;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.ClientboundDelimiterPacket;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.ClientboundTabListPacket;
+import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.level.ClientboundAddTransientBlockPacket;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.level.ClientboundChunkBatchStartPacket;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.level.ClientboundLightUpdatePacket;
 import io.netty.channel.EventLoop;
@@ -51,6 +52,12 @@ public class PacketTranslatorRegistry<T> extends AbstractMappedRegistry<Class<? 
         IGNORED_PACKETS.add(ClientboundLightUpdatePacket.class); // Light is handled on Bedrock for us
         IGNORED_PACKETS.add(ClientboundTabListPacket.class); // Cant be implemented in Bedrock
         IGNORED_PACKETS.add(ServerboundDiagnosticsPacket.class); // spammy
+
+        // Java uses this packet to display a block state at a position for exactly 1 second.
+        // This block is purely visible, and has no physical implication on the world.
+        // This packet is only used by vanilla for falling blocks (as of 26.3). As such,
+        // we can ignore this packet for now without causing too much trouble.
+        IGNORED_PACKETS.add(ClientboundAddTransientBlockPacket.class);
     }
 
     protected PacketTranslatorRegistry() {
