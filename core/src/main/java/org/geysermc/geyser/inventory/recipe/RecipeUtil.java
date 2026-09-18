@@ -208,6 +208,10 @@ public class RecipeUtil {
         if (slotDisplay instanceof ItemStackSlotDisplay(ItemStack stack)) {
             return Pair.of(Registries.JAVA_ITEMS.get(stack.getId()), ItemTranslator.translateToBedrock(session, stack));
         }
+        if (slotDisplay instanceof CompositeSlotDisplay(List<SlotDisplay> contents)) {
+            // Just create the first display
+            return translateToOutput(session, contents.getFirst());
+        }
         if (slotDisplay instanceof DyedSlotDisplay || slotDisplay instanceof OnlyWithComponentSlotDisplay || slotDisplay instanceof WithAnyPotionSlotDisplay) {
             GeyserItemStack stack = GeyserItemStack.from(session, slotDisplay);
             return stack.isEmpty() ? null : Pair.of(stack.asItem(), ItemTranslator.translateToBedrock(session, stack));
