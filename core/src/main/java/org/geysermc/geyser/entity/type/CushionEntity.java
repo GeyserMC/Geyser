@@ -27,7 +27,10 @@ package org.geysermc.geyser.entity.type;
 
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.geysermc.geyser.entity.spawn.EntitySpawnContext;
+import org.geysermc.geyser.util.InteractionResult;
+import org.geysermc.geyser.util.InteractiveTag;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.IntEntityMetadata;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.player.Hand;
 
 public class CushionEntity extends Entity {
 
@@ -41,5 +44,21 @@ public class CushionEntity extends Entity {
         int color = dyeColor.getPrimitiveValue();
         // Every color is offset 15 in bedrock edition
         metadata.put(EntityDataTypes.VARIANT, Math.abs(color - 15));
+    }
+
+    @Override
+    protected InteractiveTag testInteraction(Hand hand) {
+        if (session.isSneaking() || !passengers.isEmpty()) {
+            return InteractiveTag.NONE;
+        }
+        return InteractiveTag.SIT;
+    }
+
+    @Override
+    public InteractionResult interact(Hand hand) {
+        if (session.isSneaking() || !passengers.isEmpty()) {
+            return InteractionResult.PASS;
+        }
+        return InteractionResult.CONSUME;
     }
 }
