@@ -71,6 +71,9 @@ import org.geysermc.mcprotocollib.protocol.data.game.item.component.JukeboxSong;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.KineticWeapon;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.MobEffectDetails;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.MobEffectInstance;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.ResolvableFloat;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.ResolvableInt;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.SignText;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.SuspiciousStewEffect;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.SwingAnimation;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.ToolData;
@@ -84,7 +87,6 @@ import org.geysermc.mcprotocollib.protocol.data.game.level.sound.Sound;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.IntStream;
@@ -153,13 +155,13 @@ public interface RegistryHasher<DirectType> extends MinecraftHasher<Integer> {
         .accept("sound_event", SOUND_EVENT, Instrument::soundEvent)
         .accept("use_duration", FLOAT, Instrument::useDuration)
         .accept("range", FLOAT, Instrument::range)
+        .optional("durability_damage", INT, Instrument::durabilityDamage, 0)
         .accept("description", ComponentHasher.COMPONENT, Instrument::description));
 
     RegistryHasher<Instrument> INSTRUMENT = registry(JavaRegistries.INSTRUMENT, DIRECT_INSTRUMENT);
 
     MinecraftHasher<ArmorTrim.TrimMaterial> DIRECT_TRIM_MATERIAL = MinecraftHasher.mapBuilder(builder -> builder
-        .accept("asset_name", MinecraftHasher.STRING, ArmorTrim.TrimMaterial::assetBase)
-        .optional("override_armor_assets", MinecraftHasher.map(KEY, STRING), ArmorTrim.TrimMaterial::assetOverrides, Map.of())
+        .accept("palette_id", MinecraftHasher.KEY, ArmorTrim.TrimMaterial::paletteId)
         .accept("description", ComponentHasher.COMPONENT, ArmorTrim.TrimMaterial::description));
 
     RegistryHasher<ArmorTrim.TrimMaterial> TRIM_MATERIAL = registry(JavaRegistries.TRIM_MATERIAL, DIRECT_TRIM_MATERIAL);
@@ -184,6 +186,10 @@ public interface RegistryHasher<DirectType> extends MinecraftHasher<Integer> {
         .accept("translation_key", STRING, BannerPatternLayer.BannerPattern::getTranslationKey));
 
     RegistryHasher<BannerPatternLayer.BannerPattern> BANNER_PATTERN = registry(JavaRegistries.BANNER_PATTERN, DIRECT_BANNER_PATTERN);
+
+    RegistryHasher<?> DECORATED_POT_PATTERN = registry(JavaRegistries.DECORATED_POT_PATTERN);
+
+    RegistryHasher<?> BLOCK_TRANSFORMER = registry(JavaRegistries.BLOCK_TRANSFORMER);
 
     RegistryHasher<?> WOLF_VARIANT = registry(JavaRegistries.WOLF_VARIANT);
 
@@ -253,6 +259,14 @@ public interface RegistryHasher<DirectType> extends MinecraftHasher<Integer> {
         .accept("id", ITEM, ItemStack::getId)
         .optional("count", INT, ItemStack::getAmount, 1)
         .optionalNullable("components", DATA_COMPONENTS, ItemStack::getDataComponentsPatch));
+
+    MinecraftHasher<ResolvableInt> RESOLVABLE_INT = MinecraftHasher.either(
+        MinecraftHasher.INT, resolvableInt -> resolvableInt.isConstant() ? resolvableInt.value() : null,
+        MinecraftHasher.KEY, ResolvableInt::key);
+
+    MinecraftHasher<ResolvableFloat> RESOLVABLE_FLOAT = MinecraftHasher.either(
+        MinecraftHasher.FLOAT, resolvableFloat -> resolvableFloat.isConstant() ? resolvableFloat.value() : null,
+        MinecraftHasher.KEY, ResolvableFloat::key);
 
     // Encoding of hidden effects is unfortunately not possible
     MapBuilder<MobEffectDetails> MOB_EFFECT_DETAILS = builder -> builder
@@ -347,6 +361,10 @@ public interface RegistryHasher<DirectType> extends MinecraftHasher<Integer> {
 
     MinecraftHasher<SwingAnimation.Type> SWING_ANIMATION_TYPE = MinecraftHasher.fromEnum();
 
+    MinecraftHasher<SwingAnimation> SWING_ANIMATION = MinecraftHasher.mapBuilder(builder -> builder
+        .optional("type", SWING_ANIMATION_TYPE, SwingAnimation::type, SwingAnimation.Type.WHACK)
+        .optional("duration", MinecraftHasher.INT, SwingAnimation::duration, 6));
+
     MinecraftHasher<ArmorTrim> ARMOR_TRIM = MinecraftHasher.mapBuilder(builder -> builder
         .accept("material", TRIM_MATERIAL.holder(), ArmorTrim::material)
         .accept("pattern", TRIM_PATTERN.holder(), ArmorTrim::pattern));
@@ -370,6 +388,12 @@ public interface RegistryHasher<DirectType> extends MinecraftHasher<Integer> {
             .accept(TypedEntityData::tag, MapBuilder.inlineNbtMap()))
         .accept("ticks_in_hive", INT, BeehiveOccupant::getTicksInHive)
         .accept("min_ticks_in_hive", INT, BeehiveOccupant::getMinTicksInHive));
+
+    MinecraftHasher<SignText> SIGN_TEXT = MinecraftHasher.mapBuilder(builder -> builder
+        .acceptList("messages", ComponentHasher.COMPONENT, SignText::messages)
+        .optionalNullable("filtered_messages", ComponentHasher.COMPONENT.list(), SignText::filteredMessages)
+        .accept("color", MinecraftHasher.DYE_COLOR, SignText::color)
+        .accept("has_glowing_text", MinecraftHasher.BOOL, SignText::hasGlowingText));
 
     /**
      * Creates a hasher that uses the {@link JavaRegistryKey#key(GeyserSession, int)} method to turn a network ID into a {@link Key}, and then encodes this key.

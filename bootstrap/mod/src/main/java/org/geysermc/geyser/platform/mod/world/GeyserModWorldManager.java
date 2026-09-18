@@ -25,17 +25,20 @@
 
 package org.geysermc.geyser.platform.mod.world;
 
+import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import net.minecraft.SharedConstants;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerChunkCache;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.item.ItemStackTemplate;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.DecoratedPotBlockEntity;
+import net.minecraft.world.level.block.entity.PotDecorations;
 import net.minecraft.world.level.chunk.ChunkAccess;
 import net.minecraft.world.level.chunk.LevelChunkSection;
 import org.cloudburstmc.math.vector.Vector3i;
@@ -44,7 +47,8 @@ import org.geysermc.geyser.network.bedrock.GameProtocol;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.GameMode;
 
-import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.function.Consumer;
 
 public class GeyserModWorldManager extends GeyserWorldManager {
@@ -103,7 +107,7 @@ public class GeyserModWorldManager extends GeyserWorldManager {
     }
 
     @Override
-    public void getDecoratedPotData(GeyserSession session, Vector3i pos, Consumer<List<String>> apply) {
+    public void getDecoratedPotData(GeyserSession session, Vector3i pos, Consumer<Map<String, String>> apply) {
         server.execute(() -> {
             ServerPlayer player = getPlayer(session);
             if (player == null) {
@@ -115,12 +119,20 @@ public class GeyserModWorldManager extends GeyserWorldManager {
             //noinspection resource - level() is just a getter
             BlockEntity blockEntity = player.level().getChunkAt(blockPos).getBlockEntity(blockPos);
             if (blockEntity instanceof DecoratedPotBlockEntity pot) {
-                List<String> sherds = pot.getDecorations().ordered()
-                        .stream().map(item -> BuiltInRegistries.ITEM.getKey(item).toString())
-                        .toList();
-                apply.accept(sherds);
+                PotDecorations decorations = pot.getDecorations();
+                Map<String, String> toApply = new Object2ObjectOpenHashMap<>();
+                decorations.back().flatMap(GeyserModWorldManager::extractPotteryPattern).ifPresent(pattern -> toApply.put("back", pattern));
+                decorations.left().flatMap(GeyserModWorldManager::extractPotteryPattern).ifPresent(pattern -> toApply.put("left", pattern));
+                decorations.right().flatMap(GeyserModWorldManager::extractPotteryPattern).ifPresent(pattern -> toApply.put("right", pattern));
+                decorations.front().flatMap(GeyserModWorldManager::extractPotteryPattern).ifPresent(pattern -> toApply.put("front", pattern));
+                apply.accept(toApply);
             }
         });
+    }
+
+    private static Optional<String> extractPotteryPattern(ItemStackTemplate template) {
+        return Optional.ofNullable(template.get(DataComponents.PROVIDES_POTTERY_PATTERN))
+            .map(holder -> holder.value().assetId().toString());
     }
 
     private ServerPlayer getPlayer(GeyserSession session) {
