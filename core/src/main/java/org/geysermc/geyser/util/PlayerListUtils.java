@@ -118,6 +118,17 @@ public class PlayerListUtils {
     }
 
     public static void sendSkinUsingPlayerList(GeyserSession session, PlayerListPacket.Entry entry, AvatarEntity entity, boolean persistent) {
+        // A listed player already has a player list entry, and the client only re-reads a skin from an entry that
+        // is added again, so drop the stale entry first
+        if (persistent) {
+            PlayerListPacket removePacket = new PlayerListPacket();
+            removePacket.setAction(PlayerListPacket.Action.REMOVE);
+            PlayerListPacket.Entry removeEntry = new PlayerListPacket.Entry(entry.getUuid());
+            removeEntry.setAction(PlayerListPacket.Action.REMOVE);
+            removePacket.getEntries().add(removeEntry);
+            session.sendUpstreamPacket(removePacket);
+        }
+
         PlayerListPacket listPacket = new PlayerListPacket();
         listPacket.setAction(PlayerListPacket.Action.ADD);
         entry.setAction(PlayerListPacket.Action.ADD);
