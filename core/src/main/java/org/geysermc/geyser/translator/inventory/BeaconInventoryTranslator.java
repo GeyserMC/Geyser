@@ -25,6 +25,8 @@
 
 package org.geysermc.geyser.translator.inventory;
 
+import it.unimi.dsi.fastutil.ints.Int2IntMap;
+import it.unimi.dsi.fastutil.ints.Int2IntOpenHashMap;
 import it.unimi.dsi.fastutil.ints.IntSets;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtMapBuilder;
@@ -44,12 +46,29 @@ import org.geysermc.geyser.inventory.updater.UIInventoryUpdater;
 import org.geysermc.geyser.level.block.Blocks;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.level.block.entity.BlockEntityTranslator;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.Effect;
 import org.geysermc.mcprotocollib.protocol.data.game.inventory.ContainerType;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.inventory.ServerboundSetBeaconPacket;
 
 import java.util.OptionalInt;
 
 public class BeaconInventoryTranslator extends AbstractBlockInventoryTranslator<BeaconContainer> {
+    /**
+     * The level a beacon needs before Java hands out each effect, mirroring BeaconBlockEntity#BEACON_EFFECTS.
+     * Anything else isn't a beacon effect at all, so it asks for a level no beacon can reach.
+     */
+    private static final Int2IntMap EFFECT_LEVELS = new Int2IntOpenHashMap();
+
+    static {
+        EFFECT_LEVELS.defaultReturnValue(Integer.MAX_VALUE);
+        EFFECT_LEVELS.put(Effect.SPEED.ordinal(), 1);
+        EFFECT_LEVELS.put(Effect.HASTE.ordinal(), 1);
+        EFFECT_LEVELS.put(Effect.RESISTANCE.ordinal(), 2);
+        EFFECT_LEVELS.put(Effect.JUMP_BOOST.ordinal(), 2);
+        EFFECT_LEVELS.put(Effect.STRENGTH.ordinal(), 3);
+        EFFECT_LEVELS.put(Effect.REGENERATION.ordinal(), 4);
+    }
+
     public BeaconInventoryTranslator() {
         super(1, new BlockInventoryHolder(Blocks.BEACON, org.cloudburstmc.protocol.bedrock.data.inventory.ContainerType.BEACON) {
             @Override
@@ -72,7 +91,8 @@ public class BeaconInventoryTranslator extends AbstractBlockInventoryTranslator<
         // on BDS
         switch (key) {
             case 0:
-                // Power - beacon doesn't use this, and uses the block position instead
+                // Bedrock works the level out itself, but Java checks a payment against its own
+                container.setLevels(value);
                 break;
             case 1:
                 container.setPrimaryId(value == -1 ? 0 : value);
@@ -104,13 +124,43 @@ public class BeaconInventoryTranslator extends AbstractBlockInventoryTranslator<
     public ItemStackResponse translateSpecialRequest(GeyserSession session, BeaconContainer container, ItemStackRequest request) {
         // Input a beacon payment
         BeaconPaymentAction beaconPayment = (BeaconPaymentAction) request.getActions()[0];
-        ServerboundSetBeaconPacket packet = new ServerboundSetBeaconPacket(toJava(beaconPayment.getPrimaryEffect()), toJava(beaconPayment.getSecondaryEffect()));
+        OptionalInt primary = toJava(beaconPayment.getPrimaryEffect());
+        OptionalInt secondary = toJava(beaconPayment.getSecondaryEffect());
+        if (!validEffects(primary, secondary, container.getLevels())) {
+            // Java stops updating the level while the beam is obstructed, so Bedrock can offer effects
+            // that Java still thinks the beacon is too small for
+            return rejectRequest(request, false);
+        }
+
+        ServerboundSetBeaconPacket packet = new ServerboundSetBeaconPacket(primary, secondary);
         session.sendDownstreamGamePacket(packet);
         return acceptRequest(request, makeContainerEntries(session, container, IntSets.emptySet()));
     }
 
     private OptionalInt toJava(int effectChoice) {
         return effectChoice == 0 ? OptionalInt.empty() : OptionalInt.of(effectChoice - 1);
+    }
+
+    private static int requiredLevels(OptionalInt effect) {
+        return effect.isEmpty() ? 0 : EFFECT_LEVELS.get(effect.getAsInt());
+    }
+
+    /**
+     * Mirrors BeaconBlockEntity#validateEffects - Java disconnects us if we ask for effects it wouldn't allow.
+     */
+    private static boolean validEffects(OptionalInt primary, OptionalInt secondary, int levels) {
+        if (secondary.isPresent() && levels < 4) {
+            return false;
+        }
+        int primaryLevels = requiredLevels(primary);
+        int secondaryLevels = requiredLevels(secondary);
+        if (primaryLevels > levels || secondaryLevels > levels) {
+            return false;
+        }
+        if (primaryLevels >= 4) {
+            return false;
+        }
+        return secondaryLevels == 0 || secondaryLevels >= 4 || primary.equals(secondary);
     }
 
     @Override
