@@ -55,102 +55,133 @@ public class BuiltInMappings {
         return REGISTERING;
     }
 
-    public static void registerBlocks(GeyserDefineCustomBlocksEvent event) {
-        if (!GeyserImpl.getInstance().config().gameplay().enableIntegratedPack()) {
-            return;
-        }
-
+    public static void onRegisterBlocks(GeyserDefineCustomBlocksEvent event) {
         REGISTERING = true;
 
         try {
-            // Obsidian and crying obsidian mining speed differ from Java
-            registerBlock(event, CustomBlockData.builder()
-                .name("obsidian")
-                .components(CustomBlockComponents.builder()
-                    .tags(Set.of("is_pickaxe_item_destructible", "diamond_tier_destructible"))
-                    .destructibleByMining(50.0f)
-                    .build())
-                .build(), false, null);
-            registerBlock(event, CustomBlockData.builder()
-                .name("crying_obsidian")
-                .components(CustomBlockComponents.builder()
-                    .tags(Set.of("is_pickaxe_item_destructible", "diamond_tier_destructible"))
-                    .destructibleByMining(50.0f)
-                    .build())
-                .build(), false, null);
-
-            // Bedrock only has brown_mushroom_block and red_mushroom_block with 16 different variants (nine-slice + stem) but Java allows to toggle each face individually
-            registerBlock(event, CustomBlockData.builder()
-                .name("brown_mushroom_block")
-                .components(CustomBlockComponents.builder()
-                    .destructibleByMining(0.2f)
-                    .build())
-                .booleanProperty("down")
-                .booleanProperty("east")
-                .booleanProperty("north")
-                .booleanProperty("south")
-                .booleanProperty("up")
-                .booleanProperty("west")
-                .build(), false, mushroomComponentsFromState("mushroom_block_inside", "mushroom_block_skin_brown"));
-            registerBlock(event, CustomBlockData.builder()
-                .name("red_mushroom_block")
-                .components(CustomBlockComponents.builder()
-                    .destructibleByMining(0.2f)
-                    .build())
-                .booleanProperty("down")
-                .booleanProperty("east")
-                .booleanProperty("north")
-                .booleanProperty("south")
-                .booleanProperty("up")
-                .booleanProperty("west")
-                .build(), false, mushroomComponentsFromState("mushroom_block_inside", "mushroom_block_skin_red"));
-            registerBlock(event, CustomBlockData.builder()
-                .name("mushroom_stem")
-                .components(CustomBlockComponents.builder()
-                    .destructibleByMining(0.2f)
-                    .build())
-                .booleanProperty("down")
-                .booleanProperty("east")
-                .booleanProperty("north")
-                .booleanProperty("south")
-                .booleanProperty("up")
-                .booleanProperty("west")
-                .build(), false, mushroomComponentsFromState("mushroom_block_inside", "mushroom_block_skin_stem"));
-
-            // Test blocks don't exist on Bedrock
-            registerBlock(event, CustomBlockData.builder()
-                .name("test_block")
-                .components(CustomBlockComponents.builder()
-                    .destructibleByMining(Float.MAX_VALUE)
-                    .build())
-                .stringProperty("mode", List.of("start", "log", "fail", "accept"))
-                .build(), true, null);
-            registerBlock(event, CustomBlockData.builder()
-                .name("test_instance_block")
-                .components(CustomBlockComponents.builder()
-                    .destructibleByMining(Float.MAX_VALUE)
-                    .build())
-                .build(), true, null);
+            registerBlocks(event);
         } finally {
             REGISTERING = false;
         }
     }
 
-    public static void registerItems(GeyserDefineCustomItemsEvent event) {
+    private static void registerBlocks(GeyserDefineCustomBlocksEvent event) {
+        // Obsidian and crying obsidian mining speed differ from Java
+        registerBlock(event, CustomBlockData.builder()
+            .name("obsidian")
+            .components(CustomBlockComponents.builder()
+                .tags(Set.of("is_pickaxe_item_destructible", "diamond_tier_destructible"))
+                .destructibleByMining(50.0f)
+                .geometry(GeometryComponent.builder()
+                    .identifier("minecraft:geometry.full_block")
+                    .build())
+                .materialInstance(
+                    "*",
+                    MaterialInstance.builder()
+                        .texture("obsidian")
+                        .ambientOcclusionExponent(2.0f)
+                        .faceDimming(true)
+                        .isotropic(true)
+                        .build()
+                )
+                .build())
+            .build(), false, null);
+        registerBlock(event, CustomBlockData.builder()
+            .name("crying_obsidian")
+            .components(CustomBlockComponents.builder()
+                .tags(Set.of("is_pickaxe_item_destructible", "diamond_tier_destructible"))
+                .destructibleByMining(50.0f)
+                .lightEmission(10)
+                .geometry(GeometryComponent.builder()
+                    .identifier("minecraft:geometry.full_block")
+                    .build())
+                .materialInstance(
+                    "*",
+                    MaterialInstance.builder()
+                        .texture("crying_obsidian")
+                        .isotropic(true)
+                        .build()
+                )
+                .build())
+            .build(), false, null);
+
+        if (!GeyserImpl.getInstance().config().gameplay().enableIntegratedPack()) {
+            return;
+        }
+
+        // Bedrock only has brown_mushroom_block and red_mushroom_block with 16 different variants (nine-slice + stem) but Java allows to toggle each face individually
+        registerBlock(event, CustomBlockData.builder()
+            .name("brown_mushroom_block")
+            .components(CustomBlockComponents.builder()
+                .destructibleByMining(0.2f)
+                .build())
+            .booleanProperty("down")
+            .booleanProperty("east")
+            .booleanProperty("north")
+            .booleanProperty("south")
+            .booleanProperty("up")
+            .booleanProperty("west")
+            .build(), false, mushroomComponentsFromState("mushroom_block_inside", "mushroom_block_skin_brown"));
+        registerBlock(event, CustomBlockData.builder()
+            .name("red_mushroom_block")
+            .components(CustomBlockComponents.builder()
+                .destructibleByMining(0.2f)
+                .build())
+            .booleanProperty("down")
+            .booleanProperty("east")
+            .booleanProperty("north")
+            .booleanProperty("south")
+            .booleanProperty("up")
+            .booleanProperty("west")
+            .build(), false, mushroomComponentsFromState("mushroom_block_inside", "mushroom_block_skin_red"));
+        registerBlock(event, CustomBlockData.builder()
+            .name("mushroom_stem")
+            .components(CustomBlockComponents.builder()
+                .destructibleByMining(0.2f)
+                .build())
+            .booleanProperty("down")
+            .booleanProperty("east")
+            .booleanProperty("north")
+            .booleanProperty("south")
+            .booleanProperty("up")
+            .booleanProperty("west")
+            .build(), false, mushroomComponentsFromState("mushroom_block_inside", "mushroom_block_skin_stem"));
+
+        // Test blocks don't exist on Bedrock
+        registerBlock(event, CustomBlockData.builder()
+            .name("test_block")
+            .components(CustomBlockComponents.builder()
+                .destructibleByMining(Float.MAX_VALUE)
+                .build())
+            .stringProperty("mode", List.of("start", "log", "fail", "accept"))
+            .build(), true, null);
+        registerBlock(event, CustomBlockData.builder()
+            .name("test_instance_block")
+            .components(CustomBlockComponents.builder()
+                .destructibleByMining(Float.MAX_VALUE)
+                .build())
+            .build(), true, null);
+    }
+
+    public static void onRegisterItems(GeyserDefineCustomItemsEvent event) {
         REGISTERING = true;
 
         try {
-            // Furnace minecarts don't exist on Bedrock
-            event.register(Identifier.of("furnace_minecart"), CustomItemDefinition.builder(Identifier.of("geysermc", "furnace_minecart"), Identifier.of("furnace_minecart"))
-                .displayName("item.minecartFurnace.name")
-                .bedrockOptions(CustomItemBedrockOptions.builder()
-                    .icon("minecart_furnace")
-                    .creativeCategory(CreativeCategory.ITEMS)
-                    .creativeGroup("itemGroup.name.minecart"))
-                .build());
+            registerItems(event);
         } finally {
             REGISTERING = false;
         }
+    }
+
+    private static void registerItems(GeyserDefineCustomItemsEvent event) {
+        // Furnace minecarts don't exist on Bedrock
+        event.register(Identifier.of("furnace_minecart"), CustomItemDefinition.builder(Identifier.of("geysermc", "furnace_minecart"), Identifier.of("furnace_minecart"))
+            .displayName("item.minecartFurnace.name")
+            .bedrockOptions(CustomItemBedrockOptions.builder()
+                .icon("minecart_furnace")
+                .creativeCategory(CreativeCategory.ITEMS)
+                .creativeGroup("itemGroup.name.minecart"))
+            .build());
     }
 
     private static void registerBlock(GeyserDefineCustomBlocksEvent event, CustomBlockData block, boolean item, @Nullable Function<CustomBlockState, CustomBlockComponents> permutationsMapper) {
