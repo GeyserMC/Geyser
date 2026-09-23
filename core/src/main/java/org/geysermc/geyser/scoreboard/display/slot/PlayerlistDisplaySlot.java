@@ -29,6 +29,7 @@ import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 import org.cloudburstmc.protocol.bedrock.data.ScoreInfo;
 import org.geysermc.geyser.entity.type.player.PlayerEntity;
@@ -71,7 +72,10 @@ public class PlayerlistDisplaySlot extends DisplaySlot {
         }
 
         synchronized (displayScores) {
-            for (var score : displayScores.values()) {
+            Iterator<PlayerlistDisplayScore> iterator = displayScores.values().iterator();
+            while (iterator.hasNext()) {
+                PlayerlistDisplayScore score = iterator.next();
+
                 if (score.referenceRemoved()) {
                     ScoreInfo cachedInfo = score.cachedInfo();
                     // cachedInfo can be null here when ScoreboardUpdater is being used and a score is added and
@@ -79,6 +83,7 @@ public class PlayerlistDisplaySlot extends DisplaySlot {
                     if (cachedInfo != null) {
                         removeScores.add(new ScoreInfo(cachedInfo.getScoreboardId(), cachedInfo.getObjectiveId(), 0));
                     }
+                    iterator.remove();
                     continue;
                 }
 
@@ -128,7 +133,7 @@ public class PlayerlistDisplaySlot extends DisplaySlot {
 
         synchronized (displayScores) {
             for (PlayerEntity player : players) {
-                var score = new PlayerlistDisplayScore(this, objective.getScoreboard().nextId(), reference, player.geyserId());
+                var score = new PlayerlistDisplayScore(this, objective.getScoreboard().nextDisplayId(), reference, player.geyserId());
                 displayScores.put(player.geyserId(), score);
             }
         }
@@ -146,7 +151,7 @@ public class PlayerlistDisplaySlot extends DisplaySlot {
             return;
         }
 
-        var score = new PlayerlistDisplayScore(this, objective.getScoreboard().nextId(), reference, player.geyserId());
+        var score = new PlayerlistDisplayScore(this, objective.getScoreboard().nextDisplayId(), reference, player.geyserId());
         synchronized (displayScores) {
             displayScores.put(player.geyserId(), score);
         }

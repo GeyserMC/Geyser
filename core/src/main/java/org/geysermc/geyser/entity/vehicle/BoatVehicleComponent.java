@@ -139,7 +139,7 @@ public class BoatVehicleComponent extends VehicleComponent<BoatEntity> {
     @Override
     protected void sendServerboundMoveVehiclePacket(Vector3d javaPos) {
         ServerboundMoveVehiclePacket moveVehiclePacket = new ServerboundMoveVehiclePacket(javaPos, vehicle.getYaw() - 90, vehicle.getPitch(), vehicle.isOnGround());
-        vehicle.getSession().sendDownstreamPacket(moveVehiclePacket);
+        vehicle.getSession().sendDownstreamGamePacket(moveVehiclePacket);
     }
 
     private void controlBoat() {

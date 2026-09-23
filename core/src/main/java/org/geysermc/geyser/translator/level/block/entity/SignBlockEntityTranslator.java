@@ -110,7 +110,7 @@ public class SignBlockEntityTranslator extends BlockEntityTranslator {
                         signWidth += SignUtils.getCharacterWidth(c);
                     }
 
-                    if (signWidth <= signWidthMax()) {
+                    if (signWidth < signWidthMax()) {
                         finalSignLine.append(c);
                     } else {
                         // Adding the character would make Bedrock move to the next line - Java doesn't do that, so we do not want to

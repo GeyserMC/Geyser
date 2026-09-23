@@ -48,6 +48,8 @@ public class FishingHookEntity extends ProjectileEntity {
     private boolean hooked = false;
     private boolean castByPlayer = false;
     private boolean inWater = false;
+    // Set from the Bedrock packet thread, read on the Java one
+    private volatile boolean retrievedByClient = false;
 
     @Getter
     private final long bedrockOwnerId;
@@ -70,7 +72,7 @@ public class FishingHookEntity extends ProjectileEntity {
         this.metadata.put(EntityDataTypes.OWNER_EID, this.bedrockOwnerId);
 
         if (owner == session.getPlayerEntity()) {
-            session.setFishingRodCast(true);
+            session.setFishingHook(this);
             castByPlayer = true;
         }
     }
@@ -78,9 +80,55 @@ public class FishingHookEntity extends ProjectileEntity {
     @Override
     public void despawnEntity() {
         if (castByPlayer) {
-            session.setFishingRodCast(false);
+            session.setFishingHook(null);
         }
         super.despawnEntity();
+    }
+
+    /**
+     * Called when the Bedrock client uses its rod while this hook is out. The client removes its
+     * own hook right away and assumes the retrieve succeeds. When a plugin cancels the retrieve,
+     * Java keeps the hook and never sends anything that brings it back, so the hook is respawned
+     * on the next movement Java sends for it. A hook at rest only gets Java's periodic position
+     * sync, so that can take up to three seconds. Geyser's own projectile ticking must not trigger
+     * the respawn, since a successful retrieve's removal can still be in flight.
+     */
+    public void markRetrievedByClient() {
+        if (castByPlayer) {
+            retrievedByClient = true;
+        }
+    }
+
+    /**
+     * Spawns this hook again under a fresh Bedrock id, at the position the Java movement just applied.
+     * The client treats the id it reeled in as gone and only links its rod and line to a hook it sees spawn.
+     */
+    private void respawnIfRetrievedByClient() {
+        if (!retrievedByClient) {
+            return;
+        }
+        retrievedByClient = false;
+        geyserId = session.getEntityCache().reassignGeyserId(this);
+        // The spawn packet only carries metadata not sent yet, so put back what the client needs from the
+        // first spawn: the height that silences its splash, the owner the line is drawn to, and the hooked target
+        metadata.put(EntityDataTypes.HEIGHT, getBoundingBoxHeight());
+        metadata.put(EntityDataTypes.OWNER_EID, bedrockOwnerId);
+        if (hooked) {
+            metadata.put(EntityDataTypes.TARGET_EID, bedrockTargetId);
+        }
+        spawnEntity();
+    }
+
+    @Override
+    public void moveRelativeRaw(double relX, double relY, double relZ, float yaw, float pitch, float headYaw, boolean isOnGround) {
+        super.moveRelativeRaw(relX, relY, relZ, yaw, pitch, headYaw, isOnGround);
+        respawnIfRetrievedByClient();
+    }
+
+    @Override
+    public void moveAbsoluteRaw(Vector3f position, float yaw, float pitch, float headYaw, boolean isOnGround, boolean teleported) {
+        super.moveAbsoluteRaw(position, yaw, pitch, headYaw, isOnGround, teleported);
+        respawnIfRetrievedByClient();
     }
 
     public void setHookedEntity(IntEntityMetadata entityMetadata) {

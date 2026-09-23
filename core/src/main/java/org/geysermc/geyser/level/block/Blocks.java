@@ -39,6 +39,7 @@ import org.geysermc.geyser.level.block.type.FurnaceBlock;
 import org.geysermc.geyser.level.block.type.LecternBlock;
 import org.geysermc.geyser.level.block.type.MovingPistonBlock;
 import org.geysermc.geyser.level.block.type.PistonBlock;
+import org.geysermc.geyser.level.block.type.ShulkerBoxBlock;
 import org.geysermc.geyser.level.block.type.SkullBlock;
 import org.geysermc.geyser.level.block.type.TrapDoorBlock;
 import org.geysermc.geyser.level.block.type.WallSkullBlock;
@@ -1847,39 +1848,39 @@ public final class Blocks {
     public static final Block OBSERVER = register(new Block("observer", builder().requiresCorrectToolForDrops().destroyTime(3.0f)
         .enumState(FACING, Direction.NORTH, Direction.EAST, Direction.SOUTH, Direction.WEST, Direction.UP, Direction.DOWN)
         .booleanState(POWERED)));
-    public static final Block SHULKER_BOX = register(new Block("shulker_box", builder().setBlockEntity(BlockEntityType.SHULKER_BOX).destroyTime(2.0f).pushReaction(PistonBehavior.DESTROY)
+    public static final Block SHULKER_BOX = register(new ShulkerBoxBlock("shulker_box", builder().setBlockEntity(BlockEntityType.SHULKER_BOX).destroyTime(2.0f).pushReaction(PistonBehavior.DESTROY)
         .enumState(FACING, Direction.NORTH, Direction.EAST, Direction.SOUTH, Direction.WEST, Direction.UP, Direction.DOWN)));
-    public static final Block WHITE_SHULKER_BOX = register(new Block("white_shulker_box", builder().setBlockEntity(BlockEntityType.SHULKER_BOX).destroyTime(2.0f).pushReaction(PistonBehavior.DESTROY)
+    public static final Block WHITE_SHULKER_BOX = register(new ShulkerBoxBlock("white_shulker_box", builder().setBlockEntity(BlockEntityType.SHULKER_BOX).destroyTime(2.0f).pushReaction(PistonBehavior.DESTROY)
         .enumState(FACING, Direction.NORTH, Direction.EAST, Direction.SOUTH, Direction.WEST, Direction.UP, Direction.DOWN)));
-    public static final Block ORANGE_SHULKER_BOX = register(new Block("orange_shulker_box", builder().setBlockEntity(BlockEntityType.SHULKER_BOX).destroyTime(2.0f).pushReaction(PistonBehavior.DESTROY)
+    public static final Block ORANGE_SHULKER_BOX = register(new ShulkerBoxBlock("orange_shulker_box", builder().setBlockEntity(BlockEntityType.SHULKER_BOX).destroyTime(2.0f).pushReaction(PistonBehavior.DESTROY)
         .enumState(FACING, Direction.NORTH, Direction.EAST, Direction.SOUTH, Direction.WEST, Direction.UP, Direction.DOWN)));
-    public static final Block MAGENTA_SHULKER_BOX = register(new Block("magenta_shulker_box", builder().setBlockEntity(BlockEntityType.SHULKER_BOX).destroyTime(2.0f).pushReaction(PistonBehavior.DESTROY)
+    public static final Block MAGENTA_SHULKER_BOX = register(new ShulkerBoxBlock("magenta_shulker_box", builder().setBlockEntity(BlockEntityType.SHULKER_BOX).destroyTime(2.0f).pushReaction(PistonBehavior.DESTROY)
         .enumState(FACING, Direction.NORTH, Direction.EAST, Direction.SOUTH, Direction.WEST, Direction.UP, Direction.DOWN)));
-    public static final Block LIGHT_BLUE_SHULKER_BOX = register(new Block("light_blue_shulker_box", builder().setBlockEntity(BlockEntityType.SHULKER_BOX).destroyTime(2.0f).pushReaction(PistonBehavior.DESTROY)
+    public static final Block LIGHT_BLUE_SHULKER_BOX = register(new ShulkerBoxBlock("light_blue_shulker_box", builder().setBlockEntity(BlockEntityType.SHULKER_BOX).destroyTime(2.0f).pushReaction(PistonBehavior.DESTROY)
         .enumState(FACING, Direction.NORTH, Direction.EAST, Direction.SOUTH, Direction.WEST, Direction.UP, Direction.DOWN)));
-    public static final Block YELLOW_SHULKER_BOX = register(new Block("yellow_shulker_box", builder().setBlockEntity(BlockEntityType.SHULKER_BOX).destroyTime(2.0f).pushReaction(PistonBehavior.DESTROY)
+    public static final Block YELLOW_SHULKER_BOX = register(new ShulkerBoxBlock("yellow_shulker_box", builder().setBlockEntity(BlockEntityType.SHULKER_BOX).destroyTime(2.0f).pushReaction(PistonBehavior.DESTROY)
         .enumState(FACING, Direction.NORTH, Direction.EAST, Direction.SOUTH, Direction.WEST, Direction.UP, Direction.DOWN)));
-    public static final Block LIME_SHULKER_BOX = register(new Block("lime_shulker_box", builder().setBlockEntity(BlockEntityType.SHULKER_BOX).destroyTime(2.0f).pushReaction(PistonBehavior.DESTROY)
+    public static final Block LIME_SHULKER_BOX = register(new ShulkerBoxBlock("lime_shulker_box", builder().setBlockEntity(BlockEntityType.SHULKER_BOX).destroyTime(2.0f).pushReaction(PistonBehavior.DESTROY)
         .enumState(FACING, Direction.NORTH, Direction.EAST, Direction.SOUTH, Direction.WEST, Direction.UP, Direction.DOWN)));
-    public static final Block PINK_SHULKER_BOX = register(new Block("pink_shulker_box", builder().setBlockEntity(BlockEntityType.SHULKER_BOX).destroyTime(2.0f).pushReaction(PistonBehavior.DESTROY)
+    public static final Block PINK_SHULKER_BOX = register(new ShulkerBoxBlock("pink_shulker_box", builder().setBlockEntity(BlockEntityType.SHULKER_BOX).destroyTime(2.0f).pushReaction(PistonBehavior.DESTROY)
         .enumState(FACING, Direction.NORTH, Direction.EAST, Direction.SOUTH, Direction.WEST, Direction.UP, Direction.DOWN)));
-    public static final Block GRAY_SHULKER_BOX = register(new Block("gray_shulker_box", builder().setBlockEntity(BlockEntityType.SHULKER_BOX).destroyTime(2.0f).pushReaction(PistonBehavior.DESTROY)
+    public static final Block GRAY_SHULKER_BOX = register(new ShulkerBoxBlock("gray_shulker_box", builder().setBlockEntity(BlockEntityType.SHULKER_BOX).destroyTime(2.0f).pushReaction(PistonBehavior.DESTROY)
         .enumState(FACING, Direction.NORTH, Direction.EAST, Direction.SOUTH, Direction.WEST, Direction.UP, Direction.DOWN)));
-    public static final Block LIGHT_GRAY_SHULKER_BOX = register(new Block("light_gray_shulker_box", builder().setBlockEntity(BlockEntityType.SHULKER_BOX).destroyTime(2.0f).pushReaction(PistonBehavior.DESTROY)
+    public static final Block LIGHT_GRAY_SHULKER_BOX = register(new ShulkerBoxBlock("light_gray_shulker_box", builder().setBlockEntity(BlockEntityType.SHULKER_BOX).destroyTime(2.0f).pushReaction(PistonBehavior.DESTROY)
         .enumState(FACING, Direction.NORTH, Direction.EAST, Direction.SOUTH, Direction.WEST, Direction.UP, Direction.DOWN)));
-    public static final Block CYAN_SHULKER_BOX = register(new Block("cyan_shulker_box", builder().setBlockEntity(BlockEntityType.SHULKER_BOX).destroyTime(2.0f).pushReaction(PistonBehavior.DESTROY)
+    public static final Block CYAN_SHULKER_BOX = register(new ShulkerBoxBlock("cyan_shulker_box", builder().setBlockEntity(BlockEntityType.SHULKER_BOX).destroyTime(2.0f).pushReaction(PistonBehavior.DESTROY)
         .enumState(FACING, Direction.NORTH, Direction.EAST, Direction.SOUTH, Direction.WEST, Direction.UP, Direction.DOWN)));
-    public static final Block PURPLE_SHULKER_BOX = register(new Block("purple_shulker_box", builder().setBlockEntity(BlockEntityType.SHULKER_BOX).destroyTime(2.0f).pushReaction(PistonBehavior.DESTROY)
+    public static final Block PURPLE_SHULKER_BOX = register(new ShulkerBoxBlock("purple_shulker_box", builder().setBlockEntity(BlockEntityType.SHULKER_BOX).destroyTime(2.0f).pushReaction(PistonBehavior.DESTROY)
         .enumState(FACING, Direction.NORTH, Direction.EAST, Direction.SOUTH, Direction.WEST, Direction.UP, Direction.DOWN)));
-    public static final Block BLUE_SHULKER_BOX = register(new Block("blue_shulker_box", builder().setBlockEntity(BlockEntityType.SHULKER_BOX).destroyTime(2.0f).pushReaction(PistonBehavior.DESTROY)
+    public static final Block BLUE_SHULKER_BOX = register(new ShulkerBoxBlock("blue_shulker_box", builder().setBlockEntity(BlockEntityType.SHULKER_BOX).destroyTime(2.0f).pushReaction(PistonBehavior.DESTROY)
         .enumState(FACING, Direction.NORTH, Direction.EAST, Direction.SOUTH, Direction.WEST, Direction.UP, Direction.DOWN)));
-    public static final Block BROWN_SHULKER_BOX = register(new Block("brown_shulker_box", builder().setBlockEntity(BlockEntityType.SHULKER_BOX).destroyTime(2.0f).pushReaction(PistonBehavior.DESTROY)
+    public static final Block BROWN_SHULKER_BOX = register(new ShulkerBoxBlock("brown_shulker_box", builder().setBlockEntity(BlockEntityType.SHULKER_BOX).destroyTime(2.0f).pushReaction(PistonBehavior.DESTROY)
         .enumState(FACING, Direction.NORTH, Direction.EAST, Direction.SOUTH, Direction.WEST, Direction.UP, Direction.DOWN)));
-    public static final Block GREEN_SHULKER_BOX = register(new Block("green_shulker_box", builder().setBlockEntity(BlockEntityType.SHULKER_BOX).destroyTime(2.0f).pushReaction(PistonBehavior.DESTROY)
+    public static final Block GREEN_SHULKER_BOX = register(new ShulkerBoxBlock("green_shulker_box", builder().setBlockEntity(BlockEntityType.SHULKER_BOX).destroyTime(2.0f).pushReaction(PistonBehavior.DESTROY)
         .enumState(FACING, Direction.NORTH, Direction.EAST, Direction.SOUTH, Direction.WEST, Direction.UP, Direction.DOWN)));
-    public static final Block RED_SHULKER_BOX = register(new Block("red_shulker_box", builder().setBlockEntity(BlockEntityType.SHULKER_BOX).destroyTime(2.0f).pushReaction(PistonBehavior.DESTROY)
+    public static final Block RED_SHULKER_BOX = register(new ShulkerBoxBlock("red_shulker_box", builder().setBlockEntity(BlockEntityType.SHULKER_BOX).destroyTime(2.0f).pushReaction(PistonBehavior.DESTROY)
         .enumState(FACING, Direction.NORTH, Direction.EAST, Direction.SOUTH, Direction.WEST, Direction.UP, Direction.DOWN)));
-    public static final Block BLACK_SHULKER_BOX = register(new Block("black_shulker_box", builder().setBlockEntity(BlockEntityType.SHULKER_BOX).destroyTime(2.0f).pushReaction(PistonBehavior.DESTROY)
+    public static final Block BLACK_SHULKER_BOX = register(new ShulkerBoxBlock("black_shulker_box", builder().setBlockEntity(BlockEntityType.SHULKER_BOX).destroyTime(2.0f).pushReaction(PistonBehavior.DESTROY)
         .enumState(FACING, Direction.NORTH, Direction.EAST, Direction.SOUTH, Direction.WEST, Direction.UP, Direction.DOWN)));
     public static final Block WHITE_GLAZED_TERRACOTTA = register(new Block("white_glazed_terracotta", builder().requiresCorrectToolForDrops().destroyTime(1.4f).pushReaction(PistonBehavior.PUSH_ONLY)
         .enumState(HORIZONTAL_FACING, Direction.NORTH, Direction.SOUTH, Direction.WEST, Direction.EAST)));

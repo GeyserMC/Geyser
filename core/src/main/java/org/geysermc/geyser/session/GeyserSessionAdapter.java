@@ -31,7 +31,7 @@ import org.geysermc.geyser.Constants;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.network.AuthType;
 import org.geysermc.geyser.api.util.PlatformType;
-import org.geysermc.geyser.network.netty.LocalSession;
+import org.geysermc.geyser.network.java.LocalSession;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.session.auth.BedrockClientData;
 import org.geysermc.geyser.skin.FloodgateSkinUploader;
@@ -86,6 +86,8 @@ public class GeyserSessionAdapter extends SessionAdapter {
                         bedrockAddress = bedrockAddress.substring(0, ipv6ScopeIndex);
                     }
 
+                    boolean shouldSkinConnect = skinUploader != null && skinUploader.isAllowSubscribers();
+
                     encryptedData = cipher.encryptFromString(BedrockData.of(
                         clientData.getGameVersion(),
                         session.bedrockUsername(),
@@ -95,8 +97,8 @@ public class GeyserSessionAdapter extends SessionAdapter {
                         clientData.getUiProfile().ordinal(),
                         clientData.getCurrentInputMode().ordinal(),
                         bedrockAddress,
-                        skinUploader == null ? 0 : skinUploader.getId(),
-                        skinUploader == null ? null : skinUploader.getVerifyCode()
+                        shouldSkinConnect ? skinUploader.getId() : -1,
+                        shouldSkinConnect ? skinUploader.getVerifyCode() : null
                     ).toString());
                 } catch (Exception e) {
                     geyser.getLogger().error(GeyserLocale.getLocaleStringLog("geyser.auth.floodgate.encrypt_fail"), e);

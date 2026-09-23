@@ -58,7 +58,6 @@ import org.geysermc.geyser.item.custom.GeyserCustomItemBedrockOptions;
 import org.geysermc.geyser.item.custom.GeyserCustomItemDefinition;
 import org.geysermc.geyser.item.exception.InvalidItemComponentsException;
 import org.geysermc.geyser.item.type.Item;
-import org.geysermc.geyser.network.GameProtocol;
 import org.geysermc.geyser.registry.mappings.BuiltInMappings;
 import org.geysermc.geyser.registry.mappings.MappingsConfigReader;
 import org.geysermc.geyser.registry.mappings.MappingsType;
@@ -397,6 +396,14 @@ public class CustomItemRegistryPopulator {
             computeEntityPlacerProperties(componentBuilder);
         }
 
+        // The client only lets an item into furnace fuel slots when it has this component.
+        int fuelDuration = context.vanillaMapping().map(GeyserMappingItem::getFuelDuration).orElse(0);
+        if (fuelDuration > 0) {
+            componentBuilder.putCompound("minecraft:fuel", NbtMap.builder()
+                .putFloat("duration", fuelDuration / 20.0F)
+                .build());
+        }
+
         // this is not ideal, remove once v1 is removed!
         if (context.definition() instanceof GeyserCustomItemDefinition definition && definition.isOldConvertedItem()) {
             CustomRenderOffsets renderOffsets = definition.getRenderOffsets();
@@ -469,26 +476,13 @@ public class CustomItemRegistryPopulator {
         // This can be missing if a non-vanilla item didn't specify a max stack size, or if a component patch removed the component. In that case vanilla Minecraft defaults to 1
         int stackSize = components.getOrDefault(DataComponentTypes.MAX_STACK_SIZE, 1);
 
-        // Before 1.26.30, minecraft:wearable overrides this component, which leaves equippable items unstackable, see MCPE-176931
-        boolean sendStackSizeComponent = GameProtocol.is26_30orHigher(context.protocolVersion());
-
-        // Hack for v1 compat: Allow e.g. carved pumpkins to continue working as a base
-        if (!sendStackSizeComponent && stackSize > 1 && definition instanceof GeyserCustomItemDefinition customItemDefinition && customItemDefinition.isOldConvertedItem()) {
-            Equippable equippable = components.get(DataComponentTypes.EQUIPPABLE);
-            if (equippable != null) {
-                stackSize = 1;
-            }
-        }
-
         int bedrockStackSize = Math.min(stackSize, Item.BEDROCK_MAX_STACK_SIZE);
         itemProperties.putInt("max_stack_size", bedrockStackSize);
-        if (sendStackSizeComponent) {
-            // Also sent as a component, as a byte: without it minecraft:wearable resets the stack size to one,
-            // and the client refuses to move any slot holding more than one of the item
-            componentBuilder.putCompound("minecraft:max_stack_size", NbtMap.builder()
-                .putByte("value", (byte) bedrockStackSize)
-                .build());
-        }
+        // Also sent as a component, as a byte: without it minecraft:wearable resets the stack size to one,
+        // and the client refuses to move any slot holding more than one of the item
+        componentBuilder.putCompound("minecraft:max_stack_size", NbtMap.builder()
+            .putByte("value", (byte) bedrockStackSize)
+            .build());
 
         // Ignore durability if the item's predicates requires that it be unbreakable
         if (maxDamage > 0 && !isUnbreakableItem(definition)) {
