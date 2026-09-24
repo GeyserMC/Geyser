@@ -25,6 +25,7 @@
 
 package org.geysermc.geyser.network.bedrock.nethernet.signaling.provider;
 
+import com.google.gson.JsonNull;
 import com.google.gson.JsonParser;
 import org.cloudburstmc.netty.signaling.ProviderClient;
 import org.cloudburstmc.netty.signaling.provider.NativeProviderHostFactory;
@@ -94,6 +95,56 @@ class ProviderConfigurationTest {
         assertEquals(Map.of("location", "london"), result.tags());
         assertEquals(1, result.advertisedEndpoints().size());
         assertEquals("Geyser", result.label());
+    }
+
+    @Test
+    void emitsOptionalHostLocation() throws Exception {
+        var config = config("""
+            nxs:
+              location: {country: nl, city: Amsterdam, latitude: 52.37, longitude: 4.89}
+            """);
+        var extension = WardenLocationAdapter.extensions(config.nxs().location())
+            .getAsJsonObject("cloud.warden.location");
+
+        assertFalse(extension.get("critical").getAsBoolean());
+        assertEquals(1, extension.get("version").getAsInt());
+        var location = extension.getAsJsonObject("data").getAsJsonObject("location");
+        assertEquals("NL", location.get("country").getAsString());
+        assertEquals("Amsterdam", location.get("city").getAsString());
+        assertEquals(52.37, location.get("latitude").getAsDouble());
+        assertEquals(4.89, location.get("longitude").getAsDouble());
+    }
+
+    @Test
+    void acceptsCountryOrCoordinatesWithoutRequiringBoth() throws Exception {
+        var country = WardenLocationAdapter.extensions(Map.of("country", " gb "))
+            .getAsJsonObject("cloud.warden.location").getAsJsonObject("data").getAsJsonObject("location");
+        assertEquals(JsonParser.parseString("{\"country\":\"GB\"}"), country);
+
+        var coordinates = WardenLocationAdapter.extensions(Map.of("latitude", "-90", "longitude", "180"))
+            .getAsJsonObject("cloud.warden.location").getAsJsonObject("data").getAsJsonObject("location");
+        assertEquals(JsonParser.parseString("{\"latitude\":-90,\"longitude\":180}"), coordinates);
+    }
+
+    @Test
+    void emptyHostLocationClearsAnEarlierOverride() throws Exception {
+        var extension = WardenLocationAdapter.extensions(config("{}").nxs().location())
+            .getAsJsonObject("cloud.warden.location");
+
+        assertEquals(JsonNull.INSTANCE, extension.getAsJsonObject("data").get("location"));
+    }
+
+    @Test
+    void refusesInvalidHostLocation() {
+        for (String location : List.of("{country: ZZ}", "{country: XX}", "{country: T1}", "{city: London}",
+            "{latitude: 0}", "{longitude: 0}", "{latitude: 91, longitude: 0}", "{latitude: 0, longitude: 181}",
+            "{latitude: NaN, longitude: 0}", "{latitude: 0, longitude: Infinity}", "{country: NL, extra: value}")) {
+            assertThrows(IOException.class, () -> WardenLocationAdapter.extensions(
+                config("nxs:\n  location: " + location + "\n").nxs().location()));
+        }
+        for (String city : List.of("Lon\ndon", String.valueOf((char) 0xD800))) {
+            assertThrows(IOException.class, () -> WardenLocationAdapter.extensions(Map.of("country", "GB", "city", city)));
+        }
     }
 
     @Test

@@ -67,6 +67,7 @@ import org.cloudburstmc.netty.signaling.provider.ProviderHostFactory;
 import org.cloudburstmc.netty.signaling.provider.ProviderRuntimeConfiguration;
 import org.cloudburstmc.netty.signaling.provider.ProviderShutdown;
 import org.geysermc.geyser.network.bedrock.nethernet.signaling.provider.WardenClaimAdapter;
+import org.geysermc.geyser.network.bedrock.nethernet.signaling.provider.WardenLocationAdapter;
 import org.geysermc.geyser.session.GeyserSession;
 import tel.schich.libdatachannel.LibDataChannelArchDetect;
 import tel.schich.libdatachannel.PeerConnectionConfiguration;
@@ -346,6 +347,7 @@ public final class NetherNetServer implements EventRegistrar {
             try {
                 BedrockListener listener = geyser.config().bedrock();
                 var nxs = config.nxs();
+                JsonObject heartbeatExtensions = WardenLocationAdapter.extensions(nxs.location());
                 ProviderRuntimeConfiguration runtime = ProviderRuntimeConfiguration.resolve(
                     new ProviderRuntimeConfiguration.Settings(nxs.endpoint(), nxs.token(), nxs.advertiseAddresses(), nxs.data(),
                         nxs.effectiveControlTransport(), nxs.diagnosticAdmission(), nxs.maintainedCandidates(), nxs.assistedJoins()),
@@ -392,7 +394,7 @@ public final class NetherNetServer implements EventRegistrar {
                     providerClient = client;
                     wardenClaim = new WardenClaimAdapter(client);
                 }
-                client.start().whenComplete((registration, failure) -> {
+                client.updateHeartbeatExtensions(heartbeatExtensions).thenCompose(ignored -> client.start()).whenComplete((registration, failure) -> {
                     if (failure != null) {
                         logger().error("Could not register with the external signaling service: " + providerFailure(failure));
                         stopProvider();

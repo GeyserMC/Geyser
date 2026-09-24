@@ -230,6 +230,11 @@ public interface GeyserConfig {
             @DefaultBoolean(true)
             boolean diagnosticAdmission();
 
+            @Comment("Optional Warden host location: country, city, latitude and longitude. Coordinates must be supplied together. Empty uses the connection IP estimate; a panel override takes precedence.")
+            default Map<String, String> location() {
+                return Map.of();
+            }
+
             @Comment("Access token for the signaling service, or file:/path/to/token to read it from a file. Leave empty to register without an account.")
             @DefaultString()
             @AsteriskSerializer.Secret
