@@ -28,11 +28,12 @@ package org.geysermc.geyser.network.bedrock.nethernet;
 import org.cloudburstmc.netty.util.nethernet.TrustedProxies;
 import org.cloudburstmc.netty.channel.nethernet.NetherNetChannelFactory;
 import org.cloudburstmc.netty.channel.nethernet.config.NetherChannelOption;
-import org.cloudburstmc.netty.channel.nethernet.signaling.NetherNetHTTPSignaling;
+import org.cloudburstmc.netty.channel.nethernet.signaling.NetherNetHTTPServerSignaling;
 import org.cloudburstmc.netty.channel.nethernet.signaling.NetherNetServerSignaling;
+import org.cloudburstmc.netty.channel.nethernet.signaling.PongData;
 import org.cloudburstmc.netty.util.nethernet.NetherNetLogging;
 import org.cloudburstmc.netty.util.nethernet.SecretValue;
-import org.cloudburstmc.netty.util.nethernet.ServerIdentity;
+import org.cloudburstmc.netty.util.nethernet.OperatorIdentity;
 import org.cloudburstmc.netty.util.nethernet.TokenTrust;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.Channel;
@@ -59,6 +60,7 @@ import org.geysermc.geyser.event.type.SessionDisconnectEventImpl;
 import org.geysermc.geyser.network.BedrockPingHandler;
 import org.geysermc.geyser.network.bedrock.nethernet.signaling.provider.GameOutcomeReporter;
 import org.geysermc.geyser.network.bedrock.nethernet.signaling.provider.GameOutcomeTransport;
+import org.geysermc.geyser.network.bedrock.nethernet.signaling.provider.GeyserProviderLogger;
 import org.geysermc.geyser.network.bedrock.nethernet.signaling.provider.GeyserStatusCollector;
 import org.cloudburstmc.netty.signaling.provider.NativeProviderHostFactory;
 import org.cloudburstmc.netty.signaling.provider.ProviderHostFactory;
@@ -77,7 +79,6 @@ import java.net.UnknownHostException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Random;
 import java.util.Set;
@@ -200,9 +201,9 @@ public final class NetherNetServer implements EventRegistrar {
 
     private void startInbuilt() {
         // Created on the first start and kept afterwards, as clients pin its public key
-        ServerIdentity identity;
+        OperatorIdentity identity;
         try {
-            identity = ServerIdentity.fromPemOrCreate(dataFolder.resolve("identity.pem").toFile(),
+            identity = OperatorIdentity.fromPemOrCreate(dataFolder.resolve("identity.pem").toFile(),
                     GeyserImpl.NAME + "-" + geyser.config().gameplay().serverName());
         } catch (Exception e) {
             logger().error("Built-in signaling will not start! Could not load or create this server's identity file, "
@@ -218,7 +219,7 @@ public final class NetherNetServer implements EventRegistrar {
 
             GeyserConfig.SignalingConfig.BuiltinConfig builtin = geyser.config().bedrock().signaling().builtin();
 
-            NetherNetHTTPSignaling.Builder signalingBuilder = new NetherNetHTTPSignaling.Builder()
+            NetherNetHTTPServerSignaling.Builder signalingBuilder = new NetherNetHTTPServerSignaling.Builder()
                     .setIdentity(identity)
                     // The same "behind a proxy" settings RakNet uses, applied to the TCP listener
                     .setTrustedProxies(TrustedProxies.parse(geyser.config().advanced().bedrock().haproxyProtocolWhitelistedIps()))
@@ -231,7 +232,7 @@ public final class NetherNetServer implements EventRegistrar {
                     .setMotdProvider((host, remoteAddress) -> {
                         BedrockPong pong = pingResponder.onQuery(GUID, remoteAddress);
 
-                        return new NetherNetServerSignaling.PongData.Builder()
+                        return new PongData.Builder()
                                 .setServerName(pong.motd())
                                 .setProtocol(pong.protocolVersion())
                                 .setVersion(pong.version())
@@ -357,9 +358,9 @@ public final class NetherNetServer implements EventRegistrar {
                 eventLoopGroup = new MultiThreadIoEventLoopGroup(NioIoHandler.newFactory());
                 providerInitialiser = new NetherNetChannelInitialiser(geyser, gameOutcomes);
                 ServerBootstrap bootstrap = new ServerBootstrap().group(eventLoopGroup).childHandler(providerInitialiser);
-                ProviderHostFactory.Host host = factory.open(bootstrap, new InetSocketAddress(runtime.bindAddress(), runtime.udpPort()), Map.of("stateDirectory", statePath.toAbsolutePath().toString(), "profile", runtime.profile(),
-                        "advertisedEndpoints", runtime.encodedAdvertisedEndpoints(),
-                        "localDevelopment", Boolean.toString(Set.of("127.0.0.1", "localhost", "[::1]").contains(origin.getHost())))).toCompletableFuture().get(30, TimeUnit.SECONDS);
+                ProviderHostFactory.Host host = factory.open(bootstrap,
+                    new InetSocketAddress(runtime.bindAddress(), runtime.udpPort()), runtime.nativeHostOptions())
+                    .toCompletableFuture().get(30, TimeUnit.SECONDS);
                 netherNetChannel = host.channel();
                 transport = host.transport();
                 host.warnings().forEach(message -> logger().warning(message));
@@ -371,7 +372,7 @@ public final class NetherNetServer implements EventRegistrar {
                 initializingTransport = transport;
                 transport = new GameOutcomeTransport(transport, gameOutcomes);
                 ProviderClient client = new ProviderClient(runtime.clientConfiguration(), store, transport,
-                        () -> providerStatusSupplier.get(), () -> health(runtime.capacity()), message -> logger().warning(message));
+                        () -> providerStatusSupplier.get(), () -> health(runtime.capacity()), new GeyserProviderLogger(logger()));
                 store = null; // ProviderClient now owns its lifetime.
                 initializingTransport = null;
                 synchronized (providerLifecycle) {
@@ -448,8 +449,7 @@ public final class NetherNetServer implements EventRegistrar {
 
     private ProviderClient.Health health(int capacity) {
         int players = geyser.getSessionManager().size();
-        return new ProviderClient.Health(true, true, capacity,
-            Math.min(1, (double) players / Math.max(1, capacity)), "nethernet", GeyserImpl.VERSION,
+        return new ProviderClient.Health(true, capacity, GeyserImpl.VERSION,
             new ProviderClient.PlayerCount(players, System.currentTimeMillis()));
     }
 

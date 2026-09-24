@@ -27,6 +27,8 @@ package org.geysermc.geyser.network.bedrock.nethernet.signaling.provider;
 
 import com.google.gson.JsonObject;
 import org.cloudburstmc.netty.signaling.ProviderTransport;
+import org.cloudburstmc.netty.signaling.control.AssistedJoin;
+import org.cloudburstmc.netty.signaling.diagnostic.DiagnosticHostPolicy;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -50,13 +52,58 @@ public final class GameOutcomeTransport implements ProviderTransport {
     }
 
     @Override
-    public CompletionStage<Void> installTicketKeys(List<TicketKey> keys) {
-        return delegate.installTicketKeys(keys);
+    public CompletionStage<HostProfileSnapshot> captureHostProfile() {
+        return delegate.captureHostProfile();
     }
 
     @Override
-    public CompletionStage<ApplyResult> applyState(String state) {
-        return delegate.applyState(state);
+    public long candidatePublicationVersion() {
+        return delegate.candidatePublicationVersion();
+    }
+
+    @Override
+    public CompletionStage<Void> reportConnectivityChecks(long candidateRevision, List<ConnectivityCheck> checks) {
+        return delegate.reportConnectivityChecks(candidateRevision, checks);
+    }
+
+    @Override
+    public boolean supportsAssistedJoins() {
+        return delegate.supportsAssistedJoins();
+    }
+
+    @Override
+    public CompletionStage<Void> configureStunServers(List<StunServer> servers) {
+        return delegate.configureStunServers(servers);
+    }
+
+    @Override
+    public CompletionStage<String> assistedJoin(AssistedJoin join, Runnable requireCurrent) {
+        return delegate.assistedJoin(join, requireCurrent);
+    }
+
+    @Override
+    public boolean supportsDiagnosticAdmission() {
+        return delegate.supportsDiagnosticAdmission();
+    }
+
+    @Override
+    public CompletionStage<Void> configureDiagnostics(DiagnosticHostPolicy policy) {
+        return delegate.configureDiagnostics(policy);
+    }
+
+    @Override
+    public CompletionStage<Void> configureDiagnostics(DiagnosticHostPolicy policy, long deadlineNanos) {
+        return delegate.configureDiagnostics(policy, deadlineNanos);
+    }
+
+    @Override
+    public CompletionStage<Void> disableDiagnostics() {
+        return delegate.disableDiagnostics();
+    }
+
+    @Override
+    public CompletionStage<Void> installTicketKeys(List<TicketKey> keys) {
+        return delegate.installTicketKeys(keys);
     }
 
     @Override

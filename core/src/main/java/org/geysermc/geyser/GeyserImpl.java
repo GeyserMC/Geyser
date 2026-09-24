@@ -25,7 +25,6 @@
 
 package org.geysermc.geyser;
 
-import org.cloudburstmc.netty.util.nethernet.TrustedProxies;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import io.netty.channel.epoll.Epoll;
@@ -717,8 +716,6 @@ public class GeyserImpl implements GeyserApi, EventRegistrar {
     public void reloadGeyser() {
         isReloading = true;
         this.eventBus.fire(new GeyserPreReloadEvent(this.extensionManager, this.eventBus));
-        // The config may name different proxies, so the resolved whitelist has to be fetched again
-        TrustedProxies.invalidate();
 
         bootstrap.onGeyserDisable();
         bootstrap.onGeyserEnable();

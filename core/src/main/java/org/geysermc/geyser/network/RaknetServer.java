@@ -25,6 +25,7 @@
 
 package org.geysermc.geyser.network;
 
+import org.cloudburstmc.netty.util.nethernet.IpRangeSet;
 import org.cloudburstmc.netty.util.nethernet.TrustedProxies;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.Channel;
@@ -38,6 +39,7 @@ import io.netty.channel.uring.IoUring;
 import io.netty.util.concurrent.DefaultThreadFactory;
 import io.netty.util.concurrent.Future;
 import lombok.Getter;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.netty.channel.raknet.RakChannelFactory;
 import org.cloudburstmc.netty.channel.raknet.config.DefaultRakServerThrottle;
 import org.cloudburstmc.netty.channel.raknet.config.RakChannelOption;
@@ -73,6 +75,8 @@ public final class RaknetServer {
     private static final int SHUTDOWN_TIMEOUT_MS = 500;
 
     private final GeyserImpl geyser;
+    private final boolean useHaproxyProtocol;
+    private final @Nullable IpRangeSet trustedProxies;
     private EventLoopGroup group;
     // Split childGroup may improve IO
     private EventLoopGroup childGroup;
@@ -91,6 +95,12 @@ public final class RaknetServer {
 
     public RaknetServer(GeyserImpl geyser, int threadCount) {
         this.geyser = geyser;
+        var bedrockConfig = geyser.config().advanced().bedrock();
+        this.useHaproxyProtocol = bedrockConfig.useHaproxyProtocol();
+        List<String> allowedProxyIPs = bedrockConfig.haproxyProtocolWhitelistedIps();
+        // The Network loader is stateless; resolve URLs once for this listener, never on a connection request.
+        this.trustedProxies = useHaproxyProtocol && !allowedProxyIPs.isEmpty()
+            ? TrustedProxies.parse(allowedProxyIPs) : null;
         this.listenCount = Bootstraps.isReusePortAvailable() ?  Integer.getInteger("Geyser.ListenCount", 1) : 1;
         GeyserImpl.getInstance().getLogger().debug("Listen thread count: " + listenCount);
         this.group = TRANSPORT.eventLoopGroupFactory().apply(listenCount, new DefaultThreadFactory("GeyserServer", true));
@@ -199,23 +209,20 @@ public final class RaknetServer {
             .option(RakChannelOption.RAK_PACKET_LIMIT, rakRateLimitingDisabled ? 0 : rakPacketLimit)
             .option(RakChannelOption.RAK_GLOBAL_PACKET_LIMIT, rakGlobalPacketLimit)
             .option(RakChannelOption.RAK_SERVER_COOKIE_MODE, rakSendCookie ? RakServerCookieMode.ACTIVE : RakServerCookieMode.INVALID)
-            .option(RakChannelOption.RAK_PROXY_PROTOCOL, this.geyser.config().advanced().bedrock().useHaproxyProtocol())
+            .option(RakChannelOption.RAK_PROXY_PROTOCOL, useHaproxyProtocol)
             .option(RakChannelOption.RAK_THROTTLE, rakRateLimitingDisabled ? null : new DefaultRakServerThrottle(maxConnectionsPerAddress, 4_000, 3))
             .childHandler(serverInitializer);
     }
 
     public boolean onConnectionRequest(InetSocketAddress inetSocketAddress, InetSocketAddress clientAddress) {
-        List<String> allowedProxyIPs = geyser.config().advanced().bedrock().haproxyProtocolWhitelistedIps();
-        if (geyser.config().advanced().bedrock().useHaproxyProtocol() && !allowedProxyIPs.isEmpty()) {
-            if (!TrustedProxies.parse(geyser.config().advanced().bedrock().haproxyProtocolWhitelistedIps()).contains(inetSocketAddress.getAddress())) {
-                connectionAttempts++;
-                return false;
-            }
+        if (trustedProxies != null && !trustedProxies.contains(inetSocketAddress.getAddress())) {
+            connectionAttempts++;
+            return false;
         }
 
         connectionAttempts++;
         return ConnectionRequests.accept(geyser, clientAddress,
-            geyser.config().advanced().bedrock().useHaproxyProtocol() ? inetSocketAddress : null);
+            useHaproxyProtocol ? inetSocketAddress : null);
     }
 
 

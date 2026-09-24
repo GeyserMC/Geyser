@@ -25,17 +25,24 @@
 
 package org.geysermc.geyser.network.bedrock.nethernet.signaling.provider;
 
-import org.cloudburstmc.protocol.bedrock.BedrockPong;
-import org.cloudburstmc.netty.signaling.ServerStatus;
+import org.cloudburstmc.netty.signaling.ProviderDiagnostic;
+import org.geysermc.geyser.GeyserLogger;
+import org.junit.jupiter.api.Test;
 
-/**
- * The Bedrock query supplies the listing name and capacity; actual Geyser sessions supply players.
- */
-public final class GeyserStatusCollector {
-    private GeyserStatusCollector() {
-    }
+import static org.mockito.Mockito.*;
 
-    public static ServerStatus snapshot(BedrockPong pong, int sessions, String level, int gameType) {
-        return new ServerStatus(pong.motd(), level, sessions, pong.maximumPlayerCount(), gameType);
+class GeyserProviderLoggerTest {
+    @Test
+    void preservesFailureRetryAndRecoveryLevels() {
+        var logger = mock(GeyserLogger.class);
+        var sink = new GeyserProviderLogger(logger);
+        sink.accept(new ProviderDiagnostic(ProviderDiagnostic.Level.WARN, "Connection failed."));
+        sink.accept(new ProviderDiagnostic(ProviderDiagnostic.Level.DEBUG, "Connection failed."));
+        sink.accept(new ProviderDiagnostic(ProviderDiagnostic.Level.INFO, "Reconnected."));
+        var order = inOrder(logger);
+        order.verify(logger).warning("NXS: Connection failed.");
+        order.verify(logger).debug("NXS: Connection failed.");
+        order.verify(logger).info("NXS: Reconnected.");
+        order.verifyNoMoreInteractions();
     }
 }
