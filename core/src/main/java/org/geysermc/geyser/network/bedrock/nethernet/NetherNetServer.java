@@ -346,7 +346,8 @@ public final class NetherNetServer implements EventRegistrar {
                 BedrockListener listener = geyser.config().bedrock();
                 var nxs = config.nxs();
                 ProviderRuntimeConfiguration runtime = ProviderRuntimeConfiguration.resolve(
-                    new ProviderRuntimeConfiguration.Settings(nxs.endpoint(), nxs.token(), nxs.advertiseAddresses(), nxs.data()),
+                    new ProviderRuntimeConfiguration.Settings(nxs.endpoint(), nxs.token(), nxs.advertiseAddresses(), nxs.data(),
+                        nxs.effectiveControlTransport(), nxs.diagnosticAdmission(), nxs.maintainedCandidates(), nxs.assistedJoins()),
                     dataFolder, listener.address(), webrtcPort, collectServerStatus().maxPlayers(), "Geyser");
                 URI origin = runtime.origin();
                 var statePath = runtime.stateDirectory();
@@ -370,7 +371,8 @@ public final class NetherNetServer implements EventRegistrar {
                     return;
                 }
                 initializingTransport = transport;
-                transport = new GameOutcomeTransport(transport, gameOutcomes);
+                transport = new GameOutcomeTransport(transport, gameOutcomes, logger(), runtime.clientConfiguration().assistedJoins(),
+                    nxs.diagnosticAdmission(), nxs.maintainedCandidates(), runtime.udpPort());
                 ProviderClient client = new ProviderClient(runtime.clientConfiguration(), store, transport,
                         () -> providerStatusSupplier.get(), () -> health(runtime.capacity()), new GeyserProviderLogger(logger()));
                 store = null; // ProviderClient now owns its lifetime.
@@ -397,7 +399,7 @@ public final class NetherNetServer implements EventRegistrar {
                     }
                     logger().info(registrationMessage(registration));
                     // Says where logins are vouched for, without putting provider credentials in the log
-                    logger().info("Player logins over NetherNet are verified by the external signaling service at " + origin.getHost() + ".");
+                    logger().debug("Player logins over NetherNet are verified by the external signaling service at " + origin.getHost() + ".");
                     WardenClaimAdapter claim = wardenClaim;
                     if (claim != null)
                         claim.current().thenAccept(action -> action.ifPresent(value -> logger().info(value.message())));

@@ -26,6 +26,7 @@
 package org.geysermc.geyser.configuration;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.cloudburstmc.netty.signaling.ProviderClient;
 import org.geysermc.geyser.Constants;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.network.AuthType;
@@ -199,10 +200,35 @@ public interface GeyserConfig {
 
         @ConfigSerializable
         interface NxsConfig {
-            @Comment("Additional public UDP endpoints players can reach this server on, e.g. 198.51.100.1:19133 or [2001:db8::1]:19133. Port forwarding is not set up for you.")
+            @Comment("Control transport: http uses HTTPS requests; auto uses the provider's advertised WebSocket with HTTPS fallback. Enabling assisted-joins always selects auto.")
+            default ProviderClient.ControlTransport controlTransport() {
+                return ProviderClient.ControlTransport.HTTP;
+            }
+
+            @Comment("Enable provider-assisted player connections explicitly. This automatically selects WebSocket control with HTTPS fallback. Failed regional checks keep assistance available because client NATs differ; failures never enable assistance automatically.")
+            @DefaultBoolean(false)
+            boolean assistedJoins();
+
+            @Exclude
+            default ProviderClient.ControlTransport effectiveControlTransport() {
+                if (assistedJoins()) {
+                    return ProviderClient.ControlTransport.AUTO;
+                }
+                return controlTransport();
+            }
+
+            @Comment("Complete set of reachable UDP endpoints, e.g. 198.51.100.1:19133 or [2001:db8::1]:19133. When set, only these endpoints are eligible. Without assistance, failed public endpoints are withheld until a successful maintenance check. Empty discovers local addresses. Configure forwarding separately.")
             default List<String> advertiseAddresses() {
                 return List.of();
             }
+
+            @Comment("Use provider-advertised STUN servers when a family has no public direct address. Mappings are offered immediately; without assistance, failed public endpoints are withheld while recovery checks continue. Assisted joins use per-join discovery instead. Configured advertise-addresses disable discovery and warming.")
+            @DefaultBoolean(true)
+            boolean maintainedCandidates();
+
+            @Comment("Allow authenticated provider connectivity probes on the gameplay socket. Candidates are offered before the first result, including fresh STUN mappings. Without assisted joins, failed public endpoints are withheld while recovery checks continue. Established sessions are unchanged.")
+            @DefaultBoolean(true)
+            boolean diagnosticAdmission();
 
             @Comment("Access token for the signaling service, or file:/path/to/token to read it from a file. Leave empty to register without an account.")
             @DefaultString()

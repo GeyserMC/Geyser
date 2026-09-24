@@ -30,6 +30,7 @@ import com.google.gson.JsonObject;
 import org.cloudburstmc.netty.signaling.ProviderTransport;
 import org.cloudburstmc.netty.signaling.control.AssistedJoin;
 import org.cloudburstmc.netty.signaling.diagnostic.DiagnosticHostPolicy;
+import org.geysermc.geyser.GeyserLogger;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -49,6 +50,64 @@ class GameOutcomeTransportTest {
     }
 
     @Test
+    void everyFailedPlayerConnectionWarnsWithoutRepeatingAssistedSetupErrors() {
+        var nativeTransport = mock(ProviderTransport.class);
+        var logger = mock(GeyserLogger.class);
+        var first = new JsonObject();
+        first.addProperty("stage", "ticket.failed");
+        first.addProperty("reason", "timeout");
+        var second = new JsonObject();
+        second.addProperty("stage", "ticket.failed");
+        second.addProperty("reason", "closed");
+        var setup = new JsonObject();
+        setup.addProperty("stage", "ticket.failed");
+        setup.addProperty("reason", "assisted_answer_failed");
+        when(nativeTransport.pollEvents()).thenReturn(List.of(first), List.of(second, setup), List.of());
+        var transport = new GameOutcomeTransport(nativeTransport, new GameOutcomeReporter(), logger, true);
+        assertEquals(List.of(first), transport.pollEvents());
+        assertEquals(List.of(second, setup), transport.pollEvents());
+        assertTrue(transport.pollEvents().isEmpty());
+        verify(logger, times(2)).warning("NXS: A player could not connect to the server.");
+        verifyNoMoreInteractions(logger);
+    }
+
+    @Test
+    void doesNotLogFeedbackUntilNativeDeliverySucceeds() {
+        var nativeTransport = mock(ProviderTransport.class);
+        var logger = mock(GeyserLogger.class);
+        var pending = new CompletableFuture<Void>();
+        when(nativeTransport.reportConnectivityChecks(anyLong(), anyList())).thenReturn(pending);
+        var transport = new GameOutcomeTransport(nativeTransport, new GameOutcomeReporter(), logger, false);
+        long now = System.currentTimeMillis();
+        var failed = new ProviderTransport.ConnectivityCheck(4, ProviderTransport.ConnectivityOutcome.NOT_ESTABLISHED, now - 1, now + 60000);
+        assertSame(pending, transport.reportConnectivityChecks(1, List.of(failed)));
+        verifyNoInteractions(logger);
+        pending.completeExceptionally(new IllegalStateException("Snapshot replaced"));
+        verifyNoInteractions(logger);
+    }
+
+    @Test
+    void silentlyIgnoredRetiredFeedbackCannotProduceAConsoleResult() {
+        var nativeTransport = mock(ProviderTransport.class);
+        var logger = mock(GeyserLogger.class);
+        when(nativeTransport.reportConnectivityChecks(anyLong(), anyList()))
+                .thenReturn(CompletableFuture.completedFuture(null));
+        when(nativeTransport.captureHostProfile()).thenReturn(CompletableFuture.completedFuture(
+                new ProviderTransport.HostProfileSnapshot(profile(), 2, () -> { })));
+        var transport = new GameOutcomeTransport(nativeTransport, new GameOutcomeReporter(), logger, false);
+        long now = System.currentTimeMillis();
+        var failed = new ProviderTransport.ConnectivityCheck(4, ProviderTransport.ConnectivityOutcome.NOT_ESTABLISHED, now - 1, now + 60000);
+        transport.reportConnectivityChecks(1, List.of(failed));
+        verifyNoInteractions(logger);
+        when(nativeTransport.captureHostProfile()).thenReturn(CompletableFuture.completedFuture(
+                new ProviderTransport.HostProfileSnapshot(profile(), 2, () -> {
+                    throw new IllegalStateException("retired");
+                })));
+        transport.reportConnectivityChecks(2, List.of(failed));
+        verifyNoInteractions(logger);
+    }
+
+    @Test
     void preservesAssistedSupportAndOriginalOfferGuard() {
         var nativeTransport = mock(ProviderTransport.class);
         var join = mock(AssistedJoin.class);
@@ -61,7 +120,7 @@ class GameOutcomeTransportTest {
         var pending = new CompletableFuture<String>();
         when(nativeTransport.supportsAssistedJoins()).thenReturn(true);
         when(nativeTransport.assistedJoin(join, requireCurrent)).thenReturn(pending);
-        var transport = new GameOutcomeTransport(nativeTransport, new GameOutcomeReporter());
+        var transport = new GameOutcomeTransport(nativeTransport, new GameOutcomeReporter(), mock(GeyserLogger.class), false);
 
         assertTrue(transport.supportsAssistedJoins());
         var answer = transport.assistedJoin(join, requireCurrent);
@@ -81,7 +140,7 @@ class GameOutcomeTransportTest {
         var pending = new CompletableFuture<ProviderTransport.HostProfileSnapshot>();
         when(nativeTransport.captureHostProfile()).thenReturn(pending);
         when(nativeTransport.candidatePublicationVersion()).thenReturn(7L);
-        var transport = new GameOutcomeTransport(nativeTransport, new GameOutcomeReporter());
+        var transport = new GameOutcomeTransport(nativeTransport, new GameOutcomeReporter(), mock(GeyserLogger.class), false);
 
         var captured = transport.captureHostProfile();
         assertSame(pending, captured);
@@ -113,7 +172,7 @@ class GameOutcomeTransportTest {
         var servers = List.of(new ProviderTransport.StunServer("stun.example", 3478));
         var pending = new CompletableFuture<Void>();
         when(nativeTransport.configureStunServers(servers)).thenReturn(pending);
-        var transport = new GameOutcomeTransport(nativeTransport, new GameOutcomeReporter());
+        var transport = new GameOutcomeTransport(nativeTransport, new GameOutcomeReporter(), mock(GeyserLogger.class), false);
 
         var configured = transport.configureStunServers(servers);
         assertSame(pending, configured);
@@ -134,7 +193,7 @@ class GameOutcomeTransportTest {
         when(nativeTransport.configureDiagnostics(policy, originalDeadline)).thenReturn(pending);
         var disabled = new CompletableFuture<Void>();
         when(nativeTransport.disableDiagnostics()).thenReturn(disabled);
-        var transport = new GameOutcomeTransport(nativeTransport, new GameOutcomeReporter());
+        var transport = new GameOutcomeTransport(nativeTransport, new GameOutcomeReporter(), mock(GeyserLogger.class), false);
 
         assertTrue(transport.supportsDiagnosticAdmission());
         var installed = transport.configureDiagnostics(policy, originalDeadline);
@@ -156,7 +215,7 @@ class GameOutcomeTransportTest {
             ProviderTransport.ConnectivityOutcome.NOT_ESTABLISHED, 1000, 2000));
         var pending = new CompletableFuture<Void>();
         when(nativeTransport.reportConnectivityChecks(3, checks)).thenReturn(pending);
-        var transport = new GameOutcomeTransport(nativeTransport, new GameOutcomeReporter());
+        var transport = new GameOutcomeTransport(nativeTransport, new GameOutcomeReporter(), mock(GeyserLogger.class), false);
 
         var delivered = transport.reportConnectivityChecks(3, checks);
         assertSame(pending, delivered);

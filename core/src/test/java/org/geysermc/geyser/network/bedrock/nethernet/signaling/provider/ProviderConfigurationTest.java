@@ -25,6 +25,9 @@
 
 package org.geysermc.geyser.network.bedrock.nethernet.signaling.provider;
 
+import com.google.gson.JsonParser;
+import org.cloudburstmc.netty.signaling.ProviderClient;
+import org.cloudburstmc.netty.signaling.provider.NativeProviderHostFactory;
 import org.cloudburstmc.netty.signaling.provider.ProviderRuntimeConfiguration;
 import org.geysermc.geyser.configuration.GeyserConfig;
 import org.junit.jupiter.api.Test;
@@ -40,7 +43,9 @@ import java.util.List;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * What Geyser's configuration binds to and hands the resolver. How the resolver treats those values
@@ -59,7 +64,8 @@ class ProviderConfigurationTest {
         throws IOException {
         var nxs = config.nxs();
         return ProviderRuntimeConfiguration.resolve(
-            new ProviderRuntimeConfiguration.Settings(nxs.endpoint(), nxs.token(), nxs.advertiseAddresses(), nxs.data()),
+            new ProviderRuntimeConfiguration.Settings(nxs.endpoint(), nxs.token(), nxs.advertiseAddresses(), nxs.data(),
+                nxs.effectiveControlTransport(), nxs.diagnosticAdmission(), nxs.maintainedCandidates(), nxs.assistedJoins()),
             dir, "::", 20000, 40, "Geyser");
     }
 
@@ -102,5 +108,91 @@ class ProviderConfigurationTest {
         assertEquals("::", result.bindAddress());
         assertEquals(20000, result.udpPort());
         assertEquals(List.of(), result.advertisedEndpoints());
+    }
+
+    @Test
+    void defaultsEnableMaintainedCandidatesAndAuthenticatedChecks(@TempDir Path dir) throws Exception {
+        var result = resolve(config("{}"), dir);
+        assertEquals(ProviderClient.ControlTransport.HTTP, result.controlTransport());
+        assertFalse(result.clientConfiguration().assistedJoins());
+        assertEquals("false", result.nativeHostOptions().get("assistedJoins"));
+        assertTrue(result.maintainedCandidates());
+        assertTrue(result.diagnosticAdmission());
+        assertFalse(result.nativeHostOptions().containsKey("stunServers"));
+        assertEquals(NativeProviderHostFactory.EXPLICIT_OR_PUBLIC_LOCAL, result.nativeHostOptions().get("endpointPolicy"));
+        assertEquals(NativeProviderHostFactory.MAINTAINED_V1, result.nativeHostOptions().get("candidatePublication"));
+    }
+
+    @Test
+    void enablingAssistedJoinsAutomaticallySelectsAutoTransport(@TempDir Path dir) throws Exception {
+        var result = resolve(config("nxs:\n  assisted-joins: true\n"), dir);
+
+        assertEquals(ProviderClient.ControlTransport.AUTO, result.clientConfiguration().controlTransport());
+        assertTrue(result.clientConfiguration().assistedJoins());
+        assertEquals("true", result.nativeHostOptions().get("assistedJoins"));
+    }
+
+    @Test
+    void assistedJoinsOverrideTheHttpSettingWrittenToExistingConfigs(@TempDir Path dir) throws Exception {
+        var config = config("""
+            nxs:
+              control-transport: http
+              assisted-joins: true
+            """);
+
+        assertEquals(ProviderClient.ControlTransport.HTTP, config.nxs().controlTransport());
+        var result = resolve(config, dir);
+        assertEquals(ProviderClient.ControlTransport.AUTO, result.controlTransport());
+        assertTrue(result.clientConfiguration().assistedJoins());
+    }
+
+    @Test
+    void autoTransportCanBeSelectedWithoutEnablingAssistedJoins(@TempDir Path dir) throws Exception {
+        var result = resolve(config("nxs:\n  control-transport: auto\n"), dir);
+
+        assertEquals(ProviderClient.ControlTransport.AUTO, result.controlTransport());
+        assertFalse(result.clientConfiguration().assistedJoins());
+    }
+
+    @Test
+    void passesOptInsToNativeAndClientSettings(@TempDir Path dir) throws Exception {
+        var result = resolve(config("""
+            nxs:
+              control-transport: auto
+              assisted-joins: true
+              maintained-candidates: true
+              diagnostic-admission: true
+            """), dir);
+        assertEquals(ProviderClient.ControlTransport.AUTO, result.clientConfiguration().controlTransport());
+        assertTrue(result.clientConfiguration().assistedJoins());
+        assertEquals("true", result.nativeHostOptions().get("assistedJoins"));
+        assertTrue(result.clientConfiguration().diagnosticAdmission());
+        assertEquals("discovered", result.clientConfiguration().connectivityMethod());
+        var options = result.nativeHostOptions();
+        assertEquals(NativeProviderHostFactory.MAINTAINED_V1, options.get("candidatePublication"));
+        assertEquals("true", options.get("diagnosticAdmission"));
+        assertFalse(options.containsKey("stunServers"));
+        assertEquals(dir.resolve("provider-state").toString(), options.get("stateDirectory"));
+    }
+
+    @Test
+    void explicitAddressesArePassedToTheHostPolicy(@TempDir Path dir) throws Exception {
+        var result = resolve(config("""
+            nxs:
+              advertise-addresses: ['8.8.8.8:19133']
+              maintained-candidates: true
+            """), dir);
+        assertFalse(result.nativeHostOptions().containsKey("stunServers"));
+        assertEquals("defined", result.clientConfiguration().connectivityMethod());
+        assertEquals(1, JsonParser.parseString(result.nativeHostOptions().get("advertisedEndpoints")).getAsJsonArray().size());
+    }
+
+    @Test
+    void refusesMalformedSettingsAndAllowsMaintainedCandidateOptOut(@TempDir Path dir) throws Exception {
+        assertThrows(IOException.class, () -> config("nxs:\n  control-transport: websocket-only\n"));
+        var optedOut = resolve(config("nxs:\n  maintained-candidates: false\n"), dir);
+        assertFalse(optedOut.maintainedCandidates());
+        assertEquals(NativeProviderHostFactory.MAINTAINED_V1, optedOut.nativeHostOptions().get("candidatePublication"));
+        assertEquals("false", optedOut.nativeHostOptions().get("stunWarming"));
     }
 }
