@@ -79,6 +79,7 @@ import java.net.UnknownHostException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
+import java.util.Locale;
 import java.util.Objects;
 import java.util.Random;
 import java.util.Set;
@@ -397,7 +398,7 @@ public final class NetherNetServer implements EventRegistrar {
                         stopProvider();
                         return;
                     }
-                    logger().info(registrationMessage(registration));
+                    logger().info(registrationMessage(registration, origin));
                     // Says where logins are vouched for, without putting provider credentials in the log
                     logger().debug("Player logins over NetherNet are verified by the external signaling service at " + origin.getHost() + ".");
                     WardenClaimAdapter claim = wardenClaim;
@@ -455,13 +456,21 @@ public final class NetherNetServer implements EventRegistrar {
             new ProviderClient.PlayerCount(players, System.currentTimeMillis()));
     }
 
-    private static String registrationMessage(JsonObject registration) {
+    private static String registrationMessage(JsonObject registration, URI origin) {
         String instanceId = registration.get("instanceId").getAsString();
         JsonElement address = registration.get("publicAddress");
-        return address != null && !address.isJsonNull()
+        String message = address != null && !address.isJsonNull()
             ? "Registered with the external signaling service. Players can join at " + address.getAsString() + " (instance " + instanceId + ")."
             : "Registered with the external signaling service (instance " + instanceId + "). "
                 + "The addresses players join with are managed by the service.";
+        String host = origin.getHost().toLowerCase(Locale.ROOT);
+        if (host.endsWith(".")) {
+            host = host.substring(0, host.length() - 1);
+        }
+        if (host.equals("warden.cloud") || host.endsWith(".warden.cloud")) {
+            message += " Use of Warden is subject to the terms and conditions at https://ziax.com/terms/.";
+        }
+        return message;
     }
 
     public @Nullable WardenClaimAdapter wardenClaim() {
