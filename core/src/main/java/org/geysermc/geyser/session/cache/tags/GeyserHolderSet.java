@@ -39,6 +39,7 @@ import org.geysermc.geyser.session.cache.registry.JavaRegistryKey;
 import org.geysermc.geyser.util.MinecraftKey;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.HolderSet;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Function;
@@ -64,28 +65,46 @@ public final class GeyserHolderSet<T> {
     private final @Nullable Tag<T> tag;
     private final @Nullable IntList holders;
     private final @Nullable List<T> inline;
+    private final @Nullable List<HolderEntry<T>> entries;
+
+    public sealed interface HolderEntry<T> permits HolderEntry.Direct, HolderEntry.Id {
+        record Direct<T>(T value) implements HolderEntry<T> {}
+        record Id<T>(int id) implements HolderEntry<T> {}
+    }
 
     private GeyserHolderSet(JavaRegistryKey<T> registry) {
         this(registry, IntLists.emptyList());
     }
 
     public GeyserHolderSet(JavaRegistryKey<T> registry, @Nullable IntList holders) {
-        this(registry, null, holders, null);
+        this(registry, null, holders, null, null);
     }
 
     public GeyserHolderSet(JavaRegistryKey<T> registry, @NonNull Tag<T> tagId) {
-        this(registry, tagId, null, null);
+        this(registry, tagId, null, null, null);
     }
 
     public GeyserHolderSet(JavaRegistryKey<T> registry, @NonNull List<T> inline) {
-        this(registry, null, null, inline);
+        this(registry, null, null, inline, null);
     }
 
     private GeyserHolderSet(JavaRegistryKey<T> registry, @Nullable Tag<T> tag, @Nullable IntList holders, @Nullable List<T> inline) {
+        this(registry, tag, holders, inline, null);
+    }
+
+    private GeyserHolderSet(JavaRegistryKey<T> registry, @Nullable Tag<T> tag, @Nullable IntList holders, @Nullable List<T> inline, @Nullable List<HolderEntry<T>> entries) {
         this.registry = registry;
         this.tag = tag;
         this.holders = holders;
         this.inline = inline;
+        this.entries = entries;
+    }
+
+    /**
+     * Constructs a {@link GeyserHolderSet} from an ordered list of {@link HolderEntry} elements.
+     */
+    public static <T> GeyserHolderSet<T> ofEntries(JavaRegistryKey<T> registry, @NonNull List<HolderEntry<T>> entries) {
+        return new GeyserHolderSet<>(registry, null, null, null, entries);
     }
 
     /**
@@ -101,11 +120,29 @@ public final class GeyserHolderSet<T> {
     public static <T> GeyserHolderSet<T> fromHolderSet(JavaRegistryKey<T> registry, @NonNull HolderSet holderSet) {
         // MCPL HolderSets don't have to support inline elements... for now (TODO CHECK ME)
         Tag<T> tag = holderSet.getLocation() == null ? null : new Tag<>(registry, holderSet.getLocation());
-        return new GeyserHolderSet<>(registry, tag, holderSet.getHolders(), null);
+        return new GeyserHolderSet<>(registry, tag, holderSet.getHolders(), null, null);
     }
 
     public boolean contains(@NonNull GeyserSession session, @Nullable T object) {
         if (object == null) {
+            return false;
+        }
+        if (inline != null) {
+            return inline.contains(object);
+        }
+        if (entries != null) {
+            int id = registry.networkId(session, object);
+            for (HolderEntry<T> entry : entries) {
+                if (entry instanceof HolderEntry.Direct<T> direct) {
+                    if (Objects.equals(direct.value(), object)) {
+                        return true;
+                    }
+                } else if (entry instanceof HolderEntry.Id<T> idEntry) {
+                    if (id != -1 && idEntry.id() == id) {
+                        return true;
+                    }
+                }
+            }
             return false;
         }
         return session.getTagCache().is(this, object);
@@ -114,6 +151,7 @@ public final class GeyserHolderSet<T> {
     /**
      * Resolves the HolderSet, and automatically maps the network IDs to their respective object types.
      * If the HolderSet is a list of IDs, this will be returned. If it is a tag, the tag will be resolved from the tag cache. If it is an inline HolderSet, the list of inline elements will be returned.
+     * If it is a heterogeneous HolderSet, the inline elements and resolved registered objects are returned in order.
      *
      * @return the HolderSet turned into a list of objects.
      */
@@ -121,19 +159,33 @@ public final class GeyserHolderSet<T> {
         if (inline != null) {
             return inline;
         }
+        if (entries != null) {
+            List<T> result = new ArrayList<>(entries.size());
+            for (HolderEntry<T> entry : entries) {
+                if (entry instanceof HolderEntry.Direct<T> direct) {
+                    result.add(direct.value());
+                } else if (entry instanceof HolderEntry.Id<T> idEntry) {
+                    T value = registry.value(session, idEntry.id());
+                    if (value != null) {
+                        result.add(value);
+                    }
+                }
+            }
+            return result;
+        }
         return TagCache.mapRawArray(session, resolveRaw(session.getTagCache()), registry);
     }
 
     /**
      * Resolves the HolderSet into a list of network IDs. If the HolderSet is a list of IDs, this will be returned. If it is a tag, the tag will be resolved from the tag cache.
      *
-     * <p>If the HolderSet is a list of inline elements, this method will throw! Inline elements are not registered and as such do not have a network ID.</p>
+     * <p>If the HolderSet has inline elements, this method will throw! Inline elements are not registered and as such do not have a network ID.</p>
      *
      * @return the HolderSet turned into a list of network IDs.
-     * @throws IllegalStateException when the HolderSet is a list of inline elements.
+     * @throws IllegalStateException when the HolderSet contains inline elements.
      */
     public IntList resolveRaw(TagCache tagCache) {
-        if (inline != null) {
+        if (inline != null || entries != null) {
             throw new IllegalStateException("Tried to resolve network IDs of a GeyserHolderSet(registry=" + registry  + ") with inline elements!");
         } else if (holders != null) {
             return holders;
@@ -185,7 +237,8 @@ public final class GeyserHolderSet<T> {
         // so it works. If this ever changes, we'll have to accommodate for that here
         if (holderSet instanceof NbtMap singleInlineElement && reader != null) {
             return new GeyserHolderSet<>(registry, List.of(reader.apply(singleInlineElement)));
-        } if (holderSet instanceof String elementOrTag) {
+        }
+        if (holderSet instanceof String elementOrTag) {
             if (elementOrTag.startsWith("#")) {
                 // Tag
                 return new GeyserHolderSet<>(registry, new Tag<>(registry, MinecraftKey.key(elementOrTag.substring(1)))); // Remove '#' at beginning that indicates a tag
@@ -196,19 +249,45 @@ public final class GeyserHolderSet<T> {
         } else if (holderSet instanceof List<?> list) {
             if (list.isEmpty()) {
                 return new GeyserHolderSet<>(registry);
-            } else if (list.getFirst() instanceof NbtMap) {
+            }
+
+            boolean hasInline = false;
+            boolean hasReference = false;
+            for (Object element : list) {
+                if (element instanceof NbtMap) {
+                    hasInline = true;
+                } else if (element instanceof String) {
+                    hasReference = true;
+                }
+            }
+
+            if (hasInline && !hasReference) {
                 if (reader != null) {
                     return new GeyserHolderSet<>(registry, list.stream().map(o -> (NbtMap) o).map(reader).toList());
                 }
-            } else {
+            } else if (hasReference && !hasInline) {
                 // Assume the list is a list of strings (resource locations)
-                return new GeyserHolderSet<>(registry, IntList.of(list.stream().map(o -> (String) o).map(Key::key).mapToInt(idMapper).toArray()));
+                return new GeyserHolderSet<>(registry, IntList.of(list.stream().map(o -> (String) o).map(MinecraftKey::key).mapToInt(idMapper).toArray()));
+            } else if (hasInline && hasReference) {
+                if (reader != null) {
+                    List<HolderEntry<T>> entries = new ArrayList<>(list.size());
+                    for (Object element : list) {
+                        if (element instanceof NbtMap map) {
+                            entries.add(new HolderEntry.Direct<>(reader.apply(map)));
+                        } else if (element instanceof String str) {
+                            entries.add(new HolderEntry.Id<>(idMapper.applyAsInt(MinecraftKey.key(str))));
+                        } else {
+                            GeyserImpl.getInstance().getLogger().warning("Unexpected element type in mixed HolderSet for registry " + registry + ": " + element);
+                        }
+                    }
+                    return ofEntries(registry, entries);
+                }
             }
         }
 
         String expected = reader == null ? "either a tag, a string ID, or a list of string IDs"
-            : "either a tag, a string ID, an inline registry element, a list of string IDs, or a list of inline registry elements";
-        GeyserImpl.getInstance().getLogger().warning("Failed parsing HolderSet for registry + " + registry + "! Expected " + expected + ", found " + holderSet);
+            : "either a tag, a string ID, an inline registry element, a list of string IDs, a list of inline registry elements, or a heterogeneous list of both";
+        GeyserImpl.getInstance().getLogger().warning("Failed parsing HolderSet for registry " + registry + "! Expected " + expected + ", found " + holderSet);
         return new GeyserHolderSet<>(registry);
     }
 }
