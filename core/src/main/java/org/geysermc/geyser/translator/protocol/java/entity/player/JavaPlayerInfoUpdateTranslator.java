@@ -97,9 +97,6 @@ public class JavaPlayerInfoUpdateTranslator extends PacketTranslator<Clientbound
                         PlayerListPacket.Entry playerListEntry = SkinManager.buildEntryFromCachedSkin(session, entity);
                         playerListEntry.setAction(PlayerListPacket.Action.ADD);
                         toAdd.add(playerListEntry);
-                        if (!GeyserWaypoint.uses26_10WaypointPacket(session)) {
-                            session.getWaypointCache().addEntity(entity);
-                        }
                     }
                 } else {
                     // No need to unlist players that were never listed
@@ -107,10 +104,6 @@ public class JavaPlayerInfoUpdateTranslator extends PacketTranslator<Clientbound
                         PlayerListPacket.Entry playerListEntry = new PlayerListPacket.Entry(entity.getTabListUuid());
                         playerListEntry.setAction(PlayerListPacket.Action.REMOVE);
                         toRemove.add(playerListEntry);
-
-                        if (!GeyserWaypoint.uses26_10WaypointPacket(session)) {
-                            session.getWaypointCache().removeEntity(entity);
-                        }
                     }
                 }
                 entity.setListed(entry.isListed());

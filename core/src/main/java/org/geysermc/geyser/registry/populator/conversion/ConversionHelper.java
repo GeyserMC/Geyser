@@ -48,4 +48,14 @@ public class ConversionHelper {
         return tagBuilder.build();
     }
 
+    static NbtMap removeStates(NbtMap map, String firstState, String... otherStates) {
+        NbtMapBuilder builder = map.toBuilder();
+        NbtMapBuilder states = map.getCompound("states").toBuilder();
+        states.remove(firstState);
+        for (String otherState : otherStates) {
+            states.remove(otherState);
+        }
+        builder.putCompound("states", states.build());
+        return builder.build();
+    }
 }
