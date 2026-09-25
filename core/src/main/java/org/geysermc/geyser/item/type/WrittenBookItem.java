@@ -47,6 +47,31 @@ public class WrittenBookItem extends Item {
     public static final int MAXIMUM_PAGE_COUNT = 100; // Java edition limit. Bedrock edition has a limit of 50 pages.
     public static final int MAXIMUM_TITLE_LENGTH = 16;
 
+    /**
+     * Plugins can create books far beyond what either edition can write. Bedrock echoes the
+     * full item back in inventory transactions, and one over ~100 KiB of NBT gets the session
+     * disconnected by the decoder's read limit. Project such books into Bedrock's own editing
+     * limits instead; the Java-side item is authoritative and stays complete.
+     * https://github.com/GeyserMC/Geyser/issues/6098
+     */
+    public static final int MAXIMUM_BEDROCK_PAGE_COUNT = 50;
+    public static final int MAXIMUM_BEDROCK_PAGE_LENGTH = 256;
+
+    static String boundedText(String text, int maximumLength) {
+        if (text.length() <= maximumLength) {
+            return text;
+        }
+        int end = maximumLength;
+        if (Character.isHighSurrogate(text.charAt(end - 1))) {
+            end--;
+        }
+        return text.substring(0, end);
+    }
+
+    static String boundedPageText(String text) {
+        return boundedText(text, MAXIMUM_BEDROCK_PAGE_LENGTH);
+    }
+
     public WrittenBookItem(String javaIdentifier, Builder builder) {
         super(javaIdentifier, builder);
     }
@@ -61,15 +86,21 @@ public class WrittenBookItem extends Item {
         }
         List<NbtMap> bedrockPages = new ArrayList<>();
         for (Filterable<Component> page : bookContent.getPages()) {
+            if (bedrockPages.size() >= MAXIMUM_BEDROCK_PAGE_COUNT) {
+                break;
+            }
             NbtMapBuilder pageBuilder = NbtMap.builder();
             pageBuilder.putString("photoname", "");
-            pageBuilder.putString("text", MessageTranslator.convertMessage(session, page.getRaw()));
+            pageBuilder.putString("text", boundedPageText(MessageTranslator.convertMessage(session, page.getRaw())));
             bedrockPages.add(pageBuilder.build());
         }
         builder.putList("pages", NbtType.COMPOUND, bedrockPages);
 
-        builder.putString("title", bookContent.getTitle().getRaw())
-                .putString("author", bookContent.getAuthor())
+        // The title and author count against the same decode limit as the pages, and a plugin can
+        // make them arbitrarily long. 256 characters is far beyond anything either edition can
+        // write itself.
+        builder.putString("title", boundedText(bookContent.getTitle().getRaw(), 256))
+                .putString("author", boundedText(bookContent.getAuthor(), 256))
                 .putInt("generation", bookContent.getGeneration());
     }
 }
