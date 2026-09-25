@@ -152,7 +152,7 @@ public final class GameProtocol {
      * @return the supported Minecraft: Java Edition version names
      */
     public static List<String> getJavaVersions() {
-        return List.of(DEFAULT_JAVA_CODEC.getMinecraftVersion(), "26.1.1", "26.1.2");
+        return List.of(DEFAULT_JAVA_CODEC.getMinecraftVersion());
     }
 
     /**

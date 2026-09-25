@@ -35,7 +35,9 @@ import org.geysermc.mcprotocollib.protocol.data.game.item.ItemStack;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.AttackRange;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.BlockStateProperties;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.BlocksAttacks;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.BrewingFuel;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.Consumable;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.CookingFuel;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.CustomModelData;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponent;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType;
@@ -48,9 +50,10 @@ import org.geysermc.mcprotocollib.protocol.data.game.item.component.IntComponent
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.ItemAttributeModifiers;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.KineticWeapon;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.LodestoneTracker;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.MobVisibility;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.PiercingWeapon;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.PotDecorations;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.PotionContents;
-import org.geysermc.mcprotocollib.protocol.data.game.item.component.SwingAnimation;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.ToolData;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.TooltipDisplay;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.TypedEntityData;
@@ -153,9 +156,11 @@ public class DataComponentHashers {
             .optional("max_creative_reach", MinecraftHasher.FLOAT, AttackRange::maxCreativeReach, 5.0F)
             .optional("hitbox_margin", MinecraftHasher.FLOAT, AttackRange::hitboxMargin, 0.3F)
             .optional("mob_factor", MinecraftHasher.FLOAT, AttackRange::mobFactor, 1.0F));
-        registerMap(DataComponentTypes.SWING_ANIMATION, builder -> builder
-            .optional("type", RegistryHasher.SWING_ANIMATION_TYPE, SwingAnimation::type, SwingAnimation.Type.WHACK)
-            .optional("duration", MinecraftHasher.INT, SwingAnimation::duration, 6));
+        register(DataComponentTypes.ATTACK_ANIMATION, RegistryHasher.SWING_ANIMATION);
+        register(DataComponentTypes.INTERACT_ANIMATION, RegistryHasher.SWING_ANIMATION);
+        register(DataComponentTypes.BLOCK_TRANSFORMER, RegistryHasher.BLOCK_TRANSFORMER);
+        registerMap(DataComponentTypes.VILLAGER_FOOD, builder -> builder
+            .accept("nutrition", MinecraftHasher.INT, Function.identity()));
         registerMap(DataComponentTypes.ENCHANTABLE, builder -> builder
             .accept("value", MinecraftHasher.INT, Function.identity()));
         registerMap(DataComponentTypes.EQUIPPABLE, builder -> builder
@@ -201,7 +206,6 @@ public class DataComponentHashers {
         register(DataComponentTypes.DYE, MinecraftHasher.DYE_COLOR);
 
         registerInt(DataComponentTypes.DYED_COLOR);
-        registerInt(DataComponentTypes.MAP_COLOR);
         registerInt(DataComponentTypes.MAP_ID);
         register(DataComponentTypes.MAP_DECORATIONS, MinecraftHasher.NBT_MAP);
 
@@ -258,7 +262,13 @@ public class DataComponentHashers {
         register(DataComponentTypes.NOTE_BLOCK_SOUND, MinecraftHasher.KEY);
         register(DataComponentTypes.BANNER_PATTERNS, RegistryHasher.BANNER_PATTERN_LAYER.list());
         register(DataComponentTypes.BASE_COLOR, MinecraftHasher.DYE_COLOR);
-        register(DataComponentTypes.POT_DECORATIONS, RegistryHasher.ITEM.list());
+
+        registerMap(DataComponentTypes.POT_DECORATIONS, builder -> builder
+            .optionalNullable("back", RegistryHasher.ITEM_STACK, PotDecorations::back)
+            .optionalNullable("left", RegistryHasher.ITEM_STACK, PotDecorations::left)
+            .optionalNullable("right", RegistryHasher.ITEM_STACK, PotDecorations::right)
+            .optionalNullable("front", RegistryHasher.ITEM_STACK, PotDecorations::front));
+
         register(DataComponentTypes.CONTAINER, RegistryHasher.ITEM_CONTAINER_CONTENTS);
         register(DataComponentTypes.BLOCK_STATE, MinecraftHasher.map(MinecraftHasher.STRING, MinecraftHasher.STRING).cast(BlockStateProperties::getProperties));
         register(DataComponentTypes.BEES, RegistryHasher.BEEHIVE_OCCUPANT.list());
@@ -267,6 +277,18 @@ public class DataComponentHashers {
         register(DataComponentTypes.LOCK, MinecraftHasher.NBT_MAP);
         register(DataComponentTypes.CONTAINER_LOOT, MinecraftHasher.NBT_MAP);
         register(DataComponentTypes.BREAK_SOUND, RegistryHasher.SOUND_EVENT);
+
+        registerMap(DataComponentTypes.COMPOSTABLE, builder -> builder
+            .accept("layers", RegistryHasher.RESOLVABLE_INT, Function.identity()));
+        registerMap(DataComponentTypes.COOKING_FUEL, builder -> builder
+            .accept("burn_time", RegistryHasher.RESOLVABLE_INT, CookingFuel::burnTime)
+            .accept("speed_multiplier", RegistryHasher.RESOLVABLE_FLOAT, CookingFuel::speedMultiplier));
+        registerMap(DataComponentTypes.BREWING_FUEL, builder -> builder
+            .accept("uses", RegistryHasher.RESOLVABLE_INT, BrewingFuel::uses)
+            .accept("speed_multiplier", RegistryHasher.RESOLVABLE_FLOAT, BrewingFuel::speedMultiplier));
+        registerMap(DataComponentTypes.MOB_VISIBILITY, builder -> builder
+            .accept("targeting_entity_types", RegistryHasher.ENTITY_TYPE.holderSet(), MobVisibility::targetingEntityTypes)
+            .accept("visibility", MinecraftHasher.FLOAT, MobVisibility::visibility));
 
         register(DataComponentTypes.VILLAGER_VARIANT, RegistryHasher.VILLAGER_TYPE);
         register(DataComponentTypes.WOLF_VARIANT, RegistryHasher.WOLF_VARIANT);
@@ -297,6 +319,11 @@ public class DataComponentHashers {
         register(DataComponentTypes.CAT_COLLAR, MinecraftHasher.DYE_COLOR);
         register(DataComponentTypes.SHEEP_COLOR, MinecraftHasher.DYE_COLOR);
         register(DataComponentTypes.SHULKER_COLOR, MinecraftHasher.DYE_COLOR);
+        register(DataComponentTypes.PROVIDES_POTTERY_PATTERN, RegistryHasher.DECORATED_POT_PATTERN);
+        register(DataComponentTypes.SIGN_TEXT_FRONT, RegistryHasher.SIGN_TEXT);
+        register(DataComponentTypes.SIGN_TEXT_BACK, RegistryHasher.SIGN_TEXT);
+        register(DataComponentTypes.WAXED, MinecraftHasher.UNIT);
+        register(DataComponentTypes.CUSHION_COLOR, MinecraftHasher.DYE_COLOR);
     }
 
     private static void registerUnit(DataComponentType<Unit> component) {

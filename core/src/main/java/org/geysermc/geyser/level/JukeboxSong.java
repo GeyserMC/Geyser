@@ -32,7 +32,7 @@ import org.geysermc.geyser.util.SoundUtils;
 public record JukeboxSong(String soundEvent, String description) {
 
     public static JukeboxSong read(RegistryEntryContext context) {
-        NbtMap data = context.data();
+        NbtMap data = context.dataAsMap();
         String soundEvent = SoundUtils.readSoundEvent(data, "jukebox song " + context.id());
         return new JukeboxSong(soundEvent, context.deserializeDescription());
     }

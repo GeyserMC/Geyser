@@ -147,7 +147,10 @@ public class ComponentConverters {
         registerConverter(JavaItemDataComponents.PIERCING_WEAPON, (itemMap, value) -> itemMap.put(DataComponentTypes.PIERCING_WEAPON,
             new PiercingWeapon(false, false, null, null)));
 
-        registerConverter(JavaItemDataComponents.SWING_ANIMATION, (itemMap, value) -> itemMap.put(DataComponentTypes.SWING_ANIMATION,
+        // Deprecated since 26.3
+        registerConverter(JavaItemDataComponents.SWING_ANIMATION, (itemMap, value) -> itemMap.put(DataComponentTypes.ATTACK_ANIMATION,
+            new SwingAnimation(SwingAnimation.Type.WHACK, value.duration())));
+        registerConverter(JavaItemDataComponents.ATTACK_ANIMATION, (itemMap, value) -> itemMap.put(DataComponentTypes.ATTACK_ANIMATION,
             new SwingAnimation(SwingAnimation.Type.WHACK, value.duration())));
 
         registerConverter(JavaItemDataComponents.USE_EFFECTS, (itemMap, value) -> itemMap.put(DataComponentTypes.USE_EFFECTS,

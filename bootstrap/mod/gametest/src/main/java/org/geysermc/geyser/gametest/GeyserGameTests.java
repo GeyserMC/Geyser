@@ -36,12 +36,16 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.gametest.framework.GameTestInstance;
 import net.minecraft.gametest.framework.TestEnvironmentDefinition;
+import net.minecraft.network.ProtocolInfo;
+import net.minecraft.network.protocol.configuration.ConfigurationProtocols;
+import net.minecraft.network.protocol.game.GameProtocols;
 import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.EntityTypes;
 import net.minecraft.world.item.Item;
 import org.geysermc.geyser.gametest.tests.EntityMetadataTest;
+import org.geysermc.geyser.gametest.tests.JavaPacketTranslatorExistenceTest;
 import org.geysermc.geyser.gametest.tests.ResolvableComponentLoadingTestInstance;
 
 import java.io.IOException;
@@ -64,6 +68,10 @@ public final  class GeyserGameTests {
         return createKey(testType.getPath() + "/" + name);
     }
 
+    private static ResourceKey<GameTestInstance> createKey(Identifier testType, Identifier testInstance) {
+        return createKey(testType, testInstance.getPath());
+    }
+
     private static ResourceKey<GameTestInstance> createSingletonKey(Identifier testType) {
         return createKey(testType.getPath());
     }
@@ -78,16 +86,21 @@ public final  class GeyserGameTests {
 
     private static void registerEntityTypeTests(HolderGetter<TestEnvironmentDefinition<?>> testEnvironments, FabricDynamicRegistryProvider.Entries entries) {
         for (EntityType<?> entityType : BuiltInRegistries.ENTITY_TYPE) {
-            entries.add(createKey(GeyserGameTestTypes.ENTITY_METADATA, BuiltInRegistries.ENTITY_TYPE.getKey(entityType).getPath()),
+            entries.add(createKey(GeyserGameTestTypes.ENTITY_METADATA, BuiltInRegistries.ENTITY_TYPE.getKey(entityType)),
                 new EntityMetadataTest(testEnvironments, !UNSUPPORTED_ENTITY_TYPES.contains(entityType), entityType));
         }
     }
 
     private static void registerResolvableComponentLoadingTests(HolderGetter<TestEnvironmentDefinition<?>> testEnvironments, GeyserGameTestPlatform platform, FabricDynamicRegistryProvider.Entries entries) {
         for (Holder<Item> item : findItemsWithResolvableComponents(platform)) {
-            entries.add(createKey(GeyserGameTestTypes.RESOLVABLE_COMPONENTS, item.unwrapKey().orElseThrow().identifier().getPath()),
+            entries.add(createKey(GeyserGameTestTypes.RESOLVABLE_COMPONENTS, item.unwrapKey().orElseThrow().identifier()),
                 new ResolvableComponentLoadingTestInstance(testEnvironments, true, item));
         }
+    }
+
+    private static void registerPacketTranslatorTests(HolderGetter<TestEnvironmentDefinition<?>> testEnvironments, FabricDynamicRegistryProvider.Entries entries, ProtocolInfo.DetailsProvider protocol) {
+        JavaPacketTranslatorExistenceTest.createForProtocol(testEnvironments, true, protocol)
+            .forEach(test -> entries.add(createKey(GeyserGameTestTypes.PACKET_TRANSLATOR_EXISTENCE, test.packetId()), test));
     }
 
     public static void bootstrap(HolderLookup.Provider registries, FabricDynamicRegistryProvider.Entries entries) {
@@ -98,6 +111,9 @@ public final  class GeyserGameTests {
         registerSingletonTest(testEnvironments, entries, GeyserGameTestTypes.REQUIRED_COMPONENTS_FOR_HASHING);
         registerSingletonTest(testEnvironments, entries, GeyserGameTestTypes.MINECRAFT_VERSION);
         registerResolvableComponentLoadingTests(testEnvironments, platform, entries);
+
+        registerPacketTranslatorTests(testEnvironments, entries, ConfigurationProtocols.CLIENTBOUND_TEMPLATE);
+        registerPacketTranslatorTests(testEnvironments, entries, GameProtocols.CLIENTBOUND_TEMPLATE);
     }
 
     private static List<Holder<Item>> findItemsWithResolvableComponents(GeyserGameTestPlatform platform) {

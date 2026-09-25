@@ -158,13 +158,29 @@ public interface JavaItemDataComponents {
     ItemDataComponent<JavaPiercingWeapon> PIERCING_WEAPON = create("piercing_weapon");
 
     /**
-     * Specifies the swing animation to play when attacking or interacting using the item. Due to Bedrock limitations, the actual animation played
+     * Specifies the swing animation to play when attacking or mining using the item. Due to Bedrock limitations, the actual animation played
      * cannot be specified, only the duration of the animation.
+     *
+     * <p>This component is deprecated: in Java Edition 26.3, Mojang has split the {@code minecraft:swing_animation} component
+     * into a {@code minecraft:attack_animation} and {@code minecraft:interact_animation} component. The latter is not supported on Bedrock,
+     * whilst the former can now be found at {@link JavaItemDataComponents#ATTACK_ANIMATION}.
+     * Just like this component, only the duration of the animation can be specified.</p>
      *
      * @see JavaSwingAnimation
      * @since 2.9.3
+     * @deprecated since 2.12.0: use {@link JavaItemDataComponents#ATTACK_ANIMATION} instead
      */
+    @Deprecated(since = "2.12.0")
     ItemDataComponent<JavaSwingAnimation> SWING_ANIMATION = create("swing_animation");
+
+    /**
+     * Specifies the attack animation to play when attacking or mining using the item. Due to Bedrock limitations, the actual animation played
+     * cannot be specified, only the duration of the animation.
+     *
+     * @see JavaSwingAnimation
+     * @since 2.12.0
+     */
+    ItemDataComponent<JavaSwingAnimation> ATTACK_ANIMATION = create("attack_animation");
 
     /**
      * Specifies how the player behaves when using the item. Due to Bedrock limitations, the {@code can_sprint} property cannot be translated.

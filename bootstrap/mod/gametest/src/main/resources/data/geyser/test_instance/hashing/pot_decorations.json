@@ -2,16 +2,28 @@
   "type": "geyser:component_hash",
   "component": "minecraft:pot_decorations",
   "value": [
-    [],
-    [
-      "minecraft:porkchop",
-      "minecraft:stick"
-    ],
-    [
-      "minecraft:leather",
-      "minecraft:diamond",
-      "minecraft:coal",
-      "minecraft:string"
-    ]
+    {},
+    {
+      "left": {
+        "id": "minecraft:porkchop"
+      },
+      "right": {
+        "id": "minecraft:stick"
+      }
+    },
+    {
+      "back": {
+        "id": "minecraft:leather"
+      },
+      "left": {
+        "id": "minecraft:diamond"
+      },
+      "right": {
+        "id": "minecraft:coal"
+      },
+      "front": {
+        "id": "minecraft:string"
+      }
+    }
   ]
 }

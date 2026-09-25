@@ -56,6 +56,7 @@ import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponen
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.Fireworks;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.ItemEnchantments;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.PotDecorations;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.PotionContents;
 
 import java.util.ArrayList;
@@ -171,10 +172,13 @@ public final class ItemStackParser {
                 hasTrail, hasTwinkle);
         });
         registerSimple(DataComponentTypes.ITEM_MODEL, String.class, MinecraftKey::key);
-        registerSimple(DataComponentTypes.MAP_COLOR, Integer.class);
-        registerSimple(DataComponentTypes.POT_DECORATIONS, List.class, list -> list.stream()
-            .map(item -> javaItemIdentifierToNetworkId((String) item))
-            .toList());
+        register(DataComponentTypes.POT_DECORATIONS, NbtMap.class, (session, map) -> {
+            ItemStack back = parseItemStack(session, map.getCompound("back", null), null);
+            ItemStack left = parseItemStack(session, map.getCompound("left", null), null);
+            ItemStack right = parseItemStack(session, map.getCompound("right", null), null);
+            ItemStack front = parseItemStack(session, map.getCompound("front", null), null);
+            return new PotDecorations(back, left, right, front);
+        });
         register(DataComponentTypes.POTION_CONTENTS, NbtMap.class, (session, map) -> {
             Potion potion = Potion.getByJavaIdentifier(map.getString("potion"));
             int customColour = map.getInt("custom_color", -1);
@@ -234,9 +238,9 @@ public final class ItemStackParser {
         return patch;
     }
 
-    public static ItemStack parseItemStack(GeyserSession session, @Nullable NbtMap map) {
+    public static @Nullable ItemStack parseItemStack(GeyserSession session, @Nullable NbtMap map, @Nullable ItemStack fallback) {
         if (map == null) {
-            return new ItemStack(Items.AIR_ID);
+            return fallback;
         }
 
         try {
@@ -247,7 +251,11 @@ public final class ItemStackParser {
         } catch (Exception exception) {
             GeyserImpl.getInstance().getLogger().error("Failed to parse item stack from NBT data!", exception);
         }
-        return new ItemStack(Items.AIR_ID);
+        return fallback;
+    }
+
+    public static ItemStack parseItemStack(GeyserSession session, @Nullable NbtMap map) {
+        return parseItemStack(session, map, new ItemStack(Items.AIR_ID));
     }
 
     /**
