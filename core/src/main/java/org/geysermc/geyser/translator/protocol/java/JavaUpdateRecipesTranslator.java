@@ -27,8 +27,6 @@ package org.geysermc.geyser.translator.protocol.java;
 
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
-import it.unimi.dsi.fastutil.ints.IntIterator;
-import it.unimi.dsi.fastutil.ints.IntList;
 import net.kyori.adventure.key.Key;
 import org.cloudburstmc.protocol.bedrock.data.definitions.ItemDefinition;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
@@ -49,6 +47,7 @@ import org.geysermc.geyser.inventory.recipe.GeyserSmithingRecipe;
 import org.geysermc.geyser.inventory.recipe.GeyserStonecutterData;
 import org.geysermc.geyser.inventory.recipe.TrimRecipes;
 import org.geysermc.geyser.item.Items;
+import org.geysermc.geyser.item.type.Item;
 import org.geysermc.geyser.network.bedrock.GameProtocol;
 import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.registry.type.ItemMappings;
@@ -59,6 +58,7 @@ import org.geysermc.geyser.translator.item.ItemTranslator;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 import org.geysermc.geyser.util.MinecraftKey;
+import org.geysermc.mcprotocollib.protocol.data.game.Holder;
 import org.geysermc.mcprotocollib.protocol.data.game.item.ItemStack;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.HolderSet;
 import org.geysermc.mcprotocollib.protocol.data.game.recipe.display.slot.ItemStackSlotDisplay;
@@ -196,10 +196,9 @@ public class JavaUpdateRecipesTranslator extends PacketTranslator<ClientboundUpd
                 continue;
             }
 
-            IntList ingredients = GeyserHolderSet.fromHolderSet(JavaRegistries.ITEM, recipe.input().getValues())
-                .resolveRaw(session.getTagCache());
-            for (IntIterator it = ingredients.iterator(); it.hasNext(); ) {
-                rawStonecutterData.computeIfAbsent(it.nextInt(), $ -> new ArrayList<>()).add(recipe);
+            List<Holder<Item>> ingredients = GeyserHolderSet.fromMCPL(JavaRegistries.ITEM, recipe.input().getValues()).resolveHolders(session);
+            for (Holder<Item> ingredient : ingredients) {
+                rawStonecutterData.computeIfAbsent(ingredient.id(), $ -> new ArrayList<>()).add(recipe);
             }
         }
 

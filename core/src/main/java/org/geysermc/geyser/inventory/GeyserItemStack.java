@@ -25,7 +25,6 @@
 
 package org.geysermc.geyser.inventory;
 
-import it.unimi.dsi.fastutil.ints.IntList;
 import lombok.AccessLevel;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -49,6 +48,7 @@ import org.geysermc.geyser.session.cache.tags.GeyserHolderSet;
 import org.geysermc.geyser.session.cache.tags.Tag;
 import org.geysermc.geyser.translator.item.ItemTranslator;
 import org.geysermc.geyser.util.ColorUtils;
+import org.geysermc.mcprotocollib.protocol.data.game.Holder;
 import org.geysermc.mcprotocollib.protocol.data.game.item.ItemStack;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentTypes;
@@ -120,11 +120,11 @@ public class GeyserItemStack {
             case CompositeSlotDisplay(List<SlotDisplay> contents) -> contents.isEmpty() ? GeyserItemStack.EMPTY : from(session, contents.getFirst());
             case TagSlotDisplay(HolderSet set) -> {
                 // Again, just create an itemstack of the first item in the holder set, if possible
-                IntList itemTag = GeyserHolderSet.fromHolderSet(JavaRegistries.ITEM, set).resolveRaw(session.getTagCache());
+                List<Holder<Item>> itemTag = GeyserHolderSet.fromMCPL(JavaRegistries.ITEM, set).resolveHolders(session);
                 if (itemTag.isEmpty()) {
                     yield GeyserItemStack.EMPTY;
                 }
-                yield GeyserItemStack.of(session, itemTag.getFirst(), 1);
+                yield GeyserItemStack.of(session, itemTag.getFirst().id(), 1);
             }
             case DyedSlotDisplay(SlotDisplay dye, SlotDisplay target) -> {
                 // This probably works... MC does it a little differently

@@ -363,7 +363,7 @@ public final class EntityUtils {
             return true;
         }
 
-        GeyserHolderSet<GeyserEntityType> holderSet = GeyserHolderSet.fromHolderSet(JavaRegistries.ENTITY_TYPE, equippable.allowedEntities());
+        GeyserHolderSet<GeyserEntityType> holderSet = GeyserHolderSet.fromMCPL(JavaRegistries.ENTITY_TYPE, equippable.allowedEntities());
         return holderSet.contains(session, entity);
     }
 

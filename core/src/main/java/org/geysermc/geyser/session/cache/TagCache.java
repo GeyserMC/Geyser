@@ -107,11 +107,12 @@ public final class TagCache {
         }
     }
 
-    private void loadTags(Map<Key, int[]> packetTags, JavaRegistryKey<?> registry, boolean sort) {
+    private void loadTags(Map<Key, int[]> packetTags, JavaRegistryKey<?> registry, @Deprecated boolean sort) {
         for (Map.Entry<Key, int[]> tag : packetTags.entrySet()) {
             int[] value = tag.getValue();
             if (sort) {
-                // Used in RecipeBookAddTranslator
+                // Used in RecipeBookAddTranslator, please note that you're not really supposed to sort tags: they are order-dependent,
+                // however this functionality is not yet used for item tags on Java Edition
                 Arrays.sort(value);
             }
             this.tags.put(new Tag<>(registry, tag.getKey()), IntList.of(value));
@@ -127,18 +128,6 @@ public final class TagCache {
 
     public <T> boolean is(@NonNull Tag<T> tag, @NonNull T object) {
         return getRaw(tag).contains(tag.registry().networkId(session, object));
-    }
-
-    /**
-     * Prefer using {@link GeyserHolderSet#contains(GeyserSession, Object)}.
-     *
-     * @return true if the specified network ID is in the given {@link GeyserHolderSet}.
-     */
-    public <T> boolean is(@NonNull GeyserHolderSet<T> holderSet, @Nullable T object) {
-        if (object == null) {
-            return false;
-        }
-        return holderSet.resolveRaw(this).contains(holderSet.getRegistry().networkId(session, object));
     }
 
     /**
