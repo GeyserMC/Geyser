@@ -45,7 +45,7 @@ public record HoldersImpl(@Nullable List<@NonNull Identifier> identifiers, @Null
         if (identifiers != null) {
             return new HolderSet(IntList.of(identifiers.stream()
                 .map(MinecraftKey::identifierToKey)
-                .mapToInt(key -> registry.getId(registries, key))
+                .mapToInt(key -> registry.getIdOrThrow(registries, key))
                 .toArray()));
         }
         return new HolderSet(Objects.requireNonNull(MinecraftKey.identifierToKey(tag)));

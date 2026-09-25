@@ -62,7 +62,7 @@ public record ResolvableHolderSetComponent(DataComponentType<HolderSet> type, Op
     @Override
     public @Nullable HolderSet resolve(JavaRegistryProvider registries) {
         return registry.map(theRegistry -> references.stream()
-            .mapToInt(key -> theRegistry.getId(registries, key))
+            .mapToInt(key -> theRegistry.getIdOrThrow(registries, key))
             .toArray())
             .map(IntArrayList::new)
             .map(HolderSet::new)

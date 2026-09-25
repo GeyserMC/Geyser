@@ -79,6 +79,6 @@ public interface JavaRegistryProvider {
      * Maps a raw array of network IDs to their respective objects.
      */
     private static <T> List<T> mapRawArray(JavaRegistryProvider registries, JavaRegistryKey<T> registry, IntList array) {
-        return array.intStream().mapToObj(i -> registry.get(registries, i)).toList();
+        return array.intStream().mapToObj(i -> registry.getOrThrow(registries, i)).toList();
     }
 }

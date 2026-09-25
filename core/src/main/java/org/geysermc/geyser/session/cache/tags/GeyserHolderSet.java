@@ -250,7 +250,7 @@ public final class GeyserHolderSet<T> {
      * @param holderSet the HolderSet as a NBT object.
      */
     public static <T> GeyserHolderSet<T> readHolderSet(GeyserSession session, JavaRegistryKey<T> registry, @Nullable Object holderSet) {
-        return readHolderSet(registry, holderSet, key -> registry.getId(session, key));
+        return readHolderSet(registry, holderSet, key -> registry.getIdOrThrow(session, key));
     }
 
     /**

@@ -35,6 +35,8 @@ import org.geysermc.geyser.util.MinecraftKey;
 import org.geysermc.mcprotocollib.protocol.data.game.Holder;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType;
 
+import java.util.OptionalInt;
+
 public record ResolvableHolderComponent<T>(DataComponentType<Holder<T>> type, JavaRegistryKey<?> registry, Key reference) implements ResolvableComponent<Holder<T>> {
 
     public static ResolvableHolderComponent<?> parse(DataComponentType<Holder<?>> type, JsonObject object) {
@@ -46,10 +48,10 @@ public record ResolvableHolderComponent<T>(DataComponentType<Holder<T>> type, Ja
 
     @Override
     public @Nullable Holder<T> resolve(JavaRegistryProvider registries) {
-        int numericId = registry.getId(registries, reference);
-        if (numericId == -1) {
+        OptionalInt numericId = registry.getId(registries, reference);
+        if (numericId.isEmpty()) {
             return null;
         }
-        return Holder.ofId(numericId);
+        return Holder.ofId(numericId.getAsInt());
     }
 }

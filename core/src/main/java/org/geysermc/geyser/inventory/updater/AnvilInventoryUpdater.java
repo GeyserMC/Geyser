@@ -376,12 +376,10 @@ public class AnvilInventoryUpdater extends InventoryUpdater {
         if (enchantmentComponent != null) {
             Object2IntMap<Enchantment> enchantments = new Object2IntOpenHashMap<>();
             for (Map.Entry<Integer, Integer> entry : enchantmentComponent.getEnchantments().entrySet()) {
-                Enchantment enchantment = JavaRegistries.ENCHANTMENT.get(session, entry.getKey());
-                if (enchantment == null) {
-                    GeyserImpl.getInstance().getLogger().debug("Unknown Java enchantment in anvil: " + entry.getKey());
-                    continue;
-                }
-                enchantments.put(enchantment, entry.getValue().intValue());
+                JavaRegistries.ENCHANTMENT.get(session, entry.getKey()).ifPresentOrElse(
+                    enchantment -> enchantments.put(enchantment, entry.getValue().intValue()),
+                    () -> GeyserImpl.getInstance().getLogger().debug("Unknown Java enchantment in anvil: " + entry.getKey())
+                );
             }
             return enchantments;
         }

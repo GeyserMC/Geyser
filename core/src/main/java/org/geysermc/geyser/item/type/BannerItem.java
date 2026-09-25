@@ -52,6 +52,7 @@ import org.geysermc.mcprotocollib.protocol.data.game.item.component.TooltipDispl
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 public class BannerItem extends BlockItem {
     /**
@@ -88,8 +89,8 @@ public class BannerItem extends BlockItem {
                     !patternLayer.getPattern().isId()) {
                 return false;
             }
-            BannerPattern bannerPattern = JavaRegistries.BANNER_PATTERN.get(session, patternLayer.getPattern().id());
-            if (bannerPattern != pair.left()) {
+            Optional<BannerPattern> bannerPattern = JavaRegistries.BANNER_PATTERN.get(session, patternLayer.getPattern().id());
+            if (bannerPattern.orElse(null) != pair.left()) {
                 return false;
             }
         }
@@ -147,14 +148,13 @@ public class BannerItem extends BlockItem {
             List<NbtMap> patternList = new ArrayList<>(patterns.size());
             for (BannerPatternLayer patternLayer : patterns) {
                 patternLayer.getPattern().ifId(id -> {
-                    BannerPattern bannerPattern = JavaRegistries.BANNER_PATTERN.get(session, id);
-                    if (bannerPattern != null) {
+                    JavaRegistries.BANNER_PATTERN.get(session, id).ifPresent(bannerPattern -> {
                         NbtMap tag = NbtMap.builder()
                             .putString("Pattern", bannerPattern.getBedrockIdentifier())
                             .putInt("Color", 15 - patternLayer.getColorId())
                             .build();
                         patternList.add(tag);
-                    }
+                    });
                 });
             }
             builder.putList("Patterns", NbtType.COMPOUND, patternList);
@@ -223,7 +223,7 @@ public class BannerItem extends BlockItem {
             List<BannerPatternLayer> patternLayers = new ArrayList<>();
             for (int i = 0; i < OMINOUS_BANNER_PATTERN.size(); i++) {
                 var pair = OMINOUS_BANNER_PATTERN.get(i);
-                patternLayers.add(new BannerPatternLayer(Holder.ofId(JavaRegistries.BANNER_PATTERN.getId(session, pair.left())),
+                patternLayers.add(new BannerPatternLayer(Holder.ofId(JavaRegistries.BANNER_PATTERN.getIdOrThrow(session, pair.left())),
                         pair.right().ordinal()));
             }
 

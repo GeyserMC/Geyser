@@ -82,15 +82,15 @@ public class JavaLevelEventTranslator extends PacketTranslator<ClientboundLevelE
         // Separate case since each RecordEventData in Java is an individual track in Bedrock
         if (levelEvent == LevelEventType.SOUND_PLAY_JUKEBOX_SONG) {
             RecordEventData recordEventData = (RecordEventData) packet.getData();
-            JukeboxSong jukeboxSong = JavaRegistries.JUKEBOX_SONG.get(session, recordEventData.getRecordId());
-            if (jukeboxSong == null) {
+            Optional<JukeboxSong> jukeboxSong = JavaRegistries.JUKEBOX_SONG.get(session, recordEventData.getRecordId());
+            if (jukeboxSong.isEmpty()) {
                 return;
             }
             Vector3i origin = packet.getPosition();
             Vector3f pos = Vector3f.from(origin.getX() + 0.5f, origin.getY() + 0.5f, origin.getZ() + 0.5f);
 
             // Prioritize level events because it makes parrots dance.
-            SoundMapping mapping = Registries.SOUNDS.get(jukeboxSong.soundEvent().replace("minecraft:", ""));
+            SoundMapping mapping = Registries.SOUNDS.get(jukeboxSong.get().soundEvent().replace("minecraft:", ""));
             SoundEvent soundEvent = null;
             if (mapping != null) {
                 String bedrock = mapping.bedrock();
@@ -100,7 +100,7 @@ public class JavaLevelEventTranslator extends PacketTranslator<ClientboundLevelE
             }
 
             if (GameProtocol.is26_50orHigher(session.protocolVersion())) {
-                String bedrockSound = SoundUtils.translatePlaySound(jukeboxSong.soundEvent());
+                String bedrockSound = SoundUtils.translatePlaySound(jukeboxSong.get().soundEvent());
                 long id = session.getWorldCache().addPlayingRecord(packet.getPosition());
 
                 PlaySoundPacket playSoundPacket = new PlaySoundPacket();
@@ -126,7 +126,7 @@ public class JavaLevelEventTranslator extends PacketTranslator<ClientboundLevelE
                     levelSoundEvent.setBabySound(false);
                     session.sendUpstreamPacket(levelSoundEvent);
                 } else {
-                    String bedrockSound = SoundUtils.translatePlaySound(jukeboxSong.soundEvent());
+                    String bedrockSound = SoundUtils.translatePlaySound(jukeboxSong.get().soundEvent());
                     // Pitch and volume from Java 1.21
                     PlaySoundPacket playSoundPacket = new PlaySoundPacket();
                     playSoundPacket.setPosition(pos);
@@ -148,7 +148,7 @@ public class JavaLevelEventTranslator extends PacketTranslator<ClientboundLevelE
             textPacket.setPlatformChatId("");
             textPacket.setSourceName(null);
             textPacket.setMessage("record.nowPlaying");
-            textPacket.setParameters(Collections.singletonList(jukeboxSong.description()));
+            textPacket.setParameters(Collections.singletonList(jukeboxSong.get().description()));
             session.sendUpstreamPacket(textPacket);
             return;
         }

@@ -39,6 +39,8 @@ import org.geysermc.geyser.util.MinecraftKey;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentTypes;
 import org.geysermc.mcprotocollib.protocol.data.game.level.block.BlockEntityType;
 
+import java.util.Optional;
+
 @BlockEntity(type = BlockEntityType.DECORATED_POT)
 public class DecoratedPotBlockEntityTranslator extends BlockEntityTranslator {
     private static final String POTTERY_PATTERN_COMPONENT = DataComponentTypes.PROVIDES_POTTERY_PATTERN.getKey().toString();
@@ -76,9 +78,9 @@ public class DecoratedPotBlockEntityTranslator extends BlockEntityTranslator {
             }
             String pattern = components.getString(POTTERY_PATTERN_COMPONENT, null);
             if (pattern != null) {
-                Key bedrockItem = JavaRegistries.DECORATED_POT_PATTERN.get(session, MinecraftKey.key(pattern));
-                if (bedrockItem != null) {
-                    return bedrockItem.toString();
+                Optional<Key> bedrockItem = JavaRegistries.DECORATED_POT_PATTERN.get(session, MinecraftKey.key(pattern));
+                if (bedrockItem.isPresent()) {
+                    return bedrockItem.get().toString();
                 }
                 return DEFAULT_BEDROCK_ITEM;
             }
@@ -89,9 +91,9 @@ public class DecoratedPotBlockEntityTranslator extends BlockEntityTranslator {
         if (item != null) {
             Integer patternId = item.getComponent(session.getComponentCache(), DataComponentTypes.PROVIDES_POTTERY_PATTERN);
             if (patternId != null) {
-                Key bedrockItem = JavaRegistries.DECORATED_POT_PATTERN.get(session, patternId);
-                if (bedrockItem != null) {
-                    return bedrockItem.toString();
+                Optional<Key> bedrockItem = JavaRegistries.DECORATED_POT_PATTERN.get(session, patternId);
+                if (bedrockItem.isPresent()) {
+                    return bedrockItem.get().toString();
                 }
                 return DEFAULT_BEDROCK_ITEM;
             }

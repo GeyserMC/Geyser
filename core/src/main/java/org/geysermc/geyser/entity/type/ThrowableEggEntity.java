@@ -37,6 +37,8 @@ import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.EntityMetad
 import org.geysermc.mcprotocollib.protocol.data.game.item.ItemStack;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentTypes;
 
+import java.util.Optional;
+
 @Getter
 public class ThrowableEggEntity extends ThrowableItemEntity {
 
@@ -59,10 +61,10 @@ public class ThrowableEggEntity extends ThrowableItemEntity {
     private static TemperatureVariantAnimal.BuiltInVariant getVariantOrFallback(GeyserSession session, GeyserItemStack stack) {
         Integer id = stack.getComponent(DataComponentTypes.CHICKEN_VARIANT);
         if (id != null) {
-            Key chickenVariant = JavaRegistries.CHICKEN_VARIANT.getKey(session, id);
-            if (chickenVariant != null) {
+            Optional<Key> chickenVariant = JavaRegistries.CHICKEN_VARIANT.getKey(session, id);
+            if (chickenVariant.isPresent()) {
                 for (var variant : TemperatureVariantAnimal.BuiltInVariant.values()) {
-                    if (chickenVariant.asMinimalString().equalsIgnoreCase(variant.name())) {
+                    if (chickenVariant.get().asMinimalString().equalsIgnoreCase(variant.name())) {
                         return variant;
                     }
                 }

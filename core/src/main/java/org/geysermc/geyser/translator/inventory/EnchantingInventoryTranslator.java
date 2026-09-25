@@ -46,6 +46,7 @@ import org.geysermc.mcprotocollib.protocol.data.game.inventory.ContainerType;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.inventory.ServerboundContainerButtonClickPacket;
 
 import java.util.Arrays;
+import java.util.Optional;
 
 public class EnchantingInventoryTranslator extends AbstractBlockInventoryTranslator<EnchantingContainer> {
     public EnchantingInventoryTranslator() {
@@ -73,10 +74,10 @@ public class EnchantingInventoryTranslator extends AbstractBlockInventoryTransla
                 // The Bedrock index might need changed, so let's look it up and see.
                 int bedrockIndex = value;
                 if (bedrockIndex != -1) {
-                    Enchantment enchantment = JavaRegistries.ENCHANTMENT.get(session, value);
-                    if (enchantment != null && enchantment.bedrockEnchantment() != null) {
+                    Optional<Enchantment> enchantment = JavaRegistries.ENCHANTMENT.get(session, value);
+                    if (enchantment.isPresent() && enchantment.get().bedrockEnchantment() != null) {
                         // Convert the Java enchantment index to Bedrock's
-                        bedrockIndex = enchantment.bedrockEnchantment().ordinal();
+                        bedrockIndex = enchantment.get().bedrockEnchantment().ordinal();
                     } else {
                         // There is no Bedrock enchantment equivalent
                         bedrockIndex = -1;

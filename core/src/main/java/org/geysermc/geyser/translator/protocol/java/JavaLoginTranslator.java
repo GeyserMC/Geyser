@@ -60,7 +60,7 @@ public class JavaLoginTranslator extends PacketTranslator<ClientboundLoginPacket
         entity.setEntityId(packet.getEntityId());
 
         PlayerSpawnInfo spawnInfo = packet.getCommonPlayerSpawnInfo();
-        JavaDimension newDimension = JavaRegistries.DIMENSION_TYPE.get(session, spawnInfo.getDimension());
+        JavaDimension newDimension = JavaRegistries.DIMENSION_TYPE.getOrThrow(session, spawnInfo.getDimension());
 
         // If the player is already initialized and a join game packet is sent, they
         // are swapping servers

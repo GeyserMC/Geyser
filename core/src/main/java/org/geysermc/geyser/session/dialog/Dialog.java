@@ -50,7 +50,6 @@ import org.geysermc.mcprotocollib.protocol.data.game.Holder;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.function.ToIntFunction;
 
@@ -182,14 +181,14 @@ public abstract class Dialog {
 
     public static Dialog getDialogFromHolder(GeyserSession session, Holder<NbtMap> holder) {
         if (holder.isId()) {
-            return Objects.requireNonNull(JavaRegistries.DIALOG.get(session, holder.id()));
+            return JavaRegistries.DIALOG.getOrThrow(session, holder.id());
         } else {
-            return Dialog.readDialogFromNbt(Optional.of(session), holder.custom(), key -> JavaRegistries.DIALOG.getId(session, key));
+            return Dialog.readDialogFromNbt(Optional.of(session), holder.custom(), key -> JavaRegistries.DIALOG.getIdOrThrow(session, key));
         }
     }
 
     public static Dialog getDialogFromKey(GeyserSession session, Key key) {
-        return Objects.requireNonNull(JavaRegistries.DIALOG.get(session, key));
+        return JavaRegistries.DIALOG.getOrThrow(session, key);
     }
 
     public enum AfterAction {

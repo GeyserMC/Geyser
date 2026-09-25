@@ -27,10 +27,11 @@ package org.geysermc.geyser.session.cache.registry;
 
 import net.kyori.adventure.key.Key;
 import org.checkerframework.checker.nullness.qual.NonNull;
-import org.checkerframework.checker.nullness.qual.Nullable;
+import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.session.GeyserSession;
 
 import java.util.Optional;
+import java.util.OptionalInt;
 import java.util.function.IntFunction;
 
 /**
@@ -45,99 +46,149 @@ import java.util.function.IntFunction;
  * @param registryKey the registry key, as it appears on Java.
  * @param lookup an implementation of {@link RegistryLookup} that converts an object in this registry to its respective network ID or key, and back.
  * @param <T> the object type this registry holds.
+ * @see JavaRegistryProvider
+ * @see GeyserSession#javaRegistries()
  */
 public record JavaRegistryKey<T>(Key registryKey, RegistryLookup<T> lookup) {
 
+    public int getIdOrThrow(GeyserSession session, T object) {
+        return getIdOrThrow(session.javaRegistries(), object);
+    }
+
     /**
      * Converts an object to its network ID, or -1 if it is not registered.
      */
-    public int getId(GeyserSession session, T object) {
+    public OptionalInt getId(GeyserSession session, T object) {
         return getId(session.javaRegistries(), object);
     }
 
+    public int getIdOrThrow(JavaRegistryProvider registries, T object) {
+        return getId(registries, object).orElseThrow(() -> constructMissingObjectException(registries, object));
+    }
+
     /**
      * Converts an object to its network ID, or -1 if it is not registered.
      */
-    public int getId(JavaRegistryProvider registries, T object) {
-        return entry(registries, object).map(RegistryEntryData::id).orElse(-1);
+    public OptionalInt getId(JavaRegistryProvider registries, T object) {
+        return entry(registries, object).stream().mapToInt(RegistryEntryData::id).findAny();
+    }
+
+    public int getIdOrThrow(GeyserSession session, Key key) {
+        return getIdOrThrow(session.javaRegistries(), key);
     }
 
     /**
      * Converts a registered key to its network ID, or -1 if it is not registered.
      */
-    public int getId(GeyserSession session, Key key) {
+    public OptionalInt getId(GeyserSession session, Key key) {
         return getId(session.javaRegistries(), key);
     }
 
+    public int getIdOrThrow(JavaRegistryProvider registries, Key key) {
+        return getId(registries, key).orElseThrow(() -> constructMissingKeyException(registries, key));
+    }
+
     /**
      * Converts a registered key to its network ID, or -1 if it is not registered.
      */
-    public int getId(JavaRegistryProvider registries, Key key) {
-        return entry(registries, key).map(RegistryEntryData::id).orElse(-1);
+    public OptionalInt getId(JavaRegistryProvider registries, Key key) {
+        return entry(registries, key).stream().mapToInt(RegistryEntryData::id).findAny();
+    }
+
+    public Key getKeyOrThrow(GeyserSession session, T object) {
+        return getKeyOrThrow(session.javaRegistries(), object);
     }
 
     /**
      * Converts an object to its registered key, or null if it is not registered.
      */
-    public @Nullable Key getKey(GeyserSession session, T object) {
+    public Optional<Key> getKey(GeyserSession session, T object) {
         return getKey(session.javaRegistries(), object);
     }
 
+    public Key getKeyOrThrow(JavaRegistryProvider registries, T object) {
+        return getKey(registries, object).orElseThrow(() -> constructMissingObjectException(registries, object));
+    }
+
     /**
      * Converts an object to its registered key, or null if it is not registered.
      */
-    public @Nullable Key getKey(JavaRegistryProvider registries, T object) {
-        return entry(registries, object).map(RegistryEntryData::key).orElse(null);
+    public Optional<Key> getKey(JavaRegistryProvider registries, T object) {
+        return entry(registries, object).map(RegistryEntryData::key);
+    }
+
+    public Key getKeyOrThrow(GeyserSession session, int networkId) {
+        return getKeyOrThrow(session.javaRegistries(), networkId);
     }
 
     /**
      * Converts a network ID to its registered key, or null if it is not registered.
      */
-    public @Nullable Key getKey(GeyserSession session, int networkId) {
+    public Optional<Key> getKey(GeyserSession session, int networkId) {
         return getKey(session.javaRegistries(), networkId);
     }
 
+    public Key getKeyOrThrow(JavaRegistryProvider registries, int networkId) {
+        return getKey(registries, networkId).orElseThrow(() -> constructMissingIdException(registries, networkId));
+    }
+
     /**
      * Converts a network ID to its registered key, or null if it is not registered.
      */
-    public @Nullable Key getKey(JavaRegistryProvider registries, int networkId) {
-        return entry(registries, networkId).map(RegistryEntryData::key).orElse(null);
+    public Optional<Key> getKey(JavaRegistryProvider registries, int networkId) {
+        return entry(registries, networkId).map(RegistryEntryData::key);
+    }
+
+    public T getOrThrow(GeyserSession session, int networkId) {
+        return getOrThrow(session.javaRegistries(), networkId);
     }
 
     /**
      * Converts a network ID to an object in this registry, or null if it is not registered.
      */
-    public @Nullable T get(GeyserSession session, int networkId) {
+    public Optional<T> get(GeyserSession session, int networkId) {
         return get(session.javaRegistries(), networkId);
     }
 
+    public T getOrThrow(JavaRegistryProvider registries, int networkId) {
+        return get(registries, networkId).orElseThrow(() -> constructMissingIdException(registries, networkId));
+    }
+
     /**
      * Converts a network ID to an object in this registry, or null if it is not registered.
      */
-    public @Nullable T get(JavaRegistryProvider registries, int networkId) {
-        return entry(registries, networkId).map(RegistryEntryData::data).orElse(null);
+    public Optional<T> get(JavaRegistryProvider registries, int networkId) {
+        return entry(registries, networkId).map(RegistryEntryData::data);
+    }
+
+    public T getOrThrow(GeyserSession session, Key key) {
+        return getOrThrow(session.javaRegistries(), key);
     }
 
     /**
      * Converts a key to an object in this registry, or null if it is not registered.
      */
-    public @Nullable T get(GeyserSession session, Key key) {
+    public Optional<T> get(GeyserSession session, Key key) {
         return get(session.javaRegistries(), key);
     }
 
+    public T getOrThrow(JavaRegistryProvider registries, Key key) {
+        return get(registries, key).orElseThrow(() -> constructMissingKeyException(registries, key));
+    }
+
     /**
      * Converts a key to an object in this registry, or null if it is not registered.
      */
-    public @Nullable T get(JavaRegistryProvider registries, Key key) {
-        return entry(registries, key).map(RegistryEntryData::data).orElse(null);
+    public Optional<T> get(JavaRegistryProvider registries, Key key) {
+        return entry(registries, key).map(RegistryEntryData::data);
     }
 
-    public IntFunction<@Nullable T> resolver(GeyserSession session) {
+    public IntFunction<T> resolver(GeyserSession session) {
         return resolver(session.javaRegistries());
     }
 
-    public IntFunction<@Nullable T> resolver(JavaRegistryProvider registries) {
-        return id -> get(registries, id);
+    public IntFunction<T> resolver(JavaRegistryProvider registries) {
+        return id -> getOrThrow(registries, id);
     }
 
     private Optional<RegistryEntryData<T>> entry(JavaRegistryProvider registries, T object) {
@@ -167,5 +218,29 @@ public record JavaRegistryKey<T>(Key registryKey, RegistryLookup<T> lookup) {
     @Override
     public @NonNull String toString() {
         return "Java registry: " + registryKey;
+    }
+
+    private IllegalStateException constructMissingObjectException(JavaRegistryProvider registries, T object) {
+        return constructMissingException(registries, "object " + object);
+    }
+
+    private IllegalStateException constructMissingKeyException(JavaRegistryProvider registries, Key key) {
+        return constructMissingException(registries, "key " + key);
+    }
+
+    private IllegalStateException constructMissingIdException(JavaRegistryProvider registries, int id) {
+        return constructMissingException(registries, "ID " + id);
+    }
+
+    private IllegalStateException constructMissingException(JavaRegistryProvider registries, String missing) {
+        String message = "Missing " + missing + " in Java registry " + registryKey;
+        if (isDebug()) {
+            message += "\nProvider: " + registries + " | registry data: " + registries.registry(this).entries();
+        }
+        return new IllegalStateException(message);
+    }
+
+    private static boolean isDebug() {
+        return GeyserImpl.getInstance().config().debugMode();
     }
 }

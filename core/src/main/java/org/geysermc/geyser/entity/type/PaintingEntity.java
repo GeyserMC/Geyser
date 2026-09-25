@@ -35,6 +35,8 @@ import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.PaintingVar
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.ObjectEntityMetadata;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.object.Direction;
 
+import java.util.Optional;
+
 public class PaintingEntity extends HangingEntity {
     private static final double BIG_OFFSET = 31.0 / 32.0;
     private static final double LITTLE_OFFSET = 1.0 / 32.0;
@@ -71,16 +73,16 @@ public class PaintingEntity extends HangingEntity {
             despawnEntity();
         }
 
-        PaintingType type = JavaRegistries.PAINTING_VARIANT.get(session, paintingId);
-        if (type == null) {
+        Optional<PaintingType> type = JavaRegistries.PAINTING_VARIANT.get(session, paintingId);
+        if (type.isEmpty()) {
             return;
         }
 
         AddPaintingPacket addPaintingPacket = new AddPaintingPacket();
         addPaintingPacket.setUniqueEntityId(geyserId);
         addPaintingPacket.setRuntimeEntityId(geyserId);
-        addPaintingPacket.setMotive(type.getBedrockName());
-        addPaintingPacket.setPosition(fixOffset(type));
+        addPaintingPacket.setMotive(type.get().getBedrockName());
+        addPaintingPacket.setPosition(fixOffset(type.get()));
         addPaintingPacket.setDirection(switch (direction) {
             //TODO this doesn't seem right. Why did it work fine before?
             case SOUTH -> 0;

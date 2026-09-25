@@ -38,6 +38,8 @@ import org.geysermc.mcprotocollib.protocol.data.game.item.component.ArmorTrim;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentTypes;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
 
+import java.util.Optional;
+
 public class ArmorItem extends Item {
 
     public ArmorItem(String javaIdentifier, Builder builder) {
@@ -50,7 +52,7 @@ public class ArmorItem extends Item {
 
         ArmorTrim trim = components.get(DataComponentTypes.TRIM);
         if (trim != null) {
-            Key material;
+            Optional<Key> material;
             if (trim.material().isId()) {
                 material = JavaRegistries.TRIM_MATERIAL.getKey(session, trim.material().id());
             } else {
@@ -58,7 +60,7 @@ public class ArmorItem extends Item {
                 return;
             }
 
-            Key pattern;
+            Optional<Key> pattern;
             if (trim.pattern().isId()) {
                 pattern = JavaRegistries.TRIM_PATTERN.getKey(session, trim.pattern().id());
             } else {
@@ -66,12 +68,12 @@ public class ArmorItem extends Item {
                 return;
             }
 
-            if (material != null && pattern != null) {
+            if (material.isPresent() && pattern.isPresent()) {
                 NbtMapBuilder trimBuilder = NbtMap.builder();
                 // Strip namespace from identifiers - Bedrock expects just the path part
                 // e.g., "minecraft:iron" -> "iron", "civilization:frost_trim" -> "frost_trim"
-                trimBuilder.put("Material", material.value());
-                trimBuilder.put("Pattern", pattern.value());
+                trimBuilder.put("Material", material.get().value());
+                trimBuilder.put("Pattern", pattern.get().value());
                 builder.putCompound("Trim", trimBuilder.build());
             } else {
                 GeyserImpl.getInstance().getLogger().debug("Unknown trim material/pattern: %s", trim);

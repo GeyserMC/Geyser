@@ -36,6 +36,8 @@ import org.geysermc.geyser.session.cache.registry.RegistryEntryContext;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 
+import java.util.Optional;
+
 @Translator(packet = ClientboundDamageEventPacket.class)
 public class JavaDamageEventTranslator extends PacketTranslator<ClientboundDamageEventPacket> {
 
@@ -46,16 +48,16 @@ public class JavaDamageEventTranslator extends PacketTranslator<ClientboundDamag
             return;
         }
 
-        EntityDamageCause cause = JavaRegistries.DAMAGE_TYPE.get(session, packet.getSourceTypeId());
-        if (cause == null) {
-            cause = EntityDamageCause.OVERRIDE;
+        Optional<EntityDamageCause> cause = JavaRegistries.DAMAGE_TYPE.get(session, packet.getSourceTypeId());
+        if (cause.isEmpty()) {
+            cause = Optional.of(EntityDamageCause.OVERRIDE);
         }
 
         EntityEventPacket entityEventPacket = new EntityEventPacket();
         entityEventPacket.setRuntimeEntityId(entity.geyserId());
         entityEventPacket.setType(EntityEventType.HURT);
         // EntityDamageCause.NONE is -1 on the wire, so the cause id is its ordinal minus one.
-        entityEventPacket.setData(cause.ordinal() - 1);
+        entityEventPacket.setData(cause.get().ordinal() - 1);
         session.sendUpstreamPacket(entityEventPacket);
     }
 

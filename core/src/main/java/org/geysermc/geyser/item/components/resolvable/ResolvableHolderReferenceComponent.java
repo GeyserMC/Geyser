@@ -27,11 +27,14 @@ package org.geysermc.geyser.item.components.resolvable;
 
 import com.google.gson.JsonObject;
 import net.kyori.adventure.key.Key;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.session.cache.registry.JavaRegistries;
 import org.geysermc.geyser.session.cache.registry.JavaRegistryKey;
 import org.geysermc.geyser.session.cache.registry.JavaRegistryProvider;
 import org.geysermc.geyser.util.MinecraftKey;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType;
+
+import java.util.OptionalInt;
 
 public record ResolvableHolderReferenceComponent(DataComponentType<Integer> type, JavaRegistryKey<?> registry, Key reference) implements ResolvableComponent<Integer> {
 
@@ -42,7 +45,8 @@ public record ResolvableHolderReferenceComponent(DataComponentType<Integer> type
     }
 
     @Override
-    public Integer resolve(JavaRegistryProvider registries) {
-        return registry.getId(registries, reference);
+    public @Nullable Integer resolve(JavaRegistryProvider registries) {
+        OptionalInt id = registry.getId(registries, reference);
+        return id.isEmpty() ? null : id.getAsInt();
     }
 }
