@@ -147,6 +147,7 @@ public class SingleDefinitionReader implements ItemDefinitionReader {
         MappingsUtil.readIfPresent(bedrockOptions, "creative_category", builder::creativeCategory, NodeReader.CREATIVE_CATEGORY, context);
         MappingsUtil.readIfPresent(bedrockOptions, "creative_group", builder::creativeGroup, NodeReader.NON_EMPTY_STRING, context);
         MappingsUtil.readArrayIfPresent(bedrockOptions, "tags", tags -> builder.tags(new HashSet<>(tags)), NodeReader.IDENTIFIER, context);
+        MappingsUtil.readIfPresent(bedrockOptions, "dyeable", builder::dyeable, NodeReader.HEX_INT, context);
 
         definitionBuilder.bedrockOptions(builder);
     }
