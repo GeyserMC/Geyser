@@ -77,7 +77,7 @@ public interface GeyserInstrument {
      * @return the ID of the Java counterpart for the given Bedrock ID. If an invalid Bedrock ID was given, or there is no counterpart, -1 is returned.
      */
     static int bedrockIdToJava(GeyserSession session, int id) {
-        JavaRegistry<GeyserInstrument> instruments = session.getRegistryCache().registry(JavaRegistries.INSTRUMENT);
+        JavaRegistry<GeyserInstrument> instruments = session.javaRegistries().registry(JavaRegistries.INSTRUMENT);
         BedrockInstrument bedrockInstrument = BedrockInstrument.getByBedrockId(id);
         if (bedrockInstrument != null) {
             for (int i = 0; i < instruments.values().size(); i++) {
@@ -95,7 +95,7 @@ public interface GeyserInstrument {
         if (component.isCustom()) {
             return new Wrapper(component.custom(), session.locale());
         } else if (component.isId()) {
-            return session.getRegistryCache().registry(JavaRegistries.INSTRUMENT).byId(component.id());
+            return JavaRegistries.INSTRUMENT.get(session, component.id());
         }
         throw new IllegalStateException("Instrument must either be custom or have an id");
     }

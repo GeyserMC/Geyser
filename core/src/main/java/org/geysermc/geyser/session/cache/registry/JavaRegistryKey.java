@@ -31,6 +31,7 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.session.GeyserSession;
 
 import java.util.Optional;
+import java.util.function.IntFunction;
 
 /**
  * Defines a Java registry, which can be hardcoded or data-driven. This class doesn't store registry contents itself, that is handled by {@link org.geysermc.geyser.session.cache.RegistryCache} in the case of
@@ -50,85 +51,93 @@ public record JavaRegistryKey<T>(Key registryKey, RegistryLookup<T> lookup) {
     /**
      * Converts an object to its network ID, or -1 if it is not registered.
      */
-    public int networkId(GeyserSession session, T object) {
-        return networkId(session.getRegistryCache(), object);
+    public int getId(GeyserSession session, T object) {
+        return getId(session.javaRegistries(), object);
     }
 
     /**
      * Converts an object to its network ID, or -1 if it is not registered.
      */
-    public int networkId(JavaRegistryProvider registries, T object) {
+    public int getId(JavaRegistryProvider registries, T object) {
         return entry(registries, object).map(RegistryEntryData::id).orElse(-1);
     }
 
     /**
      * Converts a registered key to its network ID, or -1 if it is not registered.
      */
-    public int networkId(GeyserSession session, Key key) {
-        return networkId(session.getRegistryCache(), key);
+    public int getId(GeyserSession session, Key key) {
+        return getId(session.javaRegistries(), key);
     }
 
     /**
      * Converts a registered key to its network ID, or -1 if it is not registered.
      */
-    public int networkId(JavaRegistryProvider registries, Key key) {
+    public int getId(JavaRegistryProvider registries, Key key) {
         return entry(registries, key).map(RegistryEntryData::id).orElse(-1);
     }
 
     /**
      * Converts an object to its registered key, or null if it is not registered.
      */
-    public @Nullable Key key(GeyserSession session, T object) {
-        return key(session.getRegistryCache(), object);
+    public @Nullable Key getKey(GeyserSession session, T object) {
+        return getKey(session.javaRegistries(), object);
     }
 
     /**
      * Converts an object to its registered key, or null if it is not registered.
      */
-    public @Nullable Key key(JavaRegistryProvider registries, T object) {
+    public @Nullable Key getKey(JavaRegistryProvider registries, T object) {
         return entry(registries, object).map(RegistryEntryData::key).orElse(null);
     }
 
     /**
      * Converts a network ID to its registered key, or null if it is not registered.
      */
-    public @Nullable Key key(GeyserSession session, int networkId) {
-        return key(session.getRegistryCache(), networkId);
+    public @Nullable Key getKey(GeyserSession session, int networkId) {
+        return getKey(session.javaRegistries(), networkId);
     }
 
     /**
      * Converts a network ID to its registered key, or null if it is not registered.
      */
-    public @Nullable Key key(JavaRegistryProvider registries, int networkId) {
+    public @Nullable Key getKey(JavaRegistryProvider registries, int networkId) {
         return entry(registries, networkId).map(RegistryEntryData::key).orElse(null);
     }
 
     /**
      * Converts a network ID to an object in this registry, or null if it is not registered.
      */
-    public @Nullable T value(GeyserSession session, int networkId) {
-        return value(session.getRegistryCache(), networkId);
+    public @Nullable T get(GeyserSession session, int networkId) {
+        return get(session.javaRegistries(), networkId);
     }
 
     /**
      * Converts a network ID to an object in this registry, or null if it is not registered.
      */
-    public @Nullable T value(JavaRegistryProvider registries, int networkId) {
+    public @Nullable T get(JavaRegistryProvider registries, int networkId) {
         return entry(registries, networkId).map(RegistryEntryData::data).orElse(null);
     }
 
     /**
      * Converts a key to an object in this registry, or null if it is not registered.
      */
-    public @Nullable T value(GeyserSession session, Key key) {
-        return value(session.getRegistryCache(), key);
+    public @Nullable T get(GeyserSession session, Key key) {
+        return get(session.javaRegistries(), key);
     }
 
     /**
      * Converts a key to an object in this registry, or null if it is not registered.
      */
-    public @Nullable T value(JavaRegistryProvider registries, Key key) {
+    public @Nullable T get(JavaRegistryProvider registries, Key key) {
         return entry(registries, key).map(RegistryEntryData::data).orElse(null);
+    }
+
+    public IntFunction<@Nullable T> resolver(GeyserSession session) {
+        return resolver(session.javaRegistries());
+    }
+
+    public IntFunction<@Nullable T> resolver(JavaRegistryProvider registries) {
+        return id -> get(registries, id);
     }
 
     private Optional<RegistryEntryData<T>> entry(JavaRegistryProvider registries, T object) {

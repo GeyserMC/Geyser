@@ -34,8 +34,8 @@ import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtType;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.entity.type.living.animal.FrogEntity;
-import org.geysermc.geyser.entity.type.living.animal.VariantHolder;
 import org.geysermc.geyser.entity.type.living.animal.TemperatureVariantAnimal;
+import org.geysermc.geyser.entity.type.living.animal.VariantHolder;
 import org.geysermc.geyser.entity.type.living.animal.nautilus.ZombieNautilusEntity;
 import org.geysermc.geyser.entity.type.living.animal.tameable.CatEntity;
 import org.geysermc.geyser.entity.type.living.animal.tameable.WolfEntity;
@@ -50,7 +50,6 @@ import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.cache.registry.JavaRegistries;
 import org.geysermc.geyser.session.cache.registry.JavaRegistry;
 import org.geysermc.geyser.session.cache.registry.JavaRegistryKey;
-import org.geysermc.geyser.session.cache.registry.JavaRegistryProvider;
 import org.geysermc.geyser.session.cache.registry.RegistryEntryContext;
 import org.geysermc.geyser.session.cache.registry.RegistryEntryData;
 import org.geysermc.geyser.session.cache.registry.RegistryUnit;
@@ -78,7 +77,7 @@ import java.util.Optional;
  *
  * <p>Crafted as of 1.20.5 for easy "add new registry" functionality in the future.</p>
  */
-public final class RegistryCache implements JavaRegistryProvider {
+public final class RegistryCache {
     private static final Map<JavaRegistryKey<?>, Map<Key, NbtMap>> DEFAULTS;
     @VisibleForTesting
     public static final Map<JavaRegistryKey<?>, RegistryReader<?>> READERS = new HashMap<>();
@@ -165,7 +164,6 @@ public final class RegistryCache implements JavaRegistryProvider {
         }
     }
 
-    @Override
     public <T> JavaRegistry<T> registry(JavaRegistryKey<T> registryKey) {
         if (!registries.containsKey(registryKey)) {
             throw new IllegalArgumentException("The given registry is not data-driven");

@@ -91,7 +91,7 @@ public class BiomeTranslator {
     }
 
     public static BlockStorage toNewBedrockBiome(GeyserSession session, DataPalette biomeData) {
-        JavaRegistry<Integer> biomeTranslations = session.getRegistryCache().registry(JavaRegistries.BIOME);
+        JavaRegistry<Integer> biomeTranslations = session.javaRegistries().registry(JavaRegistries.BIOME);
         // As of 1.17.10: the client expects the same format as a chunk but filled with biomes
         // As of 1.18 this is the same as Java Edition
 

@@ -46,7 +46,7 @@ public record ResolvableHolderComponent<T>(DataComponentType<Holder<T>> type, Ja
 
     @Override
     public @Nullable Holder<T> resolve(JavaRegistryProvider registries) {
-        int numericId = registry.networkId(registries, reference);
+        int numericId = registry.getId(registries, reference);
         if (numericId == -1) {
             return null;
         }

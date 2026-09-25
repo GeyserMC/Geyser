@@ -88,7 +88,7 @@ public class BannerItem extends BlockItem {
                     !patternLayer.getPattern().isId()) {
                 return false;
             }
-            BannerPattern bannerPattern = session.getRegistryCache().registry(JavaRegistries.BANNER_PATTERN).byId(patternLayer.getPattern().id());
+            BannerPattern bannerPattern = JavaRegistries.BANNER_PATTERN.get(session, patternLayer.getPattern().id());
             if (bannerPattern != pair.left()) {
                 return false;
             }
@@ -147,12 +147,14 @@ public class BannerItem extends BlockItem {
             List<NbtMap> patternList = new ArrayList<>(patterns.size());
             for (BannerPatternLayer patternLayer : patterns) {
                 patternLayer.getPattern().ifId(id -> {
-                    BannerPattern bannerPattern = session.getRegistryCache().registry(JavaRegistries.BANNER_PATTERN).byId(id);
-                    NbtMap tag = NbtMap.builder()
+                    BannerPattern bannerPattern = JavaRegistries.BANNER_PATTERN.get(session, id);
+                    if (bannerPattern != null) {
+                        NbtMap tag = NbtMap.builder()
                             .putString("Pattern", bannerPattern.getBedrockIdentifier())
                             .putInt("Color", 15 - patternLayer.getColorId())
                             .build();
-                    patternList.add(tag);
+                        patternList.add(tag);
+                    }
                 });
             }
             builder.putList("Patterns", NbtType.COMPOUND, patternList);
@@ -186,7 +188,7 @@ public class BannerItem extends BlockItem {
      * @return The Java edition format pattern layer
      */
     public static BannerPatternLayer getJavaBannerPattern(GeyserSession session, NbtMap pattern) {
-        JavaRegistry<BannerPattern> registry = session.getRegistryCache().registry(JavaRegistries.BANNER_PATTERN);
+        JavaRegistry<BannerPattern> registry = session.javaRegistries().registry(JavaRegistries.BANNER_PATTERN);
         BannerPattern bannerPattern = BannerPattern.getByBedrockIdentifier(pattern.getString("Pattern"));
         DyeColor dyeColor = DyeColor.getById(15 - pattern.getInt("Color"));
         if (dyeColor != null) {
@@ -221,7 +223,7 @@ public class BannerItem extends BlockItem {
             List<BannerPatternLayer> patternLayers = new ArrayList<>();
             for (int i = 0; i < OMINOUS_BANNER_PATTERN.size(); i++) {
                 var pair = OMINOUS_BANNER_PATTERN.get(i);
-                patternLayers.add(new BannerPatternLayer(Holder.ofId(session.getRegistryCache().registry(JavaRegistries.BANNER_PATTERN).byValue(pair.left())),
+                patternLayers.add(new BannerPatternLayer(Holder.ofId(JavaRegistries.BANNER_PATTERN.getId(session, pair.left())),
                         pair.right().ordinal()));
             }
 

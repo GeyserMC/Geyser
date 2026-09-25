@@ -382,7 +382,7 @@ public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommands
             if (enchantments != null) {
                 return enchantments;
             }
-            return (enchantments = session.getRegistryCache().registry(JavaRegistries.ENCHANTMENT).keys().stream().map(Key::asString).toArray(String[]::new));
+            return (enchantments = session.javaRegistries().registry(JavaRegistries.ENCHANTMENT).keys().stream().map(Key::asString).toArray(String[]::new));
         }
 
         private String[] getEntityTypes() {

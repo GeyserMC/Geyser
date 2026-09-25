@@ -73,7 +73,7 @@ public class EnchantingInventoryTranslator extends AbstractBlockInventoryTransla
                 // The Bedrock index might need changed, so let's look it up and see.
                 int bedrockIndex = value;
                 if (bedrockIndex != -1) {
-                    Enchantment enchantment = session.getRegistryCache().registry(JavaRegistries.ENCHANTMENT).byId(value);
+                    Enchantment enchantment = JavaRegistries.ENCHANTMENT.get(session, value);
                     if (enchantment != null && enchantment.bedrockEnchantment() != null) {
                         // Convert the Java enchantment index to Bedrock's
                         bedrockIndex = enchantment.bedrockEnchantment().ordinal();

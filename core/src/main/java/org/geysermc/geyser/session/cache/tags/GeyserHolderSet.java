@@ -208,7 +208,7 @@ public final class GeyserHolderSet<T> {
         }
         assert tag != null;
         // TODO maybe cache this, but how realise that tags are updated?
-        return session.getTagCache().getRaw(tag).intStream().mapToObj(Holder::<T>ofId).toList();
+        return session.javaRegistries().rawTag(tag).intStream().mapToObj(Holder::<T>ofId).toList();
     }
 
     /**
@@ -227,7 +227,7 @@ public final class GeyserHolderSet<T> {
 
     /**
      * Resolves this set to a list of {@link T}s. This calls {@link GeyserHolderSet#resolveHolders(GeyserSession)}, and maps the {@link Holder.IdHolder}s
-     * to a {@link T} using {@link JavaRegistryKey#value(GeyserSession, int)}.
+     * to a {@link T} using {@link JavaRegistryKey#get(GeyserSession, int)}.
      *
      * @param session the {@link GeyserSession}
      * @return the resolved set as a list of {@link Holder}s
@@ -237,20 +237,20 @@ public final class GeyserHolderSet<T> {
             return List.of();
         }
         // TODO same as above
-        return resolveHolders(session).stream().map(holder -> holder.getOrCompute(id -> registry.value(session, id))).toList();
+        return resolveHolders(session).stream().map(holder -> holder.getOrCompute(registry.resolver(session))).toList();
     }
 
     /**
      * Reads a HolderSet from a NBT object. Does not support reading HolderSets that can hold inline values.
      *
-     * <p>Uses {@link JavaRegistryKey#networkId(GeyserSession, Key)} to resolve registry keys to network IDs.</p>
+     * <p>Uses {@link JavaRegistryKey#getId(GeyserSession, Key)} to resolve registry keys to network IDs.</p>
      *
      * @param session the Geyser session.
      * @param registry the registry the HolderSet contains IDs from.
      * @param holderSet the HolderSet as a NBT object.
      */
     public static <T> GeyserHolderSet<T> readHolderSet(GeyserSession session, JavaRegistryKey<T> registry, @Nullable Object holderSet) {
-        return readHolderSet(registry, holderSet, key -> registry.networkId(session, key));
+        return readHolderSet(registry, holderSet, key -> registry.getId(session, key));
     }
 
     /**

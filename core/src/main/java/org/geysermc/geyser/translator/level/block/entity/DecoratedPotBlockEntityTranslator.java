@@ -76,7 +76,7 @@ public class DecoratedPotBlockEntityTranslator extends BlockEntityTranslator {
             }
             String pattern = components.getString(POTTERY_PATTERN_COMPONENT, null);
             if (pattern != null) {
-                Key bedrockItem = JavaRegistries.DECORATED_POT_PATTERN.value(session, MinecraftKey.key(pattern));
+                Key bedrockItem = JavaRegistries.DECORATED_POT_PATTERN.get(session, MinecraftKey.key(pattern));
                 if (bedrockItem != null) {
                     return bedrockItem.toString();
                 }
@@ -89,7 +89,7 @@ public class DecoratedPotBlockEntityTranslator extends BlockEntityTranslator {
         if (item != null) {
             Integer patternId = item.getComponent(session.getComponentCache(), DataComponentTypes.PROVIDES_POTTERY_PATTERN);
             if (patternId != null) {
-                Key bedrockItem = JavaRegistries.DECORATED_POT_PATTERN.value(session, patternId);
+                Key bedrockItem = JavaRegistries.DECORATED_POT_PATTERN.get(session, patternId);
                 if (bedrockItem != null) {
                     return bedrockItem.toString();
                 }

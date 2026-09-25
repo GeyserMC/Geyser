@@ -55,9 +55,9 @@ public class JavaSetTimeTranslator extends PacketTranslator<ClientboundSetTimePa
     private static int defaultClockId(GeyserSession session) {
         Key defaultClock = session.getDimensionType().defaultClock();
         if (defaultClock != null) {
-            return JavaRegistries.WORLD_CLOCK.networkId(session, defaultClock);
+            return JavaRegistries.WORLD_CLOCK.getId(session, defaultClock);
         }
-        JavaRegistry<?> clockRegistry = session.getRegistryCache().registry(JavaRegistries.WORLD_CLOCK);
+        JavaRegistry<?> clockRegistry = session.javaRegistries().registry(JavaRegistries.WORLD_CLOCK);
         if (clockRegistry.entries().size() == 1) {
             return clockRegistry.entries().getFirst().id();
         }

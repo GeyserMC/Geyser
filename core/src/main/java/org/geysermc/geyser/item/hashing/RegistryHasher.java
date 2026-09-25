@@ -396,12 +396,12 @@ public interface RegistryHasher<DirectType> extends MinecraftHasher<Integer> {
         .accept("has_glowing_text", MinecraftHasher.BOOL, SignText::hasGlowingText));
 
     /**
-     * Creates a hasher that uses the {@link JavaRegistryKey#key(GeyserSession, int)} method to turn a network ID into a {@link Key}, and then encodes this key.
+     * Creates a hasher that uses the {@link JavaRegistryKey#getKey(GeyserSession, int)} method to turn a network ID into a {@link Key}, and then encodes this key.
      *
      * @param registry the registry to create a hasher for.
      */
     static RegistryHasher<?> registry(JavaRegistryKey<?> registry) {
-        MinecraftHasher<Integer> hasher = KEY.registryCast(registry::key);
+        MinecraftHasher<Integer> hasher = KEY.registryCast(registry::getKey);
         return hasher::hash;
     }
 

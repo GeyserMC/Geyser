@@ -186,11 +186,11 @@ public class Block {
     }
 
     public boolean is(GeyserSession session, Tag<Block> tag) {
-        return session.getTagCache().is(tag, javaId);
+        return session.javaRegistries().is(tag, javaId);
     }
 
     public boolean is(GeyserSession session, HolderSet set) {
-        return session.getTagCache().is(set, JavaRegistries.BLOCK, javaId);
+        return session.javaRegistries().is(JavaRegistries.BLOCK, set, javaId);
     }
 
     @Override

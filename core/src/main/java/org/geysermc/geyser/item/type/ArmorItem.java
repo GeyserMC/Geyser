@@ -52,7 +52,7 @@ public class ArmorItem extends Item {
         if (trim != null) {
             Key material;
             if (trim.material().isId()) {
-                material = JavaRegistries.TRIM_MATERIAL.key(session, trim.material().id());
+                material = JavaRegistries.TRIM_MATERIAL.getKey(session, trim.material().id());
             } else {
                 GeyserImpl.getInstance().getLogger().debug("Unable to translate non-id trim material: " + trim);
                 return;
@@ -60,7 +60,7 @@ public class ArmorItem extends Item {
 
             Key pattern;
             if (trim.pattern().isId()) {
-                pattern = JavaRegistries.TRIM_PATTERN.key(session, trim.pattern().id());
+                pattern = JavaRegistries.TRIM_PATTERN.getKey(session, trim.pattern().id());
             } else {
                 GeyserImpl.getInstance().getLogger().debug("Unable to translate non-id trim pattern: " + trim);
                 return;

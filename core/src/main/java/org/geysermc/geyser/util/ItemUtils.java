@@ -58,7 +58,7 @@ public final class ItemUtils {
         }
 
         for (Map.Entry<Integer, Integer> entry : enchantmentData.getEnchantments().entrySet()) {
-            Enchantment enchantment = session.getRegistryCache().registry(JavaRegistries.ENCHANTMENT).byId(entry.getKey());
+            Enchantment enchantment = JavaRegistries.ENCHANTMENT.get(session, entry.getKey());
             if (enchantment.bedrockEnchantment() == bedrockEnchantment) {
                 return entry.getValue();
             }
@@ -77,7 +77,7 @@ public final class ItemUtils {
         }
 
         for (Integer id : enchantmentData.getEnchantments().keySet()) {
-            Enchantment enchantment = session.getRegistryCache().registry(JavaRegistries.ENCHANTMENT).byId(id);
+            Enchantment enchantment = JavaRegistries.ENCHANTMENT.get(session, id);
             if (enchantment.effects().contains(component)) {
                 return true;
             }

@@ -46,7 +46,7 @@ public class JavaDamageEventTranslator extends PacketTranslator<ClientboundDamag
             return;
         }
 
-        EntityDamageCause cause = session.getRegistryCache().registry(JavaRegistries.DAMAGE_TYPE).byId(packet.getSourceTypeId());
+        EntityDamageCause cause = JavaRegistries.DAMAGE_TYPE.get(session, packet.getSourceTypeId());
         if (cause == null) {
             cause = EntityDamageCause.OVERRIDE;
         }

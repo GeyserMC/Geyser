@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
+ * Copyright (c) 2026 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,20 +23,34 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.translator.protocol.java;
+package org.geysermc.geyser.session.cache.registry;
 
-import org.geysermc.geyser.session.cache.registry.JavaRegistryTagCache;
-import org.geysermc.mcprotocollib.protocol.packet.common.clientbound.ClientboundUpdateTagsPacket;
+import it.unimi.dsi.fastutil.ints.IntList;
+import lombok.Getter;
 import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.geyser.translator.protocol.PacketTranslator;
-import org.geysermc.geyser.translator.protocol.Translator;
+import org.geysermc.geyser.session.cache.RegistryCache;
+import org.geysermc.geyser.session.cache.TagCache;
+import org.geysermc.geyser.session.cache.tags.Tag;
 
-@Translator(packet = ClientboundUpdateTagsPacket.class)
-public class JavaUpdateTagsTranslator extends PacketTranslator<ClientboundUpdateTagsPacket> {
+public final class JavaRegistryTagCache implements JavaRegistryProvider {
+    @Getter
+    private final RegistryCache registryCache;
+    @Getter
+    private final TagCache tagCache;
+
+    public JavaRegistryTagCache(GeyserSession session) {
+        registryCache = new RegistryCache(session);
+        tagCache = new TagCache(session);
+    }
 
     @Override
-    public void translate(GeyserSession session, ClientboundUpdateTagsPacket packet) {
-        // TODO meh cast
-        ((JavaRegistryTagCache) session.javaRegistries()).getTagCache().loadPacket(packet);
+    public <T> JavaRegistry<T> registry(JavaRegistryKey<T> registryKey) {
+        // TODO hardcoded registries
+        return registryCache.registry(registryKey);
+    }
+
+    @Override
+    public IntList rawTag(Tag<?> tag) {
+        return tagCache.get(tag);
     }
 }

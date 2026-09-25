@@ -43,6 +43,6 @@ public record ResolvableHolderReferenceComponent(DataComponentType<Integer> type
 
     @Override
     public Integer resolve(JavaRegistryProvider registries) {
-        return registry.networkId(registries, reference);
+        return registry.getId(registries, reference);
     }
 }

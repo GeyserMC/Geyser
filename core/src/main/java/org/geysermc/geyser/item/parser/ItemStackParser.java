@@ -110,7 +110,7 @@ public final class ItemStackParser {
     private static ItemEnchantments parseEnchantments(GeyserSession session, NbtMap map) {
         Int2IntMap enchantments = new Int2IntOpenHashMap(map.size());
         for (Map.Entry<String, Object> entry : map.entrySet()) {
-            enchantments.put(JavaRegistries.ENCHANTMENT.networkId(session, MinecraftKey.key(entry.getKey())), (int) entry.getValue());
+            enchantments.put(JavaRegistries.ENCHANTMENT.getId(session, MinecraftKey.key(entry.getKey())), (int) entry.getValue());
         }
         return new ItemEnchantments(enchantments);
     }
@@ -129,7 +129,7 @@ public final class ItemStackParser {
                 Object pattern = layer.get("pattern");
                 Holder<BannerPatternLayer.BannerPattern> patternHolder;
                 if (pattern instanceof String id) {
-                    patternHolder = Holder.ofId(JavaRegistries.BANNER_PATTERN.networkId(session, MinecraftKey.key(id)));
+                    patternHolder = Holder.ofId(JavaRegistries.BANNER_PATTERN.getId(session, MinecraftKey.key(id)));
                 } else {
                     NbtMap inline = (NbtMap) pattern;
                     Key assetId = MinecraftKey.key(inline.getString("asset_id"));

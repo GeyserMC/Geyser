@@ -385,7 +385,7 @@ public class DataComponentHashers {
             } else if (component.getValue().getValue() == null) {
                 removals.add(component.getKey());
             } else {
-                hashedAdditions.put(component.getKey(), hash(session.getRegistryCache(), component.getValue()).asInt());
+                hashedAdditions.put(component.getKey(), hash(session.javaRegistries(), component.getValue()).asInt());
             }
         }
         return new HashedStack(stack.getId(), stack.getAmount(), hashedAdditions, removals);

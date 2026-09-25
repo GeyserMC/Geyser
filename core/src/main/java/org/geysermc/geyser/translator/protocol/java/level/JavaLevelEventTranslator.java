@@ -82,7 +82,7 @@ public class JavaLevelEventTranslator extends PacketTranslator<ClientboundLevelE
         // Separate case since each RecordEventData in Java is an individual track in Bedrock
         if (levelEvent == LevelEventType.SOUND_PLAY_JUKEBOX_SONG) {
             RecordEventData recordEventData = (RecordEventData) packet.getData();
-            JukeboxSong jukeboxSong = session.getRegistryCache().registry(JavaRegistries.JUKEBOX_SONG).byId(recordEventData.getRecordId());
+            JukeboxSong jukeboxSong = JavaRegistries.JUKEBOX_SONG.get(session, recordEventData.getRecordId());
             if (jukeboxSong == null) {
                 return;
             }

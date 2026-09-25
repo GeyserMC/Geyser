@@ -182,14 +182,14 @@ public abstract class Dialog {
 
     public static Dialog getDialogFromHolder(GeyserSession session, Holder<NbtMap> holder) {
         if (holder.isId()) {
-            return Objects.requireNonNull(JavaRegistries.DIALOG.value(session, holder.id()));
+            return Objects.requireNonNull(JavaRegistries.DIALOG.get(session, holder.id()));
         } else {
-            return Dialog.readDialogFromNbt(Optional.of(session), holder.custom(), key -> JavaRegistries.DIALOG.networkId(session, key));
+            return Dialog.readDialogFromNbt(Optional.of(session), holder.custom(), key -> JavaRegistries.DIALOG.getId(session, key));
         }
     }
 
     public static Dialog getDialogFromKey(GeyserSession session, Key key) {
-        return Objects.requireNonNull(JavaRegistries.DIALOG.value(session, key));
+        return Objects.requireNonNull(JavaRegistries.DIALOG.get(session, key));
     }
 
     public enum AfterAction {

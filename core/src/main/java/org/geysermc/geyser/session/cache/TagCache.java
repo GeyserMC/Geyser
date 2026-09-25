@@ -30,7 +30,6 @@ import it.unimi.dsi.fastutil.ints.IntLists;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import net.kyori.adventure.key.Key;
 import org.checkerframework.checker.nullness.qual.NonNull;
-import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.GeyserLogger;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.cache.registry.JavaRegistries;
@@ -42,9 +41,9 @@ import org.geysermc.mcprotocollib.protocol.data.game.item.component.HolderSet;
 import org.geysermc.mcprotocollib.protocol.packet.common.clientbound.ClientboundUpdateTagsPacket;
 
 import java.util.Arrays;
-import java.util.List;
 import java.util.Map;
 
+// TODO javadocs
 /**
  * Manages information sent from the {@link ClientboundUpdateTagsPacket}. If that packet is not sent, all lists here
  * will remain empty, matching Java Edition behavior. Looking up a tag that wasn't listed in that packet will return an empty array.
@@ -53,10 +52,7 @@ import java.util.Map;
  * <p>To simply check if an element is in a tag, it's preferred to use the element's "{@code is}" method, if available. For example:</p>
  *
  * <ul>
- *     <li>{@link org.geysermc.geyser.level.block.type.Block#is(GeyserSession, Tag)}</li>
  *     <li>{@link org.geysermc.geyser.level.block.type.Block#is(GeyserSession, HolderSet)}</li>
- *     <li>{@link org.geysermc.geyser.item.type.Item#is(GeyserSession, Tag)}</li>
- *     <li>{@link org.geysermc.geyser.item.type.Item#is(GeyserSession, HolderSet)}</li>
  *     <li>{@link org.geysermc.geyser.inventory.GeyserItemStack#is(GeyserSession, Tag)}</li>
  *     <li>{@link org.geysermc.geyser.inventory.GeyserItemStack#is(GeyserSession, HolderSet)}</li>
  *     <li>{@link GeyserHolderSet#contains(GeyserSession, Object)}</li>
@@ -120,51 +116,9 @@ public final class TagCache {
     }
 
     /**
-     * Should only be used when the network ID of an element is already known. If not, prefer using the {@link TagCache#is(Tag, Object)} shorthand method.
+     * @return the network IDs in the given tag. This can be an empty list.
      */
-    public boolean is(@NonNull Tag<?> tag, int id) {
-        return getRaw(tag).contains(id);
-    }
-
-    public <T> boolean is(@NonNull Tag<T> tag, @NonNull T object) {
-        return getRaw(tag).contains(tag.registry().networkId(session, object));
-    }
-
-    /**
-     * @return true if the specified network ID is in the given {@link HolderSet} set.
-     */
-    public <T> boolean is(@Nullable HolderSet holderSet, @NonNull JavaRegistryKey<T> registry, int id) {
-        if (holderSet == null) {
-            return false;
-        }
-
-        IntList entries = holderSet.resolve(key -> {
-            // This should never happen, since a key in a HolderSet is always a tag
-            // We check for it anyway
-            if (key.value().startsWith("#")) {
-                key = Key.key(key.namespace(), key.value().substring(1));
-            }
-            return getRaw(new Tag<>(registry, key));
-        });
-
-        return entries.contains(id);
-    }
-
-    public <T> List<T> get(@NonNull Tag<T> tag) {
-        return mapRawArray(session, getRaw(tag), tag.registry());
-    }
-
-    /**
-     * @return the network IDs in the given tag. This can be an empty array.
-     */
-    public @NonNull IntList getRaw(@NonNull Tag<?> tag) {
+    public @NonNull IntList get(@NonNull Tag<?> tag) {
         return this.tags.getOrDefault(tag, IntLists.emptyList());
-    }
-
-    /**
-     * Maps a raw array of network IDs to their respective objects.
-     */
-    public static <T> List<T> mapRawArray(GeyserSession session, IntList array, JavaRegistryKey<T> registry) {
-        return array.intStream().mapToObj(i -> registry.value(session, i)).toList();
     }
 }

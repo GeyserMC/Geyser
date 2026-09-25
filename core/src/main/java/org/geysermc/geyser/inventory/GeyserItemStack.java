@@ -167,11 +167,11 @@ public class GeyserItemStack {
     }
 
     public boolean is(GeyserSession session, Tag<Item> tag) {
-        return session.getTagCache().is(tag, javaId);
+        return session.javaRegistries().is(tag, javaId);
     }
 
     public boolean is(GeyserSession session, HolderSet set) {
-        return session.getTagCache().is(set, JavaRegistries.ITEM, javaId);
+        return session.javaRegistries().is(JavaRegistries.ITEM, set, javaId);
     }
 
     public boolean isSameItem(GeyserItemStack other) {

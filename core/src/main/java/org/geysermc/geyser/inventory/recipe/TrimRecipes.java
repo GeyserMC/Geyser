@@ -74,8 +74,8 @@ public final class TrimRecipes {
 
         Map<Holder<ArmorTrim.TrimMaterial>, Item> trimMaterialProviders = getTrimMaterialProviders(session);
 
-        session.getRegistryCache().registry(JavaRegistries.TRIM_MATERIAL).forEach(material -> bedrockTrimMaterials.add(translateJavaTrimMaterial(session, material, trimMaterialProviders)));
-        session.getRegistryCache().registry(JavaRegistries.TRIM_PATTERN).forEach(pattern -> bedrockTrimPatterns.add(translateJavaTrimPattern(session, pattern)));
+        session.javaRegistries().registry(JavaRegistries.TRIM_MATERIAL).forEach(material -> bedrockTrimMaterials.add(translateJavaTrimMaterial(session, material, trimMaterialProviders)));
+        session.javaRegistries().registry(JavaRegistries.TRIM_PATTERN).forEach(pattern -> bedrockTrimPatterns.add(translateJavaTrimPattern(session, pattern)));
     }
 
     private static TrimMaterial translateJavaTrimMaterial(GeyserSession session, RegistryEntryData<ArmorTrim.TrimMaterial> java, Map<Holder<ArmorTrim.TrimMaterial>, Item> trimMaterialProviders) {

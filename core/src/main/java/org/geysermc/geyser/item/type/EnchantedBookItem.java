@@ -83,7 +83,7 @@ public class EnchantedBookItem extends Item {
 
                 BedrockEnchantment enchantment = BedrockEnchantment.getByBedrockId(bedrockId);
                 if (enchantment != null) {
-                    List<Enchantment> enchantments = session.getRegistryCache().registry(JavaRegistries.ENCHANTMENT).values();
+                    List<Enchantment> enchantments = session.javaRegistries().registry(JavaRegistries.ENCHANTMENT).values();
                     for (int i = 0; i < enchantments.size(); i++) {
                         if (enchantments.get(i).bedrockEnchantment() == enchantment) {
                             int level = bedrockEnchantment.getShort("lvl", (short) 1);

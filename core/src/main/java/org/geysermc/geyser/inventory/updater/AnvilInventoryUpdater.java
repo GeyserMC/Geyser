@@ -376,7 +376,7 @@ public class AnvilInventoryUpdater extends InventoryUpdater {
         if (enchantmentComponent != null) {
             Object2IntMap<Enchantment> enchantments = new Object2IntOpenHashMap<>();
             for (Map.Entry<Integer, Integer> entry : enchantmentComponent.getEnchantments().entrySet()) {
-                Enchantment enchantment = session.getRegistryCache().registry(JavaRegistries.ENCHANTMENT).byId(entry.getKey());
+                Enchantment enchantment = JavaRegistries.ENCHANTMENT.get(session, entry.getKey());
                 if (enchantment == null) {
                     GeyserImpl.getInstance().getLogger().debug("Unknown Java enchantment in anvil: " + entry.getKey());
                     continue;

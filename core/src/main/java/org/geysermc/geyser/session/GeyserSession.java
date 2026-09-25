@@ -183,14 +183,14 @@ import org.geysermc.geyser.session.cache.InputCache;
 import org.geysermc.geyser.session.cache.LodestoneCache;
 import org.geysermc.geyser.session.cache.PistonCache;
 import org.geysermc.geyser.session.cache.PreferencesCache;
-import org.geysermc.geyser.session.cache.RegistryCache;
 import org.geysermc.geyser.session.cache.SkullCache;
 import org.geysermc.geyser.session.cache.StructureBlockCache;
-import org.geysermc.geyser.session.cache.TagCache;
 import org.geysermc.geyser.session.cache.TeleportCache;
 import org.geysermc.geyser.session.cache.WorldBorder;
 import org.geysermc.geyser.session.cache.WorldCache;
 import org.geysermc.geyser.session.cache.registry.JavaRegistries;
+import org.geysermc.geyser.session.cache.registry.JavaRegistryProvider;
+import org.geysermc.geyser.session.cache.registry.JavaRegistryTagCache;
 import org.geysermc.geyser.session.cache.tags.DialogTag;
 import org.geysermc.geyser.session.cache.waypoint.WaypointCache;
 import org.geysermc.geyser.session.dialog.BuiltInDialog;
@@ -312,10 +312,10 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     private final LodestoneCache lodestoneCache;
     private final PistonCache pistonCache;
     private final PreferencesCache preferencesCache;
-    private final RegistryCache registryCache;
+    @Accessors(fluent = true)
+    private final JavaRegistryProvider javaRegistries;
     private final SkullCache skullCache;
     private final StructureBlockCache structureBlockCache;
-    private final TagCache tagCache;
     private final WaypointCache waypointCache;
     private final WorldCache worldCache;
 
@@ -874,10 +874,9 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         this.lodestoneCache = new LodestoneCache();
         this.pistonCache = new PistonCache(this);
         this.preferencesCache = new PreferencesCache(this);
-        this.registryCache = new RegistryCache(this);
+        this.javaRegistries = new JavaRegistryTagCache(this);
         this.skullCache = new SkullCache(this);
         this.structureBlockCache = new StructureBlockCache();
-        this.tagCache = new TagCache(this);
         this.waypointCache = new WaypointCache(this);
         this.worldCache = new WorldCache(this);
         this.cameraData = new GeyserCameraData(this);
@@ -908,7 +907,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         // Note: this.dimensionType may be null here if the player is connecting from online mode
         int minY = BedrockDimension.OVERWORLD.minY();
         int maxY = BedrockDimension.OVERWORLD.maxY();
-        for (JavaDimension javaDimension : this.registryCache.registry(JavaRegistries.DIMENSION_TYPE).values()) {
+        for (JavaDimension javaDimension : this.javaRegistries.registry(JavaRegistries.DIMENSION_TYPE).values()) {
             if (javaDimension.bedrockId() == BedrockDimension.OVERWORLD_ID) {
                 minY = Math.min(minY, javaDimension.minY());
                 maxY = Math.max(maxY, javaDimension.minY() + javaDimension.height());
@@ -1807,7 +1806,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
 
     @Override
     public void openPauseScreenAdditions() {
-        List<Dialog> additions = tagCache.get(DialogTag.PAUSE_SCREEN_ADDITIONS);
+        List<Dialog> additions = javaRegistries.tag(DialogTag.PAUSE_SCREEN_ADDITIONS);
         if (additions.isEmpty()) {
             if (!serverLinks.isEmpty()) {
                 dialogManager.openDialog(BuiltInDialog.SERVER_LINKS);
@@ -1821,7 +1820,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
 
     @Override
     public void openQuickActions() {
-        List<Dialog> quickActions = tagCache.get(DialogTag.QUICK_ACTIONS);
+        List<Dialog> quickActions = javaRegistries.tag(DialogTag.QUICK_ACTIONS);
         if (!quickActions.isEmpty()) {
             if (quickActions.size() == 1) {
                 dialogManager.openDialog(quickActions.getFirst());

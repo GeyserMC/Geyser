@@ -83,7 +83,7 @@ public class JavaRespawnTranslator extends PacketTranslator<ClientboundRespawnPa
             session.updateThunder(0);
         }
 
-        JavaDimension newDimension = session.getRegistryCache().registry(JavaRegistries.DIMENSION_TYPE).byId(spawnInfo.getDimension());
+        JavaDimension newDimension = JavaRegistries.DIMENSION_TYPE.get(session, spawnInfo.getDimension());
         if (session.getDimensionType() != newDimension || !spawnInfo.getWorldName().equals(session.getWorldName())) {
             // Switching to a new world (based off the world name change or new dimension); send a fake dimension change
             if (session.getDimensionType().bedrockId() == newDimension.bedrockId()) {

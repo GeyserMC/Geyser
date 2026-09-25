@@ -106,7 +106,7 @@ public class LoomInventoryTranslator extends AbstractBlockInventoryTranslator<Co
             return rejectRequest(request);
         }
 
-        int index = session.getTagCache().get(NO_ITEMS_REQUIRED).indexOf(requestedPattern);
+        int index = session.javaRegistries().tag(NO_ITEMS_REQUIRED).indexOf(requestedPattern);
         if (index == -1) {
             return rejectRequest(request);
         }
