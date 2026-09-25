@@ -191,6 +191,10 @@ public abstract class AvatarEntity extends LivingEntity {
     @Override
     public @Nullable Vector3i setBedPosition(EntityMetadata<Optional<Vector3i>, ?> entityMetadata) {
         bedPosition = super.setBedPosition(entityMetadata);
+        if (this instanceof SessionPlayerEntity) {
+            // The server has answered the bed click either way.
+            session.stopEnteringBed();
+        }
         if (bedPosition != null) {
             // Indicate that the player should enter the sleep cycle
             // Has to be a byte or it does not work
