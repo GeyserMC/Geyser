@@ -45,6 +45,7 @@ import org.geysermc.geyser.registry.populator.BlockRegistryPopulator;
 import org.geysermc.geyser.registry.populator.CustomBlockRegistryPopulator;
 import org.geysermc.geyser.registry.populator.CustomSkullRegistryPopulator;
 import org.geysermc.geyser.registry.type.BlockMappings;
+import org.geysermc.geyser.registry.type.CustomBlockItemOverride;
 import org.geysermc.geyser.registry.type.CustomSkull;
 import org.geysermc.geyser.translator.collision.BlockCollision;
 
@@ -127,9 +128,11 @@ public class BlockRegistries {
     public static final SimpleMappedRegistry<JavaBlockState, CustomBlockState> NON_VANILLA_BLOCK_STATE_OVERRIDES = SimpleMappedRegistry.create(RegistryLoaders.empty(Object2ObjectOpenHashMap::new));
 
     /**
-     * A registry which stores clean Java Ids and the custom block it should be replaced with in the context of items.
+     * A registry which stores custom block item overrides keyed by Java item identifier and optional
+     * {@code minecraft:item_model}. Base overrides use {@code itemModel = null}; model-specific
+     * overrides carry a non-null {@link net.kyori.adventure.key.Key}.
      */
-    public static final SimpleMappedRegistry<String, CustomBlockData> CUSTOM_BLOCK_ITEM_OVERRIDES = SimpleMappedRegistry.create(RegistryLoaders.empty(Object2ObjectOpenHashMap::new));
+    public static final SimpleMappedRegistry<CustomBlockItemOverride, CustomBlockData> CUSTOM_BLOCK_ITEM_OVERRIDES = SimpleMappedRegistry.create(RegistryLoaders.empty(Object2ObjectOpenHashMap::new));
 
     /**
      * A registry which stores skin texture hashes to custom skull blocks.
