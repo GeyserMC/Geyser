@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2026 GeyserMC. http://geysermc.org
+ * Copyright (c) 2025-2026 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,36 +23,45 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.session.cache.registry;
+package org.geysermc.geyser.registry.java;
 
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.ToString;
+import lombok.experimental.Accessors;
 import net.kyori.adventure.key.Key;
+import org.checkerframework.checker.nullness.qual.Nullable;
 
-import java.util.function.IntFunction;
+import java.util.Objects;
 
-public interface MutableJavaRegistry<T> extends JavaRegistry<T> {
+@Accessors(fluent = true)
+@EqualsAndHashCode
+@ToString
+public final class RegistryEntryData<T> {
+    @Getter
+    private final int id;
+    @Getter
+    private final Key key;
+    private @Nullable T data;
 
-    default void register(Key key) {
-        register(size(), key);
+    public RegistryEntryData(int id, Key key) {
+        this.id = id;
+        this.key = key;
     }
 
-    default void register(int id, Key key) {
-        register(new RegistryEntryData<>(id, key));
+    public T data() {
+        if (data == null) {
+            throw new IllegalStateException("Tried to access unbound registry entry " + key + "!");
+        }
+        return data;
     }
 
-    default <V extends T> V register(Key key, V value) {
-        return register(size(), key, value);
+    public void bind(T data) {
+        assert this.data == null : "Tried to bind registry entry " + key + " twice!";
+        this.data = Objects.requireNonNull(data, "Value for registry entry " + key + " must not be null when binding");
     }
 
-    default <V extends T> V register(int id, Key key, V value) {
-        RegistryEntryData<T> entry = new RegistryEntryData<>(id, key);
-        entry.bind(value);
-        register(entry);
-        return value;
+    public boolean isBound() {
+        return data != null;
     }
-
-    void register(RegistryEntryData<T> entry);
-
-    void clear();
-
-    void freeze(IntFunction<T> binder);
 }

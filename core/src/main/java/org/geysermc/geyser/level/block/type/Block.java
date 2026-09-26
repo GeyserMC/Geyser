@@ -41,7 +41,7 @@ import org.geysermc.geyser.level.block.property.Property;
 import org.geysermc.geyser.level.physics.PistonBehavior;
 import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.geyser.session.cache.registry.JavaRegistries;
+import org.geysermc.geyser.registry.java.JavaRegistries;
 import org.geysermc.geyser.session.cache.tags.Tag;
 import org.geysermc.geyser.translator.level.block.entity.BedrockChunkWantsBlockEntityTag;
 import org.geysermc.geyser.util.BlockEntityUtils;

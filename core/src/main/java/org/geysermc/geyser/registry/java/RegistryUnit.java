@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 GeyserMC. http://geysermc.org
+ * Copyright (c) 2025-2026 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,10 +23,12 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.session.cache.registry;
+package org.geysermc.geyser.registry.java;
+
+import org.geysermc.geyser.session.cache.registry.RegistryCache;
 
 /**
- * Used with {@link org.geysermc.geyser.session.cache.RegistryCache.RegistryReader#UNIT} to load registries without loading any data.
+ * Used with {@link RegistryCache.RegistryReader#UNIT} to load registries without loading any data.
  *
  * <p>This is usually done when registries need to be loaded to make ID->key or key->ID conversions, but actual data isn't needed.</p>
  */

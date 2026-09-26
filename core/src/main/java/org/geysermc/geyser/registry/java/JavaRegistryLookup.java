@@ -23,7 +23,7 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.session.cache.registry;
+package org.geysermc.geyser.registry.java;
 
 import net.kyori.adventure.key.Key;
 

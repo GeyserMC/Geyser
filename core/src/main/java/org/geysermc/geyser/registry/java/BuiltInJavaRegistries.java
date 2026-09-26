@@ -32,12 +32,6 @@ import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.item.type.Item;
 import org.geysermc.geyser.level.block.Blocks;
 import org.geysermc.geyser.level.block.type.Block;
-import org.geysermc.geyser.session.cache.registry.JavaRegistries;
-import org.geysermc.geyser.session.cache.registry.JavaRegistry;
-import org.geysermc.geyser.session.cache.registry.JavaRegistryKey;
-import org.geysermc.geyser.session.cache.registry.JavaRegistryProvider;
-import org.geysermc.geyser.session.cache.registry.MutableJavaRegistry;
-import org.geysermc.geyser.session.cache.registry.SimpleJavaRegistry;
 import org.geysermc.geyser.session.cache.tags.Tag;
 
 public final class BuiltInJavaRegistries {

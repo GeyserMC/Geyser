@@ -23,20 +23,36 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.session.cache.registry;
+package org.geysermc.geyser.registry.java;
 
 import net.kyori.adventure.key.Key;
 
-import java.util.Collection;
-import java.util.function.Consumer;
+import java.util.function.IntFunction;
 
-public interface JavaRegistry<T> extends JavaRegistryLookup<T>, Iterable<T> {
+public interface MutableJavaRegistry<T> extends JavaRegistry<T> {
 
-    Collection<Key> keys();
+    default void register(Key key) {
+        register(size(), key);
+    }
 
-    Collection<T> values();
+    default void register(int id, Key key) {
+        register(new RegistryEntryData<>(id, key));
+    }
 
-    int size();
+    default <V extends T> V register(Key key, V value) {
+        return register(size(), key, value);
+    }
 
-    void forEachEntry(Consumer<RegistryEntryData<T>> action);
+    default <V extends T> V register(int id, Key key, V value) {
+        RegistryEntryData<T> entry = new RegistryEntryData<>(id, key);
+        entry.bind(value);
+        register(entry);
+        return value;
+    }
+
+    void register(RegistryEntryData<T> entry);
+
+    void clear();
+
+    void freeze(IntFunction<T> binder);
 }

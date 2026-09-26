@@ -32,7 +32,7 @@ import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.item.TooltipOptions;
 import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.geyser.session.cache.registry.JavaRegistries;
+import org.geysermc.geyser.registry.java.JavaRegistries;
 import org.geysermc.geyser.translator.item.BedrockItemBuilder;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.ArmorTrim;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentTypes;

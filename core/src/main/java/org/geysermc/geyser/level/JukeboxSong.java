@@ -26,7 +26,7 @@
 package org.geysermc.geyser.level;
 
 import org.cloudburstmc.nbt.NbtMap;
-import org.geysermc.geyser.session.cache.registry.RegistryEntryContext;
+import org.geysermc.geyser.registry.java.RegistryEntryContext;
 import org.geysermc.geyser.util.SoundUtils;
 
 public record JukeboxSong(String soundEvent, String description) {

@@ -50,7 +50,7 @@ import org.geysermc.geyser.level.chunk.bitarray.BitArrayVersion;
 import org.geysermc.geyser.level.chunk.bitarray.SingletonBitArray;
 import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.geyser.session.cache.registry.JavaRegistries;
+import org.geysermc.geyser.registry.java.JavaRegistries;
 import org.geysermc.geyser.translator.level.BiomeTranslator;
 import org.geysermc.geyser.translator.level.block.entity.BedrockChunkWantsBlockEntityTag;
 import org.geysermc.geyser.translator.level.block.entity.BlockEntityTranslator;

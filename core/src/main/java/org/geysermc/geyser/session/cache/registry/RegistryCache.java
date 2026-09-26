@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2024 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2026 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,7 +23,7 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.session.cache;
+package org.geysermc.geyser.session.cache.registry;
 
 import it.unimi.dsi.fastutil.objects.Reference2ObjectMap;
 import it.unimi.dsi.fastutil.objects.Reference2ObjectOpenHashMap;
@@ -45,13 +45,13 @@ import org.geysermc.geyser.level.JavaDimension;
 import org.geysermc.geyser.level.JukeboxSong;
 import org.geysermc.geyser.level.PaintingType;
 import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.geyser.session.cache.registry.JavaRegistries;
-import org.geysermc.geyser.session.cache.registry.JavaRegistryKey;
-import org.geysermc.geyser.session.cache.registry.JavaRegistry;
-import org.geysermc.geyser.session.cache.registry.MutableJavaRegistry;
-import org.geysermc.geyser.session.cache.registry.RegistryEntryContext;
-import org.geysermc.geyser.session.cache.registry.RegistryUnit;
-import org.geysermc.geyser.session.cache.registry.SimpleJavaRegistry;
+import org.geysermc.geyser.registry.java.JavaRegistries;
+import org.geysermc.geyser.registry.java.JavaRegistryKey;
+import org.geysermc.geyser.registry.java.JavaRegistry;
+import org.geysermc.geyser.registry.java.MutableJavaRegistry;
+import org.geysermc.geyser.registry.java.RegistryEntryContext;
+import org.geysermc.geyser.registry.java.RegistryUnit;
+import org.geysermc.geyser.registry.java.SimpleJavaRegistry;
 import org.geysermc.geyser.session.dialog.Dialog;
 import org.geysermc.geyser.text.ChatDecoration;
 import org.geysermc.geyser.translator.level.BiomeTranslator;

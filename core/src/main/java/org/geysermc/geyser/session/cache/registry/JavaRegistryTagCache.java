@@ -28,9 +28,10 @@ package org.geysermc.geyser.session.cache.registry;
 import it.unimi.dsi.fastutil.ints.IntList;
 import lombok.Getter;
 import org.geysermc.geyser.registry.java.BuiltInJavaRegistries;
+import org.geysermc.geyser.registry.java.JavaRegistry;
+import org.geysermc.geyser.registry.java.JavaRegistryKey;
+import org.geysermc.geyser.registry.java.JavaRegistryProvider;
 import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.geyser.session.cache.RegistryCache;
-import org.geysermc.geyser.session.cache.TagCache;
 import org.geysermc.geyser.session.cache.tags.Tag;
 
 public final class JavaRegistryTagCache implements JavaRegistryProvider {

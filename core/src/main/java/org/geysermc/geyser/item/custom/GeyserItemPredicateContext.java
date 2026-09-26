@@ -35,7 +35,7 @@ import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.item.custom.impl.predicates.GeyserChargedProjectile;
 import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.geyser.session.cache.registry.JavaRegistries;
+import org.geysermc.geyser.registry.java.JavaRegistries;
 import org.geysermc.geyser.translator.inventory.BundleInventoryTranslator;
 import org.geysermc.geyser.util.MinecraftKey;
 import org.geysermc.geyser.util.thirdparty.Fraction;

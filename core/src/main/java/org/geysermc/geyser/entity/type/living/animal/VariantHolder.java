@@ -26,9 +26,10 @@
 package org.geysermc.geyser.entity.type.living.animal;
 
 import net.kyori.adventure.key.Key;
+import org.geysermc.geyser.registry.java.JavaRegistries;
 import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.geyser.session.cache.RegistryCache;
-import org.geysermc.geyser.session.cache.registry.JavaRegistryKey;
+import org.geysermc.geyser.session.cache.registry.RegistryCache;
+import org.geysermc.geyser.registry.java.JavaRegistryKey;
 import org.geysermc.geyser.util.MinecraftKey;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.IntEntityMetadata;
 
@@ -61,8 +62,8 @@ public interface VariantHolder<BedrockVariant extends VariantHolder.BuiltIn> {
     GeyserSession getSession();
 
     /**
-     * The registry in {@link org.geysermc.geyser.session.cache.registry.JavaRegistries} for this mob's variants. The registry can utilise the {@link VariantHolder#reader(Class, Enum)} method
-     * to create a reader to be used in {@link org.geysermc.geyser.session.cache.RegistryCache}.
+     * The registry in {@link JavaRegistries} for this mob's variants. The registry can utilise the {@link VariantHolder#reader(Class, Enum)} method
+     * to create a reader to be used in {@link RegistryCache}.
      */
     JavaRegistryKey<? extends BedrockVariant> variantRegistry();
 
