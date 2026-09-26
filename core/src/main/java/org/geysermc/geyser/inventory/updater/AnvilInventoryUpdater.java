@@ -315,9 +315,9 @@ public class AnvilInventoryUpdater extends InventoryUpdater {
         for (Object2IntMap.Entry<Enchantment> entry : getEnchantments(registries, material).object2IntEntrySet()) {
             Enchantment enchantment = entry.getKey();
 
-            boolean canApply = isEnchantedBook(input) || enchantment.supportedItems().contains(session, input.asItem());
+            boolean canApply = isEnchantedBook(input) || enchantment.supportedItems().contains(registries, input.asItem());
 
-            List<Enchantment> incompatibleEnchantments = enchantment.exclusiveSet().resolve(session);
+            List<Enchantment> incompatibleEnchantments = enchantment.exclusiveSet().resolve(registries);
             for (Enchantment incompatible : incompatibleEnchantments) {
                 // An exclusive set contains the enchantment itself, which never conflicts with a higher level of itself
                 if (!incompatible.equals(enchantment) && combinedEnchantments.containsKey(incompatible)) {

@@ -47,7 +47,7 @@ import net.minecraft.util.HashOps;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.item.hashing.DataComponentHashers;
 import org.geysermc.geyser.item.hashing.MapHasher;
-import org.geysermc.geyser.session.cache.registry.JavaRegistryProvider;
+import org.geysermc.geyser.registry.java.JavaRegistryProvider;
 import org.geysermc.mcprotocollib.protocol.codec.MinecraftTypes;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponent;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentTypes;

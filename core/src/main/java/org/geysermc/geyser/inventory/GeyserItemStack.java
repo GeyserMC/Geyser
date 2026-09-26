@@ -120,7 +120,7 @@ public class GeyserItemStack {
             case CompositeSlotDisplay(List<SlotDisplay> contents) -> contents.isEmpty() ? GeyserItemStack.EMPTY : from(session, contents.getFirst());
             case TagSlotDisplay(HolderSet set) -> {
                 // Again, just create an itemstack of the first item in the holder set, if possible
-                List<Holder<Item>> itemTag = GeyserHolderSet.fromMCPL(JavaRegistries.ITEM, set).resolveHolders(session);
+                List<Holder<Item>> itemTag = GeyserHolderSet.fromMCPL(JavaRegistries.ITEM, set).resolveHolders(session.javaRegistries());
                 if (itemTag.isEmpty()) {
                     yield GeyserItemStack.EMPTY;
                 }

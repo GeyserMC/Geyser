@@ -55,7 +55,6 @@ import java.util.Map;
  *     <li>{@link org.geysermc.geyser.level.block.type.Block#is(GeyserSession, HolderSet)}</li>
  *     <li>{@link org.geysermc.geyser.inventory.GeyserItemStack#is(GeyserSession, Tag)}</li>
  *     <li>{@link org.geysermc.geyser.inventory.GeyserItemStack#is(GeyserSession, HolderSet)}</li>
- *     <li>{@link GeyserHolderSet#contains(GeyserSession, Object)}</li>
  * </ul>
  */
 public final class TagCache {

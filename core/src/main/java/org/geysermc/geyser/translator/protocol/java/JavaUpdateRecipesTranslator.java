@@ -196,7 +196,7 @@ public class JavaUpdateRecipesTranslator extends PacketTranslator<ClientboundUpd
                 continue;
             }
 
-            List<Holder<Item>> ingredients = GeyserHolderSet.fromMCPL(JavaRegistries.ITEM, recipe.input().getValues()).resolveHolders(session);
+            List<Holder<Item>> ingredients = GeyserHolderSet.fromMCPL(JavaRegistries.ITEM, recipe.input().getValues()).resolveHolders(session.javaRegistries());
             for (Holder<Item> ingredient : ingredients) {
                 rawStonecutterData.computeIfAbsent(ingredient.id(), $ -> new ArrayList<>()).add(recipe);
             }

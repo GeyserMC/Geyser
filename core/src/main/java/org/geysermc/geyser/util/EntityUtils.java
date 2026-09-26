@@ -65,6 +65,7 @@ import org.geysermc.geyser.entity.type.living.animal.horse.CamelEntity;
 import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.registry.Registries;
+import org.geysermc.geyser.registry.java.JavaRegistryProvider;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.registry.java.JavaRegistries;
 import org.geysermc.geyser.session.cache.tags.GeyserHolderSet;
@@ -359,13 +360,13 @@ public final class EntityUtils {
         return translatedEntityName(typeName.namespace(), typeName.path(), session);
     }
 
-    public static boolean equipmentUsableByEntity(GeyserSession session, Equippable equippable, EntityTypeDefinition<?> entity) {
+    public static boolean equipmentUsableByEntity(JavaRegistryProvider registries, Equippable equippable, EntityTypeDefinition<?> entity) {
         if (equippable.allowedEntities() == null) {
             return true;
         }
 
         GeyserHolderSet<EntityTypeDefinition<?>> holderSet = GeyserHolderSet.fromMCPL(JavaRegistries.ENTITY_TYPE, equippable.allowedEntities());
-        return holderSet.contains(session, entity);
+        return holderSet.contains(registries, entity);
     }
 
     // From ViaVersion! thank u!!

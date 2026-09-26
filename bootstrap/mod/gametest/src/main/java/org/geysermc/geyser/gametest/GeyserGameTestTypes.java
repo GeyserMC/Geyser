@@ -34,6 +34,7 @@ import net.minecraft.gametest.framework.TestEnvironmentDefinition;
 import net.minecraft.resources.Identifier;
 import org.geysermc.geyser.gametest.tests.ComponentHashTestInstance;
 import org.geysermc.geyser.gametest.tests.EntityMetadataTest;
+import org.geysermc.geyser.gametest.tests.GeyserHolderSetTestInstance;
 import org.geysermc.geyser.gametest.tests.MinecraftVersionTestInstance;
 import org.geysermc.geyser.gametest.tests.JavaPacketTranslatorExistenceTest;
 import org.geysermc.geyser.gametest.tests.RequiredComponentsForHashingTestInstance;
@@ -46,6 +47,7 @@ public interface GeyserGameTestTypes {
     SingletonTestType MINECRAFT_VERSION = createSingleton("minecraft_version", MinecraftVersionTestInstance::new);
     Identifier RESOLVABLE_COMPONENTS = createKey("resolvable_components");
     Identifier PACKET_TRANSLATOR_EXISTENCE = createKey("java_packet_translator_existence");
+    Identifier HOLDER_SET = createKey("holder_set");
 
     private static Identifier createKey(String name) {
         return Identifier.fromNamespaceAndPath("geyser", name);
@@ -70,6 +72,7 @@ public interface GeyserGameTestTypes {
         register(MINECRAFT_VERSION, MinecraftVersionTestInstance.MAP_CODEC);
         register(RESOLVABLE_COMPONENTS, ResolvableComponentLoadingTestInstance.MAP_CODEC);
         register(PACKET_TRANSLATOR_EXISTENCE, JavaPacketTranslatorExistenceTest.MAP_CODEC);
+        register(HOLDER_SET, GeyserHolderSetTestInstance.MAP_CODEC);
     }
 
     record SingletonTestType(Identifier type, Constructor constructor) {

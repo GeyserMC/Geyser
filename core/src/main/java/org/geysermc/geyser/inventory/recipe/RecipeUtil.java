@@ -147,7 +147,7 @@ public class RecipeUtil {
             return Collections.singletonList(ItemDescriptorWithCount.fromItem(item));
         }
         if (slotDisplay instanceof TagSlotDisplay(HolderSet set)) {
-            int[] items = GeyserHolderSet.fromMCPL(JavaRegistries.ITEM, set).resolveRawHolders(session); // I don't like this...
+            int[] items = GeyserHolderSet.fromMCPL(JavaRegistries.ITEM, set).resolveRawHolders(session.javaRegistries()); // I don't like this...
             if (items == null || items.length == 0) {
                 return Collections.singletonList(ItemDescriptorWithCount.EMPTY);
             } else if (items.length == 1) {

@@ -1,0 +1,9 @@
+{
+  "type": "geyser:holder_set",
+  "registry": "minecraft:block",
+  "set": [
+    "minecraft:bamboo_sapling",
+    "minecraft:soul_fire",
+    "minecraft:acacia_wall_sign"
+  ]
+}

@@ -35,16 +35,17 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.nbt.NbtList;
 import org.geysermc.adventure.text.serializer.nbt.HeterogeneousNbtList;
 import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.registry.java.JavaRegistries;
 import org.geysermc.geyser.registry.java.JavaRegistryKey;
 import org.geysermc.geyser.registry.java.JavaRegistryProvider;
+import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.util.MinecraftKey;
 import org.geysermc.mcprotocollib.protocol.data.game.Holder;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.HolderSet;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.function.Function;
 
 /**
@@ -180,27 +181,34 @@ public final class GeyserHolderSet<T> {
     }
 
     /**
+     * @return the tag of this set, if this set is tag-based
+     */
+    public Optional<Tag<T>> tag() {
+        return Optional.ofNullable(tag);
+    }
+
+    /**
      * Resolves this set, and checks if the given {@code object} is in it.
      *
-     * @param session the {@link GeyserSession}
+     * @param registries the {@link JavaRegistryProvider}
      * @param object the {@code object} to check for
      * @return true if the given {@code object} was in this set, false otherwise
      */
-    public boolean contains(GeyserSession session, @Nullable T object) {
+    public boolean contains(JavaRegistryProvider registries, @Nullable T object) {
         if (object == null || empty) {
             return false;
         }
-        return resolve(session).contains(object);
+        return resolve(registries).contains(object);
     }
 
     /**
      * Resolves this set to a list of {@link Holder}s, which may either be an {@link Holder.IdHolder} or a {@link Holder.CustomHolder}
      * (depending on the registry, both can be present in the list at once).
      *
-     * @param session the {@link GeyserSession}
+     * @param registries the {@link JavaRegistryProvider}
      * @return the resolved set as a list of {@link Holder}s
      */
-    public List<Holder<T>> resolveHolders(GeyserSession session) {
+    public List<Holder<T>> resolveHolders(JavaRegistryProvider registries) {
         if (empty) {
             return List.of();
         } else if (holders != null) {
@@ -208,42 +216,42 @@ public final class GeyserHolderSet<T> {
         }
         assert tag != null;
         // TODO maybe cache this, but how realise that tags are updated?
-        return session.javaRegistries().rawTag(tag).intStream().mapToObj(Holder::<T>ofId).toList();
+        return registries.rawTag(tag).intStream().mapToObj(Holder::<T>ofId).toList();
     }
 
     /**
      * Resolves this set to a raw int-array of network IDs. <em>This will not work for sets that have any inline holders.</em>
      *
-     * <p>This method is deprecated: prefer using {@link GeyserHolderSet#resolveHolders(GeyserSession)} or {@link GeyserHolderSet#resolve(GeyserSession)} as much as possible,
+     * <p>This method is deprecated: prefer using {@link GeyserHolderSet#resolveHolders(JavaRegistryProvider)} or {@link GeyserHolderSet#resolve(JavaRegistryProvider)} as much as possible,
      * which also won't fail on inline holders.</p>
      *
-     * @param session the {@link GeyserSession}
+     * @param registries the {@link GeyserSession}
      * @return the resolved set as a raw int-array of network IDs
      */
     @Deprecated
-    public int[] resolveRawHolders(GeyserSession session) {
-        return resolveHolders(session).stream().mapToInt(Holder::id).toArray();
+    public int[] resolveRawHolders(JavaRegistryProvider registries) {
+        return resolveHolders(registries).stream().mapToInt(Holder::id).toArray();
     }
 
     /**
-     * Resolves this set to a list of {@link T}s. This calls {@link GeyserHolderSet#resolveHolders(GeyserSession)}, and maps the {@link Holder.IdHolder}s
-     * to a {@link T} using {@link JavaRegistryKey#get(GeyserSession, int)}.
+     * Resolves this set to a list of {@link T}s. This calls {@link GeyserHolderSet#resolveHolders(JavaRegistryProvider)}, and maps the {@link Holder.IdHolder}s
+     * to a {@link T} using {@link JavaRegistryKey#get(JavaRegistryProvider, int)}.
      *
-     * @param session the {@link GeyserSession}
+     * @param registries the {@link JavaRegistryProvider}
      * @return the resolved set as a list of {@link Holder}s
      */
-    public List<T> resolve(GeyserSession session) {
+    public List<T> resolve(JavaRegistryProvider registries) {
         if (empty) {
             return List.of();
         }
         // TODO same as above
-        return resolveHolders(session).stream().map(holder -> holder.getOrCompute(registry.resolver(session))).toList();
+        return resolveHolders(registries).stream().map(holder -> holder.getOrCompute(registry.resolver(registries))).toList();
     }
 
     /**
      * Reads a HolderSet from a NBT object. Does not support reading HolderSets that can hold inline values.
      *
-     * <p>Uses {@link JavaRegistryKey#getId(GeyserSession, Key)} to resolve registry keys to network IDs.</p>
+     * <p>Uses {@link JavaRegistryKey#getId(JavaRegistryProvider, Key)} to resolve registry keys to network IDs.</p>
      *
      * @param session the Geyser session.
      * @param registry the registry the HolderSet contains IDs from.
@@ -275,6 +283,7 @@ public final class GeyserHolderSet<T> {
      * @param reader a function that reads an object in the HolderSet's registry, serialised as NBT. When {@code null}, this method doesn't support reading inline HolderSets.
      * @param <T> TODO
      */
+    // TODO fetch reader from RegistryReaders
     public static <T> GeyserHolderSet<T> readHolderSet(JavaRegistryProvider registries, JavaRegistryKey<T> registry,
                                                        @Nullable Object holderSet, @Nullable Function<Object, T> reader) {
         boolean canReadInline = reader != null;

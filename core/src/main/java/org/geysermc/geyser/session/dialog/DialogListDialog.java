@@ -51,7 +51,7 @@ public class DialogListDialog extends DialogWithButtons {
 
     @Override
     protected List<DialogButton> buttons(DialogHolder holder) {
-        return dialogs.resolve(holder.session()).stream()
+        return dialogs.resolve(holder.session().javaRegistries()).stream()
                 .map(dialog -> new DialogButton(dialog.externalTitle().orElseGet(dialog::title),
                         Optional.of(new DialogAction.ShowDialog(dialog))))
                 .toList();

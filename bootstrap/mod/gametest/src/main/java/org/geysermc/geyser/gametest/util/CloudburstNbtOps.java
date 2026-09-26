@@ -1,4 +1,29 @@
-package org.geysermc.geyser.gametest.registries;
+/*
+ * Copyright (c) 2026 GeyserMC. http://geysermc.org
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ *
+ * @author GeyserMC
+ * @link https://github.com/GeyserMC/Geyser
+ */
+
+package org.geysermc.geyser.gametest.util;
 
 import com.mojang.datafixers.util.Pair;
 import com.mojang.serialization.DataResult;
@@ -9,24 +34,25 @@ import org.cloudburstmc.nbt.NbtList;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.nbt.NbtType;
+import org.geysermc.adventure.text.serializer.nbt.HeterogeneousNbtList;
 import org.jspecify.annotations.Nullable;
 
 import java.nio.ByteBuffer;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.IntStream;
 import java.util.stream.LongStream;
 import java.util.stream.Stream;
 
-// Stolen from mappings-gen: is there a better way to do this?
-// Has some cursed modifications made to support non-null empty tags
+// Has some cursed modifications made to support non-null empty tags (represented as NbtType.END),
+// and heterogeneous lists
 public class CloudburstNbtOps implements DynamicOps<Object> {
+    private static final NbtType<?> NULL_REPRESENTATIVE = NbtType.END;
     public static final CloudburstNbtOps INSTANCE = new CloudburstNbtOps();
 
     @Override
     public Object empty() {
-        return NbtType.END;
+        return NULL_REPRESENTATIVE;
     }
 
     @Override
@@ -41,7 +67,7 @@ public class CloudburstNbtOps implements DynamicOps<Object> {
 
     @Override
     public <U> U convertTo(DynamicOps<U> outOps, Object input) {
-        if (input == empty()) {
+        if (input == NULL_REPRESENTATIVE) {
             return outOps.empty();
         }
         NbtType<?> type = NbtType.byClass(input.getClass());
@@ -82,7 +108,7 @@ public class CloudburstNbtOps implements DynamicOps<Object> {
 
     @Override
     public DataResult<Boolean> getBooleanValue(Object input) {
-        return this.getNumberValue(input).map(value -> value.doubleValue() != 0.0);
+        return getNumberValue(input).map(value -> value.doubleValue() != 0.0);
     }
 
     @Override
@@ -106,15 +132,17 @@ public class CloudburstNbtOps implements DynamicOps<Object> {
     @Override
     @SuppressWarnings({"rawtypes", "unchecked"})
     public DataResult<Object> mergeToList(Object list, Object value) {
-        value = checkEndTag(value);
+        value = replaceNullRepresentativeWithNull(value);
         if (list == empty()) {
             NbtType<?> type = NbtType.byClass(value.getClass());
             return DataResult.success(new NbtList(type, value));
         }
         if (list instanceof NbtList<?> nbtList) {
-            List listBuilder = new ArrayList<>(nbtList);
-            listBuilder.add(value);
-            return DataResult.success(new NbtList(nbtList.getType(), listBuilder));
+            List<Object> unwrapped = HeterogeneousNbtList.tryUnwrap(nbtList);
+            HeterogeneousNbtList newList = new HeterogeneousNbtList();
+            unwrapped.forEach(newList::add);
+            newList.add(value);
+            return DataResult.success(newList.build());
         }
         return DataResult.error(() -> "mergeToList was not called with a list: " + list);
     }
@@ -122,34 +150,35 @@ public class CloudburstNbtOps implements DynamicOps<Object> {
     @Override
     public DataResult<Object> mergeToList(Object list, List<Object> values) {
         values = values.stream()
-            .map(CloudburstNbtOps::checkEndTag)
+            .map(CloudburstNbtOps::replaceNullRepresentativeWithNull)
             .toList();
         if (list == empty()) {
             if (values.isEmpty()) {
                 return DataResult.success(emptyList());
             }
-            NbtType<?> type = NbtType.byClass(values.get(0).getClass());
-            return DataResult.success(new NbtList(type, values));
+            return DataResult.success(HeterogeneousNbtList.of(values.toArray(Object[]::new)));
         }
         if (list instanceof NbtList<?> nbtList) {
             if (values.isEmpty()) {
                 return DataResult.success(nbtList);
             }
             if (nbtList.isEmpty()) {
-                return DataResult.success(new NbtList(NbtType.byClass(values.get(0).getClass()), values));
+                return DataResult.success(new NbtList(NbtType.byClass(values.getFirst().getClass()), values));
             }
-            List listBuilder = new ArrayList<>(nbtList);
-            listBuilder.addAll(values);
-            return DataResult.success(new NbtList(nbtList.getType(), listBuilder));
+            List<Object> unwrapped = HeterogeneousNbtList.tryUnwrap(nbtList);
+            HeterogeneousNbtList newList = new HeterogeneousNbtList();
+            unwrapped.forEach(newList::add);
+            values.forEach(newList::add);
+            return DataResult.success(newList.build());
         }
         return DataResult.error(() -> "mergeToList was not called with a list: " + list);
     }
 
     @Override
     public DataResult<Object> mergeToMap(Object map, Object key, Object value) {
-        Object checkedMap = checkEndTag(map);
-        Object checkedKey = checkEndTag(key);
-        value = checkEndTag(value);
+        Object checkedMap = replaceNullRepresentativeWithNull(map);
+        Object checkedKey = replaceNullRepresentativeWithNull(key);
+        value = replaceNullRepresentativeWithNull(value);
         if (value == null) {
             return DataResult.success(map);
         }
@@ -182,7 +211,7 @@ public class CloudburstNbtOps implements DynamicOps<Object> {
     @Override
     public Object createMap(Stream<Pair<Object, Object>> map) {
         NbtMapBuilder builder = NbtMap.builder();
-        map.forEach(pair -> builder.put((String) pair.getFirst(), checkEndTag(pair.getSecond())));
+        map.forEach(pair -> builder.put((String) pair.getFirst(), replaceNullRepresentativeWithNull(pair.getSecond())));
         return builder.build();
     }
 
@@ -190,7 +219,7 @@ public class CloudburstNbtOps implements DynamicOps<Object> {
     @SuppressWarnings("rawtypes")
     public DataResult<Stream<Object>> getStream(Object input) {
         if (input instanceof NbtList<?> list) {
-            return DataResult.success((Stream<Object>) list.stream());
+            return DataResult.success(HeterogeneousNbtList.tryUnwrap(list).stream());
         }
         if (input instanceof int[] ints) {
             return DataResult.success(Arrays.stream(ints).mapToObj(Integer::valueOf));
@@ -235,12 +264,8 @@ public class CloudburstNbtOps implements DynamicOps<Object> {
 
     @Override
     public Object createList(Stream<Object> input) {
-        final List<?> list = input.map(CloudburstNbtOps::checkEndTag).toList();
-        if (list.isEmpty()) {
-            return emptyList();
-        }
-        NbtType<?> type = NbtType.byClass(list.getFirst().getClass());
-        return new NbtList(type, list);
+        return input.map(CloudburstNbtOps::replaceNullRepresentativeWithNull)
+            .collect(HeterogeneousNbtList.collector());
     }
 
     @Override
@@ -254,7 +279,7 @@ public class CloudburstNbtOps implements DynamicOps<Object> {
         }
     }
 
-    private static @Nullable Object checkEndTag(Object object) {
+    private static @Nullable Object replaceNullRepresentativeWithNull(Object object) {
         if (object == NbtType.END) {
             return null;
         }

@@ -39,7 +39,7 @@ import net.minecraft.gametest.framework.TestEnvironmentDefinition;
 import net.minecraft.resources.Identifier;
 import net.minecraft.resources.RegistryOps;
 import org.geysermc.geyser.gametest.registries.GameTestJavaRegistryProvider;
-import org.geysermc.geyser.session.cache.registry.JavaRegistryProvider;
+import org.geysermc.geyser.registry.java.JavaRegistryProvider;
 
 public abstract class GeyserTestInstance extends GameTestInstance {
 
