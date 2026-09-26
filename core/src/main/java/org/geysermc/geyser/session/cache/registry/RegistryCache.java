@@ -31,37 +31,19 @@ import net.kyori.adventure.key.Key;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtType;
 import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.entity.type.living.animal.FrogEntity;
-import org.geysermc.geyser.entity.type.living.animal.TemperatureVariantAnimal;
-import org.geysermc.geyser.entity.type.living.animal.VariantHolder;
-import org.geysermc.geyser.entity.type.living.animal.nautilus.ZombieNautilusEntity;
-import org.geysermc.geyser.entity.type.living.animal.tameable.CatEntity;
-import org.geysermc.geyser.entity.type.living.animal.tameable.WolfEntity;
-import org.geysermc.geyser.inventory.item.BannerPattern;
-import org.geysermc.geyser.inventory.item.GeyserInstrument;
-import org.geysermc.geyser.inventory.recipe.TrimRecipes;
-import org.geysermc.geyser.item.enchantment.Enchantment;
-import org.geysermc.geyser.level.JavaDimension;
-import org.geysermc.geyser.level.JukeboxSong;
-import org.geysermc.geyser.level.PaintingType;
-import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.registry.java.JavaRegistries;
-import org.geysermc.geyser.registry.java.JavaRegistryKey;
 import org.geysermc.geyser.registry.java.JavaRegistry;
+import org.geysermc.geyser.registry.java.JavaRegistryKey;
 import org.geysermc.geyser.registry.java.MutableJavaRegistry;
-import org.geysermc.geyser.registry.java.RegistryEntryContext;
-import org.geysermc.geyser.registry.java.RegistryUnit;
 import org.geysermc.geyser.registry.java.SimpleJavaRegistry;
-import org.geysermc.geyser.session.dialog.Dialog;
-import org.geysermc.geyser.text.ChatDecoration;
-import org.geysermc.geyser.translator.level.BiomeTranslator;
-import org.geysermc.geyser.translator.level.block.entity.DecoratedPotBlockEntityTranslator;
-import org.geysermc.geyser.translator.protocol.java.entity.JavaDamageEventTranslator;
+import org.geysermc.geyser.registry.java.reader.JavaRegistryReaders;
+import org.geysermc.geyser.registry.java.reader.KeyDependentJavaRegistryReader;
+import org.geysermc.geyser.registry.java.reader.RegistryEntryContext;
+import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.util.MinecraftKey;
 import org.geysermc.mcprotocollib.protocol.MinecraftProtocol;
 import org.geysermc.mcprotocollib.protocol.data.game.RegistryEntry;
 import org.geysermc.mcprotocollib.protocol.packet.configuration.clientbound.ClientboundRegistryDataPacket;
-import org.jetbrains.annotations.VisibleForTesting;
 
 import java.util.HashMap;
 import java.util.List;
@@ -76,45 +58,13 @@ import java.util.Optional;
  */
 public final class RegistryCache {
     private static final Map<JavaRegistryKey<?>, Map<Key, NbtMap>> DEFAULTS;
-    @VisibleForTesting
-    public static final Map<JavaRegistryKey<?>, RegistryReader<?>> READERS = new HashMap<>();
 
     static {
-        register(JavaRegistries.CHAT_TYPE, ChatDecoration::readChatType);
-        register(JavaRegistries.DIMENSION_TYPE, JavaDimension::read);
-        register(JavaRegistries.BIOME, BiomeTranslator::loadServerBiome);
-        register(JavaRegistries.ENCHANTMENT, Enchantment::read);
-        register(JavaRegistries.BANNER_PATTERN, context -> BannerPattern.getByJavaIdentifier(context.id()));
-        register(JavaRegistries.INSTRUMENT, GeyserInstrument::read);
-        register(JavaRegistries.JUKEBOX_SONG, JukeboxSong::read);
-        register(JavaRegistries.PAINTING_VARIANT, context -> PaintingType.getByName(context.id()));
-        register(JavaRegistries.TRIM_MATERIAL, TrimRecipes::readTrimMaterial);
-        register(JavaRegistries.TRIM_PATTERN, TrimRecipes::readTrimPattern);
-        register(JavaRegistries.DAMAGE_TYPE, JavaDamageEventTranslator::readDamageCause);
-        register(JavaRegistries.DIALOG, Dialog::readDialog);
-        register(JavaRegistries.WORLD_CLOCK, RegistryReader.UNIT);
-        register(JavaRegistries.DECORATED_POT_PATTERN, DecoratedPotBlockEntityTranslator::readDecoratedPotPattern);
-        register(JavaRegistries.BLOCK_TRANSFORMER, RegistryReader.UNIT);
-
-        register(JavaRegistries.CAT_VARIANT, VariantHolder.reader(CatEntity.BuiltInVariant.class, CatEntity.BuiltInVariant.BLACK));
-        register(JavaRegistries.CAT_SOUND_VARIANT, RegistryReader.UNIT);
-        register(JavaRegistries.FROG_VARIANT, VariantHolder.reader(FrogEntity.BuiltInVariant.class, FrogEntity.BuiltInVariant.TEMPERATE));
-        register(JavaRegistries.WOLF_VARIANT, VariantHolder.reader(WolfEntity.BuiltInVariant.class, WolfEntity.BuiltInVariant.PALE));
-        register(JavaRegistries.WOLF_SOUND_VARIANT, RegistryReader.UNIT);
-
-        register(JavaRegistries.PIG_VARIANT, TemperatureVariantAnimal.VARIANT_READER);
-        register(JavaRegistries.PIG_SOUND_VARIANT, RegistryReader.UNIT);
-        register(JavaRegistries.COW_VARIANT, TemperatureVariantAnimal.VARIANT_READER);
-        register(JavaRegistries.COW_SOUND_VARIANT, RegistryReader.UNIT);
-        register(JavaRegistries.CHICKEN_VARIANT, TemperatureVariantAnimal.VARIANT_READER);
-        register(JavaRegistries.CHICKEN_SOUND_VARIANT, RegistryReader.UNIT);
-        register(JavaRegistries.ZOMBIE_NAUTILUS_VARIANT, ZombieNautilusEntity.VARIANT_READER);
-
         // Load from MCProtocolLib's classloader
         NbtMap tag = MinecraftProtocol.loadNetworkCodec();
         Map<JavaRegistryKey<?>, Map<Key, NbtMap>> defaults = new HashMap<>();
         // Don't create a keySet - no need to create the cached object in HashMap if we don't use it again
-        READERS.forEach((key, $) -> {
+        JavaRegistryReaders.networkRegistries().forEach(key -> {
             List<NbtMap> rawValues = tag.getCompound(key.registryKey().asString()).getList("value", NbtType.COMPOUND);
             Map<Key, NbtMap> values = new HashMap<>();
             for (NbtMap value : rawValues) {
@@ -133,8 +83,8 @@ public final class RegistryCache {
 
     public RegistryCache(GeyserSession session) {
         this.session = session;
-        this.registries = new Reference2ObjectOpenHashMap<>(READERS.size());
-        for (JavaRegistryKey<?> registry : READERS.keySet()) {
+        this.registries = new Reference2ObjectOpenHashMap<>(JavaRegistryReaders.networkRegistries().size());
+        for (JavaRegistryKey<?> registry : JavaRegistryReaders.networkRegistries()) {
             registries.put(registry, new SimpleJavaRegistry<>());
         }
     }
@@ -142,21 +92,12 @@ public final class RegistryCache {
     /**
      * Loads a registry in, if we are tracking it.
      */
-    // Java generic mess - we're sure we're putting the current readers for the correct registry types in the READERS map, so we use raw objects here to let it compile
+    // Java generic mess
     @SuppressWarnings({"rawtypes", "unchecked"})
     public void load(ClientboundRegistryDataPacket packet) {
         JavaRegistryKey registryKey = JavaRegistries.fromKey(packet.getRegistry());
         if (registryKey != null) {
-            RegistryReader reader = READERS.get(registryKey);
-            if (reader != null) {
-                try {
-                    readRegistry(session, registryKey, registries.get(registryKey), reader, packet.getEntries());
-                } catch (Exception exception) {
-                    GeyserImpl.getInstance().getLogger().error("Failed parsing registry entries for " + registryKey + "!", exception);
-                }
-            } else {
-                throw new IllegalStateException("Expected reader for registry " + registryKey);
-            }
+            loadRegistry(registryKey, packet.getEntries());
         } else {
             GeyserImpl.getInstance().getLogger().debug("Ignoring registry of type " + packet.getRegistry());
         }
@@ -167,8 +108,21 @@ public final class RegistryCache {
         return Optional.ofNullable((JavaRegistry<T>) registries.get(registryKey));
     }
 
+    private <T> void loadRegistry(JavaRegistryKey<T> registryKey, List<RegistryEntry> entries) {
+        Optional<KeyDependentJavaRegistryReader<T>> reader = JavaRegistryReaders.getReader(registryKey);
+        if (reader.isPresent()) {
+            try {
+                readRegistry(session, registryKey, (MutableJavaRegistry<T>) registries.get(registryKey), reader.get(), entries);
+            } catch (Exception exception) {
+                GeyserImpl.getInstance().getLogger().error("Failed parsing registry entries for " + registryKey + "!", exception);
+            }
+        } else {
+            throw new IllegalStateException("Expected reader for networked registry " + registryKey);
+        }
+    }
+
     private static <T> void readRegistry(GeyserSession session, JavaRegistryKey<T> registryKey, MutableJavaRegistry<T> registry,
-                                         RegistryReader<T> reader, List<RegistryEntry> entries) {
+                                         KeyDependentJavaRegistryReader<T> reader, List<RegistryEntry> entries) {
         Map<Key, NbtMap> localRegistry = DEFAULTS.get(registryKey); // TODO lazy init?
 
         // Clear each local cache every time a new registry entry is given to us
@@ -191,29 +145,5 @@ public final class RegistryCache {
             RegistryEntryContext context = new RegistryEntryContext(session.javaRegistries(), entry, Optional.of(session));
             return reader.read(context);
         });
-    }
-
-    /**
-     * @param registryKey the Java registry key, listed in {@link JavaRegistries}
-     * @param reader converts the RegistryEntry NBT into an object. Should never return null, rather return a default value!
-     * @param <T> the class that represents these entries.
-     */
-    private static <T> void register(JavaRegistryKey<T> registryKey, RegistryReader<T> reader) {
-        if (READERS.containsKey(registryKey)) {
-            throw new IllegalStateException("Tried to register registry reader for " + registryKey + " twice!");
-        }
-        READERS.put(registryKey, reader);
-    }
-
-    public static void init() {
-        // no-op
-    }
-
-    @FunctionalInterface
-    public interface RegistryReader<T> {
-
-        RegistryReader<RegistryUnit> UNIT = context -> RegistryUnit.INSTANCE;
-
-        T read(RegistryEntryContext context);
     }
 }

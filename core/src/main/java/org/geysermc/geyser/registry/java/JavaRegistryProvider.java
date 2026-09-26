@@ -75,6 +75,11 @@ public interface JavaRegistryProvider {
         return entries.contains(id);
     }
 
+    interface Provider {
+
+        JavaRegistryProvider registries();
+    }
+
     /**
      * Maps a raw array of network IDs to their respective objects.
      */

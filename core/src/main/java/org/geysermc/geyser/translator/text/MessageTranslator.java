@@ -43,9 +43,9 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.protocol.bedrock.packet.TextPacket;
 import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.registry.java.JavaRegistries;
-import org.geysermc.geyser.session.cache.registry.RegistryCache;
+import org.geysermc.geyser.registry.java.reader.JavaRegistryReader;
+import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.text.ChatColor;
 import org.geysermc.geyser.text.ChatDecoration;
 import org.geysermc.geyser.text.DummyLegacyHoverEventSerializer;
@@ -550,25 +550,7 @@ public class MessageTranslator {
     }
 
     /**
-     * Deserialize an NbtMap with a description text component (usually provided from a registry) into a Bedrock-formatted string.
-     */
-    public static String deserializeDescription(GeyserSession session, NbtMap tag) {
-        Object description = tag.get("description");
-        Component parsed = componentFromNbtTag(description);
-        return convertMessage(session, parsed);
-    }
-
-    /**
-     * Deserialize an NbtMap with a description text component (usually provided from a registry) into a Bedrock-formatted string.
-     */
-    public static String deserializeDescriptionForTooltip(GeyserSession session, NbtMap tag) {
-        Object description = tag.get("description");
-        Component parsed = componentFromNbtTag(description);
-        return convertMessageForTooltip(parsed, session.locale());
-    }
-
-    /**
-     * Should only be used by {@link RegistryCache.RegistryReader}s, as these do not always have a {@link GeyserSession} available.
+     * Should only be used by {@link JavaRegistryReader}s, as these do not always have a {@link GeyserSession} available.
      */
     public static @Nullable String convertFromNullableNbtTag(Optional<GeyserSession> session, @Nullable Object nbtTag) {
         if (nbtTag == null) {

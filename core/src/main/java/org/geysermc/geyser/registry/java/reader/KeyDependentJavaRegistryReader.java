@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025-2026 GeyserMC. http://geysermc.org
+ * Copyright (c) 2026 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,15 +23,10 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.registry.java;
+package org.geysermc.geyser.registry.java.reader;
 
-import org.geysermc.geyser.registry.java.reader.JavaRegistryReader;
+@FunctionalInterface
+public interface KeyDependentJavaRegistryReader<T> {
 
-/**
- * Used with {@link JavaRegistryReader#UNIT} to load registries without loading any data.
- *
- * <p>This is usually done when registries need to be loaded to make ID->key or key->ID conversions, but actual data isn't needed.</p>
- */
-public enum RegistryUnit {
-    INSTANCE
+    T read(RegistryEntryContext context);
 }

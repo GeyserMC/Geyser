@@ -27,6 +27,7 @@ package org.geysermc.geyser.entity.type.living.animal;
 
 import net.kyori.adventure.key.Key;
 import org.geysermc.geyser.registry.java.JavaRegistries;
+import org.geysermc.geyser.registry.java.reader.KeyDependentJavaRegistryReader;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.cache.registry.RegistryCache;
 import org.geysermc.geyser.registry.java.JavaRegistryKey;
@@ -77,7 +78,7 @@ public interface VariantHolder<BedrockVariant extends VariantHolder.BuiltIn> {
      *
      * <p>This reader simply matches the identifiers of registry entries with built-in variants. If no built-in variant matches, the fallback/default is returned.</p>
      */
-    static <BuiltInVariant extends Enum<? extends BuiltIn>> RegistryCache.RegistryReader<BuiltInVariant> reader(Class<BuiltInVariant> clazz, BuiltInVariant fallback) {
+    static <BuiltInVariant extends Enum<? extends BuiltIn>> KeyDependentJavaRegistryReader<BuiltInVariant> reader(Class<BuiltInVariant> clazz, BuiltInVariant fallback) {
         BuiltInVariant[] variants = clazz.getEnumConstants();
         if (variants == null) {
             throw new IllegalArgumentException("Class is not an enum");

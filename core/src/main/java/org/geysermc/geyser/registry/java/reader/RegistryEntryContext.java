@@ -23,12 +23,11 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.registry.java;
+package org.geysermc.geyser.registry.java.reader;
 
 import net.kyori.adventure.key.Key;
-import org.cloudburstmc.nbt.NbtMap;
+import org.geysermc.geyser.registry.java.JavaRegistryProvider;
 import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.geyser.translator.text.MessageTranslator;
 import org.geysermc.mcprotocollib.protocol.data.game.RegistryEntry;
 
 import java.util.Optional;
@@ -40,25 +39,15 @@ import java.util.Optional;
  * @param entry the registry entry being read.
  * @param session the Geyser session. Only empty during testing.
  */
-public record RegistryEntryContext(JavaRegistryProvider registries, RegistryEntry entry, Optional<GeyserSession> session) {
+public record RegistryEntryContext(JavaRegistryProvider registries, RegistryEntry entry, Optional<GeyserSession> session) implements JavaRegistryReader.Context {
 
     public Key id() {
         return entry.getId();
     }
 
     // Not annotated as nullable because data should never be null here
+    @Override
     public Object data() {
         return entry.getData();
-    }
-
-    /**
-     * Note that this unsafely casts the data to an {@link NbtMap}, only use if you're sure the data is a compound tag.
-     */
-    public NbtMap dataAsMap() {
-        return (NbtMap) data();
-    }
-
-    public String deserializeDescription() {
-        return session.map(present -> MessageTranslator.deserializeDescription(present, dataAsMap())).orElse("MISSING GEYSER SESSION");
     }
 }

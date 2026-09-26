@@ -25,16 +25,16 @@
 
 package org.geysermc.geyser.translator.protocol.java.entity;
 
-import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.entity.ClientboundDamageEventPacket;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDamageCause;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityEventType;
 import org.cloudburstmc.protocol.bedrock.packet.EntityEventPacket;
 import org.geysermc.geyser.entity.type.Entity;
-import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.registry.java.JavaRegistries;
-import org.geysermc.geyser.registry.java.RegistryEntryContext;
+import org.geysermc.geyser.registry.java.reader.JavaRegistryReader;
+import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
+import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.entity.ClientboundDamageEventPacket;
 
 import java.util.Optional;
 
@@ -66,7 +66,7 @@ public class JavaDamageEventTranslator extends PacketTranslator<ClientboundDamag
      * plays. The Java client picks hurt sounds from the damage type's effects field, so map each effect with a
      * distinct sound to the closest Bedrock cause.
      */
-    public static EntityDamageCause readDamageCause(RegistryEntryContext context) {
+    public static EntityDamageCause readDamageCause(JavaRegistryReader.Context context) {
         return switch (context.dataAsMap().getString("effects")) {
             case "burning" -> EntityDamageCause.FIRE_TICK;
             case "drowning" -> EntityDamageCause.DROWNING;

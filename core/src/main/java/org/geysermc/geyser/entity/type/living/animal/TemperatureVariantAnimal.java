@@ -28,7 +28,7 @@ package org.geysermc.geyser.entity.type.living.animal;
 import org.geysermc.geyser.api.util.Identifier;
 import org.geysermc.geyser.entity.properties.type.EnumProperty;
 import org.geysermc.geyser.entity.spawn.EntitySpawnContext;
-import org.geysermc.geyser.session.cache.registry.RegistryCache;
+import org.geysermc.geyser.registry.java.reader.KeyDependentJavaRegistryReader;
 
 public abstract class TemperatureVariantAnimal extends AnimalEntity implements VariantHolder<TemperatureVariantAnimal.BuiltInVariant> {
 
@@ -38,7 +38,7 @@ public abstract class TemperatureVariantAnimal extends AnimalEntity implements V
         BuiltInVariant.TEMPERATE
     );
 
-    public static final RegistryCache.RegistryReader<BuiltInVariant> VARIANT_READER = VariantHolder.reader(BuiltInVariant.class, BuiltInVariant.TEMPERATE);
+    public static final KeyDependentJavaRegistryReader<BuiltInVariant> VARIANT_READER = VariantHolder.reader(BuiltInVariant.class, BuiltInVariant.TEMPERATE);
 
     public TemperatureVariantAnimal(EntitySpawnContext context) {
         super(context);

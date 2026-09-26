@@ -29,7 +29,7 @@ import net.kyori.adventure.key.InvalidKeyException;
 import net.kyori.adventure.key.Key;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.nbt.NbtMap;
-import org.geysermc.geyser.registry.java.RegistryEntryContext;
+import org.geysermc.geyser.registry.java.reader.RegistryEntryContext;
 import org.geysermc.geyser.util.DimensionUtils;
 import org.geysermc.geyser.util.MinecraftKey;
 

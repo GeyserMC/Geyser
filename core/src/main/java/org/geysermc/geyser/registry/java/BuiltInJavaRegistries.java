@@ -32,6 +32,7 @@ import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.item.type.Item;
 import org.geysermc.geyser.level.block.Blocks;
 import org.geysermc.geyser.level.block.type.Block;
+import org.geysermc.geyser.registry.java.reader.JavaRegistryReaders;
 import org.geysermc.geyser.session.cache.tags.Tag;
 
 public final class BuiltInJavaRegistries {
@@ -65,6 +66,8 @@ public final class BuiltInJavaRegistries {
         Blocks.bootstrap();
         Items.bootstrap();
         VanillaEntities.init();
+
+        JavaRegistryReaders.bootstrap();
     }
 
     public static void freeze() {

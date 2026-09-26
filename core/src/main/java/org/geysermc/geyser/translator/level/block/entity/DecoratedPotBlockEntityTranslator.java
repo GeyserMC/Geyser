@@ -33,10 +33,10 @@ import org.geysermc.geyser.item.type.Item;
 import org.geysermc.geyser.level.block.type.BlockState;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.registry.java.BuiltInJavaRegistries;
-import org.geysermc.geyser.registry.java.JavaRegistryProvider;
-import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.registry.java.JavaRegistries;
-import org.geysermc.geyser.registry.java.RegistryEntryContext;
+import org.geysermc.geyser.registry.java.JavaRegistryProvider;
+import org.geysermc.geyser.registry.java.reader.JavaRegistryReader;
+import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.util.MinecraftKey;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentTypes;
 import org.geysermc.mcprotocollib.protocol.data.game.level.block.BlockEntityType;
@@ -107,7 +107,7 @@ public class DecoratedPotBlockEntityTranslator extends BlockEntityTranslator {
         return DEFAULT_BEDROCK_ITEM;
     }
 
-    public static Key readDecoratedPotPattern(RegistryEntryContext context) {
+    public static Key readDecoratedPotPattern(JavaRegistryReader.Context context) {
         // Connect the pattern to a bedrock item via asset ID - that way, if for some reason a non-vanilla pattern uses a vanilla asset ID, it'll still work
         Key assetId = MinecraftKey.key(context.dataAsMap().getString("asset_id"));
         return Registries.DECORATED_POT_ASSETS.getOrDefault(assetId, DEFAULT_PATTERN);

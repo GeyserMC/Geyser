@@ -37,10 +37,10 @@ import org.geysermc.cumulus.form.SimpleForm;
 import org.geysermc.cumulus.form.util.FormBuilder;
 import org.geysermc.cumulus.response.CustomFormResponse;
 import org.geysermc.cumulus.response.FormResponse;
-import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.registry.java.JavaRegistries;
 import org.geysermc.geyser.registry.java.JavaRegistryProvider;
-import org.geysermc.geyser.registry.java.RegistryEntryContext;
+import org.geysermc.geyser.registry.java.reader.JavaRegistryReader;
+import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.dialog.input.DialogInput;
 import org.geysermc.geyser.session.dialog.input.ParsedInputs;
 import org.geysermc.geyser.text.MinecraftLocale;
@@ -158,7 +158,7 @@ public abstract class Dialog {
         return Optional.of(parsed);
     }
 
-    public static Dialog readDialog(RegistryEntryContext context) {
+    public static Dialog readDialog(JavaRegistryReader.Context context) {
         return readDialogFromNbt(context.registries(), context.session(), context.dataAsMap());
     }
 

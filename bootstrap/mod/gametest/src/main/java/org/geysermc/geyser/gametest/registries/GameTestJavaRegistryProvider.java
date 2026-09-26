@@ -40,9 +40,10 @@ import org.geysermc.geyser.registry.java.JavaRegistry;
 import org.geysermc.geyser.registry.java.JavaRegistryKey;
 import org.geysermc.geyser.registry.java.JavaRegistryProvider;
 import org.geysermc.geyser.registry.java.MutableJavaRegistry;
-import org.geysermc.geyser.registry.java.RegistryEntryContext;
 import org.geysermc.geyser.registry.java.SimpleJavaRegistry;
-import org.geysermc.geyser.session.cache.registry.RegistryCache;
+import org.geysermc.geyser.registry.java.reader.JavaRegistryReaders;
+import org.geysermc.geyser.registry.java.reader.KeyDependentJavaRegistryReader;
+import org.geysermc.geyser.registry.java.reader.RegistryEntryContext;
 import org.geysermc.geyser.session.cache.tags.Tag;
 import org.geysermc.mcprotocollib.protocol.data.game.RegistryEntry;
 
@@ -85,8 +86,7 @@ public class GameTestJavaRegistryProvider implements JavaRegistryProvider {
 
         DynamicOps<Object> nbtOps = registries.createSerializationContext(CloudburstNbtOps.INSTANCE);
         Codec<Mojang> codec = GeyserGameTestsUtil.getSyncedRegistryData(mojangRegistry.key()).orElseThrow().elementCodec();
-        //noinspection unchecked
-        RegistryCache.RegistryReader<Geyser> reader = (RegistryCache.RegistryReader<Geyser>) RegistryCache.READERS.get(geyserKey);
+        KeyDependentJavaRegistryReader<Geyser> reader = JavaRegistryReaders.getReader(geyserKey).orElseThrow();
 
         // listElementIds is sorted by network ID
         mojangRegistry.listElementIds().forEach(key -> geyserRegistry.register(GeyserGameTestsUtil.identifierToKey(key.identifier())));

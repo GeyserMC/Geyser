@@ -30,7 +30,7 @@ import org.geysermc.geyser.api.util.Identifier;
 import org.geysermc.geyser.entity.properties.type.EnumProperty;
 import org.geysermc.geyser.entity.spawn.EntitySpawnContext;
 import org.geysermc.geyser.entity.type.living.animal.VariantHolder;
-import org.geysermc.geyser.session.cache.registry.RegistryCache;
+import org.geysermc.geyser.registry.java.reader.KeyDependentJavaRegistryReader;
 import org.geysermc.geyser.registry.java.JavaRegistries;
 import org.geysermc.geyser.registry.java.JavaRegistryKey;
 import org.geysermc.geyser.util.MinecraftKey;
@@ -43,7 +43,7 @@ public class ZombieNautilusEntity extends AbstractNautilusEntity implements Vari
         BuiltInVariant.DEFAULT
     );
 
-    public static final RegistryCache.RegistryReader<BuiltInVariant> VARIANT_READER = VariantHolder.reader(BuiltInVariant.class, BuiltInVariant.DEFAULT);
+    public static final KeyDependentJavaRegistryReader<BuiltInVariant> VARIANT_READER = VariantHolder.reader(BuiltInVariant.class, BuiltInVariant.DEFAULT);
 
     public ZombieNautilusEntity(EntitySpawnContext context) {
         super(context, 1.1f);

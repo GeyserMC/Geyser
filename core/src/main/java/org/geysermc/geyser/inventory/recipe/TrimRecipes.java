@@ -36,11 +36,11 @@ import org.cloudburstmc.protocol.bedrock.data.inventory.descriptor.ItemTagDescri
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.item.type.Item;
 import org.geysermc.geyser.registry.java.BuiltInJavaRegistries;
+import org.geysermc.geyser.registry.java.JavaRegistries;
+import org.geysermc.geyser.registry.java.RegistryEntryData;
+import org.geysermc.geyser.registry.java.reader.JavaRegistryReader;
 import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.geyser.registry.java.JavaRegistries;
-import org.geysermc.geyser.registry.java.RegistryEntryContext;
-import org.geysermc.geyser.registry.java.RegistryEntryData;
 import org.geysermc.geyser.text.ChatColor;
 import org.geysermc.geyser.translator.text.MessageTranslator;
 import org.geysermc.geyser.util.MinecraftKey;
@@ -119,13 +119,13 @@ public final class TrimRecipes {
         return new TrimPattern(itemMapping.getBedrockIdentifier(), key);
     }
 
-    public static ArmorTrim.TrimMaterial readTrimMaterial(RegistryEntryContext context) {
+    public static ArmorTrim.TrimMaterial readTrimMaterial(JavaRegistryReader.Context context) {
         // Not parsing override_armor_assets as we don't use it and can safely pass an empty map instead
-        return new ArmorTrim.TrimMaterial(MinecraftKey.key(context.dataAsMap().getString("palette_id")), MessageTranslator.componentFromNbtTag(context.dataAsMap().get("description")));
+        return new ArmorTrim.TrimMaterial(MinecraftKey.key(context.dataAsMap().getString("palette_id")), context.parseDescription());
     }
 
-    public static ArmorTrim.TrimPattern readTrimPattern(RegistryEntryContext context) {
-        return new ArmorTrim.TrimPattern(MinecraftKey.key(context.dataAsMap().getString("asset_id")), MessageTranslator.componentFromNbtTag(context.dataAsMap().get("description")), context.dataAsMap().getBoolean("decal", false));
+    public static ArmorTrim.TrimPattern readTrimPattern(JavaRegistryReader.Context context) {
+        return new ArmorTrim.TrimPattern(MinecraftKey.key(context.dataAsMap().getString("asset_id")), context.parseDescription(), context.dataAsMap().getBoolean("decal", false));
     }
 
     private static Map<Holder<ArmorTrim.TrimMaterial>, Item> getTrimMaterialProviders(GeyserSession session) {

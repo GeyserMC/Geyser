@@ -45,8 +45,7 @@ public class DialogListDialog extends DialogWithButtons {
 
     public DialogListDialog(JavaRegistryProvider registries, Optional<GeyserSession> session, NbtMap map) {
         super(session, map, readDefaultExitAction(registries, session, map));
-        dialogs = GeyserHolderSet.readHolderSet(registries, JavaRegistries.DIALOG, map.get("dialogs"),
-            dialog -> Dialog.readDialogFromNbt(registries, session, (NbtMap) dialog));
+        dialogs = GeyserHolderSet.readHolderSet(registries, JavaRegistries.DIALOG, map.get("dialogs"), session);
     }
 
     @Override
