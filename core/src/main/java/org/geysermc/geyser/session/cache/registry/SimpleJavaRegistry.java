@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2024 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2026 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,45 +25,117 @@
 
 package org.geysermc.geyser.session.cache.registry;
 
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
-import org.jspecify.annotations.NonNull;
+import it.unimi.dsi.fastutil.ints.Int2ObjectLinkedOpenHashMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectSortedMap;
+import it.unimi.dsi.fastutil.ints.IntIterator;
+import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
+import net.kyori.adventure.key.Key;
 
+import java.util.Collection;
 import java.util.Iterator;
-import java.util.List;
-import java.util.Spliterator;
+import java.util.Map;
+import java.util.Optional;
 import java.util.function.Consumer;
+import java.util.function.IntFunction;
 
-public class SimpleJavaRegistry<T> implements JavaRegistry<T> {
-    protected final ObjectArrayList<RegistryEntryData<T>> entries = new ObjectArrayList<>();
+public class SimpleJavaRegistry<T> implements MutableJavaRegistry<T> {
+    private final Int2ObjectSortedMap<RegistryEntryData<T>> byId = new Int2ObjectLinkedOpenHashMap<>();
+    private final Map<Key, RegistryEntryData<T>> byKey = new Object2ObjectOpenHashMap<>();
+    private final Map<T, RegistryEntryData<T>> byValue = new Object2ObjectOpenHashMap<>();
+    private boolean frozen = false;
 
-    public void reset(List<RegistryEntryData<T>> entries) {
-        this.entries.clear();
-        this.entries.addAll(entries);
-        this.entries.trim();
+    @Override
+    public Optional<RegistryEntryData<T>> getById(int networkId) {
+        assertFrozen();
+        return Optional.ofNullable(byId.get(networkId));
     }
 
     @Override
-    public @NonNull Iterator<RegistryEntryData<T>> iterator() {
-        return entries.iterator();
+    public Optional<RegistryEntryData<T>> getByKey(Key key) {
+        assertFrozen();
+        return Optional.ofNullable(byKey.get(key));
     }
 
     @Override
-    public void forEach(Consumer<? super RegistryEntryData<T>> action) {
-        entries.forEach(action);
+    public Optional<RegistryEntryData<T>> getByValue(T object) {
+        assertFrozen();
+        return Optional.ofNullable(byValue.get(object));
     }
 
     @Override
-    public Spliterator<RegistryEntryData<T>> spliterator() {
-        return entries.spliterator();
+    public Collection<Key> keys() {
+        assertFrozen();
+        return byKey.keySet();
     }
 
     @Override
-    public List<RegistryEntryData<T>> entries() {
-        return entries;
+    public Collection<T> values() {
+        assertFrozen();
+        return byValue.keySet();
     }
 
     @Override
-    public String toString() {
-        return entries.toString();
+    public int size() {
+        return byId.size();
+    }
+
+    @Override
+    public void forEachEntry(Consumer<RegistryEntryData<T>> action) {
+        byId.forEach((id, entry) -> action.accept(entry));
+    }
+
+    @Override
+    public void register(RegistryEntryData<T> entry) {
+        assertNotFrozen();
+        byId.put(entry.id(), entry);
+        byKey.put(entry.key(), entry);
+        if (entry.isBound()) {
+            byValue.put(entry.data(), entry);
+        }
+    }
+
+    @Override
+    public void clear() {
+        byId.clear();
+        byKey.clear();
+        byValue.clear();
+        frozen = false;
+    }
+
+    @Override
+    public void freeze(IntFunction<T> binder) {
+        if (frozen) {
+            return;
+        }
+        frozen = true;
+        byId.forEach((id, entry) -> {
+            if (!entry.isBound()) {
+                entry.bind(binder.apply(id));
+            }
+        });
+    }
+
+    @Override
+    public Iterator<T> iterator() {
+        IntIterator idIterator = byId.keySet().iterator();
+        return new Iterator<>() {
+            @Override
+            public boolean hasNext() {
+                return idIterator.hasNext();
+            }
+
+            @Override
+            public T next() {
+                return byId.get(idIterator.nextInt()).data();
+            }
+        };
+    }
+
+    private void assertFrozen() {
+        assert frozen : "Registry must be frozen";
+    }
+
+    private void assertNotFrozen() {
+        assert !frozen : "Registry must not be frozen to register new entries";
     }
 }

@@ -38,6 +38,7 @@ import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.cache.registry.JavaRegistries;
 import org.geysermc.geyser.session.cache.registry.JavaRegistryKey;
+import org.geysermc.geyser.session.cache.registry.JavaRegistryProvider;
 import org.geysermc.geyser.util.MinecraftKey;
 import org.geysermc.mcprotocollib.protocol.data.game.Holder;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.HolderSet;
@@ -45,7 +46,6 @@ import org.geysermc.mcprotocollib.protocol.data.game.item.component.HolderSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Function;
-import java.util.function.ToIntFunction;
 
 /**
  * Similar to vanilla Minecraft's HolderSets, stores either:
@@ -250,31 +250,33 @@ public final class GeyserHolderSet<T> {
      * @param holderSet the HolderSet as a NBT object.
      */
     public static <T> GeyserHolderSet<T> readHolderSet(GeyserSession session, JavaRegistryKey<T> registry, @Nullable Object holderSet) {
-        return readHolderSet(registry, holderSet, key -> registry.getIdOrThrow(session, key));
+        return readHolderSet(session.javaRegistries(), registry, holderSet);
     }
 
     /**
      * Reads a HolderSet from a NBT object. Does not support reading HolderSets that can hold inline values.
      *
+     * @param registries TODO
      * @param registry the registry the HolderSet contains IDs from.
      * @param holderSet the HolderSet as a NBT object.
-     * @param idMapper a function that maps a key in this registry to its respective network ID.
+     * @param <T> TODO
      */
-    public static <T> GeyserHolderSet<T> readHolderSet(JavaRegistryKey<T> registry, @Nullable Object holderSet, ToIntFunction<Key> idMapper) {
-        return readHolderSet(registry, holderSet, idMapper, null);
+    public static <T> GeyserHolderSet<T> readHolderSet(JavaRegistryProvider registries, JavaRegistryKey<T> registry, @Nullable Object holderSet) {
+        return readHolderSet(registries, registry, holderSet, null);
     }
 
     /**
      * Reads a HolderSet from a NBT object. When {@code reader} is not null, this method can read HolderSets with inline registry elements as well, using the passed reader to decode
      * registry elements.
      *
+     * @param registries TODO
      * @param registry the registry the HolderSet contains IDs from.
      * @param holderSet the HolderSet as a NBT object.
-     * @param idMapper a function that maps a key in this registry to its respective network ID.
      * @param reader a function that reads an object in the HolderSet's registry, serialised as NBT. When {@code null}, this method doesn't support reading inline HolderSets.
+     * @param <T> TODO
      */
-    public static <T> GeyserHolderSet<T> readHolderSet(JavaRegistryKey<T> registry, @Nullable Object holderSet,
-                                                       ToIntFunction<Key> idMapper, @Nullable Function<Object, T> reader) {
+    public static <T> GeyserHolderSet<T> readHolderSet(JavaRegistryProvider registries, JavaRegistryKey<T> registry,
+                                                       @Nullable Object holderSet, @Nullable Function<Object, T> reader) {
         boolean canReadInline = reader != null;
 
         return switch (holderSet) {
@@ -289,7 +291,7 @@ public final class GeyserHolderSet<T> {
                     // Technically illegal, we accept it anyway
                     yield GeyserHolderSet.empty(registry);
                 }
-                yield GeyserHolderSet.of(registry, idMapper.applyAsInt(MinecraftKey.key(singleElementOrTag)));
+                yield GeyserHolderSet.of(registry, registry.getIdOrThrow(registries, MinecraftKey.key(singleElementOrTag)));
             }
             case NbtList<?> list -> {
                 if (list.isEmpty()) {
@@ -302,7 +304,7 @@ public final class GeyserHolderSet<T> {
                     for (Object tag : unwrapped) {
                         if (tag instanceof String reference) {
                             try {
-                                holders.add(Holder.ofId(idMapper.applyAsInt(MinecraftKey.key(reference))));
+                                holders.add(Holder.ofId(registry.getIdOrThrow(registries, MinecraftKey.key(reference))));
                                 continue;
                             } catch (InvalidKeyException ignored) {}
                         }

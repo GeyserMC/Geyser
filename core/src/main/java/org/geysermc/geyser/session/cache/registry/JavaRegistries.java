@@ -25,10 +25,11 @@
 
 package org.geysermc.geyser.session.cache.registry;
 
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import net.kyori.adventure.key.Key;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDamageCause;
-import org.geysermc.geyser.entity.GeyserEntityType;
+import org.geysermc.geyser.entity.EntityTypeDefinition;
 import org.geysermc.geyser.entity.type.living.animal.FrogEntity;
 import org.geysermc.geyser.entity.type.living.animal.TemperatureVariantAnimal;
 import org.geysermc.geyser.entity.type.living.animal.nautilus.ZombieNautilusEntity;
@@ -42,33 +43,22 @@ import org.geysermc.geyser.level.JavaDimension;
 import org.geysermc.geyser.level.JukeboxSong;
 import org.geysermc.geyser.level.PaintingType;
 import org.geysermc.geyser.level.block.type.Block;
-import org.geysermc.geyser.registry.BlockRegistries;
-import org.geysermc.geyser.registry.ListRegistry;
-import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.session.dialog.Dialog;
 import org.geysermc.geyser.util.MinecraftKey;
 import org.geysermc.mcprotocollib.protocol.data.game.chat.ChatType;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.ArmorTrim;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.function.Function;
 
 /**
  * Stores {@link JavaRegistryKey} for Java registries that are used for loading of data-driven objects, tags, or both. Read {@link JavaRegistryKey} for more information on how to use one.
  */
 public class JavaRegistries {
-    private static final List<JavaRegistryKey<?>> VALUES = new ArrayList<>();
+    private static final List<JavaRegistryKey<?>> VALUES = new ObjectArrayList<>();
 
-    public static final JavaRegistryKey<Block> BLOCK = createHardcoded("block", BlockRegistries.JAVA_BLOCKS,
-        Block::javaId, Block::javaIdentifier, key -> BlockRegistries.JAVA_BLOCKS.get().stream()
-            .filter(block -> block.javaIdentifier().equals(key))
-            .findFirst());
-    public static final JavaRegistryKey<Item> ITEM = createHardcoded("item", Registries.JAVA_ITEMS,
-        Item::javaId, Item::javaKey, key -> Optional.ofNullable(Registries.JAVA_ITEM_IDENTIFIERS.get(key.asString())));
-    public static JavaRegistryKey<GeyserEntityType> ENTITY_TYPE = create("entity_type", new EntityTypeLookup());
+    public static final JavaRegistryKey<Block> BLOCK = create("block");
+    public static final JavaRegistryKey<Item> ITEM = create("item");
+    public static final JavaRegistryKey<EntityTypeDefinition<?>> ENTITY_TYPE = create("entity_type");
 
     public static final JavaRegistryKey<ChatType> CHAT_TYPE = create("chat_type");
     public static final JavaRegistryKey<JavaDimension> DIMENSION_TYPE = create("dimension_type");
@@ -100,24 +90,10 @@ public class JavaRegistries {
     public static final JavaRegistryKey<RegistryUnit> CHICKEN_SOUND_VARIANT = create("chicken_sound_variant");
     public static final JavaRegistryKey<ZombieNautilusEntity.BuiltInVariant> ZOMBIE_NAUTILUS_VARIANT = create("zombie_nautilus_variant");
 
-    private static <T> JavaRegistryKey<T> create(String key, JavaRegistryKey.RegistryLookup<T> registryLookup) {
-        JavaRegistryKey<T> registry = new JavaRegistryKey<>(MinecraftKey.key(key), registryLookup);
+    private static <T> JavaRegistryKey<T> create(String key) {
+        JavaRegistryKey<T> registry = new JavaRegistryKey<>(MinecraftKey.key(key));
         VALUES.add(registry);
         return registry;
-    }
-
-    private static <T> JavaRegistryKey<T> createHardcoded(String key, ListRegistry<T> registry, RegistryNetworkMapper<T> networkSerializer,
-                                                          RegistryObjectIdentifierMapper<T> objectIdentifierMapper, RegistryIdentifierObjectMapper<T> identifierObjectMapper) {
-        return createHardcoded(key, registry.get(), networkSerializer, objectIdentifierMapper, identifierObjectMapper);
-    }
-
-    private static <T> JavaRegistryKey<T> createHardcoded(String key, List<T> registry, RegistryNetworkMapper<T> networkSerializer,
-                                                          RegistryObjectIdentifierMapper<T> objectIdentifierMapper, RegistryIdentifierObjectMapper<T> identifierObjectMapper) {
-        return create(key, new HardcodedLookup<>(registry, networkSerializer, objectIdentifierMapper, identifierObjectMapper));
-    }
-
-    private static <T> JavaRegistryKey<T> create(String key) {
-        return create(key, new RegistryCacheLookup<>());
     }
 
     @Nullable
@@ -128,95 +104,5 @@ public class JavaRegistries {
             }
         }
         return null;
-    }
-
-    @FunctionalInterface
-    interface RegistryNetworkMapper<T> {
-
-        int get(T object);
-    }
-
-    @FunctionalInterface
-    interface RegistryObjectIdentifierMapper<T> {
-
-        Key get(T object);
-    }
-
-    @FunctionalInterface
-    interface RegistryIdentifierObjectMapper<T> {
-
-        Optional<T> get(Key key);
-    }
-
-    private record HardcodedLookup<T>(List<T> registry, RegistryNetworkMapper<T> networkMapper, RegistryObjectIdentifierMapper<T> objectIdentifierMapper,
-                                      RegistryIdentifierObjectMapper<T> identifierObjectMapper) implements JavaRegistryKey.RegistryLookup<T> {
-
-        @Override
-        public Optional<RegistryEntryData<T>> entry(JavaRegistryProvider registries, JavaRegistryKey<T> registryKey, int networkId) {
-            return Optional.ofNullable(registry.get(networkId))
-                .map(value -> new RegistryEntryData<>(networkId, Objects.requireNonNull(objectIdentifierMapper.get(value)), value));
-        }
-
-        @Override
-        public Optional<RegistryEntryData<T>> entry(JavaRegistryProvider registries, JavaRegistryKey<T> registryKey, Key key) {
-            Optional<T> object = identifierObjectMapper.get(key);
-            return object.map(value -> new RegistryEntryData<>(networkMapper.get(value), key, value));
-        }
-
-        @Override
-        public Optional<RegistryEntryData<T>> entry(JavaRegistryProvider registries, JavaRegistryKey<T> registryKey, T object) {
-            int id = networkMapper.get(object);
-            return Optional.ofNullable(registry.get(id))
-                .map(value -> new RegistryEntryData<>(id, Objects.requireNonNull(objectIdentifierMapper.get(value)), value));
-        }
-    }
-
-    // Not the neatest solution...
-    private record EntityTypeLookup() implements JavaRegistryKey.RegistryLookup<GeyserEntityType> {
-
-        @Override
-        public Optional<RegistryEntryData<GeyserEntityType>> entry(JavaRegistryProvider registries, JavaRegistryKey<GeyserEntityType> registry, int networkId) {
-            return lookup(GeyserEntityType::of, networkId);
-        }
-
-        @Override
-        public Optional<RegistryEntryData<GeyserEntityType>> entry(JavaRegistryProvider registries, JavaRegistryKey<GeyserEntityType> registry, Key key) {
-            return lookup(GeyserEntityType::of, key);
-        }
-
-        @Override
-        public Optional<RegistryEntryData<GeyserEntityType>> entry(JavaRegistryProvider registries, JavaRegistryKey<GeyserEntityType> registry, GeyserEntityType object) {
-            return lookup(Function.identity(), object);
-        }
-
-        private static <T> Optional<RegistryEntryData<GeyserEntityType>> lookup(Function<T, GeyserEntityType> getter, T value) {
-            GeyserEntityType type = getter.apply(value);
-            if (type == null || type.isUnregistered()) {
-                return Optional.empty();
-            }
-            return Optional.of(wrap(type));
-        }
-
-        private static RegistryEntryData<GeyserEntityType> wrap(GeyserEntityType type) {
-            return new RegistryEntryData<>(type.mcpl().ordinal(), MinecraftKey.identifierToKey(type.identifier()), type);
-        }
-    }
-
-    private static class RegistryCacheLookup<T> implements JavaRegistryKey.RegistryLookup<T> {
-
-        @Override
-        public Optional<RegistryEntryData<T>> entry(JavaRegistryProvider registries, JavaRegistryKey<T> registryKey, int networkId) {
-            return registries.registry(registryKey).entryById(networkId);
-        }
-
-        @Override
-        public Optional<RegistryEntryData<T>> entry(JavaRegistryProvider registries, JavaRegistryKey<T> registryKey, Key key) {
-            return registries.registry(registryKey).entryByKey(key);
-        }
-
-        @Override
-        public Optional<RegistryEntryData<T>> entry(JavaRegistryProvider registries, JavaRegistryKey<T> registryKey, T object) {
-            return registries.registry(registryKey).entryByValue(object);
-        }
     }
 }

@@ -81,7 +81,7 @@ public interface GeyserInstrument {
         BedrockInstrument bedrockInstrument = BedrockInstrument.getByBedrockId(id);
         if (bedrockInstrument != null) {
             for (int i = 0; i < instruments.values().size(); i++) {
-                GeyserInstrument instrument = instruments.byId(i);
+                GeyserInstrument instrument = instruments.getOrThrow(i);
                 if (instrument.bedrockInstrument() == bedrockInstrument) {
                     return i;
                 }

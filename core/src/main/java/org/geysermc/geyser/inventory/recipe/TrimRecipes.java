@@ -35,7 +35,7 @@ import org.cloudburstmc.protocol.bedrock.data.inventory.descriptor.ItemDescripto
 import org.cloudburstmc.protocol.bedrock.data.inventory.descriptor.ItemTagDescriptor;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.item.type.Item;
-import org.geysermc.geyser.registry.Registries;
+import org.geysermc.geyser.registry.java.BuiltInJavaRegistries;
 import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.cache.registry.JavaRegistries;
@@ -74,8 +74,8 @@ public final class TrimRecipes {
 
         Map<Holder<ArmorTrim.TrimMaterial>, Item> trimMaterialProviders = getTrimMaterialProviders(session);
 
-        session.javaRegistries().registry(JavaRegistries.TRIM_MATERIAL).forEach(material -> bedrockTrimMaterials.add(translateJavaTrimMaterial(session, material, trimMaterialProviders)));
-        session.javaRegistries().registry(JavaRegistries.TRIM_PATTERN).forEach(pattern -> bedrockTrimPatterns.add(translateJavaTrimPattern(session, pattern)));
+        session.javaRegistries().registry(JavaRegistries.TRIM_MATERIAL).forEachEntry(material -> bedrockTrimMaterials.add(translateJavaTrimMaterial(session, material, trimMaterialProviders)));
+        session.javaRegistries().registry(JavaRegistries.TRIM_PATTERN).forEachEntry(pattern -> bedrockTrimPatterns.add(translateJavaTrimPattern(session, pattern)));
     }
 
     private static TrimMaterial translateJavaTrimMaterial(GeyserSession session, RegistryEntryData<ArmorTrim.TrimMaterial> java, Map<Holder<ArmorTrim.TrimMaterial>, Item> trimMaterialProviders) {
@@ -130,7 +130,7 @@ public final class TrimRecipes {
 
     private static Map<Holder<ArmorTrim.TrimMaterial>, Item> getTrimMaterialProviders(GeyserSession session) {
         Map<Holder<ArmorTrim.TrimMaterial>, Item> trimMaterialProviders = new HashMap<>();
-        for (Item item : Registries.JAVA_ITEMS.get()) {
+        for (Item item : BuiltInJavaRegistries.ITEM) {
             Holder<ArmorTrim.TrimMaterial> provider = item.getComponent(session.getComponentCache(), DataComponentTypes.PROVIDES_TRIM_MATERIAL);
             if (provider != null) {
                 trimMaterialProviders.put(provider, item);

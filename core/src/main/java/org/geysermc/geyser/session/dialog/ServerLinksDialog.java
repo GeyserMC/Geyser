@@ -28,6 +28,7 @@ package org.geysermc.geyser.session.dialog;
 import net.kyori.adventure.key.Key;
 import org.cloudburstmc.nbt.NbtMap;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.cache.registry.JavaRegistryProvider;
 import org.geysermc.geyser.session.dialog.action.DialogAction;
 import org.geysermc.geyser.translator.text.MessageTranslator;
 import org.geysermc.geyser.util.MinecraftKey;
@@ -42,8 +43,8 @@ public class ServerLinksDialog extends DialogWithButtons {
 
     public static final Key TYPE = MinecraftKey.key("server_links");
 
-    protected ServerLinksDialog(Optional<GeyserSession> session, NbtMap map, IdGetter idGetter) {
-        super(session, map, readDefaultExitAction(session, map, idGetter));
+    protected ServerLinksDialog(JavaRegistryProvider registries, Optional<GeyserSession> session, NbtMap map) {
+        super(session, map, readDefaultExitAction(registries, session, map));
     }
 
     @Override

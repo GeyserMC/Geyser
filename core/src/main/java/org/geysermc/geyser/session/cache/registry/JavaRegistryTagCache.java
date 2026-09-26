@@ -27,6 +27,7 @@ package org.geysermc.geyser.session.cache.registry;
 
 import it.unimi.dsi.fastutil.ints.IntList;
 import lombok.Getter;
+import org.geysermc.geyser.registry.java.BuiltInJavaRegistries;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.cache.RegistryCache;
 import org.geysermc.geyser.session.cache.TagCache;
@@ -45,8 +46,8 @@ public final class JavaRegistryTagCache implements JavaRegistryProvider {
 
     @Override
     public <T> JavaRegistry<T> registry(JavaRegistryKey<T> registryKey) {
-        // TODO hardcoded registries
-        return registryCache.registry(registryKey);
+        return registryCache.registry(registryKey)
+            .orElseGet(() -> BuiltInJavaRegistries.PROVIDER.registry(registryKey));
     }
 
     @Override

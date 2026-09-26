@@ -43,6 +43,7 @@ import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponen
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.ItemEnchantments;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
@@ -83,13 +84,15 @@ public class EnchantedBookItem extends Item {
 
                 BedrockEnchantment enchantment = BedrockEnchantment.getByBedrockId(bedrockId);
                 if (enchantment != null) {
-                    List<Enchantment> enchantments = session.javaRegistries().registry(JavaRegistries.ENCHANTMENT).values();
-                    for (int i = 0; i < enchantments.size(); i++) {
-                        if (enchantments.get(i).bedrockEnchantment() == enchantment) {
+                    Collection<Enchantment> enchantments = session.javaRegistries().registry(JavaRegistries.ENCHANTMENT).values();
+                    int i = 0;
+                    for (Enchantment javaEnchantment : enchantments) {
+                        if (javaEnchantment.bedrockEnchantment() == enchantment) {
                             int level = bedrockEnchantment.getShort("lvl", (short) 1);
                             javaEnchantments.put(i, level);
                             break;
                         }
+                        i++;
                     }
                 } else {
                     GeyserImpl.getInstance().getLogger().debug("Unknown bedrock enchantment: " + bedrockId);

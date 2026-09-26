@@ -46,7 +46,7 @@ import org.geysermc.geyser.level.block.type.WallSkullBlock;
 import org.geysermc.geyser.level.physics.Axis;
 import org.geysermc.geyser.level.physics.Direction;
 import org.geysermc.geyser.level.physics.PistonBehavior;
-import org.geysermc.geyser.registry.BlockRegistries;
+import org.geysermc.geyser.registry.java.BuiltInJavaRegistries;
 import org.geysermc.mcprotocollib.protocol.data.game.level.block.BlockEntityType;
 
 import static org.geysermc.geyser.level.block.property.Properties.*;
@@ -3655,11 +3655,14 @@ public final class Blocks {
     public static final Block FIREFLY_BUSH = register(new Block("firefly_bush", builder().pushReaction(PistonBehavior.POPPED)));
 
     private static <T extends Block> T register(T block) {
-        block.setJavaId(BlockRegistries.JAVA_BLOCKS.get().size());
-        BlockRegistries.JAVA_BLOCKS.get().add(block);
-        return block;
+        block.setJavaId(BuiltInJavaRegistries.BLOCK.size());
+        return BuiltInJavaRegistries.BLOCK.register(block.javaIdentifier(), block);
     }
 
     private Blocks() {
+    }
+
+    public static void bootstrap() {
+        // noop to run static initialisers
     }
 }

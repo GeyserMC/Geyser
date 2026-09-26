@@ -42,10 +42,10 @@ import org.geysermc.geyser.entity.BedrockEntityDefinition;
 import org.geysermc.geyser.entity.EntityTypeDefinition;
 import org.geysermc.geyser.entity.GeyserEntityType;
 import org.geysermc.geyser.item.components.resolvable.ResolvableComponent;
-import org.geysermc.geyser.item.type.Item;
 import org.geysermc.geyser.level.gamerule.GameRule;
 import org.geysermc.geyser.level.gamerule.GameRules;
 import org.geysermc.geyser.pack.ResourcePackHolder;
+import org.geysermc.geyser.registry.java.BuiltInJavaRegistries;
 import org.geysermc.geyser.registry.loader.BiomeIdentifierRegistryLoader;
 import org.geysermc.geyser.registry.loader.BlockEntityRegistryLoader;
 import org.geysermc.geyser.registry.loader.ParticleTypesRegistryLoader;
@@ -130,10 +130,6 @@ public final class Registries {
     public static final SimpleMappedDeferredRegistry<BlockEntityType, BlockEntityTranslator> BLOCK_ENTITIES = SimpleMappedDeferredRegistry.create("org.geysermc.geyser.translator.level.block.entity.BlockEntity", BlockEntityRegistryLoader::new);
 
     /**
-     * A map containing all Java entity identifiers and their respective Geyser definitions
-     */
-    public static final SimpleMappedRegistry<String, EntityTypeDefinition<?>> JAVA_ENTITY_IDENTIFIERS = SimpleMappedRegistry.create(RegistryLoaders.empty(Object2ObjectOpenHashMap::new));
-    /**
      * A map containing all entity types and their respective Geyser definitions
      */
     // Is a Reference2ObjectMap since GeyserEntityType, the implementation of JavaEntityType, only ever keeps one instance per registered entity type
@@ -150,16 +146,6 @@ public final class Registries {
      * A registry containing all the Java packet translators.
      */
     public static final PacketTranslatorRegistry<Packet> JAVA_PACKET_TRANSLATORS = PacketTranslatorRegistry.create();
-
-    /**
-     * A registry containing all Java items ordered by their network ID.
-     */
-    public static final ListRegistry<Item> JAVA_ITEMS = ListRegistry.create(RegistryLoaders.empty(ArrayList::new));
-
-    /**
-     * A registry containing item identifiers.
-     */
-    public static final SimpleMappedRegistry<String, Item> JAVA_ITEM_IDENTIFIERS = SimpleMappedRegistry.create(RegistryLoaders.empty(Object2ObjectOpenHashMap::new));
 
     public static final ListRegistry<DataComponents> DEFAULT_DATA_COMPONENTS = ListRegistry.create(RegistryLoaders.empty(ArrayList::new));
     public static final ListRegistry<List<ResolvableComponent<?>>> RESOLVABLE_DEFAULT_DATA_COMPONENTS = ListRegistry.create(RegistryLoaders.empty(ArrayList::new));
@@ -233,11 +219,15 @@ public final class Registries {
         if (loaded) return;
         loaded = true;
 
+        // First load the registries and then populate them.
+
         // the following registries are registries that are more complicated than initializing as an empty collection.
         // They generally have in common that they either depend on loading a resource file directly or indirectly
         // (by using the Items or Blocks class, which loads all the blocks)
 
+        // Bootstrap registries holding hardcoded (built-in) Java Edition content
         DataComponentRegistryPopulator.load();
+        BuiltInJavaRegistries.bootstrap();
 
         BEDROCK_ENTITY_IDENTIFIERS.load();
         BIOMES_NBT.load();
@@ -256,9 +246,15 @@ public final class Registries {
         DANGEROUS_ENTITIES.load();
         SUSPICIOUS_EFFECT_HOLDERS.load();
         GameRules.init();
+
+        // Finally populate registries needing populating
+        Registries.populate();
     }
 
     public static void populate() {
+        // Both the block registries and the common registries depend on each other,
+        // so maintaining this order is crucial for Geyser to load.
+        BlockRegistries.populate();
         PacketRegistryPopulator.populate();
         ItemRegistryPopulator.populate();
         TagRegistryPopulator.populate();
@@ -275,5 +271,8 @@ public final class Registries {
             biomesNbt.put(key, value.build());
         }
         BIOMES_NBT.set(biomesNbt.build());
+
+        // Freeze registries holding built-in Java Edition content (populators may have registered custom content)
+        BuiltInJavaRegistries.freeze();
     }
 }

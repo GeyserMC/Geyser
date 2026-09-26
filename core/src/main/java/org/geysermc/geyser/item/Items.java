@@ -56,7 +56,7 @@ import org.geysermc.geyser.item.type.WolfArmorItem;
 import org.geysermc.geyser.item.type.WritableBookItem;
 import org.geysermc.geyser.item.type.WrittenBookItem;
 import org.geysermc.geyser.level.block.Blocks;
-import org.geysermc.geyser.registry.Registries;
+import org.geysermc.geyser.registry.java.BuiltInJavaRegistries;
 
 import static org.geysermc.geyser.item.type.Item.builder;
 
@@ -1727,16 +1727,18 @@ public final class Items {
     public static final int AIR_ID = AIR.javaId();
 
     private static <T extends Item> T register(T item) {
-        return register(item, Registries.JAVA_ITEMS.get().size());
+        return register(item, BuiltInJavaRegistries.ITEM.size());
     }
 
     public static <T extends Item> T register(T item, int id) {
         item.setJavaId(id);
-        Registries.JAVA_ITEMS.registerWithAnyIndex(id, item, AIR);
-        Registries.JAVA_ITEM_IDENTIFIERS.register(item.javaIdentifier(), item);
-        return item;
+        return BuiltInJavaRegistries.ITEM.register(id, item.javaKey(), item);
     }
 
     private Items() {
+    }
+
+    public static void bootstrap() {
+        // noop to run static initialisers
     }
 }

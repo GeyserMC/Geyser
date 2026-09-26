@@ -254,19 +254,10 @@ public class GeyserImpl implements GeyserApi, EventRegistrar {
         eventBus.subscribe(this, GeyserDefineCustomBlocksEvent.class, BuiltInMappings::registerBlocks);
         eventBus.subscribe(this, GeyserDefineCustomItemsEvent.class, BuiltInMappings::registerItems);
 
-        /*
-        First load the registries and then populate them.
-        Both the block registries and the common registries depend on each other,
-        so maintaining this order is crucial for Geyser to load.
-         */
         Registries.load();
-        BlockRegistries.populate();
-        Registries.populate();
-
         RegistryCache.init();
 
         /* Initialize translators */
-        VanillaEntities.init();
         MessageTranslator.init();
 
         // Download the latest asset list and cache it

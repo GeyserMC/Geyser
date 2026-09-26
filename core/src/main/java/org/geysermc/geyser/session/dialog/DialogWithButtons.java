@@ -30,6 +30,7 @@ import org.geysermc.cumulus.component.DropdownComponent;
 import org.geysermc.cumulus.form.CustomForm;
 import org.geysermc.cumulus.form.SimpleForm;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.cache.registry.JavaRegistryProvider;
 import org.geysermc.geyser.session.dialog.input.ParsedInputs;
 import org.geysermc.geyser.text.GeyserLocale;
 
@@ -91,7 +92,7 @@ public abstract class DialogWithButtons extends Dialog {
         return exitAction;
     }
 
-    protected static Optional<DialogButton> readDefaultExitAction(Optional<GeyserSession> session, NbtMap map, IdGetter idGetter) {
-        return DialogButton.read(session, map.get("exit_action"), idGetter);
+    protected static Optional<DialogButton> readDefaultExitAction(JavaRegistryProvider registries, Optional<GeyserSession> session, NbtMap map) {
+        return DialogButton.read(registries, session, map.get("exit_action"));
     }
 }

@@ -45,6 +45,7 @@ import org.geysermc.geyser.api.event.lifecycle.GeyserDefineEntityPropertiesEvent
 import org.geysermc.geyser.api.util.Identifier;
 import org.geysermc.geyser.entity.BedrockEntityDefinition;
 import org.geysermc.geyser.entity.CustomBedrockEntityDefinition;
+import org.geysermc.geyser.entity.EntityTypeDefinition;
 import org.geysermc.geyser.entity.GeyserEntityType;
 import org.geysermc.geyser.entity.VanillaEntities;
 import org.geysermc.geyser.entity.properties.type.BooleanProperty;
@@ -358,12 +359,12 @@ public final class EntityUtils {
         return translatedEntityName(typeName.namespace(), typeName.path(), session);
     }
 
-    public static boolean equipmentUsableByEntity(GeyserSession session, Equippable equippable, GeyserEntityType entity) {
+    public static boolean equipmentUsableByEntity(GeyserSession session, Equippable equippable, EntityTypeDefinition<?> entity) {
         if (equippable.allowedEntities() == null) {
             return true;
         }
 
-        GeyserHolderSet<GeyserEntityType> holderSet = GeyserHolderSet.fromMCPL(JavaRegistries.ENTITY_TYPE, equippable.allowedEntities());
+        GeyserHolderSet<EntityTypeDefinition<?>> holderSet = GeyserHolderSet.fromMCPL(JavaRegistries.ENTITY_TYPE, equippable.allowedEntities());
         return holderSet.contains(session, entity);
     }
 

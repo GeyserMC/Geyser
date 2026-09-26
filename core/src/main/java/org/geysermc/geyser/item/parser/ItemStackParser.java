@@ -40,7 +40,7 @@ import org.geysermc.geyser.inventory.item.Potion;
 import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.item.hashing.data.FireworkExplosionShape;
 import org.geysermc.geyser.item.type.Item;
-import org.geysermc.geyser.registry.Registries;
+import org.geysermc.geyser.registry.java.BuiltInJavaRegistries;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.cache.registry.JavaRegistries;
 import org.geysermc.geyser.translator.item.BedrockItemBuilder;
@@ -99,7 +99,7 @@ public final class ItemStackParser {
             return Items.AIR_ID;
         }
 
-        Item item = Registries.JAVA_ITEM_IDENTIFIERS.get(identifier);
+        Item item = BuiltInJavaRegistries.ITEM.getOrThrow(MinecraftKey.key(identifier));
         if (item == null) {
             GeyserImpl.getInstance().getLogger().warning("Received unknown item ID " + identifier + " whilst parsing NBT item stack!");
             return Items.AIR_ID;

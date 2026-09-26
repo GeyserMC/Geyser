@@ -1290,8 +1290,6 @@ public final class VanillaEntities {
                 .build(false); // Never sent over the network
 
         PLAYER_ENTITY_OFFSET = PLAYER.offset();
-
-        Registries.JAVA_ENTITY_IDENTIFIERS.get().put("minecraft:marker", null); // We don't need an entity definition for this as it is never sent over the network
     }
 
     private static VanillaEntityType<BoatEntity> buildBoat(EntityTypeBase<BoatEntity> base, EntityType EntityType, BoatEntity.BoatVariant variant) {

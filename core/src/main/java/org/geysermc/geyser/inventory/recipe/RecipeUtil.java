@@ -43,6 +43,7 @@ import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.item.type.BedrockRequiresTagItem;
 import org.geysermc.geyser.item.type.Item;
 import org.geysermc.geyser.registry.Registries;
+import org.geysermc.geyser.registry.java.BuiltInJavaRegistries;
 import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.cache.registry.JavaRegistries;
@@ -202,10 +203,10 @@ public class RecipeUtil {
             return null;
         }
         if (slotDisplay instanceof ItemSlotDisplay(int item)) {
-            return Pair.of(Registries.JAVA_ITEMS.get(item), ItemTranslator.translateToBedrock(session, new ItemStack(item)));
+            return Pair.of(BuiltInJavaRegistries.ITEM.getOrThrow(item), ItemTranslator.translateToBedrock(session, new ItemStack(item)));
         }
         if (slotDisplay instanceof ItemStackSlotDisplay(ItemStack stack)) {
-            return Pair.of(Registries.JAVA_ITEMS.get(stack.getId()), ItemTranslator.translateToBedrock(session, stack));
+            return Pair.of(BuiltInJavaRegistries.ITEM.getOrThrow(stack.getId()), ItemTranslator.translateToBedrock(session, stack));
         }
         if (slotDisplay instanceof CompositeSlotDisplay(List<SlotDisplay> contents)) {
             // Just create the first display

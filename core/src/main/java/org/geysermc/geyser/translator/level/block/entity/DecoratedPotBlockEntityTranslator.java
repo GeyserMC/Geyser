@@ -32,6 +32,7 @@ import org.cloudburstmc.nbt.NbtType;
 import org.geysermc.geyser.item.type.Item;
 import org.geysermc.geyser.level.block.type.BlockState;
 import org.geysermc.geyser.registry.Registries;
+import org.geysermc.geyser.registry.java.BuiltInJavaRegistries;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.cache.registry.JavaRegistries;
 import org.geysermc.geyser.session.cache.registry.RegistryEntryContext;
@@ -87,7 +88,7 @@ public class DecoratedPotBlockEntityTranslator extends BlockEntityTranslator {
         }
 
         // If no pattern was specified in the component patch, check the item's default components
-        Item item = Registries.JAVA_ITEM_IDENTIFIERS.get(stack.getString("id"));
+        Item item = BuiltInJavaRegistries.ITEM.getOrThrow(MinecraftKey.key(stack.getString("id")));
         if (item != null) {
             Integer patternId = item.getComponent(session.getComponentCache(), DataComponentTypes.PROVIDES_POTTERY_PATTERN);
             if (patternId != null) {

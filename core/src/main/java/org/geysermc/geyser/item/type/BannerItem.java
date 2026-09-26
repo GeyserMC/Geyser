@@ -41,7 +41,7 @@ import org.geysermc.geyser.level.block.type.Block;
 import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.cache.registry.JavaRegistries;
-import org.geysermc.geyser.session.cache.registry.JavaRegistry;
+import org.geysermc.geyser.session.cache.registry.JavaRegistryLookup;
 import org.geysermc.geyser.translator.item.BedrockItemBuilder;
 import org.geysermc.geyser.util.MinecraftKey;
 import org.geysermc.mcprotocollib.protocol.data.game.Holder;
@@ -188,11 +188,11 @@ public class BannerItem extends BlockItem {
      * @return The Java edition format pattern layer
      */
     public static BannerPatternLayer getJavaBannerPattern(GeyserSession session, NbtMap pattern) {
-        JavaRegistry<BannerPattern> registry = session.javaRegistries().registry(JavaRegistries.BANNER_PATTERN);
+        JavaRegistryLookup<BannerPattern> registry = session.javaRegistries().registry(JavaRegistries.BANNER_PATTERN);
         BannerPattern bannerPattern = BannerPattern.getByBedrockIdentifier(pattern.getString("Pattern"));
         DyeColor dyeColor = DyeColor.getById(15 - pattern.getInt("Color"));
         if (dyeColor != null) {
-            int id = registry.byValue(bannerPattern);
+            int id = registry.getIdOrThrow(bannerPattern);
             if (id != -1) {
                 return new BannerPatternLayer(Holder.ofId(id), dyeColor.ordinal());
             }

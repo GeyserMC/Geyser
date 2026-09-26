@@ -25,7 +25,43 @@
 
 package org.geysermc.geyser.session.cache.registry;
 
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.ToString;
+import lombok.experimental.Accessors;
 import net.kyori.adventure.key.Key;
+import org.checkerframework.checker.nullness.qual.Nullable;
 
-public record RegistryEntryData<T>(int id, Key key, T data) {
+import java.util.Objects;
+
+@Accessors(fluent = true)
+@EqualsAndHashCode
+@ToString
+public final class RegistryEntryData<T> {
+    @Getter
+    private final int id;
+    @Getter
+    private final Key key;
+    private @Nullable T data;
+
+    public RegistryEntryData(int id, Key key) {
+        this.id = id;
+        this.key = key;
+    }
+
+    public T data() {
+        if (data == null) {
+            throw new IllegalStateException("Tried to access unbound registry entry " + key + "!");
+        }
+        return data;
+    }
+
+    public void bind(T data) {
+        assert this.data == null : "Tried to bind registry entry " + key + " twice!";
+        this.data = Objects.requireNonNull(data, "Value for registry entry " + key + " must not be null when binding");
+    }
+
+    public boolean isBound() {
+        return data != null;
+    }
 }

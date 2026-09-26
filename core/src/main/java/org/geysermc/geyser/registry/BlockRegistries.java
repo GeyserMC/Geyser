@@ -35,7 +35,6 @@ import org.geysermc.geyser.api.block.custom.CustomBlockData;
 import org.geysermc.geyser.api.block.custom.CustomBlockState;
 import org.geysermc.geyser.api.block.custom.nonvanilla.JavaBlockState;
 import org.geysermc.geyser.level.block.Blocks;
-import org.geysermc.geyser.level.block.type.Block;
 import org.geysermc.geyser.level.block.type.BlockState;
 import org.geysermc.geyser.level.physics.BoundingBox;
 import org.geysermc.geyser.registry.loader.BlockShapeRegistryLoader;
@@ -76,12 +75,6 @@ public class BlockRegistries {
      * A mapped registry containing which holds block IDs to the respective set of {@link BoundingBox} array
      */
     public static final ListDeferredRegistry<BoundingBox[]> SHAPES = ListDeferredRegistry.create("mappings/block_shapes.nbt", BlockShapeRegistryLoader::new);
-
-    /**
-     * A registry which stores Java IDs to {@link Block}, containing miscellaneous information about
-     * blocks and their behavior in many cases.
-     */
-    public static final ListRegistry<Block> JAVA_BLOCKS = ListRegistry.create(RegistryLoaders.empty(ArrayList::new));
 
     /**
      * A mapped registry containing the Java block state identifiers to IDs.

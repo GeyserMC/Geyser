@@ -60,7 +60,7 @@ public record Enchantment(Set<EnchantmentComponent> effects,
         int maxLevel = data.getInt("max_level");
         int anvilCost = data.getInt("anvil_cost");
 
-        GeyserHolderSet<Enchantment> exclusiveSet = GeyserHolderSet.readHolderSet(JavaRegistries.ENCHANTMENT, data.get("exclusive_set"), context::getNetworkId);
+        GeyserHolderSet<Enchantment> exclusiveSet = GeyserHolderSet.readHolderSet(context.registries(), JavaRegistries.ENCHANTMENT, data.get("exclusive_set"));
 
         BedrockEnchantment bedrockEnchantment = BedrockEnchantment.getByJavaIdentifier(context.id().asString());
 

@@ -39,7 +39,7 @@ import org.geysermc.geyser.inventory.item.Potion;
 import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.item.components.resolvable.ResolvableComponentGetter;
 import org.geysermc.geyser.item.type.Item;
-import org.geysermc.geyser.registry.Registries;
+import org.geysermc.geyser.registry.java.BuiltInJavaRegistries;
 import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.cache.BundleCache;
@@ -353,7 +353,7 @@ public class GeyserItemStack {
             return Items.AIR;
         }
         if (item == null) {
-            return (item = Registries.JAVA_ITEMS.get().get(javaId));
+            return (item = BuiltInJavaRegistries.ITEM.getOrThrow(javaId));
         }
         return item;
     }

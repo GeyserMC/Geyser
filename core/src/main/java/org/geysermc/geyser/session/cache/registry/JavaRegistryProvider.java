@@ -52,7 +52,7 @@ public interface JavaRegistryProvider {
     }
 
     default <T> boolean is(Tag<T> tag, T object) {
-        return rawTag(tag).contains(tag.registry().getId(this, object));
+        return rawTag(tag).contains(registry(tag.registry()).getIdOrThrow(object));
     }
 
     /**

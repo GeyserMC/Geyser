@@ -25,8 +25,6 @@
 
 package org.geysermc.geyser.session.cache;
 
-import it.unimi.dsi.fastutil.objects.Object2IntMap;
-import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Reference2ObjectMap;
 import it.unimi.dsi.fastutil.objects.Reference2ObjectOpenHashMap;
 import net.kyori.adventure.key.Key;
@@ -48,10 +46,10 @@ import org.geysermc.geyser.level.JukeboxSong;
 import org.geysermc.geyser.level.PaintingType;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.cache.registry.JavaRegistries;
-import org.geysermc.geyser.session.cache.registry.JavaRegistry;
 import org.geysermc.geyser.session.cache.registry.JavaRegistryKey;
+import org.geysermc.geyser.session.cache.registry.JavaRegistry;
+import org.geysermc.geyser.session.cache.registry.MutableJavaRegistry;
 import org.geysermc.geyser.session.cache.registry.RegistryEntryContext;
-import org.geysermc.geyser.session.cache.registry.RegistryEntryData;
 import org.geysermc.geyser.session.cache.registry.RegistryUnit;
 import org.geysermc.geyser.session.cache.registry.SimpleJavaRegistry;
 import org.geysermc.geyser.session.dialog.Dialog;
@@ -65,7 +63,6 @@ import org.geysermc.mcprotocollib.protocol.data.game.RegistryEntry;
 import org.geysermc.mcprotocollib.protocol.packet.configuration.clientbound.ClientboundRegistryDataPacket;
 import org.jetbrains.annotations.VisibleForTesting;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -132,7 +129,7 @@ public final class RegistryCache {
     }
 
     private final GeyserSession session;
-    private final Reference2ObjectMap<JavaRegistryKey<?>, SimpleJavaRegistry<?>> registries;
+    private final Reference2ObjectMap<JavaRegistryKey<?>, MutableJavaRegistry<?>> registries;
 
     public RegistryCache(GeyserSession session) {
         this.session = session;
@@ -145,8 +142,9 @@ public final class RegistryCache {
     /**
      * Loads a registry in, if we are tracking it.
      */
+    // Java generic mess - we're sure we're putting the current readers for the correct registry types in the READERS map, so we use raw objects here to let it compile
+    @SuppressWarnings({"rawtypes", "unchecked"})
     public void load(ClientboundRegistryDataPacket packet) {
-        // Java generic mess - we're sure we're putting the current readers for the correct registry types in the READERS map, so we use raw objects here to let it compile
         JavaRegistryKey registryKey = JavaRegistries.fromKey(packet.getRegistry());
         if (registryKey != null) {
             RegistryReader reader = READERS.get(registryKey);
@@ -164,47 +162,35 @@ public final class RegistryCache {
         }
     }
 
-    public <T> JavaRegistry<T> registry(JavaRegistryKey<T> registryKey) {
-        if (!registries.containsKey(registryKey)) {
-            throw new IllegalArgumentException("The given registry is not data-driven");
-        }
-        return (JavaRegistry<T>) registries.get(registryKey);
+    @SuppressWarnings("unchecked")
+    public <T> Optional<JavaRegistry<T>> registry(JavaRegistryKey<T> registryKey) {
+        return Optional.ofNullable((JavaRegistry<T>) registries.get(registryKey));
     }
 
-    private static <T> void readRegistry(GeyserSession session, JavaRegistryKey<T> registryKey, SimpleJavaRegistry<T> registry,
+    private static <T> void readRegistry(GeyserSession session, JavaRegistryKey<T> registryKey, MutableJavaRegistry<T> registry,
                                          RegistryReader<T> reader, List<RegistryEntry> entries) {
-        Map<Key, NbtMap> localRegistry = null;
+        Map<Key, NbtMap> localRegistry = DEFAULTS.get(registryKey); // TODO lazy init?
 
         // Clear each local cache every time a new registry entry is given to us
         // (e.g. proxy server switches, reconfiguring)
+        // TODO technically we need to clear all registries at start of configuration,
+        // TODO and only freeze/bind at the end of it
+        registry.clear();
 
-        // Store each of the entries resource location IDs and their respective network ID, used for the key -> ID map in RegistryEntryContext
-        Object2IntMap<Key> entryIdMap = new Object2IntOpenHashMap<>();
-        for (int i = 0; i < entries.size(); i++) {
-            entryIdMap.put(entries.get(i).getId(), i);
-        }
+        // First, register all entries in the registry
+        entries.forEach(entry -> registry.register(entry.getId()));
 
-        List<RegistryEntryData<T>> builder = new ArrayList<>(entries.size());
-        for (int i = 0; i < entries.size(); i++) {
-            RegistryEntry entry = entries.get(i);
+        // Then, bind the registry, parsing all the registries
+        registry.freeze(id -> {
+            RegistryEntry entry = entries.get(id);
             // If the data is null, that's the server telling us we need to use our default values.
             if (entry.getData() == null) {
-                if (localRegistry == null) { // Lazy initialize
-                    localRegistry = DEFAULTS.get(registryKey);
-                }
                 entry = new RegistryEntry(entry.getId(), localRegistry.get(entry.getId()));
             }
 
-            RegistryEntryContext context = new RegistryEntryContext(entry, key -> entryIdMap.getOrDefault(key, -1), Optional.of(session));
-            // This is what Geyser wants to keep as a value for this registry.
-            T cacheEntry = reader.read(context);
-            if (cacheEntry == null) {
-                // Registry readers should never return null, rather return a default value
-                throw new IllegalStateException("Registry reader returned null for an entry!");
-            }
-            builder.add(i, new RegistryEntryData<>(i, entry.getId(), cacheEntry));
-        }
-        registry.reset(builder);
+            RegistryEntryContext context = new RegistryEntryContext(session.javaRegistries(), entry, Optional.of(session));
+            return reader.read(context);
+        });
     }
 
     /**

@@ -26,14 +26,14 @@
 package org.geysermc.geyser.translator.protocol.java.level;
 
 import net.kyori.adventure.key.Key;
-import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.ClientboundCooldownPacket;
 import org.cloudburstmc.protocol.bedrock.packet.PlayerStartItemCooldownPacket;
 import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.item.type.Item;
-import org.geysermc.geyser.registry.Registries;
+import org.geysermc.geyser.registry.java.BuiltInJavaRegistries;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
+import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.ClientboundCooldownPacket;
 
 @Translator(packet = ClientboundCooldownPacket.class)
 public class JavaCooldownTranslator extends PacketTranslator<ClientboundCooldownPacket> {
@@ -43,7 +43,7 @@ public class JavaCooldownTranslator extends PacketTranslator<ClientboundCooldown
         // If the cooldown group is a modded item, an item that Bedrock doesn't support custom cooldowns for, or a custom cooldown group,
         // then the cooldown won't be translated correctly. The cooldown won't show up on Bedrock, but they are still unable to use the item.
         Key cooldownGroup = packet.getCooldownGroup();
-        Item item = Registries.JAVA_ITEM_IDENTIFIERS.get(cooldownGroup.asString());
+        Item item = BuiltInJavaRegistries.ITEM.getOrThrow(cooldownGroup);
 
         // Custom items can define an item cooldown using a custom cooldown group, which will be sent to the client if there's not a vanilla cooldown group
         String cooldownCategory = cooldownGroup.asString();
