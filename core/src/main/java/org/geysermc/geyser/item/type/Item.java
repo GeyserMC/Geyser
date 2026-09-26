@@ -305,7 +305,7 @@ public class Item {
     }
 
     protected final @Nullable NbtMap remapEnchantment(GeyserSession session, int enchantId, int level, BedrockItemBuilder builder) {
-        Optional<Enchantment> enchantment = JavaRegistries.ENCHANTMENT.get(session, enchantId);
+        Optional<Enchantment> enchantment = JavaRegistries.ENCHANTMENT.get(session.javaRegistries(), enchantId);
         if (enchantment.isEmpty()) {
             GeyserImpl.getInstance().getLogger().debug("Unknown Java enchantment while NBT item translating: " + enchantId);
             return null;

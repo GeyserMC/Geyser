@@ -180,15 +180,16 @@ public abstract class Dialog {
     }
 
     public static Dialog getDialogFromHolder(GeyserSession session, Holder<NbtMap> holder) {
+        JavaRegistryProvider registries = session.javaRegistries();
         if (holder.isId()) {
-            return JavaRegistries.DIALOG.getOrThrow(session, holder.id());
+            return JavaRegistries.DIALOG.getOrThrow(registries, holder.id());
         } else {
-            return Dialog.readDialogFromNbt(session.javaRegistries(), Optional.of(session), holder.custom());
+            return Dialog.readDialogFromNbt(registries, Optional.of(session), holder.custom());
         }
     }
 
-    public static Dialog getDialogFromKey(GeyserSession session, Key key) {
-        return JavaRegistries.DIALOG.getOrThrow(session, key);
+    public static Dialog getDialogFromKey(JavaRegistryProvider registries, Key key) {
+        return JavaRegistries.DIALOG.getOrThrow(registries, key);
     }
 
     public enum AfterAction {

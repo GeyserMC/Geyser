@@ -48,7 +48,7 @@ public class JavaDamageEventTranslator extends PacketTranslator<ClientboundDamag
             return;
         }
 
-        Optional<EntityDamageCause> cause = JavaRegistries.DAMAGE_TYPE.get(session, packet.getSourceTypeId());
+        Optional<EntityDamageCause> cause = JavaRegistries.DAMAGE_TYPE.get(session.javaRegistries(), packet.getSourceTypeId());
         if (cause.isEmpty()) {
             cause = Optional.of(EntityDamageCause.OVERRIDE);
         }

@@ -42,9 +42,9 @@ import org.geysermc.geyser.item.hashing.data.entity.RabbitVariant;
 import org.geysermc.geyser.item.hashing.data.entity.SalmonVariant;
 import org.geysermc.geyser.item.hashing.data.entity.TropicalFishPattern;
 import org.geysermc.geyser.item.hashing.data.entity.VillagerVariant;
-import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.registry.java.JavaRegistries;
 import org.geysermc.geyser.registry.java.JavaRegistryKey;
+import org.geysermc.geyser.registry.java.JavaRegistryProvider;
 import org.geysermc.geyser.util.MinecraftKey;
 import org.geysermc.mcprotocollib.protocol.data.game.Holder;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.Effect;
@@ -396,7 +396,7 @@ public interface RegistryHasher<DirectType> extends MinecraftHasher<Integer> {
         .accept("has_glowing_text", MinecraftHasher.BOOL, SignText::hasGlowingText));
 
     /**
-     * Creates a hasher that uses the {@link JavaRegistryKey#getKey(GeyserSession, int)} method to turn a network ID into a {@link Key}, and then encodes this key.
+     * Creates a hasher that uses the {@link JavaRegistryKey#getKeyOrThrow(JavaRegistryProvider, int)} method to turn a network ID into a {@link Key}, and then encodes this key.
      *
      * @param registry the registry to create a hasher for.
      */

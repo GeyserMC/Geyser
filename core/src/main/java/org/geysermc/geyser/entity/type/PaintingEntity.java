@@ -73,7 +73,7 @@ public class PaintingEntity extends HangingEntity {
             despawnEntity();
         }
 
-        Optional<PaintingType> type = JavaRegistries.PAINTING_VARIANT.get(session, paintingId);
+        Optional<PaintingType> type = JavaRegistries.PAINTING_VARIANT.get(session.javaRegistries(), paintingId);
         if (type.isEmpty()) {
             return;
         }

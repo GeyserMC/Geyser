@@ -95,7 +95,7 @@ public interface GeyserInstrument {
         if (component.isCustom()) {
             return new Wrapper(component.custom(), session.locale());
         } else if (component.isId()) {
-            return JavaRegistries.INSTRUMENT.getOrThrow(session, component.id());
+            return JavaRegistries.INSTRUMENT.getOrThrow(session.javaRegistries(), component.id());
         }
         throw new IllegalStateException("Instrument must either be custom or have an id");
     }

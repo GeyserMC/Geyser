@@ -31,6 +31,7 @@ import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.item.TooltipOptions;
+import org.geysermc.geyser.registry.java.JavaRegistryProvider;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.registry.java.JavaRegistries;
 import org.geysermc.geyser.translator.item.BedrockItemBuilder;
@@ -50,11 +51,13 @@ public class ArmorItem extends Item {
     public void translateComponentsToBedrock(@NonNull GeyserSession session, @NonNull DataComponents components, @NonNull TooltipOptions tooltip, @NonNull BedrockItemBuilder builder) {
         super.translateComponentsToBedrock(session, components, tooltip, builder);
 
+        JavaRegistryProvider registries = session.javaRegistries();
+
         ArmorTrim trim = components.get(DataComponentTypes.TRIM);
         if (trim != null) {
             Optional<Key> material;
             if (trim.material().isId()) {
-                material = JavaRegistries.TRIM_MATERIAL.getKey(session, trim.material().id());
+                material = JavaRegistries.TRIM_MATERIAL.getKey(registries, trim.material().id());
             } else {
                 GeyserImpl.getInstance().getLogger().debug("Unable to translate non-id trim material: " + trim);
                 return;
@@ -62,7 +65,7 @@ public class ArmorItem extends Item {
 
             Optional<Key> pattern;
             if (trim.pattern().isId()) {
-                pattern = JavaRegistries.TRIM_PATTERN.getKey(session, trim.pattern().id());
+                pattern = JavaRegistries.TRIM_PATTERN.getKey(registries, trim.pattern().id());
             } else {
                 GeyserImpl.getInstance().getLogger().debug("Unable to translate non-id trim pattern: " + trim);
                 return;

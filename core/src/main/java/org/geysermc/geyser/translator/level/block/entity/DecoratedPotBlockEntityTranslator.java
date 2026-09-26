@@ -33,6 +33,7 @@ import org.geysermc.geyser.item.type.Item;
 import org.geysermc.geyser.level.block.type.BlockState;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.registry.java.BuiltInJavaRegistries;
+import org.geysermc.geyser.registry.java.JavaRegistryProvider;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.registry.java.JavaRegistries;
 import org.geysermc.geyser.registry.java.RegistryEntryContext;
@@ -70,6 +71,8 @@ public class DecoratedPotBlockEntityTranslator extends BlockEntityTranslator {
             return DEFAULT_BEDROCK_ITEM;
         }
 
+        JavaRegistryProvider registries = session.javaRegistries();
+
         // Check the component patch first: it may remove the provides_pottery_pattern component, or add it
         NbtMap components = stack.getCompound("components");
         if (!components.isEmpty()) {
@@ -79,7 +82,7 @@ public class DecoratedPotBlockEntityTranslator extends BlockEntityTranslator {
             }
             String pattern = components.getString(POTTERY_PATTERN_COMPONENT, null);
             if (pattern != null) {
-                Optional<Key> bedrockItem = JavaRegistries.DECORATED_POT_PATTERN.get(session, MinecraftKey.key(pattern));
+                Optional<Key> bedrockItem = JavaRegistries.DECORATED_POT_PATTERN.get(registries, MinecraftKey.key(pattern));
                 if (bedrockItem.isPresent()) {
                     return bedrockItem.get().toString();
                 }
@@ -92,7 +95,7 @@ public class DecoratedPotBlockEntityTranslator extends BlockEntityTranslator {
         if (item != null) {
             Integer patternId = item.getComponent(session.getComponentCache(), DataComponentTypes.PROVIDES_POTTERY_PATTERN);
             if (patternId != null) {
-                Optional<Key> bedrockItem = JavaRegistries.DECORATED_POT_PATTERN.get(session, patternId);
+                Optional<Key> bedrockItem = JavaRegistries.DECORATED_POT_PATTERN.get(registries, patternId);
                 if (bedrockItem.isPresent()) {
                     return bedrockItem.get().toString();
                 }

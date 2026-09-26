@@ -51,17 +51,6 @@ import java.util.function.IntFunction;
  */
 public record JavaRegistryKey<T>(Key registryKey) {
 
-    public int getIdOrThrow(GeyserSession session, T object) {
-        return getIdOrThrow(session.javaRegistries(), object);
-    }
-
-    /**
-     * Converts an object to its network ID, or -1 if it is not registered.
-     */
-    public OptionalInt getId(GeyserSession session, T object) {
-        return getId(session.javaRegistries(), object);
-    }
-
     public int getIdOrThrow(JavaRegistryProvider registries, T object) {
         return registries.registry(this).getIdOrThrow(object);
     }
@@ -71,17 +60,6 @@ public record JavaRegistryKey<T>(Key registryKey) {
      */
     public OptionalInt getId(JavaRegistryProvider registries, T object) {
         return registries.registry(this).getId(object);
-    }
-
-    public int getIdOrThrow(GeyserSession session, Key key) {
-        return getIdOrThrow(session.javaRegistries(), key);
-    }
-
-    /**
-     * Converts a registered key to its network ID, or -1 if it is not registered.
-     */
-    public OptionalInt getId(GeyserSession session, Key key) {
-        return getId(session.javaRegistries(), key);
     }
 
     public int getIdOrThrow(JavaRegistryProvider registries, Key key) {
@@ -95,17 +73,6 @@ public record JavaRegistryKey<T>(Key registryKey) {
         return registries.registry(this).getId(key);
     }
 
-    public Key getKeyOrThrow(GeyserSession session, T object) {
-        return getKeyOrThrow(session.javaRegistries(), object);
-    }
-
-    /**
-     * Converts an object to its registered key, or null if it is not registered.
-     */
-    public Optional<Key> getKey(GeyserSession session, T object) {
-        return getKey(session.javaRegistries(), object);
-    }
-
     public Key getKeyOrThrow(JavaRegistryProvider registries, T object) {
         return registries.registry(this).getKeyOrThrow(object);
     }
@@ -115,17 +82,6 @@ public record JavaRegistryKey<T>(Key registryKey) {
      */
     public Optional<Key> getKey(JavaRegistryProvider registries, T object) {
         return registries.registry(this).getKey(object);
-    }
-
-    public Key getKeyOrThrow(GeyserSession session, int networkId) {
-        return getKeyOrThrow(session.javaRegistries(), networkId);
-    }
-
-    /**
-     * Converts a network ID to its registered key, or null if it is not registered.
-     */
-    public Optional<Key> getKey(GeyserSession session, int networkId) {
-        return getKey(session.javaRegistries(), networkId);
     }
 
     public Key getKeyOrThrow(JavaRegistryProvider registries, int networkId) {
@@ -139,17 +95,6 @@ public record JavaRegistryKey<T>(Key registryKey) {
         return registries.registry(this).getKey(networkId);
     }
 
-    public T getOrThrow(GeyserSession session, int networkId) {
-        return getOrThrow(session.javaRegistries(), networkId);
-    }
-
-    /**
-     * Converts a network ID to an object in this registry, or null if it is not registered.
-     */
-    public Optional<T> get(GeyserSession session, int networkId) {
-        return get(session.javaRegistries(), networkId);
-    }
-
     public T getOrThrow(JavaRegistryProvider registries, int networkId) {
         return registries.registry(this).getOrThrow(networkId);
     }
@@ -159,17 +104,6 @@ public record JavaRegistryKey<T>(Key registryKey) {
      */
     public Optional<T> get(JavaRegistryProvider registries, int networkId) {
         return registries.registry(this).get(networkId);
-    }
-
-    public T getOrThrow(GeyserSession session, Key key) {
-        return getOrThrow(session.javaRegistries(), key);
-    }
-
-    /**
-     * Converts a key to an object in this registry, or null if it is not registered.
-     */
-    public Optional<T> get(GeyserSession session, Key key) {
-        return get(session.javaRegistries(), key);
     }
 
     public T getOrThrow(JavaRegistryProvider registries, Key key) {
@@ -191,12 +125,20 @@ public record JavaRegistryKey<T>(Key registryKey) {
         return id -> getOrThrow(registries, id);
     }
 
-    public Holder<T> wrapOrThrow(GeyserSession session, Key key) {
+    public <H> Holder<H> wrapOrThrow(GeyserSession session, Key key) {
         return wrapOrThrow(session.javaRegistries(), key);
     }
 
-    public Holder<T> wrapOrThrow(JavaRegistryProvider registries, Key key) {
+    public <H> Holder<H> wrapOrThrow(JavaRegistryProvider registries, Key key) {
         return Holder.ofId(getIdOrThrow(registries, key));
+    }
+
+    public <H> Holder<H> wrapOrThrow(GeyserSession session, T object) {
+        return wrapOrThrow(session.javaRegistries(), object);
+    }
+
+    public <H> Holder<H> wrapOrThrow(JavaRegistryProvider registries, T object) {
+        return Holder.ofId(getIdOrThrow(registries, object));
     }
 
     // TODO introduce

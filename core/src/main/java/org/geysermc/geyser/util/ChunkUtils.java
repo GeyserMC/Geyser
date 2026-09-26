@@ -226,7 +226,7 @@ public class ChunkUtils {
             session.getGeyser().getLogger().warning(GeyserLocale.getLocaleStringLog("geyser.network.translator.chunk.out_of_bounds",
                     String.valueOf(bedrockDimension.minY()),
                     String.valueOf(bedrockDimension.maxY()),
-                    JavaRegistries.DIMENSION_TYPE.getId(session, session.getDimensionType())));
+                    JavaRegistries.DIMENSION_TYPE.getKey(session.javaRegistries(), session.getDimensionType())));
         }
 
         session.getChunkCache().setMinY(minY);

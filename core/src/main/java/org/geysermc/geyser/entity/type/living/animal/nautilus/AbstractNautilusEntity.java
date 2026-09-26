@@ -74,7 +74,7 @@ public abstract class AbstractNautilusEntity extends TameableEntity implements C
     @Override
     public void setBody(GeyserItemStack stack) {
         super.setBody(stack);
-        isCurseOfBinding = ItemUtils.hasEffect(session, stack, EnchantmentComponent.PREVENT_ARMOR_CHANGE);
+        isCurseOfBinding = ItemUtils.hasEffect(session.javaRegistries(), stack, EnchantmentComponent.PREVENT_ARMOR_CHANGE);
         repairableItems = stack.getComponent(DataComponentTypes.REPAIRABLE);
     }
 

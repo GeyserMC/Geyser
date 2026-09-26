@@ -248,7 +248,7 @@ public final class GeyserHolderSet<T> {
      * @param session the Geyser session.
      * @param registry the registry the HolderSet contains IDs from.
      * @param holderSet the HolderSet as a NBT object.
-     */
+     */ // TODO deprecate?
     public static <T> GeyserHolderSet<T> readHolderSet(GeyserSession session, JavaRegistryKey<T> registry, @Nullable Object holderSet) {
         return readHolderSet(session.javaRegistries(), registry, holderSet);
     }
@@ -304,7 +304,7 @@ public final class GeyserHolderSet<T> {
                     for (Object tag : unwrapped) {
                         if (tag instanceof String reference) {
                             try {
-                                holders.add(Holder.ofId(registry.getIdOrThrow(registries, MinecraftKey.key(reference))));
+                                holders.add(registry.wrapOrThrow(registries, MinecraftKey.key(reference)));
                                 continue;
                             } catch (InvalidKeyException ignored) {}
                         }

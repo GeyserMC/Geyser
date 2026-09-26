@@ -122,7 +122,7 @@ public interface DialogAction {
             if (dialog instanceof NbtMap map) {
                 return new ShowDialog(Optional.empty(), Holder.ofCustom(map));
             } else if (dialog instanceof String string) {
-                return new ShowDialog(Optional.empty(), Holder.ofId(JavaRegistries.DIALOG.getIdOrThrow(registries, MinecraftKey.key(string))));
+                return new ShowDialog(Optional.empty(), JavaRegistries.DIALOG.wrapOrThrow(registries, MinecraftKey.key(string)));
             }
             throw new IllegalArgumentException("Expected dialog in show_dialog action to be a NBT map or a resource location");
         }
