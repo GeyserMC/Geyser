@@ -82,7 +82,7 @@ public class GameTestJavaRegistryProvider implements JavaRegistryProvider {
     }
 
     private <Mojang, Geyser> JavaRegistry<Geyser> buildRegistry(Registry<Mojang> mojangRegistry, JavaRegistryKey<Geyser> geyserKey) {
-        MutableJavaRegistry<Geyser> geyserRegistry = new SimpleJavaRegistry<>();
+        MutableJavaRegistry<Geyser> geyserRegistry = new SimpleJavaRegistry<>(geyserKey);
 
         DynamicOps<Object> nbtOps = registries.createSerializationContext(CloudburstNbtOps.INSTANCE);
         Codec<Mojang> codec = GeyserGameTestsUtil.getSyncedRegistryData(mojangRegistry.key()).orElseThrow().elementCodec();

@@ -80,6 +80,8 @@ import java.util.List;
 public final class JavaRegistries {
     private static final List<JavaRegistryKey<?>> VALUES = new ObjectArrayList<>();
 
+    static final JavaRegistryKey<MutableJavaRegistry<?>> BUILT_IN_ROOT = create("root");
+
     // Built-in registries
     public static final JavaRegistryKey<Block> BLOCK = create("block");
     public static final JavaRegistryKey<Item> ITEM = create("item");

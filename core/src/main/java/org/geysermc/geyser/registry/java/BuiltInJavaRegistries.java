@@ -61,7 +61,7 @@ import org.geysermc.geyser.session.cache.tags.Tag;
  * @see JavaRegistries
  */
 public final class BuiltInJavaRegistries {
-    private static final MutableJavaRegistry<MutableJavaRegistry<?>> ROOT = new SimpleJavaRegistry<>();
+    private static final MutableJavaRegistry<MutableJavaRegistry<?>> ROOT = new SimpleJavaRegistry<>(JavaRegistries.BUILT_IN_ROOT);
     /**
      * Holds all Java blocks. Can be expanded with non-vanilla blocks by API users.
      */
@@ -102,11 +102,13 @@ public final class BuiltInJavaRegistries {
      * @return the created registry
      */
     private static <T> MutableJavaRegistry<T> register(JavaRegistryKey<T> key) {
-        MutableJavaRegistry<T> registry = new SimpleJavaRegistry<>();
+        SimpleJavaRegistry<T> registry = new SimpleJavaRegistry<>(key);
+        registry.allowUnsafeAccess();
         return ROOT.register(key.registryKey(), registry);
     }
 
     public static void bootstrap() {
+        ROOT.freeze(id -> null);
         Blocks.bootstrap();
         Items.bootstrap();
         VanillaEntities.init();

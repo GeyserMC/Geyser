@@ -85,7 +85,7 @@ public final class RegistryCache {
         this.session = session;
         this.registries = new Reference2ObjectOpenHashMap<>(JavaRegistryReaders.networkRegistries().size());
         for (JavaRegistryKey<?> registry : JavaRegistryReaders.networkRegistries()) {
-            registries.put(registry, new SimpleJavaRegistry<>());
+            registries.put(registry, new SimpleJavaRegistry<>(registry));
         }
     }
 

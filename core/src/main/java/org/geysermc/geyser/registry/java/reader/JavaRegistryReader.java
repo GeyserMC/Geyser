@@ -43,7 +43,7 @@ import java.util.Optional;
  * <p>Note however that {@link GeyserSession} may not always be present when parsing registry data - it should generally only be used to pre-compute text component translations
  * (see {@link Context#parseDescription()}).</p>
  *
- * <p>If you don't care about the contents of the registry, and only about the network ID <-> key mapping, you should use the {@link JavaRegistryReader#UNIT} reader.</p>
+ * <p>If you don't care about the contents of the registry, and only about the network ID ≪-≫ key mapping, you should use the {@link JavaRegistryReader#UNIT} reader.</p>
  *
  * <p>Some readers, especially when trying to map dynamic Java content to static bedrock content, will need the {@link Key} of the entry they are parsing.
  * In this case, you should define a {@link KeyDependentJavaRegistryReader} instead. Please see the documentation there for the drawbacks of using one.</p>

@@ -39,10 +39,26 @@ import java.util.function.Consumer;
 import java.util.function.IntFunction;
 
 public class SimpleJavaRegistry<T> implements MutableJavaRegistry<T> {
+    private final JavaRegistryKey<T> registryKey;
     private final Int2ObjectSortedMap<RegistryEntryData<T>> byId = new Int2ObjectLinkedOpenHashMap<>();
     private final Map<Key, RegistryEntryData<T>> byKey = new Object2ObjectOpenHashMap<>();
     private final Map<T, RegistryEntryData<T>> byValue = new Object2ObjectOpenHashMap<>();
     private boolean frozen = false;
+    private boolean allowsUnsafeAccess = false;
+
+    public SimpleJavaRegistry(JavaRegistryKey<T> registryKey) {
+        this.registryKey = registryKey;
+    }
+
+    /**
+     * Allows access the entries of this registry before it is frozen.
+     *
+     * @deprecated should be used as little as possible, and not at all when writing new code
+     */
+    @Deprecated
+    void allowUnsafeAccess() {
+        allowsUnsafeAccess = true;
+    }
 
     @Override
     public Optional<RegistryEntryData<T>> getById(int networkId) {
@@ -94,7 +110,6 @@ public class SimpleJavaRegistry<T> implements MutableJavaRegistry<T> {
 
     private void checkForDuplicates(RegistryEntryData<T> entry, RegistryEntryData<T> candidate) {
         if (candidate != null) {
-            // TODO string
             throw new IllegalStateException("Duplicate entry registered to " + this + ": existing: " + candidate + ", new: " + entry);
         }
     }
@@ -144,8 +159,13 @@ public class SimpleJavaRegistry<T> implements MutableJavaRegistry<T> {
         };
     }
 
+    @Override
+    public String toString() {
+        return "Simple " + registryKey;
+    }
+
     private void ensureFrozen() {
-        if (!frozen) {
+        if (!allowsUnsafeAccess && !frozen) {
             throw new IllegalStateException("Registry must be frozen to access its entries");
         }
     }
