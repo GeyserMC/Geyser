@@ -53,9 +53,7 @@ public record Enchantment(Set<EnchantmentComponent> effects,
         NbtMap data = context.dataAsMap();
         Set<EnchantmentComponent> effects = readEnchantmentComponents(data.getCompound("effects"));
 
-        GeyserHolderSet<Item> supportedItems = context.session()
-            .map(session -> GeyserHolderSet.readHolderSet(session, JavaRegistries.ITEM, data.get("supported_items")))
-            .orElseGet(() -> GeyserHolderSet.empty(JavaRegistries.ITEM));
+        GeyserHolderSet<Item> supportedItems = GeyserHolderSet.readHolderSet(context.registries(), JavaRegistries.ITEM, data.get("supported_items"), context.session());
 
         int maxLevel = data.getInt("max_level");
         int anvilCost = data.getInt("anvil_cost");

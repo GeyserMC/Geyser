@@ -31,31 +31,20 @@ import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import net.kyori.adventure.key.Key;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.GeyserLogger;
-import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.registry.java.JavaRegistries;
 import org.geysermc.geyser.registry.java.JavaRegistryKey;
-import org.geysermc.geyser.session.cache.tags.GeyserHolderSet;
+import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.cache.tags.Tag;
 import org.geysermc.geyser.util.MinecraftKey;
-import org.geysermc.mcprotocollib.protocol.data.game.item.component.HolderSet;
 import org.geysermc.mcprotocollib.protocol.packet.common.clientbound.ClientboundUpdateTagsPacket;
 
 import java.util.Arrays;
 import java.util.Map;
 
-// TODO javadocs
 /**
  * Manages information sent from the {@link ClientboundUpdateTagsPacket}. If that packet is not sent, all lists here
  * will remain empty, matching Java Edition behavior. Looking up a tag that wasn't listed in that packet will return an empty array.
  * Only tags from registries in {@link JavaRegistries} are stored. Read {@link JavaRegistryKey} for more information.
- *
- * <p>To simply check if an element is in a tag, it's preferred to use the element's "{@code is}" method, if available. For example:</p>
- *
- * <ul>
- *     <li>{@link org.geysermc.geyser.level.block.type.Block#is(GeyserSession, HolderSet)}</li>
- *     <li>{@link org.geysermc.geyser.inventory.GeyserItemStack#is(GeyserSession, Tag)}</li>
- *     <li>{@link org.geysermc.geyser.inventory.GeyserItemStack#is(GeyserSession, HolderSet)}</li>
- * </ul>
  */
 public final class TagCache {
     private final GeyserSession session;

@@ -30,13 +30,50 @@ import net.kyori.adventure.key.Key;
 import java.util.Collection;
 import java.util.function.Consumer;
 
+/**
+ * Extends {@link JavaRegistryLookup} with methods to iterate over a registry's contents.
+ *
+ * <p>This interface extends {@link Iterable}, making it usable in {@code for}-loops and with {@link Iterable#forEach(Consumer)}.
+ * The iterator provided by instances is sorted by network ID.</p>
+ *
+ * @param <T> the type of this registry
+ * @see JavaRegistryLookup
+ * @see MutableJavaRegistry
+ * @see JavaRegistries
+ * @see BuiltInJavaRegistries
+ * @see JavaRegistryProvider
+ */
 public interface JavaRegistry<T> extends JavaRegistryLookup<T>, Iterable<T> {
 
+    /**
+     * Returns a collection of all keys in this registry.
+     *
+     * <p>Note that this collection may not necessarily be sorted by network ID.</p>
+     *
+     * @return a collection of all keys in this registry
+     */
     Collection<Key> keys();
 
+    /**
+     * Returns a collection of all values in this registry.
+     *
+     * <p>Note that this collection may not necessarily be sorted by network ID.</p>
+     *
+     * @return a collection of all values in this registry
+     */
     Collection<T> values();
 
+    /**
+     * @return the amount of entries in this registry
+     */
     int size();
 
+    /**
+     * Iterates {@code action} for each {@link RegistryEntryData} of this registry.
+     *
+     * <p>The action is executed in order of network ID.</p>
+     *
+     * @param action the action to execute for each {@link RegistryEntryData}
+     */
     void forEachEntry(Consumer<RegistryEntryData<T>> action);
 }

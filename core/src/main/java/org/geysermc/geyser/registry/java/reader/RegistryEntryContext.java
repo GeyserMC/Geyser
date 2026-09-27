@@ -29,18 +29,22 @@ import net.kyori.adventure.key.Key;
 import org.geysermc.geyser.registry.java.JavaRegistryProvider;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.mcprotocollib.protocol.data.game.RegistryEntry;
+import org.geysermc.mcprotocollib.protocol.packet.configuration.clientbound.ClientboundRegistryDataPacket;
 
 import java.util.Optional;
 
 /**
- * Used to store context around a single registry entry when reading said entry's NBT.
+ * Expands {@link JavaRegistryReader.Context} with a {@link Key}. Used when parsing registry data from a {@link ClientboundRegistryDataPacket}.
  *
- * @param registries TODO
- * @param entry the registry entry being read.
- * @param session the Geyser session. Only empty during testing.
+ * @param registries the {@link JavaRegistryProvider}
+ * @param entry the {@link RegistryEntry}
+ * @param session the {@link GeyserSession}
  */
 public record RegistryEntryContext(JavaRegistryProvider registries, RegistryEntry entry, Optional<GeyserSession> session) implements JavaRegistryReader.Context {
 
+    /**
+     * @return the {@link Key} of this registry entry
+     */
     public Key id() {
         return entry.getId();
     }

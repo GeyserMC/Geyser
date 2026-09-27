@@ -26,85 +26,176 @@
 package org.geysermc.geyser.registry.java;
 
 import net.kyori.adventure.key.Key;
+import org.geysermc.geyser.session.GeyserSession;
 
 import java.util.Optional;
 import java.util.OptionalInt;
 
 /**
- * Implementations should look up an element in the given registry by its value, network ID, or registered key. Return an empty optional if it does not exist.
+ * Provides basic access to a Java registry as defined in {@link JavaRegistries}. Instances of this interface
+ * should be used to get access to one or multiple entries in the registry. For iterating over the entire registry,
+ * see the extensions provided by {@link JavaRegistry}.
+ *
+ * <p>Instances of this interface can be obtained through {@link JavaRegistryProvider} (usually provided by {@link GeyserSession#javaRegistries()}),
+ * or by using the constants in {@link BuiltInJavaRegistries}.</p>
+ *
+ * @param <T> the type of the registry
+ * @see JavaRegistry
+ * @see MutableJavaRegistry
+ * @see JavaRegistries
+ * @see BuiltInJavaRegistries
+ * @see JavaRegistryProvider
  */
 public interface JavaRegistryLookup<T> {
 
+    /**
+     * Gets the network ID for the given {@code object} in this registry, or throws if it didn't exist.
+     *
+     * @param object the object to look up
+     * @return the network ID correlating to the object
+     * @throws IllegalStateException when the {@code object} was not present in this registry
+     */
     default int getIdOrThrow(T object) {
         return getId(object).orElseThrow(() -> constructMissingObjectException(object));
     }
 
     /**
-     * Converts an object to its network ID, or -1 if it is not registered.
+     * Gets the network ID for the given {@code object} in this registry, or returns an empty optional if it didn't exist.
+     *
+     * @param object the object to look up
+     * @return the network ID correlating to the object, or an empty optional if it didn't exist
      */
     default OptionalInt getId(T object) {
         return getByValue(object).stream().mapToInt(RegistryEntryData::id).findAny();
     }
 
+    /**
+     * Gets the network ID for the given {@code key} in this registry, or throws if it didn't exist.
+     *
+     * @param key the key to look up
+     * @return the network ID correlating to the key
+     * @throws IllegalStateException when the {@code key} was not present in this registry
+     */
     default int getIdOrThrow(Key key) {
         return getId(key).orElseThrow(() -> constructMissingKeyException(key));
     }
 
     /**
-     * Converts a registered key to its network ID, or -1 if it is not registered.
+     * Gets the network ID for the given {@code key} in this registry, or returns an empty optional if it didn't exist.
+     *
+     * @param key the key to look up
+     * @return the network ID correlating to the key, or an empty optional if it didn't exist
      */
     default OptionalInt getId(Key key) {
         return getByKey(key).stream().mapToInt(RegistryEntryData::id).findAny();
     }
 
+    /**
+     * Gets the {@link Key} for the given {@code object} in this registry, or throws if it didn't exist.
+     *
+     * @param object the object to look up
+     * @return the {@link Key} correlating to the object
+     * @throws IllegalStateException when the {@code object} was not present in this registry
+     */
     default Key getKeyOrThrow(T object) {
         return getKey(object).orElseThrow(() -> constructMissingObjectException(object));
     }
 
     /**
-     * Converts an object to its registered key, or null if it is not registered.
+     * Gets the {@link Key} for the given {@code object} in this registry, or returns an empty optional if it didn't exist.
+     *
+     * @param object the object to look up
+     * @return the {@link Key} correlating to the object, or an empty optional if it didn't exist
      */
     default Optional<Key> getKey(T object) {
         return getByValue(object).map(RegistryEntryData::key);
     }
 
+    /**
+     * Gets the {@link Key} for the given {@code networkId} in this registry, or throws if it didn't exist.
+     *
+     * @param networkId the network ID to look up
+     * @return the {@link Key} correlating to the network ID
+     * @throws IllegalStateException when the {@code networkId} was not present in this registry
+     */
     default Key getKeyOrThrow(int networkId) {
         return getKey(networkId).orElseThrow(() -> constructMissingIdException(networkId));
     }
 
     /**
-     * Converts a network ID to its registered key, or null if it is not registered.
+     * Gets the {@link Key} for the given {@code networkId} in this registry, or returns an empty optional if it didn't exist.
+     *
+     * @param networkId the network ID to look up
+     * @return the {@link Key} correlating to the network ID, or an empty optional if it didn't exist
      */
     default Optional<Key> getKey(int networkId) {
         return getById(networkId).map(RegistryEntryData::key);
     }
 
+    /**
+     * Gets the {@link T} for the given {@code networkId} in this registry, or throws if it didn't exist.
+     *
+     * @param networkId the network ID to look up
+     * @return the {@link T} correlating to the network ID
+     * @throws IllegalStateException when the {@code networkId} was not present in this registry
+     */
     default T getOrThrow(int networkId) {
         return get(networkId).orElseThrow(() -> constructMissingIdException(networkId));
     }
 
     /**
-     * Converts a network ID to an object in this registry, or null if it is not registered.
+     * Gets the {@link T} for the given {@code networkId} in this registry, or returns an empty optional if it didn't exist.
+     *
+     * @param networkId the network ID to look up
+     * @return the {@link T} correlating to the network ID, or an empty optional if it didn't exist
      */
     default Optional<T> get(int networkId) {
         return getById(networkId).map(RegistryEntryData::data);
     }
 
+    /**
+     * Gets the {@link T} for the given {@code key} in this registry, or throws if it didn't exist.
+     *
+     * @param key the key to look up
+     * @return the {@link T} correlating to the key
+     * @throws IllegalStateException when the {@code key} was not present in this registry
+     */
     default T getOrThrow(Key key) {
         return get(key).orElseThrow(() -> constructMissingKeyException(key));
     }
 
     /**
-     * Converts a key to an object in this registry, or null if it is not registered.
+     * Gets the {@link T} for the given {@code key} in this registry, or returns an empty optional if it didn't exist.
+     *
+     * @param key the key to look up
+     * @return the {@link T} correlating to the key, or an empty optional if it didn't exist
      */
     default Optional<T> get(Key key) {
         return getByKey(key).map(RegistryEntryData::data);
     }
 
+    /**
+     * Gets the {@link RegistryEntryData} for the given {@code networkId} in this registry, or returns an empty optional if it didn't exist.
+     *
+     * @param networkId the network ID to look up
+     * @return the {@link RegistryEntryData} correlating to the network ID, or an empty optional if it didn't exist
+     */
     Optional<RegistryEntryData<T>> getById(int networkId);
 
+    /**
+     * Gets the {@link RegistryEntryData} for the given {@code key} in this registry, or returns an empty optional if it didn't exist.
+     *
+     * @param key the key to look up
+     * @return the {@link RegistryEntryData} correlating to the key, or an empty optional if it didn't exist
+     */
     Optional<RegistryEntryData<T>> getByKey(Key key);
 
+    /**
+     * Gets the {@link RegistryEntryData} for the given {@code object} in this registry, or returns an empty optional if it didn't exist.
+     *
+     * @param object the object to look up
+     * @return the {@link RegistryEntryData} correlating to the object, or an empty optional if it didn't exist
+     */
     Optional<RegistryEntryData<T>> getByValue(T object);
 
     private IllegalStateException constructMissingObjectException(T object) {

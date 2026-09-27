@@ -34,6 +34,16 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 
 import java.util.Objects;
 
+/**
+ * An entry in a {@link JavaRegistry}. This class groups a network ID, a {@link Key}, and a {@link T} together.
+ *
+ * <p>The entry may not be bound when the {@link JavaRegistry} is not frozen. Trying to access unbound entries will result in a {@link IllegalStateException}.</p>
+ *
+ * @param <T> the type of the registry
+ * @see JavaRegistryLookup
+ * @see JavaRegistry
+ * @see MutableJavaRegistry
+ */
 @Accessors(fluent = true)
 @EqualsAndHashCode
 @ToString
@@ -56,11 +66,14 @@ public final class RegistryEntryData<T> {
         return data;
     }
 
-    public void bind(T data) {
+    void bind(T data) {
         assert this.data == null : "Tried to bind registry entry " + key + " twice!";
         this.data = Objects.requireNonNull(data, "Value for registry entry " + key + " must not be null when binding");
     }
 
+    /**
+     * @return true if this entry is bound
+     */
     public boolean isBound() {
         return data != null;
     }

@@ -34,6 +34,11 @@ import org.geysermc.geyser.registry.java.JavaRegistryProvider;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.cache.tags.Tag;
 
+/**
+ * A {@link JavaRegistryProvider} for a {@link GeyserSession}, accessed through {@link GeyserSession#javaRegistries()}.
+ *
+ * <p>This class extends {@link BuiltInJavaRegistries#PROVIDER}, and as such works with both built-in and networked registries.</p>
+ */
 public final class JavaRegistryTagCache implements JavaRegistryProvider {
     @Getter
     private final RegistryCache registryCache;

@@ -25,6 +25,23 @@
 
 package org.geysermc.geyser.registry.java.reader;
 
+import net.kyori.adventure.key.Key;
+import org.geysermc.mcprotocollib.protocol.data.game.Holder;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.HolderSet;
+
+/**
+ * This interface weakens the definitions defined in {@link JavaRegistryReader}, by taking a {@link RegistryEntryContext} as {@link JavaRegistryReader.Context},
+ * which provides {@link RegistryEntryContext#id()} to access the {@link Key} of the registry entry being parsed. This is useful when
+ * trying to map dynamic Java content to static bedrock content.
+ *
+ * <p>Generally try to avoid the need on this interface though: because the reader depends on a {@link Key} for a registry entry, it cannot be used when parsing inline
+ * registry entries, such as from {@link Holder}s or {@link HolderSet}s.</p>
+ *
+ * @param <T> the type this reader parses into
+ * @see RegistryEntryContext
+ * @see JavaRegistryReaders
+ * @see JavaRegistryReader
+ */
 @FunctionalInterface
 public interface KeyDependentJavaRegistryReader<T> {
 

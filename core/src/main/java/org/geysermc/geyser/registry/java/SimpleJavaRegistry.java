@@ -46,31 +46,31 @@ public class SimpleJavaRegistry<T> implements MutableJavaRegistry<T> {
 
     @Override
     public Optional<RegistryEntryData<T>> getById(int networkId) {
-        assertFrozen();
+        ensureFrozen();
         return Optional.ofNullable(byId.get(networkId));
     }
 
     @Override
     public Optional<RegistryEntryData<T>> getByKey(Key key) {
-        assertFrozen();
+        ensureFrozen();
         return Optional.ofNullable(byKey.get(key));
     }
 
     @Override
     public Optional<RegistryEntryData<T>> getByValue(T object) {
-        assertFrozen();
+        ensureFrozen();
         return Optional.ofNullable(byValue.get(object));
     }
 
     @Override
     public Collection<Key> keys() {
-        assertFrozen();
+        ensureFrozen();
         return byKey.keySet();
     }
 
     @Override
     public Collection<T> values() {
-        assertFrozen();
+        ensureFrozen();
         return byValue.keySet();
     }
 
@@ -80,17 +80,22 @@ public class SimpleJavaRegistry<T> implements MutableJavaRegistry<T> {
     }
 
     @Override
-    public void forEachEntry(Consumer<RegistryEntryData<T>> action) {
-        byId.forEach((id, entry) -> action.accept(entry));
-    }
-
-    @Override
     public void register(RegistryEntryData<T> entry) {
-        assertNotFrozen();
+        ensureMutable();
+        checkForDuplicates(entry, byId.get(entry.id()));
+        checkForDuplicates(entry, byKey.get(entry.key()));
+
         byId.put(entry.id(), entry);
         byKey.put(entry.key(), entry);
         if (entry.isBound()) {
             byValue.put(entry.data(), entry);
+        }
+    }
+
+    private void checkForDuplicates(RegistryEntryData<T> entry, RegistryEntryData<T> candidate) {
+        if (candidate != null) {
+            // TODO string
+            throw new IllegalStateException("Duplicate entry registered to " + this + ": existing: " + candidate + ", new: " + entry);
         }
     }
 
@@ -111,12 +116,20 @@ public class SimpleJavaRegistry<T> implements MutableJavaRegistry<T> {
         byId.forEach((id, entry) -> {
             if (!entry.isBound()) {
                 entry.bind(binder.apply(id));
+                byValue.put(entry.data(), entry);
             }
         });
     }
 
     @Override
+    public void forEachEntry(Consumer<RegistryEntryData<T>> action) {
+        ensureFrozen();
+        byId.forEach((id, entry) -> action.accept(entry));
+    }
+
+    @Override
     public Iterator<T> iterator() {
+        ensureFrozen();
         IntIterator idIterator = byId.keySet().iterator();
         return new Iterator<>() {
             @Override
@@ -131,11 +144,15 @@ public class SimpleJavaRegistry<T> implements MutableJavaRegistry<T> {
         };
     }
 
-    private void assertFrozen() {
-        assert frozen : "Registry must be frozen";
+    private void ensureFrozen() {
+        if (!frozen) {
+            throw new IllegalStateException("Registry must be frozen to access its entries");
+        }
     }
 
-    private void assertNotFrozen() {
-        assert !frozen : "Registry must not be frozen to register new entries";
+    private void ensureMutable() {
+        if (frozen) {
+            throw new IllegalStateException("Registry must not be frozen to register new entries");
+        }
     }
 }
