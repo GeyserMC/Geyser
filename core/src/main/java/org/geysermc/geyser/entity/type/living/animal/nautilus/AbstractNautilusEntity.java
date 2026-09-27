@@ -86,7 +86,7 @@ public abstract class AbstractNautilusEntity extends TameableEntity implements C
         }
 
         if (getFlag(EntityFlag.TAMED)) {
-            if (itemInHand.asItem().javaIdentifier().endsWith("_nautilus_armor") && getItemInSlot(EquipmentSlot.BODY).isEmpty() && !getFlag(EntityFlag.BABY)) {
+            if (itemInHand.asItem().javaKey().value().endsWith("_nautilus_armor") && getItemInSlot(EquipmentSlot.BODY).isEmpty() && !getFlag(EntityFlag.BABY)) {
                 return InteractiveTag.EQUIP_NAUTILUS_ARMOR;
             }
             if (itemInHand.is(Items.SHEARS) && !getItemInSlot(EquipmentSlot.BODY).isEmpty()

@@ -106,11 +106,6 @@ public class Item {
             .toList();
     }
 
-    // TODO maybe deprecate?
-    public String javaIdentifier() {
-        return javaIdentifier.asString();
-    }
-
     public Key javaKey() {
         return javaIdentifier;
     }

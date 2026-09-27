@@ -245,7 +245,7 @@ public final class ItemTranslator {
         builder.tag(nbtBuilder.build());
         if (bedrockItem.isBlock()) {
             CustomBlockData customBlockData = BlockRegistries.CUSTOM_BLOCK_ITEM_OVERRIDES.getOrDefault(
-                    bedrockItem.getJavaItem().javaIdentifier(), null);
+                    bedrockItem.getJavaItem().javaKey().asString(), null);
             if (customBlockData != null) {
                 translateCustomBlock(customBlockData, session, builder);
             } else {
@@ -470,7 +470,7 @@ public final class ItemTranslator {
             }
         }
 
-        builder.getOrCreateLore().add(ChatColor.RESET + ChatColor.DARK_GRAY + item.javaIdentifier());
+        builder.getOrCreateLore().add(ChatColor.RESET + ChatColor.DARK_GRAY + item.javaKey());
         if (components != null) {
             Component component = Component.text()
                     .resetStyle()
@@ -542,7 +542,7 @@ public final class ItemTranslator {
 
         ItemDefinition itemDefinition = mapping.getBedrockDefinition();
         CustomBlockData customBlockData = BlockRegistries.CUSTOM_BLOCK_ITEM_OVERRIDES.getOrDefault(
-                mapping.getJavaItem().javaIdentifier(), null);
+                mapping.getJavaItem().javaKey().asString(), null);
         if (customBlockData != null) {
             itemDefinition = session.getItemMappings().getCustomBlockItemDefinitions().get(customBlockData);
         }

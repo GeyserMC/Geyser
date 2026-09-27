@@ -308,7 +308,7 @@ public class ItemRegistryPopulator {
                 GeyserMappingItem mappingItem;
                 Item replacementItem = palette.javaOnlyItems().get(javaItem);
                 if (replacementItem != null) {
-                    mappingItem = items.get(replacementItem.javaIdentifier()); // java only item, a java id fallback has been provided
+                    mappingItem = items.get(replacementItem.javaKey().asString()); // java only item, a java id fallback has been provided
                 } else {
                     // check if any mapping changes need to be made on this version
                     mappingItem = palette.remapper().remap(javaItem, entry.getValue());
@@ -328,7 +328,7 @@ public class ItemRegistryPopulator {
 
                     // We'll do this here for custom blocks we want in the creative inventory so we can piggyback off the existing logic to find these
                     // blocks in creativeItems
-                    CustomBlockData customBlockData = BlockRegistries.CUSTOM_BLOCK_ITEM_OVERRIDES.getOrDefault(javaItem.javaIdentifier(), null);
+                    CustomBlockData customBlockData = BlockRegistries.CUSTOM_BLOCK_ITEM_OVERRIDES.getOrDefault(javaItem.javaKey().asString(), null);
                     if (customBlockData != null) {
                         // this block has a custom item override and thus we should use its runtime ID for the ItemMapping
                         if (customBlockData.includedInCreativeInventory()) {
@@ -509,7 +509,7 @@ public class ItemRegistryPopulator {
                 // Add the custom item properties, if applicable
                 boolean containsOldMappings = false;
                 SortedSetMultimap<Key, GeyserCustomMappingData> customItemDefinitions;
-                Collection<CustomItemDefinition> customItemsToLoad = customItems.get(Identifier.of(javaItem.javaIdentifier()));
+                Collection<CustomItemDefinition> customItemsToLoad = customItems.get(MinecraftKey.keyToIdentifier(javaItem.javaKey()));
                 if (!customItemsToLoad.isEmpty()) {
                     customItemDefinitions = MultimapBuilder.hashKeys(customItemsToLoad.size()).treeSetValues(new CustomItemDefinitionComparator()).build();
 
@@ -568,7 +568,7 @@ public class ItemRegistryPopulator {
 
                 ItemMapping mapping = mappingBuilder.build();
 
-                if (javaItem.javaIdentifier().contains("bucket") && !javaItem.javaIdentifier().contains("milk")) {
+                if (javaItem.javaKey().asString().contains("bucket") && !javaItem.javaKey().asString().contains("milk")) {
                     buckets.add(definition);
                 }
 
