@@ -124,6 +124,7 @@ import java.net.UnknownHostException;
 import java.nio.file.Path;
 import java.security.Key;
 import java.text.DecimalFormat;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -476,6 +477,16 @@ public class GeyserImpl implements GeyserApi, EventRegistrar {
         }
         config.bedrock().raknetPort(portProperty("geyserRaknetPort", "RakNet", logger));
         config.bedrock().signaling().port(portProperty("geyserSignalingPort", "Built-in signaling", logger));
+
+        List<String> advertisedAddresses = Arrays.stream(System.getProperty("geyserAdvertiseAddresses", "").split(","))
+            .map(String::trim)
+            .filter(address -> !address.isEmpty())
+            .distinct()
+            .toList();
+        if (!advertisedAddresses.isEmpty()) {
+            config.advanced().bedrock().advertiseAddresses(advertisedAddresses);
+            logger.info("Advertised addresses set from system property: " + String.join(", ", advertisedAddresses));
+        }
 
         // These are 0 only if no system property or manual config value was set
         if (config.advanced().bedrock().broadcastPort() == 0) {

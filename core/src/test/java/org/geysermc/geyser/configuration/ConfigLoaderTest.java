@@ -140,6 +140,14 @@ public class ConfigLoaderTest {
 
         GeyserConfig config = loader.load0(configClass);
         assertEquals(addresses, config.advanced().bedrock().advertiseAddresses());
+
+        List<String> savedConfig = Files.readAllLines(file.toPath());
+        List<String> override = List.of("198.51.100.1:12345");
+        config.advanced().bedrock().advertiseAddresses(override);
+        assertEquals(override, config.advanced().bedrock().advertiseAddresses());
+        assertEquals(savedConfig, Files.readAllLines(file.toPath()));
+        assertEquals(addresses, loader.load0(configClass).advanced().bedrock().advertiseAddresses());
+
         assertEquals(addresses, loader.loadConfigurationNode(configClass)
             .node("advanced", "bedrock", "advertise-addresses").getList(String.class));
     }

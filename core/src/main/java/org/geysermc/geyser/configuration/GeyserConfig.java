@@ -528,6 +528,8 @@ public interface GeyserConfig {
             return Collections.emptyList();
         }
 
+        void advertiseAddresses(List<String> addresses);
+
         @Comment("""
                 How much to compress network traffic to the Bedrock client. The higher the number, the more CPU usage used, but
                 the smaller the bandwidth used. Does not have any effect below -1 or above 9. Set to -1 to disable.""")

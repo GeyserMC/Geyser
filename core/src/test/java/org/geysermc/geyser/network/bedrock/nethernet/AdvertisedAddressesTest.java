@@ -57,7 +57,7 @@ class AdvertisedAddressesTest {
         var config = config("{}");
 
         assertEquals(List.of(), config.advanced().bedrock().advertiseAddresses());
-        assertEquals(Set.of(), NetherNetServer.advertisedAddresses(config, ""));
+        assertEquals(Set.of(), NetherNetServer.advertisedAddresses(config));
     }
 
     @Test
@@ -75,7 +75,7 @@ class AdvertisedAddressesTest {
                   - "[2001:db8::1]:56789"
                   - "203.0.113.10:56789"
             """);
-        Set<String> addresses = NetherNetServer.advertisedAddresses(config, "");
+        Set<String> addresses = NetherNetServer.advertisedAddresses(config);
 
         assertEquals(Set.of("203.0.113.10:56789", "203.0.113.10:46565", "[2001:db8::1]:56789"), addresses);
         assertDoesNotThrow(() -> new NetherNetHTTPServerSignaling.Builder().setAdvertisedAddresses(addresses));
@@ -85,16 +85,18 @@ class AdvertisedAddressesTest {
     }
 
     @Test
-    void systemPropertyOverridesTheConfig() throws IOException {
+    void usesTheRuntimeConfigOverride() throws IOException {
         var config = config("""
             advanced:
               bedrock:
                 advertise-addresses: ["203.0.113.10:56789"]
             """);
 
-        assertEquals(Set.of("198.51.100.1:46565", "[2001:db8::2]:12345"),
-            NetherNetServer.advertisedAddresses(config, " 198.51.100.1:46565, , [2001:db8::2]:12345, "));
-        assertEquals(Set.of("203.0.113.10:56789"), NetherNetServer.advertisedAddresses(config, " , "));
+        List<String> override = List.of("198.51.100.1:46565", "[2001:db8::2]:12345");
+        config.advanced().bedrock().advertiseAddresses(override);
+
+        assertEquals(override, config.advanced().bedrock().advertiseAddresses());
+        assertEquals(Set.copyOf(override), NetherNetServer.advertisedAddresses(config));
     }
 
     @Test
@@ -104,7 +106,7 @@ class AdvertisedAddressesTest {
               bedrock:
                 advertise-addresses: ["203.0.113.10", "2001:db8::1"]
             """);
-        Set<String> addresses = NetherNetServer.advertisedAddresses(config, "");
+        Set<String> addresses = NetherNetServer.advertisedAddresses(config);
 
         assertEquals(Set.of("203.0.113.10", "2001:db8::1"), addresses);
         assertDoesNotThrow(() -> new NetherNetHTTPServerSignaling.Builder().setAdvertisedAddresses(addresses));
@@ -115,7 +117,7 @@ class AdvertisedAddressesTest {
     void emptyListFallsBackToTheBoundAddress(String address) throws IOException {
         var config = config("bedrock:\n  address: \"" + address + "\"\n");
 
-        assertEquals(Set.of(address), NetherNetServer.advertisedAddresses(config, ""));
+        assertEquals(Set.of(address), NetherNetServer.advertisedAddresses(config));
     }
 
     @ParameterizedTest
@@ -123,6 +125,6 @@ class AdvertisedAddressesTest {
     void doesNotAdvertiseWildcardOrNonNumericBindAddresses(String address) throws IOException {
         var config = config("bedrock:\n  address: \"" + address + "\"\n");
 
-        assertEquals(Set.of(), NetherNetServer.advertisedAddresses(config, ""));
+        assertEquals(Set.of(), NetherNetServer.advertisedAddresses(config));
     }
 }

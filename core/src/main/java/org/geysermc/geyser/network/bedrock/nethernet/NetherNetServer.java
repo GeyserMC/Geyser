@@ -76,7 +76,6 @@ import java.net.URI;
 import java.net.UnknownHostException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Arrays;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Random;
@@ -86,7 +85,6 @@ import java.util.concurrent.CompletionException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
-import java.util.stream.Collectors;
 
 /**
  * The NetherNet (WebRTC) transport, used instead of RakNet: inbuilt HTTP signaling, NXS provider registration, or both,
@@ -218,7 +216,7 @@ public final class NetherNetServer implements EventRegistrar {
 
             GeyserConfig.SignalingConfig.BuiltinConfig builtin = geyser.config().bedrock().signaling().builtin();
 
-            Set<String> advertisedAddresses = advertisedAddresses(geyser.config(), System.getProperty("geyserAdvertiseAddresses", ""));
+            Set<String> advertisedAddresses = advertisedAddresses(geyser.config());
             if (!advertisedAddresses.isEmpty()) {
                 logger().info("Advertised NetherNet addresses: " + String.join(", ", advertisedAddresses));
             }
@@ -304,18 +302,11 @@ public final class NetherNetServer implements EventRegistrar {
     }
 
     /**
-     * Uses the system property first, then the configured endpoints, and finally the bound address.
+     * Uses the effective configured endpoints, or the bound address when none are configured.
      * A wildcard bind leaves candidate selection to ICE. Explicit ports describe the public side of a
      * UDP forward and do not change the local WebRTC port.
      */
-    static Set<String> advertisedAddresses(GeyserConfig config, String property) {
-        Set<String> configured = Arrays.stream(property.split(","))
-            .map(String::trim)
-            .filter(address -> !address.isEmpty())
-            .collect(Collectors.toUnmodifiableSet());
-        if (!configured.isEmpty()) {
-            return configured;
-        }
+    static Set<String> advertisedAddresses(GeyserConfig config) {
         if (!config.advanced().bedrock().advertiseAddresses().isEmpty()) {
             return Set.copyOf(config.advanced().bedrock().advertiseAddresses());
         }
