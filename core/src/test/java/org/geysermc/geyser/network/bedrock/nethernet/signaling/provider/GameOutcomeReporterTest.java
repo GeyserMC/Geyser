@@ -32,6 +32,7 @@ import org.cloudburstmc.netty.signaling.ProviderTransport;
 import org.cloudburstmc.protocol.bedrock.netty.BedrockPacketWrapper;
 import org.cloudburstmc.protocol.bedrock.packet.DisconnectPacket;
 import org.cloudburstmc.protocol.bedrock.packet.RequestNetworkSettingsPacket;
+import org.geysermc.geyser.GeyserLogger;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
@@ -40,6 +41,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.mock;
 
 class GameOutcomeReporterTest {
     private static EmbeddedChannel channel(GameOutcomeReporter reporter) {
@@ -158,7 +160,7 @@ class GameOutcomeReporterTest {
         for (int i = 0; i < 99; i++) {
             nativeTransport.events.add(new JsonObject());
         }
-        GameOutcomeTransport transport = new GameOutcomeTransport(nativeTransport, reporter);
+        GameOutcomeTransport transport = new GameOutcomeTransport(nativeTransport, reporter, mock(GeyserLogger.class), false);
         List<JsonObject> first = transport.pollEvents();
         assertEquals(100, first.size());
         assertEquals("ticket.game_joined", first.getLast().get("stage").getAsString());
@@ -184,10 +186,6 @@ class GameOutcomeReporterTest {
 
         public CompletionStage<Void> installTicketKeys(List<TicketKey> keys) {
             return CompletableFuture.completedFuture(null);
-        }
-
-        public CompletionStage<ApplyResult> applyState(String state) {
-            return CompletableFuture.completedFuture(ApplyResult.APPLIED);
         }
 
         public List<JsonObject> pollEvents() {

@@ -28,11 +28,12 @@ package org.geysermc.geyser.network.bedrock.nethernet;
 import org.cloudburstmc.netty.util.nethernet.TrustedProxies;
 import org.cloudburstmc.netty.channel.nethernet.NetherNetChannelFactory;
 import org.cloudburstmc.netty.channel.nethernet.config.NetherChannelOption;
-import org.cloudburstmc.netty.channel.nethernet.signaling.NetherNetHTTPSignaling;
+import org.cloudburstmc.netty.channel.nethernet.signaling.NetherNetHTTPServerSignaling;
 import org.cloudburstmc.netty.channel.nethernet.signaling.NetherNetServerSignaling;
+import org.cloudburstmc.netty.channel.nethernet.signaling.PongData;
 import org.cloudburstmc.netty.util.nethernet.NetherNetLogging;
 import org.cloudburstmc.netty.util.nethernet.SecretValue;
-import org.cloudburstmc.netty.util.nethernet.ServerIdentity;
+import org.cloudburstmc.netty.util.nethernet.OperatorIdentity;
 import org.cloudburstmc.netty.util.nethernet.TokenTrust;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.Channel;
@@ -59,12 +60,14 @@ import org.geysermc.geyser.event.type.SessionDisconnectEventImpl;
 import org.geysermc.geyser.network.BedrockPingHandler;
 import org.geysermc.geyser.network.bedrock.nethernet.signaling.provider.GameOutcomeReporter;
 import org.geysermc.geyser.network.bedrock.nethernet.signaling.provider.GameOutcomeTransport;
+import org.geysermc.geyser.network.bedrock.nethernet.signaling.provider.GeyserProviderLogger;
 import org.geysermc.geyser.network.bedrock.nethernet.signaling.provider.GeyserStatusCollector;
 import org.cloudburstmc.netty.signaling.provider.NativeProviderHostFactory;
 import org.cloudburstmc.netty.signaling.provider.ProviderHostFactory;
 import org.cloudburstmc.netty.signaling.provider.ProviderRuntimeConfiguration;
 import org.cloudburstmc.netty.signaling.provider.ProviderShutdown;
 import org.geysermc.geyser.network.bedrock.nethernet.signaling.provider.WardenClaimAdapter;
+import org.geysermc.geyser.network.bedrock.nethernet.signaling.provider.WardenLocationAdapter;
 import org.geysermc.geyser.session.GeyserSession;
 import tel.schich.libdatachannel.LibDataChannelArchDetect;
 import tel.schich.libdatachannel.PeerConnectionConfiguration;
@@ -77,7 +80,7 @@ import java.net.UnknownHostException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
-import java.util.Map;
+import java.util.Locale;
 import java.util.Objects;
 import java.util.Random;
 import java.util.Set;
@@ -200,9 +203,9 @@ public final class NetherNetServer implements EventRegistrar {
 
     private void startInbuilt() {
         // Created on the first start and kept afterwards, as clients pin its public key
-        ServerIdentity identity;
+        OperatorIdentity identity;
         try {
-            identity = ServerIdentity.fromPemOrCreate(dataFolder.resolve("identity.pem").toFile(),
+            identity = OperatorIdentity.fromPemOrCreate(dataFolder.resolve("identity.pem").toFile(),
                     GeyserImpl.NAME + "-" + geyser.config().gameplay().serverName());
         } catch (Exception e) {
             logger().error("Built-in signaling will not start! Could not load or create this server's identity file, "
@@ -218,7 +221,7 @@ public final class NetherNetServer implements EventRegistrar {
 
             GeyserConfig.SignalingConfig.BuiltinConfig builtin = geyser.config().bedrock().signaling().builtin();
 
-            NetherNetHTTPSignaling.Builder signalingBuilder = new NetherNetHTTPSignaling.Builder()
+            NetherNetHTTPServerSignaling.Builder signalingBuilder = new NetherNetHTTPServerSignaling.Builder()
                     .setIdentity(identity)
                     // The same "behind a proxy" settings RakNet uses, applied to the TCP listener
                     .setTrustedProxies(TrustedProxies.parse(geyser.config().advanced().bedrock().haproxyProtocolWhitelistedIps()))
@@ -231,7 +234,7 @@ public final class NetherNetServer implements EventRegistrar {
                     .setMotdProvider((host, remoteAddress) -> {
                         BedrockPong pong = pingResponder.onQuery(GUID, remoteAddress);
 
-                        return new NetherNetServerSignaling.PongData.Builder()
+                        return new PongData.Builder()
                                 .setServerName(pong.motd())
                                 .setProtocol(pong.protocolVersion())
                                 .setVersion(pong.version())
@@ -344,8 +347,10 @@ public final class NetherNetServer implements EventRegistrar {
             try {
                 BedrockListener listener = geyser.config().bedrock();
                 var nxs = config.nxs();
+                JsonObject heartbeatExtensions = WardenLocationAdapter.extensions(nxs.location());
                 ProviderRuntimeConfiguration runtime = ProviderRuntimeConfiguration.resolve(
-                    new ProviderRuntimeConfiguration.Settings(nxs.endpoint(), nxs.token(), nxs.advertiseAddresses(), nxs.data()),
+                    new ProviderRuntimeConfiguration.Settings(nxs.endpoint(), nxs.token(), nxs.advertiseAddresses(), nxs.data(),
+                        nxs.effectiveControlTransport(), nxs.diagnosticAdmission(), nxs.maintainedCandidates(), nxs.assistedJoins()),
                     dataFolder, listener.address(), webrtcPort, collectServerStatus().maxPlayers(), "Geyser");
                 URI origin = runtime.origin();
                 var statePath = runtime.stateDirectory();
@@ -357,9 +362,9 @@ public final class NetherNetServer implements EventRegistrar {
                 eventLoopGroup = new MultiThreadIoEventLoopGroup(NioIoHandler.newFactory());
                 providerInitialiser = new NetherNetChannelInitialiser(geyser, gameOutcomes);
                 ServerBootstrap bootstrap = new ServerBootstrap().group(eventLoopGroup).childHandler(providerInitialiser);
-                ProviderHostFactory.Host host = factory.open(bootstrap, new InetSocketAddress(runtime.bindAddress(), runtime.udpPort()), Map.of("stateDirectory", statePath.toAbsolutePath().toString(), "profile", runtime.profile(),
-                        "advertisedEndpoints", runtime.encodedAdvertisedEndpoints(),
-                        "localDevelopment", Boolean.toString(Set.of("127.0.0.1", "localhost", "[::1]").contains(origin.getHost())))).toCompletableFuture().get(30, TimeUnit.SECONDS);
+                ProviderHostFactory.Host host = factory.open(bootstrap,
+                    new InetSocketAddress(runtime.bindAddress(), runtime.udpPort()), runtime.nativeHostOptions())
+                    .toCompletableFuture().get(30, TimeUnit.SECONDS);
                 netherNetChannel = host.channel();
                 transport = host.transport();
                 host.warnings().forEach(message -> logger().warning(message));
@@ -369,9 +374,10 @@ public final class NetherNetServer implements EventRegistrar {
                     return;
                 }
                 initializingTransport = transport;
-                transport = new GameOutcomeTransport(transport, gameOutcomes);
+                transport = new GameOutcomeTransport(transport, gameOutcomes, logger(), runtime.clientConfiguration().assistedJoins(),
+                    nxs.diagnosticAdmission(), nxs.maintainedCandidates(), runtime.udpPort());
                 ProviderClient client = new ProviderClient(runtime.clientConfiguration(), store, transport,
-                        () -> providerStatusSupplier.get(), () -> health(runtime.capacity()), message -> logger().warning(message));
+                        () -> providerStatusSupplier.get(), () -> health(runtime.capacity()), new GeyserProviderLogger(logger()));
                 store = null; // ProviderClient now owns its lifetime.
                 initializingTransport = null;
                 synchronized (providerLifecycle) {
@@ -388,15 +394,15 @@ public final class NetherNetServer implements EventRegistrar {
                     providerClient = client;
                     wardenClaim = new WardenClaimAdapter(client);
                 }
-                client.start().whenComplete((registration, failure) -> {
+                client.updateHeartbeatExtensions(heartbeatExtensions).thenCompose(ignored -> client.start()).whenComplete((registration, failure) -> {
                     if (failure != null) {
                         logger().error("Could not register with the external signaling service: " + providerFailure(failure));
                         stopProvider();
                         return;
                     }
-                    logger().info(registrationMessage(registration));
+                    logger().info(registrationMessage(registration, origin));
                     // Says where logins are vouched for, without putting provider credentials in the log
-                    logger().info("Player logins over NetherNet are verified by the external signaling service at " + origin.getHost() + ".");
+                    logger().debug("Player logins over NetherNet are verified by the external signaling service at " + origin.getHost() + ".");
                     WardenClaimAdapter claim = wardenClaim;
                     if (claim != null)
                         claim.current().thenAccept(action -> action.ifPresent(value -> logger().info(value.message())));
@@ -448,18 +454,25 @@ public final class NetherNetServer implements EventRegistrar {
 
     private ProviderClient.Health health(int capacity) {
         int players = geyser.getSessionManager().size();
-        return new ProviderClient.Health(true, true, capacity,
-            Math.min(1, (double) players / Math.max(1, capacity)), "nethernet", GeyserImpl.VERSION,
+        return new ProviderClient.Health(true, capacity, GeyserImpl.VERSION,
             new ProviderClient.PlayerCount(players, System.currentTimeMillis()));
     }
 
-    private static String registrationMessage(JsonObject registration) {
+    private static String registrationMessage(JsonObject registration, URI origin) {
         String instanceId = registration.get("instanceId").getAsString();
         JsonElement address = registration.get("publicAddress");
-        return address != null && !address.isJsonNull()
+        String message = address != null && !address.isJsonNull()
             ? "Registered with the external signaling service. Players can join at " + address.getAsString() + " (instance " + instanceId + ")."
             : "Registered with the external signaling service (instance " + instanceId + "). "
                 + "The addresses players join with are managed by the service.";
+        String host = origin.getHost().toLowerCase(Locale.ROOT);
+        if (host.endsWith(".")) {
+            host = host.substring(0, host.length() - 1);
+        }
+        if (host.equals("warden.cloud") || host.endsWith(".warden.cloud")) {
+            message += " Use of Warden is subject to the terms and conditions at https://ziax.com/terms/.";
+        }
+        return message;
     }
 
     public @Nullable WardenClaimAdapter wardenClaim() {

@@ -27,6 +27,9 @@ package org.geysermc.geyser.network.bedrock.nethernet.signaling.provider;
 
 import com.google.gson.JsonObject;
 import org.cloudburstmc.netty.signaling.ProviderTransport;
+import org.cloudburstmc.netty.signaling.control.AssistedJoin;
+import org.cloudburstmc.netty.signaling.diagnostic.DiagnosticHostPolicy;
+import org.geysermc.geyser.GeyserLogger;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -38,10 +41,19 @@ import java.util.concurrent.CompletionStage;
 public final class GameOutcomeTransport implements ProviderTransport {
     private final ProviderTransport delegate;
     private final GameOutcomeReporter outcomes;
+    private final ConnectivityReporter connectivity;
+    private final GeyserLogger logger;
 
-    public GameOutcomeTransport(ProviderTransport delegate, GameOutcomeReporter outcomes) {
+    public GameOutcomeTransport(ProviderTransport delegate, GameOutcomeReporter outcomes, GeyserLogger logger, boolean assistedJoins) {
+        this(delegate, outcomes, logger, assistedJoins, true, true, 0);
+    }
+
+    public GameOutcomeTransport(ProviderTransport delegate, GameOutcomeReporter outcomes, GeyserLogger logger,
+                                boolean assistedJoins, boolean diagnostics, boolean warming, int udpPort) {
         this.delegate = delegate;
         this.outcomes = outcomes;
+        this.logger = logger;
+        this.connectivity = new ConnectivityReporter(logger, assistedJoins, diagnostics, warming, udpPort);
     }
 
     @Override
@@ -50,13 +62,70 @@ public final class GameOutcomeTransport implements ProviderTransport {
     }
 
     @Override
-    public CompletionStage<Void> installTicketKeys(List<TicketKey> keys) {
-        return delegate.installTicketKeys(keys);
+    public CompletionStage<HostProfileSnapshot> captureHostProfile() {
+        var captured = delegate.captureHostProfile();
+        captured.thenAccept(connectivity::publication);
+        return captured;
     }
 
     @Override
-    public CompletionStage<ApplyResult> applyState(String state) {
-        return delegate.applyState(state);
+    public long candidatePublicationVersion() {
+        return delegate.candidatePublicationVersion();
+    }
+
+    @Override
+    public CompletionStage<Void> reportConnectivityChecks(long candidateRevision, List<ConnectivityCheck> checks) {
+        var delivered = delegate.reportConnectivityChecks(candidateRevision, checks);
+        var observed = List.copyOf(checks);
+        // Native delivery can successfully ignore a retired revision. Confirm it is still current before logging.
+        delivered.thenCompose(ignored -> delegate.captureHostProfile()).thenAccept(snapshot -> {
+            if (snapshot.candidateRevision() != candidateRevision) {
+                return;
+            }
+            snapshot.requireCurrent();
+            connectivity.checks(snapshot, observed);
+        });
+        return delivered;
+    }
+
+    @Override
+    public boolean supportsAssistedJoins() {
+        return delegate.supportsAssistedJoins();
+    }
+
+    @Override
+    public CompletionStage<Void> configureStunServers(List<StunServer> servers) {
+        return delegate.configureStunServers(servers);
+    }
+
+    @Override
+    public CompletionStage<String> assistedJoin(AssistedJoin join, Runnable requireCurrent) {
+        return delegate.assistedJoin(join, requireCurrent);
+    }
+
+    @Override
+    public boolean supportsDiagnosticAdmission() {
+        return delegate.supportsDiagnosticAdmission();
+    }
+
+    @Override
+    public CompletionStage<Void> configureDiagnostics(DiagnosticHostPolicy policy) {
+        return delegate.configureDiagnostics(policy);
+    }
+
+    @Override
+    public CompletionStage<Void> configureDiagnostics(DiagnosticHostPolicy policy, long deadlineNanos) {
+        return delegate.configureDiagnostics(policy, deadlineNanos);
+    }
+
+    @Override
+    public CompletionStage<Void> disableDiagnostics() {
+        return delegate.disableDiagnostics();
+    }
+
+    @Override
+    public CompletionStage<Void> installTicketKeys(List<TicketKey> keys) {
+        return delegate.installTicketKeys(keys);
     }
 
     @Override
@@ -67,6 +136,17 @@ public final class GameOutcomeTransport implements ProviderTransport {
     @Override
     public List<JsonObject> pollEvents() {
         List<JsonObject> batch = new ArrayList<>(delegate.pollEvents());
+        // Native player failures are separate from maintenance checks. Report each new attempt,
+        // even when the last player also failed. Assisted setup errors are logged by the control carrier.
+        for (JsonObject event : batch) {
+            if (!event.has("stage") || !"ticket.failed".equals(event.get("stage").getAsString())) {
+                continue;
+            }
+            String reason = event.has("reason") ? event.get("reason").getAsString() : "";
+            if (!"assisted_failed".equals(reason) && !"assisted_answer_failed".equals(reason)) {
+                logger.warning("NXS: A player could not connect to the server.");
+            }
+        }
         outcomes.drainTo(batch, Math.max(0, 100 - batch.size()));
         return batch;
     }
