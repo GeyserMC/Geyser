@@ -37,6 +37,7 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.spongepowered.configurate.CommentedConfigurationNode;
 import org.spongepowered.configurate.ConfigurateException;
+import org.spongepowered.configurate.yaml.YamlConfigurationLoader;
 
 import java.io.File;
 import java.io.IOException;
@@ -123,6 +124,24 @@ public class ConfigLoaderTest {
         }
 
         assertEquals(migratedV4, defaultConfig);
+    }
+
+    @ParameterizedTest
+    @MethodSource("platformTypes")
+    void testAdvertisedAddresses(PlatformType platformType, Class<? extends GeyserConfig> configClass) throws Exception {
+        File file = tempDirectory.resolve("advertised-addresses.yml").toFile();
+        ConfigLoader loader = new ConfigLoader(file, platformType);
+        CommentedConfigurationNode node = loader.loadConfigurationNode(configClass);
+        List<String> addresses = List.of("203.0.113.10:56789", "[2001:db8::1]:46565");
+
+        assertEquals(List.of(), loader.load0(configClass).advanced().bedrock().advertiseAddresses());
+        node.node("advanced", "bedrock", "advertise-addresses").setList(String.class, addresses);
+        YamlConfigurationLoader.builder().file(file).build().save(node);
+
+        GeyserConfig config = loader.load0(configClass);
+        assertEquals(addresses, config.advanced().bedrock().advertiseAddresses());
+        assertEquals(addresses, loader.loadConfigurationNode(configClass)
+            .node("advanced", "bedrock", "advertise-addresses").getList(String.class));
     }
 
     @ParameterizedTest

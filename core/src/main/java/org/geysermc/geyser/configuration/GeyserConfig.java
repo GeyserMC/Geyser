@@ -517,6 +517,18 @@ public interface GeyserConfig {
         void broadcastPort(int port);
 
         @Comment("""
+                Addresses announced as NetherNet ICE candidates when using built-in signaling.
+                Use IP addresses, IPv4:port or [IPv6]:port. Without a port, the local WebRTC port is used.
+                For example: [\"203.0.113.10:56789\", \"[2001:db8::1]:46565\"].
+                A public endpoint must forward UDP traffic to Geyser's WebRTC port and send replies from that same endpoint.
+                This does not change the listening address or port, or remove candidates gathered through STUN or TURN.
+                Leave empty to use the bound address, or all gathered addresses when listening on a wildcard address.
+                The geyserAdvertiseAddresses system property overrides this list.""")
+        default List<String> advertiseAddresses() {
+            return Collections.emptyList();
+        }
+
+        @Comment("""
                 How much to compress network traffic to the Bedrock client. The higher the number, the more CPU usage used, but
                 the smaller the bandwidth used. Does not have any effect below -1 or above 9. Set to -1 to disable.""")
         @DefaultNumeric(6)
