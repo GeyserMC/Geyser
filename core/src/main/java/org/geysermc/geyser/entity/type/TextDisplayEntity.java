@@ -25,21 +25,32 @@
 
 package org.geysermc.geyser.entity.type;
 
+import io.netty.util.internal.MathUtil;
 import lombok.Getter;
+import lombok.Setter;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.cloudburstmc.math.imaginary.Quaternionf;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.nbt.NbtMap;
+import org.cloudburstmc.protocol.bedrock.data.debugshape.DebugShape;
+import org.cloudburstmc.protocol.bedrock.data.debugshape.DebugText;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
+import org.cloudburstmc.protocol.bedrock.data.entity.EntityEventType;
+import org.cloudburstmc.protocol.bedrock.packet.DebugDrawerPacket;
+import org.geysermc.geyser.api.entity.property.BatchPropertyUpdater;
 import org.geysermc.geyser.entity.VanillaEntities;
 import org.geysermc.geyser.entity.spawn.EntitySpawnContext;
 import org.geysermc.geyser.entity.type.living.ArmorStandEntity;
 import org.geysermc.geyser.translator.text.MessageTranslator;
+import org.geysermc.geyser.util.MathUtils;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.EntityMetadata;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.BooleanEntityMetadata;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Optional;
+import java.util.function.Consumer;
 
 // Note: 1.19.4 requires that the billboard is set to something in order to show, on Java Edition
 @Getter
@@ -60,17 +71,16 @@ public class TextDisplayEntity extends DisplayBaseEntity {
     private boolean isInvisible = false;
     private int lineCount;
 
+    @Getter @Setter
+    private @NonNull Component text = Component.empty();
+
     public TextDisplayEntity(EntitySpawnContext context) {
         super(context);
     }
 
     @Override
     protected void initializeMetadata() {
-        super.initializeMetadata();
-        // Remove armor stand body / hitbox
-        this.metadata.put(EntityDataTypes.HITBOX, NbtMap.EMPTY);
-        this.metadata.put(EntityDataTypes.SCALE, 0f);
-        this.metadata.put(EntityDataTypes.NAMETAG_ALWAYS_SHOW, (byte) 1);
+
     }
 
     @Override
@@ -104,39 +114,87 @@ public class TextDisplayEntity extends DisplayBaseEntity {
     }
 
     @Override
+    public void setBaseScale(@NonNull Vector3f baseScale) {
+        super.setBaseScale(baseScale);
+
+        updatePrimitiveText();
+    }
+
+    @Override
+    public void setLeftRotation(@NonNull Quaternionf leftRotation) {
+        super.setLeftRotation(leftRotation);
+
+        updatePrimitiveText();
+    }
+
+    @Override
+    public void setRightRotation(@NonNull Quaternionf rightRotation) {
+        super.setRightRotation(rightRotation);
+
+        updatePrimitiveText();
+    }
+
+    @Override
+    public void spawnEntity() {
+        updatePrimitiveText();
+    }
+
+    @Override
+    public void updateBedrockEntityProperties() {
+        // No-op
+    }
+
+    @Override
+    public void playEntityEvent(EntityEventType type, int data) {
+        // TODO either spawn a temp entity, or have a forever entity, not sure.
+    }
+
+    @Override
+    public void sendSpectateInvisible(boolean hidden) {
+        // TODO handle this
+    }
+
+    @Override
+    public void updatePropertiesBatched(@NonNull Consumer<BatchPropertyUpdater> consumer, boolean immediate) {
+        // No-op
+    }
+
+    @Override
     public void despawnEntity() {
         if (secondEntity != null) {
             secondEntity.despawnEntity();
         }
         super.despawnEntity();
+
+        DebugDrawerPacket packet = new DebugDrawerPacket();
+        packet.getShapes().add(new DebugShape(geyserId));
+        session.sendUpstreamPacket(packet);
     }
 
     @Override
     public void moveRelativeRaw(double relX, double relY, double relZ, float yaw, float pitch, float headYaw, boolean isOnGround) {
+        boolean previousValid = isValid();
+        setValid(false);
+        super.moveRelativeRaw(relX, relY, relZ, yaw, pitch, headYaw, isOnGround);
+        setValid(previousValid);
+
         if (secondEntity != null) {
             secondEntity.moveRelativeRaw(relX, relY, relZ, yaw, pitch, headYaw, isOnGround);
         }
-        super.moveRelativeRaw(relX, relY, relZ, yaw, pitch, headYaw, isOnGround);
+        updatePrimitiveText();
     }
 
     @Override
     public void moveAbsoluteRaw(Vector3f position, float yaw, float pitch, float headYaw, boolean isOnGround, boolean teleported) {
+        boolean previousValid = isValid();
+        setValid(false);
+        super.moveAbsoluteRaw(position, yaw, pitch, headYaw, isOnGround, teleported);
+        setValid(previousValid);
+
         if (secondEntity != null) {
             secondEntity.moveAbsoluteRaw(position.down(LINE_HEIGHT_OFFSET), yaw, pitch, headYaw, isOnGround, teleported);
         }
-        super.moveAbsoluteRaw(position, yaw, pitch, headYaw, isOnGround, teleported);
-    }
-
-    public void setText(EntityMetadata<Component, ?> entityMetadata) {
-        this.metadata.put(EntityDataTypes.NAME, MessageTranslator.convertMessage(entityMetadata.getValue(), session.locale()));
-        int oldLineCount = this.lineCount;
-        this.lineCount = calculateLineCount(entityMetadata.getValue());
-
-        // If the line count changed, update the position to account for the new offset
-        if (this.lineCount != oldLineCount) {
-            setOffset(calculateLineOffset());
-            moveAbsoluteRaw(position, yaw, pitch, headYaw, onGround, false);
-        }
+        updatePrimitiveText();
     }
 
     private int calculateLineCount(@Nullable Component text) {
@@ -156,7 +214,28 @@ public class TextDisplayEntity extends DisplayBaseEntity {
                 secondEntity.updateBedrockMetadata();
             }
         }
-        super.updateBedrockMetadata();
+    }
+
+    public void updatePrimitiveText() {
+        String convertedMessage = MessageTranslator.convertMessage(text, session.locale());
+        int oldLineCount = this.lineCount;
+        this.lineCount = calculateLineCount(text);
+
+        // If the line count changed, update the position to account for the new offset
+        if (this.lineCount != oldLineCount) {
+            setOffset(calculateLineOffset());
+            moveAbsoluteRaw(position, yaw, pitch, headYaw, onGround, false);
+        }
+
+        DebugText text = new DebugText();
+        text.setId(geyserId);
+        text.setText(convertedMessage);
+        text.setPosition(position.add(getTranslation()));
+        text.setRotation(Vector3f.from(pitch, yaw, headYaw));
+        text.setScale(MathUtils.average(new float[]{ getBaseScale().getX(), getBaseScale().getY(), getBaseScale().getZ() }));
+        DebugDrawerPacket packet = new DebugDrawerPacket();
+        packet.getShapes().add(text);
+        session.sendUpstreamPacket(packet);
     }
 
     public void updateNameTag() {
