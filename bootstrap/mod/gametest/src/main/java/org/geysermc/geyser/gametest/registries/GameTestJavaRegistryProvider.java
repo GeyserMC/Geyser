@@ -25,84 +25,47 @@
 
 package org.geysermc.geyser.gametest.registries;
 
-import com.mojang.serialization.Codec;
-import com.mojang.serialization.DynamicOps;
-import it.unimi.dsi.fastutil.ints.IntList;
-import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
-import it.unimi.dsi.fastutil.objects.Reference2ObjectOpenHashMap;
-import net.minecraft.core.Registry;
-import net.minecraft.core.RegistryAccess;
-import net.minecraft.tags.TagKey;
-import org.geysermc.geyser.gametest.util.CloudburstNbtOps;
-import org.geysermc.geyser.gametest.util.GeyserGameTestsUtil;
-import org.geysermc.geyser.registry.java.BuiltInJavaRegistries;
-import org.geysermc.geyser.registry.java.JavaRegistry;
-import org.geysermc.geyser.registry.java.JavaRegistryKey;
+import net.minecraft.core.LayeredRegistryAccess;
+import net.minecraft.network.protocol.configuration.ConfigurationProtocols;
+import net.minecraft.server.RegistryLayer;
+import net.minecraft.server.network.ConfigurationTask;
+import net.minecraft.server.network.config.SynchronizeRegistriesTask;
+import org.geysermc.geyser.gametest.mixin.SynchronizeRegistriesTaskAccessor;
+import org.geysermc.geyser.gametest.util.NetworkUtil;
 import org.geysermc.geyser.registry.java.JavaRegistryProvider;
-import org.geysermc.geyser.registry.java.MutableJavaRegistry;
-import org.geysermc.geyser.registry.java.SimpleJavaRegistry;
-import org.geysermc.geyser.registry.java.reader.JavaRegistryReaders;
-import org.geysermc.geyser.registry.java.reader.KeyDependentJavaRegistryReader;
-import org.geysermc.geyser.registry.java.reader.RegistryEntryContext;
-import org.geysermc.geyser.session.cache.tags.Tag;
-import org.geysermc.mcprotocollib.protocol.data.game.RegistryEntry;
+import org.geysermc.geyser.session.cache.registry.JavaRegistryTagCache;
+import org.geysermc.mcprotocollib.network.packet.Packet;
+import org.geysermc.mcprotocollib.protocol.packet.common.clientbound.ClientboundUpdateTagsPacket;
+import org.geysermc.mcprotocollib.protocol.packet.configuration.clientbound.ClientboundRegistryDataPacket;
 
-import java.util.Map;
+import java.util.List;
 import java.util.Optional;
-import java.util.stream.StreamSupport;
+import java.util.Set;
 
-// TODO directly use registry/tag cache?
-public class GameTestJavaRegistryProvider implements JavaRegistryProvider {
-    private final RegistryAccess registries;
-    private final Map<JavaRegistryKey<?>, JavaRegistry<?>> registryCache = new Reference2ObjectOpenHashMap<>();
-    private final Map<Tag<?>, IntList> tagCache = new Object2ObjectOpenHashMap<>();
+public final class GameTestJavaRegistryProvider {
 
-    public GameTestJavaRegistryProvider(RegistryAccess registries) {
-        this.registries = registries;
-    }
+    private GameTestJavaRegistryProvider() {}
 
-    @Override
-    public <T> JavaRegistry<T> registry(JavaRegistryKey<T> registryKey) {
-        //noinspection unchecked
-        return (JavaRegistry<T>) registryCache.computeIfAbsent(registryKey, this::convertRegistryData);
-    }
+    public static JavaRegistryProvider create(LayeredRegistryAccess<RegistryLayer> registries) {
+        JavaRegistryTagCache provider = new JavaRegistryTagCache();
 
-    @Override
-    public IntList rawTag(Tag<?> tag) {
-        return tagCache.computeIfAbsent(tag, _ -> serializeTag(GeyserGameTestsUtil.geyserTagToMojangTag(tag)));
-    }
+        // List.of() is known packs and doesn't matter in this context
+        ConfigurationTask synchronizeRegistriesTask = new SynchronizeRegistriesTask(List.of(), registries);
 
-    private <T> JavaRegistry<T> convertRegistryData(JavaRegistryKey<T> registryKey) {
-        try {
-            return BuiltInJavaRegistries.PROVIDER.registry(registryKey);
-        } catch (IllegalArgumentException ignored) {} // Not built-in.
+        ((SynchronizeRegistriesTaskAccessor) synchronizeRegistriesTask).invokeSendRegistries(
+            packet -> {
+                Packet mcpl = NetworkUtil.mojangToGeyserPacket(ConfigurationProtocols.CLIENTBOUND, packet);
+                if (mcpl instanceof ClientboundRegistryDataPacket registryDataPacket) {
+                    provider.loadRegistryData(Optional.empty(), registryDataPacket);
+                } else if (mcpl instanceof ClientboundUpdateTagsPacket tagsPacket) {
+                    provider.loadTags(Optional.empty(), tagsPacket);
+                } else {
+                    throw new IllegalStateException("Unexpected packet during registry synchronisation: " + mcpl);
+                }
+            },
+            Set.of()
+        );
 
-        Registry<?> mojangRegistry = registries.lookupOrThrow(GeyserGameTestsUtil.geyserKeyToMojangKey(registryKey));
-        return buildRegistry(mojangRegistry, registryKey);
-    }
-
-    private <Mojang, Geyser> JavaRegistry<Geyser> buildRegistry(Registry<Mojang> mojangRegistry, JavaRegistryKey<Geyser> geyserKey) {
-        MutableJavaRegistry<Geyser> geyserRegistry = new SimpleJavaRegistry<>(geyserKey);
-
-        DynamicOps<Object> nbtOps = registries.createSerializationContext(CloudburstNbtOps.INSTANCE);
-        Codec<Mojang> codec = GeyserGameTestsUtil.getSyncedRegistryData(mojangRegistry.key()).orElseThrow().elementCodec();
-        KeyDependentJavaRegistryReader<Geyser> reader = JavaRegistryReaders.getReader(geyserKey).orElseThrow();
-
-        // listElementIds is sorted by network ID
-        mojangRegistry.listElementIds().forEach(key -> geyserRegistry.register(GeyserGameTestsUtil.identifierToKey(key.identifier())));
-
-        geyserRegistry.freeze(id -> {
-            Object encoded = codec.encodeStart(nbtOps, mojangRegistry.get(id).orElseThrow().value()).getOrThrow();
-            return reader.read(new RegistryEntryContext(this, new RegistryEntry(geyserRegistry.getKeyOrThrow(id), encoded), Optional.empty()));
-        });
-
-        return geyserRegistry;
-    }
-
-    private <T> IntList serializeTag(TagKey<T> tag) {
-        Registry<T> registry = registries.lookupOrThrow(tag.registry());
-        return IntList.of(StreamSupport.stream(registry.getTagOrEmpty(tag).spliterator(), false)
-            .mapToInt(holder -> registry.getIdOrThrow(holder.value()))
-            .toArray());
+        return provider;
     }
 }

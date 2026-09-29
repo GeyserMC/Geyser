@@ -96,6 +96,7 @@ public interface MutableJavaRegistry<T> extends JavaRegistry<T> {
      * @param <V> the type of the new entry
      * @return the value of the new entry
      * @throws IllegalStateException when an entry with this network ID or key already exists
+     * @throws NullPointerException when the {@code value} was null
      */
     default <V extends T> V register(int id, Key key, V value) {
         RegistryEntryData<T> entry = new RegistryEntryData<>(id, key);
@@ -123,6 +124,20 @@ public interface MutableJavaRegistry<T> extends JavaRegistry<T> {
      * <p>The {@link IntFunction} is given a network ID, and it is expected to return a {@link T} for that respective network ID. If it returns {@code null}, a {@link NullPointerException} is thrown.</p>
      *
      * @param binder the function used to bind unbound registry entries
+     * @throws NullPointerException when the binder returned null for an ID
+     * @see MutableJavaRegistry#freeze()
      */
     void freeze(IntFunction<T> binder);
+
+    /**
+     * Freezes this registry. This method will throw when the registry contains unbound registry entries.
+     *
+     * @throws IllegalStateException when this registry contains unbound registry entries
+     * @see MutableJavaRegistry#freeze(IntFunction)
+     */
+    default void freeze() {
+        freeze(id -> {
+            throw new IllegalStateException("Tried to freeze " + this + ", but it contained unbound entries!");
+        });
+    }
 }

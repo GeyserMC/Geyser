@@ -46,6 +46,7 @@ import net.minecraft.network.protocol.game.GamePacketTypes;
 import net.minecraft.network.protocol.game.GameProtocols;
 import net.minecraft.resources.Identifier;
 import org.geysermc.geyser.gametest.util.GeyserCodecs;
+import org.geysermc.geyser.gametest.util.NetworkUtil;
 import org.geysermc.geyser.registry.PacketTranslatorRegistry;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.mcprotocollib.network.packet.Packet;
@@ -141,13 +142,7 @@ public class JavaPacketTranslatorExistenceTest extends GeyserTestInstance {
         );
 
         private ProtocolState mcplState() {
-            return switch (protocol) {
-                case HANDSHAKING -> ProtocolState.HANDSHAKE;
-                case PLAY -> ProtocolState.GAME;
-                case STATUS -> ProtocolState.STATUS;
-                case LOGIN -> ProtocolState.LOGIN;
-                case CONFIGURATION -> ProtocolState.CONFIGURATION;
-            };
+            return NetworkUtil.mojangToGeyserProtocolState(protocol);
         }
 
         private DataResult<ProtocolInfo.DetailsProvider> details() {

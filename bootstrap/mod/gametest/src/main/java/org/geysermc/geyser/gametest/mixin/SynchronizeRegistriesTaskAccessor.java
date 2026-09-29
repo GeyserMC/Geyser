@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
+ * Copyright (c) 2026 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,21 +23,20 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.translator.protocol.java;
+package org.geysermc.geyser.gametest.mixin;
 
-import org.geysermc.geyser.session.cache.registry.JavaRegistryTagCache;
-import org.geysermc.mcprotocollib.protocol.packet.common.clientbound.ClientboundUpdateTagsPacket;
-import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.geyser.translator.protocol.PacketTranslator;
-import org.geysermc.geyser.translator.protocol.Translator;
+import net.minecraft.network.protocol.Packet;
+import net.minecraft.server.network.config.SynchronizeRegistriesTask;
+import net.minecraft.server.packs.repository.KnownPack;
+import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.gen.Invoker;
 
-import java.util.Optional;
+import java.util.Set;
+import java.util.function.Consumer;
 
-@Translator(packet = ClientboundUpdateTagsPacket.class)
-public class JavaUpdateTagsTranslator extends PacketTranslator<ClientboundUpdateTagsPacket> {
+@Mixin(SynchronizeRegistriesTask.class)
+public interface SynchronizeRegistriesTaskAccessor {
 
-    @Override
-    public void translate(GeyserSession session, ClientboundUpdateTagsPacket packet) {
-        ((JavaRegistryTagCache) session.javaRegistries()).loadTags(Optional.of(session), packet);
-    }
+    @Invoker
+    void invokeSendRegistries(final Consumer<Packet<?>> connection, final Set<KnownPack> negotiatedPacks);
 }

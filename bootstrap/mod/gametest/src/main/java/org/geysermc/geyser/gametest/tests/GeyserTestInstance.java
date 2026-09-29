@@ -48,7 +48,7 @@ public abstract class GeyserTestInstance extends GameTestInstance {
     }
 
     protected JavaRegistryProvider createRegistryProvider(GameTestHelper helper) {
-        return new GameTestJavaRegistryProvider(helper.getLevel().registryAccess());
+        return GameTestJavaRegistryProvider.create(helper.getLevel().getServer().registries());
     }
 
     protected static <T extends GeyserTestInstance> Products.P2<RecordCodecBuilder.Mu<T>, HolderGetter<TestEnvironmentDefinition<?>>, Boolean> commonFields(RecordCodecBuilder.Instance<T> instance) {

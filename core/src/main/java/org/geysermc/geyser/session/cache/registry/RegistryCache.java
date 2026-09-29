@@ -34,6 +34,7 @@ import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.registry.java.JavaRegistries;
 import org.geysermc.geyser.registry.java.JavaRegistry;
 import org.geysermc.geyser.registry.java.JavaRegistryKey;
+import org.geysermc.geyser.registry.java.JavaRegistryProvider;
 import org.geysermc.geyser.registry.java.MutableJavaRegistry;
 import org.geysermc.geyser.registry.java.SimpleJavaRegistry;
 import org.geysermc.geyser.registry.java.reader.JavaRegistryReaders;
@@ -78,28 +79,12 @@ public final class RegistryCache {
         DEFAULTS = Map.copyOf(defaults);
     }
 
-    private final GeyserSession session;
     private final Reference2ObjectMap<JavaRegistryKey<?>, MutableJavaRegistry<?>> registries;
 
-    public RegistryCache(GeyserSession session) {
-        this.session = session;
+    RegistryCache() {
         this.registries = new Reference2ObjectOpenHashMap<>(JavaRegistryReaders.networkRegistries().size());
         for (JavaRegistryKey<?> registry : JavaRegistryReaders.networkRegistries()) {
             registries.put(registry, new SimpleJavaRegistry<>(registry));
-        }
-    }
-
-    /**
-     * Loads a registry in, if we are tracking it.
-     */
-    // Java generic mess
-    @SuppressWarnings({"rawtypes", "unchecked"})
-    public void load(ClientboundRegistryDataPacket packet) {
-        JavaRegistryKey registryKey = JavaRegistries.fromKey(packet.getRegistry());
-        if (registryKey != null) {
-            loadRegistry(registryKey, packet.getEntries());
-        } else {
-            GeyserImpl.getInstance().getLogger().debug("Ignoring registry of type " + packet.getRegistry());
         }
     }
 
@@ -108,11 +93,26 @@ public final class RegistryCache {
         return Optional.ofNullable((JavaRegistry<T>) registries.get(registryKey));
     }
 
-    private <T> void loadRegistry(JavaRegistryKey<T> registryKey, List<RegistryEntry> entries) {
+    /**
+     * Loads a registry in, if we are tracking it.
+     */
+    // Java generic mess
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    public void load(JavaRegistryProvider registryProvider, Optional<GeyserSession> session, ClientboundRegistryDataPacket packet) {
+        JavaRegistryKey registryKey = JavaRegistries.fromKey(packet.getRegistry());
+        if (registryKey != null) {
+            loadRegistry(registryKey, registryProvider, session, packet.getEntries());
+        } else {
+            GeyserImpl.getInstance().getLogger().debug("Ignoring registry of type " + packet.getRegistry());
+        }
+    }
+
+    private <T> void loadRegistry(JavaRegistryKey<T> registryKey, JavaRegistryProvider registryProvider,
+                                  Optional<GeyserSession> session, List<RegistryEntry> entries) {
         Optional<KeyDependentJavaRegistryReader<T>> reader = JavaRegistryReaders.getReader(registryKey);
         if (reader.isPresent()) {
             try {
-                readRegistry(session, registryKey, (MutableJavaRegistry<T>) registries.get(registryKey), reader.get(), entries);
+                readRegistry(registryKey, registryProvider, (MutableJavaRegistry<T>) registries.get(registryKey), reader.get(), session, entries);
             } catch (Exception exception) {
                 GeyserImpl.getInstance().getLogger().error("Failed parsing registry entries for " + registryKey + "!", exception);
             }
@@ -121,9 +121,10 @@ public final class RegistryCache {
         }
     }
 
-    private static <T> void readRegistry(GeyserSession session, JavaRegistryKey<T> registryKey, MutableJavaRegistry<T> registry,
-                                         KeyDependentJavaRegistryReader<T> reader, List<RegistryEntry> entries) {
-        Map<Key, NbtMap> localRegistry = DEFAULTS.get(registryKey); // TODO lazy init?
+    private static <T> void readRegistry(JavaRegistryKey<T> registryKey, JavaRegistryProvider registryProvider,
+                                         MutableJavaRegistry<T> registry, KeyDependentJavaRegistryReader<T> reader,
+                                         Optional<GeyserSession> session, List<RegistryEntry> entries) {
+        Map<Key, NbtMap> localRegistry = DEFAULTS.get(registryKey);
 
         // Clear each local cache every time a new registry entry is given to us
         // (e.g. proxy server switches, reconfiguring)
@@ -142,8 +143,7 @@ public final class RegistryCache {
                 entry = new RegistryEntry(entry.getId(), localRegistry.get(entry.getId()));
             }
 
-            RegistryEntryContext context = new RegistryEntryContext(session.javaRegistries(), entry, Optional.of(session));
-            return reader.read(context);
+            return reader.read(new RegistryEntryContext(registryProvider, entry, session));
         });
     }
 }

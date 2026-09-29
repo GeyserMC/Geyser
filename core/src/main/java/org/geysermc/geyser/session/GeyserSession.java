@@ -874,7 +874,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         this.lodestoneCache = new LodestoneCache();
         this.pistonCache = new PistonCache(this);
         this.preferencesCache = new PreferencesCache(this);
-        this.javaRegistries = new JavaRegistryTagCache(this);
+        this.javaRegistries = new JavaRegistryTagCache();
         this.skullCache = new SkullCache(this);
         this.structureBlockCache = new StructureBlockCache();
         this.waypointCache = new WaypointCache(this);

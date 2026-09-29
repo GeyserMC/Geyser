@@ -108,7 +108,7 @@ public final class BuiltInJavaRegistries {
     }
 
     public static void bootstrap() {
-        ROOT.freeze(id -> null);
+        ROOT.freeze();
         Blocks.bootstrap();
         Items.bootstrap();
         VanillaEntities.init();
@@ -117,7 +117,6 @@ public final class BuiltInJavaRegistries {
     }
 
     public static void freeze() {
-        // We shouldn't need to bind any entries here since all entries are built-in
-        ROOT.forEach(registry -> registry.freeze(id -> null));
+        ROOT.forEach(MutableJavaRegistry::freeze);
     }
 }

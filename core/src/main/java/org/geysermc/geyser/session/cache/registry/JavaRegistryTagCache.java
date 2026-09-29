@@ -26,28 +26,29 @@
 package org.geysermc.geyser.session.cache.registry;
 
 import it.unimi.dsi.fastutil.ints.IntList;
-import lombok.Getter;
 import org.geysermc.geyser.registry.java.BuiltInJavaRegistries;
 import org.geysermc.geyser.registry.java.JavaRegistry;
 import org.geysermc.geyser.registry.java.JavaRegistryKey;
 import org.geysermc.geyser.registry.java.JavaRegistryProvider;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.cache.tags.Tag;
+import org.geysermc.mcprotocollib.protocol.packet.common.clientbound.ClientboundUpdateTagsPacket;
+import org.geysermc.mcprotocollib.protocol.packet.configuration.clientbound.ClientboundRegistryDataPacket;
+
+import java.util.Optional;
 
 /**
  * A {@link JavaRegistryProvider} for a {@link GeyserSession}, accessed through {@link GeyserSession#javaRegistries()}.
  *
- * <p>This class extends {@link BuiltInJavaRegistries#PROVIDER}, and as such works with both built-in and networked registries.</p>
+ * <p>This class builds on top of {@link BuiltInJavaRegistries#PROVIDER}, and as such works with both built-in and networked registries.</p>
  */
 public final class JavaRegistryTagCache implements JavaRegistryProvider {
-    @Getter
     private final RegistryCache registryCache;
-    @Getter
     private final TagCache tagCache;
 
-    public JavaRegistryTagCache(GeyserSession session) {
-        registryCache = new RegistryCache(session);
-        tagCache = new TagCache(session);
+    public JavaRegistryTagCache() {
+        registryCache = new RegistryCache();
+        tagCache = new TagCache();
     }
 
     @Override
@@ -59,5 +60,13 @@ public final class JavaRegistryTagCache implements JavaRegistryProvider {
     @Override
     public IntList rawTag(Tag<?> tag) {
         return tagCache.get(tag);
+    }
+
+    public void loadRegistryData(Optional<GeyserSession> session, ClientboundRegistryDataPacket registryData) {
+        registryCache.load(this, session, registryData);
+    }
+
+    public void loadTags(Optional<GeyserSession> session, ClientboundUpdateTagsPacket tagsPacket) {
+        tagCache.loadPacket(session, tagsPacket);
     }
 }

@@ -30,6 +30,7 @@ import it.unimi.dsi.fastutil.ints.IntLists;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import net.kyori.adventure.key.Key;
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.GeyserLogger;
 import org.geysermc.geyser.registry.java.JavaRegistries;
 import org.geysermc.geyser.registry.java.JavaRegistryKey;
@@ -40,6 +41,7 @@ import org.geysermc.mcprotocollib.protocol.packet.common.clientbound.Clientbound
 
 import java.util.Arrays;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * Manages information sent from the {@link ClientboundUpdateTagsPacket}. If that packet is not sent, all lists here
@@ -47,16 +49,13 @@ import java.util.Map;
  * Only tags from registries in {@link JavaRegistries} are stored. Read {@link JavaRegistryKey} for more information.
  */
 public final class TagCache {
-    private final GeyserSession session;
     private final Map<Tag<?>, IntList> tags = new Object2ObjectOpenHashMap<>();
 
-    public TagCache(GeyserSession session) {
-        this.session = session;
-    }
+    TagCache() {}
 
-    public void loadPacket(ClientboundUpdateTagsPacket packet) {
+    public void loadPacket(Optional<GeyserSession> session, ClientboundUpdateTagsPacket packet) {
         Map<Key, Map<Key, int[]>> allTags = packet.getTags();
-        GeyserLogger logger = session.getGeyser().getLogger();
+        GeyserLogger logger = GeyserImpl.getInstance().getLogger();
 
         this.tags.clear();
 
@@ -69,21 +68,23 @@ public final class TagCache {
 
             Map<Key, int[]> registryTags = allTags.get(registryKey);
 
-            if (registry == JavaRegistries.BLOCK) {
-                // Hack btw
-                int[] convertableToMud = registryTags.get(MinecraftKey.key("convertable_to_mud"));
-                boolean emulatePost1_18Logic = convertableToMud != null && convertableToMud.length != 0;
-                session.setEmulatePost1_18Logic(emulatePost1_18Logic);
-                if (logger.isDebug()) {
-                    logger.debug("Emulating post 1.18 block predication logic for " + session.bedrockUsername() + "? " + emulatePost1_18Logic);
-                }
-            } else if (registry == JavaRegistries.ITEM) {
-                // Hack btw
-                int[] signs = registryTags.get(MinecraftKey.key("signs"));
-                boolean emulatePost1_13Logic = signs != null && signs.length > 1;
-                session.setEmulatePost1_13Logic(emulatePost1_13Logic);
-                if (logger.isDebug()) {
-                    logger.debug("Emulating post 1.13 villager logic for " + session.bedrockUsername() + "? " + emulatePost1_13Logic);
+            if (session.isPresent()) {
+                if (registry == JavaRegistries.BLOCK) {
+                    // Hack btw
+                    int[] convertableToMud = registryTags.get(MinecraftKey.key("convertable_to_mud"));
+                    boolean emulatePost1_18Logic = convertableToMud != null && convertableToMud.length != 0;
+                    session.get().setEmulatePost1_18Logic(emulatePost1_18Logic);
+                    if (logger.isDebug()) {
+                        logger.debug("Emulating post 1.18 block predication logic for " + session.get().bedrockUsername() + "? " + emulatePost1_18Logic);
+                    }
+                } else if (registry == JavaRegistries.ITEM) {
+                    // Hack btw
+                    int[] signs = registryTags.get(MinecraftKey.key("signs"));
+                    boolean emulatePost1_13Logic = signs != null && signs.length > 1;
+                    session.get().setEmulatePost1_13Logic(emulatePost1_13Logic);
+                    if (logger.isDebug()) {
+                        logger.debug("Emulating post 1.13 villager logic for " + session.get().bedrockUsername() + "? " + emulatePost1_13Logic);
+                    }
                 }
             }
 
