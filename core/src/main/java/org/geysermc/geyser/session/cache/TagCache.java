@@ -138,7 +138,7 @@ public final class TagCache {
         if (object == null) {
             return false;
         }
-        return holderSet.resolveRaw(this).contains(holderSet.getRegistry().networkId(session, object));
+        return holderSet.contains(session, object);
     }
 
     /**
