@@ -66,6 +66,15 @@ public final class SharedPortDetector extends ByteToMessageDecoder {
         return new Acceptor(signaling);
     }
 
+    /**
+     * Adds a detector to a connection, before the Java server adds its handlers.
+     *
+     * @param signaling called with the connection if it is a signaling one, after the Java server's handlers were removed
+     */
+    public static void addTo(Channel connection, Consumer<Channel> signaling) {
+        connection.pipeline().addFirst(NAME, new SharedPortDetector(signaling));
+    }
+
     static boolean isSignaling(int first, int second) {
         if (first == 0x16) {
             return second == 0x03;
@@ -154,7 +163,7 @@ public final class SharedPortDetector extends ByteToMessageDecoder {
         public void channelRead(ChannelHandlerContext ctx, Object msg) {
             // Runs before the server initialises the connection, so the detector stays in front of its handlers
             if (msg instanceof Channel child) {
-                child.pipeline().addFirst(NAME, new SharedPortDetector(signaling));
+                addTo(child, signaling);
             }
             ctx.fireChannelRead(msg);
         }
