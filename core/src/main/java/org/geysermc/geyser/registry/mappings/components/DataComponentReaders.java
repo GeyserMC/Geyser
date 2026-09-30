@@ -95,5 +95,7 @@ public class DataComponentReaders {
         register(new SwingAnimationReader(JavaItemDataComponents.SWING_ANIMATION));
         register(new SwingAnimationReader(JavaItemDataComponents.ATTACK_ANIMATION));
         register(new UseEffectsReader());
+        register(UnitReader.unit(JavaItemDataComponents.COOKING_FUEL));
+        register(UnitReader.unit(JavaItemDataComponents.COMPOSTABLE));
     }
 }

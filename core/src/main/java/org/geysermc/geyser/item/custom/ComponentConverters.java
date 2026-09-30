@@ -25,6 +25,7 @@
 
 package org.geysermc.geyser.item.custom;
 
+import net.kyori.adventure.key.Key;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.api.item.custom.v2.component.ItemDataComponent;
 import org.geysermc.geyser.api.item.custom.v2.component.ItemDataComponentMap;
@@ -41,6 +42,7 @@ import org.geysermc.geyser.util.MinecraftKey;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.EquipmentSlot;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.AttackRange;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.Consumable;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.CookingFuel;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentTypes;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
@@ -48,6 +50,8 @@ import org.geysermc.mcprotocollib.protocol.data.game.item.component.Equippable;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.FoodProperties;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.KineticWeapon;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.PiercingWeapon;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.ResolvableFloat;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.ResolvableInt;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.SwingAnimation;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.ToolData;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.UseCooldown;
@@ -79,6 +83,10 @@ import java.util.function.Consumer;
  * For both of these cases proper accommodations have been made in the {@link CustomItemRegistryPopulator}.
  */
 public class ComponentConverters {
+    // Keys of resolvable numbers should never be used by the Java client, and as such, never by us
+    private static final Key RESOLVABLE_NUMBER_DUMMY_KEY = MinecraftKey.key("geyser", "dummy");
+    private static final ResolvableInt DUMMY_RESOLVABLE_INT = new ResolvableInt(false, 0, RESOLVABLE_NUMBER_DUMMY_KEY);
+    private static final ResolvableFloat DUMMY_RESOLVABLE_FLOAT = new ResolvableFloat(false, 0, RESOLVABLE_NUMBER_DUMMY_KEY);
     private static final Map<ItemDataComponent<?>, ResolvableComponentConverter<?>> converters = new HashMap<>();
 
     static {
@@ -155,6 +163,9 @@ public class ComponentConverters {
 
         registerConverter(JavaItemDataComponents.USE_EFFECTS, (itemMap, value) -> itemMap.put(DataComponentTypes.USE_EFFECTS,
             new UseEffects(false, true, value.speedMultiplier())));
+
+        registerConverter(JavaItemDataComponents.COMPOSTABLE, (itemMap, value) -> itemMap.put(DataComponentTypes.COMPOSTABLE, DUMMY_RESOLVABLE_INT));
+        registerConverter(JavaItemDataComponents.COOKING_FUEL, (itemMap, value) -> itemMap.put(DataComponentTypes.COOKING_FUEL, new CookingFuel(DUMMY_RESOLVABLE_INT, DUMMY_RESOLVABLE_FLOAT)));
     }
 
     private static <T> void registerConverter(ItemDataComponent<T> component, DataComponentType<T> converted) {

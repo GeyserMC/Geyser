@@ -396,12 +396,16 @@ public class CustomItemRegistryPopulator {
             computeEntityPlacerProperties(componentBuilder);
         }
 
+        if (context.components().get(DataComponentTypes.COMPOSTABLE) != null) {
+            componentBuilder.putCompound("minecraft:compostable", NbtMap.builder()
+                .putInt("composting_chance", 1)
+                .build());
+        }
+
         // The client only lets an item into furnace fuel slots when it has this component.
-        // FIXME 26.3 does duration matter?
-        int fuelDuration = context.components().get(DataComponentTypes.COOKING_FUEL) != null ? 1 : 0;
-        if (fuelDuration > 0) {
+        if (context.components().get(DataComponentTypes.COOKING_FUEL) != null) {
             componentBuilder.putCompound("minecraft:fuel", NbtMap.builder()
-                .putFloat("duration", fuelDuration / 20.0F)
+                .putFloat("duration", 1.0F)
                 .build());
         }
 

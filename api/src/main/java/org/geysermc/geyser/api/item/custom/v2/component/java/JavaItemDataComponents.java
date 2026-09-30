@@ -30,6 +30,7 @@ import org.geysermc.geyser.api.item.custom.v2.CustomItemDefinition;
 import org.geysermc.geyser.api.item.custom.v2.component.ItemDataComponent;
 import org.geysermc.geyser.api.item.custom.v2.component.geyser.GeyserItemDataComponents;
 import org.geysermc.geyser.api.util.Identifier;
+import org.geysermc.geyser.api.util.Unit;
 
 import java.util.function.Predicate;
 
@@ -189,6 +190,22 @@ public interface JavaItemDataComponents {
      * @since 2.9.3
      */
     ItemDataComponent<JavaUseEffects> USE_EFFECTS = create("use_effects");
+
+    /**
+     * Marks the item as compostable, allowing it to add layers to a composter. The amount of layers is specified by the server as a dynamic int provider,
+     * and as such does not matter in this context.
+     *
+     * @since 2.12.0
+     */
+    ItemDataComponent<Unit> COMPOSTABLE = create("compostable");
+
+    /**
+     * Marks the item as fuel for furnaces, blast furnaces, smokers, etc. The cooking duration/speed multiplier are specified by the server as dynamic number providers,
+     * and as such do not matter in this context.
+     *
+     * @since 2.12.0
+     */
+    ItemDataComponent<Unit> COOKING_FUEL = create("cooking_fuel");
 
     private static <T> ItemDataComponent<T> create(String id) {
         return create(id, t -> true);
