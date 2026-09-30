@@ -25,6 +25,7 @@
 
 package org.geysermc.geyser;
 
+import io.netty.channel.Channel;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.api.util.PlatformType;
@@ -34,6 +35,7 @@ import org.geysermc.geyser.configuration.GeyserConfig;
 import org.geysermc.geyser.dump.BootstrapDumpInfo;
 import org.geysermc.geyser.level.GeyserWorldManager;
 import org.geysermc.geyser.level.WorldManager;
+import org.geysermc.geyser.network.bedrock.nethernet.SharedPortDetector;
 import org.geysermc.geyser.ping.IGeyserPingPassthrough;
 import org.geysermc.geyser.util.metrics.MetricsPlatform;
 import org.geysermc.geyser.util.metrics.ProvidedMetricsPlatform;
@@ -42,6 +44,7 @@ import java.io.InputStream;
 import java.net.SocketAddress;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.function.Consumer;
 
 public interface GeyserBootstrap {
 
@@ -155,6 +158,17 @@ public interface GeyserBootstrap {
     @Nullable
     default SocketAddress getSocketAddress() {
         return null;
+    }
+
+    /**
+     * Lets NetherNet signaling share the Java server's TCP port. Signaling connections are passed to the given consumer,
+     * all others stay with the server, see {@link SharedPortDetector}. Calling this again replaces the consumer.
+     *
+     * @param signaling adds the signaling handlers to a connection
+     * @return true if this platform supports sharing the port
+     */
+    default boolean shareJavaPort(Consumer<Channel> signaling) {
+        return false;
     }
 
     default Path getLogsPath() {

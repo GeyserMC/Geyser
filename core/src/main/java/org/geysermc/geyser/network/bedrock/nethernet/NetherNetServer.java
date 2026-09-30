@@ -29,7 +29,6 @@ import org.cloudburstmc.netty.util.nethernet.TrustedProxies;
 import org.cloudburstmc.netty.channel.nethernet.NetherNetChannelFactory;
 import org.cloudburstmc.netty.channel.nethernet.config.NetherChannelOption;
 import org.cloudburstmc.netty.channel.nethernet.signaling.NetherNetHTTPServerSignaling;
-import org.cloudburstmc.netty.channel.nethernet.signaling.NetherNetServerSignaling;
 import org.cloudburstmc.netty.channel.nethernet.signaling.PongData;
 import org.cloudburstmc.netty.util.nethernet.NetherNetLogging;
 import org.cloudburstmc.netty.util.nethernet.SecretValue;
@@ -50,6 +49,7 @@ import org.cloudburstmc.netty.signaling.ProviderStateStore;
 import org.cloudburstmc.netty.signaling.ProviderTransport;
 import org.cloudburstmc.netty.signaling.ServerStatus;
 import org.cloudburstmc.protocol.bedrock.BedrockPong;
+import org.geysermc.geyser.GeyserBootstrap;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.GeyserLogger;
 import org.geysermc.geyser.api.event.EventRegistrar;
@@ -120,7 +120,7 @@ public final class NetherNetServer implements EventRegistrar {
     private EventLoopGroup eventLoopGroup;
     private Channel netherNetChannel;
     private NetherNetChannelInitialiser providerInitialiser;
-    private NetherNetServerSignaling signaling;
+    private volatile NetherNetHTTPServerSignaling signaling;
     private EventLoopGroup inbuiltEventLoopGroup;
     private Channel inbuiltChannel;
     private NetherNetChannelInitialiser inbuiltInitialiser;
@@ -159,8 +159,10 @@ public final class NetherNetServer implements EventRegistrar {
             return;
         }
 
-        if (inbuilt && signalingPort == geyser.config().java().port()) {
-            // e.g. clone-remote-port: the Java server owns that TCP port
+        // e.g. clone-remote-port: the Java server owns that TCP port, so built-in signaling needs the platform to share it
+        boolean sharedJavaPort = inbuilt && signalingPort == geyser.config().java().port()
+            && geyser.getBootstrap().shareJavaPort(this::serveOnJavaPort);
+        if (inbuilt && !sharedJavaPort && signalingPort == geyser.config().java().port()) {
             inbuilt = false;
             String reason = "Built-in signaling cannot use port " + signalingPort + " because the Java server already uses it. ";
             if (!provider) {
@@ -194,11 +196,26 @@ public final class NetherNetServer implements EventRegistrar {
         // TODO TEST hybrid: both use UDP on the WebRTC port. They should share it through libjuice's in-process ICE mux,
         //  where the provider's listener takes unknown requests and inbuilt connections attach as agents; this relies on both
         //  binding the same address (inbuilt ICE leaves a wildcard address unset, the provider passes it explicitly).
-        if (inbuilt) startInbuilt();
+        if (inbuilt) startInbuilt(sharedJavaPort);
         if (provider) startProvider();
     }
 
-    private void startInbuilt() {
+    /**
+     * Serves signaling on a connection from the Java server's port, see {@link GeyserBootstrap#shareJavaPort}.
+     */
+    private void serveOnJavaPort(Channel channel) {
+        NetherNetHTTPServerSignaling signaling = this.signaling;
+        if (signaling == null || stopping) {
+            channel.close();
+            return;
+        }
+        signaling.initChannel(channel);
+    }
+
+    /**
+     * @param sharedJavaPort whether signaling uses the Java server's port instead of its own listener
+     */
+    private void startInbuilt(boolean sharedJavaPort) {
         // Created on the first start and kept afterwards, as clients pin its public key
         OperatorIdentity identity;
         try {
@@ -257,7 +274,9 @@ public final class NetherNetServer implements EventRegistrar {
             // The channel binds HTTP signaling over TCP to the signaling port, and by default pins ICE to its UDP side.
             // When the WebRTC port is another port, ICE goes there instead.
             boolean separateIcePort = webrtcPort != signalingPort;
-            this.signaling = signalingBuilder.setIceOnLocalPort(!separateIcePort).build();
+            this.signaling = signalingBuilder.setIceOnLocalPort(!separateIcePort)
+                    .setServeHttp(!sharedJavaPort)
+                    .build();
 
             this.inbuiltEventLoopGroup = new MultiThreadIoEventLoopGroup(NioIoHandler.newFactory());
             this.inbuiltInitialiser = new NetherNetChannelInitialiser(geyser);
@@ -281,16 +300,22 @@ public final class NetherNetServer implements EventRegistrar {
             this.inbuiltChannel = b.bind(new InetSocketAddress(listener.address(), signalingPort)).sync().channel();
 
             // TLS is served on the same port as plaintext, so both schemes reach it when configured
-            String endpoint = https.certificate().isBlank()
-                    ? "http://" + listener.address() + ":" + signalingPort
-                    : "https:// and http:// on " + listener.address() + ":" + signalingPort;
-            logger().info("Built-in signaling started on " + endpoint
-                + (separateIcePort ? ", with NetherNet on UDP port " + webrtcPort : ""));
+            String scheme = https.certificate().isBlank() ? "http" : "https and http";
+            if (sharedJavaPort) {
+                logger().info("Built-in signaling started on the Java server's TCP port " + signalingPort + " (" + scheme
+                    + "), with NetherNet on UDP port " + webrtcPort);
+            } else {
+                String endpoint = https.certificate().isBlank()
+                        ? "http://" + listener.address() + ":" + signalingPort
+                        : "https:// and http:// on " + listener.address() + ":" + signalingPort;
+                logger().info("Built-in signaling started on " + endpoint
+                    + (separateIcePort ? ", with NetherNet on UDP port " + webrtcPort : ""));
+            }
         } catch (Throwable e) {
             // Throwable: the WebRTC natives are not available on every platform
             closeInbuiltResources();
-            logger().warning("Built-in signaling could not start. Make sure no other program is using TCP port "
-                + signalingPort + ". Enable debug mode for more details.");
+            logger().warning("Built-in signaling could not start." + (sharedJavaPort ? "" : " Make sure no other program is using TCP port "
+                + signalingPort + ".") + " Enable debug mode for more details.");
             logger().debug("Built-in signaling failure: " + e);
         }
     }
