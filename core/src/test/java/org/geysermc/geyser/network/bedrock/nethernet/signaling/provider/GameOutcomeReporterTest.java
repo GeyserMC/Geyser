@@ -40,6 +40,8 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 class GameOutcomeReporterTest {
     private static EmbeddedChannel channel(GameOutcomeReporter reporter) {
@@ -174,6 +176,47 @@ class GameOutcomeReporterTest {
         assertTrue(nativeTransport.closed);
     }
 
+    @Test
+    void keepsNativeSnapshotOwnershipAndConnectivityCapabilities() {
+        ProviderTransport nativeTransport = mock(ProviderTransport.class);
+        var snapshot = new CompletableFuture<ProviderTransport.HostProfileSnapshot>();
+        var configured = new CompletableFuture<Void>();
+        var servers = List.of(new ProviderTransport.StunServer("stun.example.net", 3478));
+        when(nativeTransport.captureHostProfile()).thenReturn(snapshot);
+        when(nativeTransport.candidatePublicationVersion()).thenReturn(42L);
+        when(nativeTransport.supportsAssistedJoins()).thenReturn(true);
+        when(nativeTransport.supportsDiagnosticAdmission()).thenReturn(true);
+        when(nativeTransport.configureStunServers(servers)).thenReturn(configured);
+        GameOutcomeTransport transport = new GameOutcomeTransport(nativeTransport, new GameOutcomeReporter());
+
+        assertSame(snapshot, transport.captureHostProfile());
+        assertEquals(42L, transport.candidatePublicationVersion());
+        assertTrue(transport.supportsAssistedJoins());
+        assertTrue(transport.supportsDiagnosticAdmission());
+        assertSame(configured, transport.configureStunServers(servers));
+    }
+
+    @Test
+    void respectsTheRequestedPollBoundWithoutDroppingGameEvents() {
+        GameOutcomeReporter reporter = new GameOutcomeReporter();
+        EmbeddedChannel channel = channel(reporter);
+        reporter.joined(channel);
+        channel.finishAndReleaseAll();
+        FakeTransport nativeTransport = new FakeTransport();
+        JsonObject nativeEvent = new JsonObject();
+        nativeTransport.events.add(nativeEvent);
+        GameOutcomeTransport transport = new GameOutcomeTransport(nativeTransport, reporter);
+
+        assertTrue(transport.pollEvents(0).isEmpty());
+        assertThrows(IllegalArgumentException.class, () -> transport.pollEvents(-1));
+        assertThrows(IllegalArgumentException.class, () -> transport.pollEvents(257));
+        assertEquals(List.of(nativeEvent), transport.pollEvents(1));
+        List<JsonObject> gameEvents = transport.pollEvents(1);
+        assertEquals(1, gameEvents.size());
+        assertEquals("ticket.game_joined", gameEvents.getFirst().get("stage").getAsString());
+        assertTrue(transport.pollEvents(1).isEmpty());
+    }
+
     private static final class FakeTransport implements ProviderTransport {
         final List<JsonObject> events = new ArrayList<>();
         boolean closed;
@@ -186,13 +229,14 @@ class GameOutcomeReporterTest {
             return CompletableFuture.completedFuture(null);
         }
 
-        public CompletionStage<ApplyResult> applyState(String state) {
-            return CompletableFuture.completedFuture(ApplyResult.APPLIED);
+        public List<JsonObject> pollEvents() {
+            return pollEvents(100);
         }
 
-        public List<JsonObject> pollEvents() {
-            List<JsonObject> result = new ArrayList<>(events);
-            events.clear();
+        public List<JsonObject> pollEvents(int maximum) {
+            List<JsonObject> polled = events.subList(0, Math.min(maximum, events.size()));
+            List<JsonObject> result = new ArrayList<>(polled);
+            polled.clear();
             return result;
         }
 
