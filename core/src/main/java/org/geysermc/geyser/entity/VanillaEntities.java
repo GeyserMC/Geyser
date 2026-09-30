@@ -36,6 +36,7 @@ import org.geysermc.geyser.entity.type.ArrowEntity;
 import org.geysermc.geyser.entity.type.BoatEntity;
 import org.geysermc.geyser.entity.type.ChestBoatEntity;
 import org.geysermc.geyser.entity.type.CommandBlockMinecartEntity;
+import org.geysermc.geyser.entity.type.CushionEntity;
 import org.geysermc.geyser.entity.type.DisplayBaseEntity;
 import org.geysermc.geyser.entity.type.EnderCrystalEntity;
 import org.geysermc.geyser.entity.type.EnderEyeEntity;
@@ -200,6 +201,7 @@ public final class VanillaEntities {
     public static final VanillaEntityType<CowEntity> COW;
     public static final VanillaEntityType<CreakingEntity> CREAKING;
     public static final VanillaEntityType<CreeperEntity> CREEPER;
+    public static final VanillaEntityType<CushionEntity> CUSHION;
     public static final VanillaEntityType<BoatEntity> DARK_OAK_BOAT;
     public static final VanillaEntityType<ChestBoatEntity> DARK_OAK_CHEST_BOAT;
     public static final VanillaEntityType<DolphinEntity> DOLPHIN;
@@ -272,6 +274,8 @@ public final class VanillaEntities {
     public static final VanillaEntityType<PillagerEntity> PILLAGER;
     public static final VanillaEntityType<PlayerEntity> PLAYER;
     public static final VanillaEntityType<PolarBearEntity> POLAR_BEAR;
+    public static final VanillaEntityType<BoatEntity> POPLAR_BOAT;
+    public static final VanillaEntityType<ChestBoatEntity> POPLAR_CHEST_BOAT;
     public static final VanillaEntityType<ThrownPotionEntity> SPLASH_POTION;
     public static final VanillaEntityType<ThrownPotionEntity> LINGERING_POTION;
     public static final VanillaEntityType<PufferFishEntity> PUFFERFISH;
@@ -351,6 +355,11 @@ public final class VanillaEntities {
                     .addTranslator(MetadataTypes.FLOAT, AreaEffectCloudEntity::setRadius)
                     .addTranslator(null) // Waiting
                     .addTranslator(MetadataTypes.PARTICLE, AreaEffectCloudEntity::setParticle)
+                    .build();
+            CUSHION = VanillaEntityType.inherited(CushionEntity::new, entityBase)
+                    .type(EntityType.CUSHION)
+                    .width(1.0F).height(0.25F)
+                    .addTranslator(MetadataTypes.DYE_COLOR, CushionEntity::setDyeColor)
                     .build();
             DRAGON_FIREBALL = VanillaEntityType.inherited(FireballEntity::new, entityBase)
                     .type(EntityType.DRAGON_FIREBALL)
@@ -643,6 +652,7 @@ public final class VanillaEntities {
             OAK_BOAT = buildBoat(boatBase, EntityType.OAK_BOAT, BoatEntity.BoatVariant.OAK);
             SPRUCE_BOAT = buildBoat(boatBase, EntityType.SPRUCE_BOAT, BoatEntity.BoatVariant.SPRUCE);
             PALE_OAK_BOAT = buildBoat(boatBase, EntityType.PALE_OAK_BOAT, BoatEntity.BoatVariant.PALE_OAK);
+            POPLAR_BOAT = buildBoat(boatBase, EntityType.POPLAR_BOAT, BoatEntity.BoatVariant.POPLAR);
 
             EntityTypeBase<ChestBoatEntity> chestBoatBase = EntityTypeBase.baseInherited(ChestBoatEntity.class, boatBase)
                 .build();
@@ -657,6 +667,7 @@ public final class VanillaEntities {
             OAK_CHEST_BOAT = buildChestBoat(chestBoatBase, EntityType.OAK_CHEST_BOAT, BoatEntity.BoatVariant.OAK);
             SPRUCE_CHEST_BOAT = buildChestBoat(chestBoatBase, EntityType.SPRUCE_CHEST_BOAT, BoatEntity.BoatVariant.SPRUCE);
             PALE_OAK_CHEST_BOAT = buildChestBoat(chestBoatBase, EntityType.PALE_OAK_CHEST_BOAT, BoatEntity.BoatVariant.PALE_OAK);
+            POPLAR_CHEST_BOAT = buildChestBoat(chestBoatBase, EntityType.POPLAR_CHEST_BOAT, BoatEntity.BoatVariant.POPLAR);
         }
 
         EntityTypeBase<LivingEntity> livingEntityBase = EntityTypeBase.baseInherited(LivingEntity.class, entityBase)

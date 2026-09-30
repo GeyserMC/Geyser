@@ -33,7 +33,6 @@ import net.minecraft.core.RegistryAccess;
 import net.minecraft.resources.Identifier;
 import net.minecraft.resources.RegistryDataLoader;
 import net.minecraft.resources.ResourceKey;
-import org.cloudburstmc.nbt.NbtMap;
 import org.geysermc.geyser.session.cache.RegistryCache;
 import org.geysermc.geyser.session.cache.registry.JavaRegistry;
 import org.geysermc.geyser.session.cache.registry.JavaRegistryKey;
@@ -71,7 +70,7 @@ public class GameTestJavaRegistry<T> implements JavaRegistry<T> {
         for (Mojang entry : registry) {
             int id = registry.getIdOrThrow(entry);
             Key key = identifierToKey(Objects.requireNonNull(registry.getKey(entry)));
-            NbtMap encoded = (NbtMap) codec.encodeStart(nbtOps, entry).getOrThrow();
+            Object encoded = codec.encodeStart(nbtOps, entry).getOrThrow();
             Geyser mapped = reader.read(new RegistryEntryContext(new RegistryEntry(key, encoded), keyIdFunction, Optional.empty()));
             entries.add(new RegistryEntryData<>(id, key, mapped));
         }

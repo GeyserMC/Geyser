@@ -314,9 +314,9 @@ public class CustomItemRegistryPopulator {
         // Please note that technically this component is present on all items in vanilla Minecraft, which, if we think about consistency, would mean
         // we'd have to translate its default value if the component is removed using a patch or not present on a non-vanilla item
         // It doesn't really matter though, since Bedrock has its own default values if the component isn't present
-        SwingAnimation swingAnimation = context.components().get(DataComponentTypes.SWING_ANIMATION);
-        if (swingAnimation != null) {
-            computeSwingAnimationProperties(componentBuilder, swingAnimation);
+        SwingAnimation attackAnimation = context.components().get(DataComponentTypes.ATTACK_ANIMATION);
+        if (attackAnimation != null) {
+            computeSwingAnimationProperties(componentBuilder, attackAnimation);
         }
 
         Optional<Consumable> consumableComponent = Optional.ofNullable(context.components().get(DataComponentTypes.CONSUMABLE))
@@ -396,11 +396,16 @@ public class CustomItemRegistryPopulator {
             computeEntityPlacerProperties(componentBuilder);
         }
 
+        if (context.components().get(DataComponentTypes.COMPOSTABLE) != null) {
+            componentBuilder.putCompound("minecraft:compostable", NbtMap.builder()
+                .putInt("composting_chance", 1)
+                .build());
+        }
+
         // The client only lets an item into furnace fuel slots when it has this component.
-        int fuelDuration = context.vanillaMapping().map(GeyserMappingItem::getFuelDuration).orElse(0);
-        if (fuelDuration > 0) {
+        if (context.components().get(DataComponentTypes.COOKING_FUEL) != null) {
             componentBuilder.putCompound("minecraft:fuel", NbtMap.builder()
-                .putFloat("duration", fuelDuration / 20.0F)
+                .putFloat("duration", 1.0F)
                 .build());
         }
 
@@ -694,9 +699,9 @@ public class CustomItemRegistryPopulator {
         componentBuilder.putCompound("minecraft:piercing_weapon", addAttackRangeProperties(NbtMap.builder(), attackRange).build());
     }
 
-    private static void computeSwingAnimationProperties(NbtMapBuilder componentBuilder, SwingAnimation swingAnimation) {
+    private static void computeSwingAnimationProperties(NbtMapBuilder componentBuilder, SwingAnimation attackAnimation) {
         componentBuilder.putCompound("minecraft:swing_duration", NbtMap.builder()
-            .putFloat("value", swingAnimation.duration() / 20.0F) // Java is in ticks, bedrock is in seconds
+            .putFloat("value", attackAnimation.duration() / 20.0F) // Java is in ticks, bedrock is in seconds
             .build());
     }
 

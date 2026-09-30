@@ -32,6 +32,7 @@ import it.unimi.dsi.fastutil.ints.IntList;
 import net.kyori.adventure.key.Key;
 import org.cloudburstmc.protocol.bedrock.data.definitions.ItemDefinition;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
+import org.cloudburstmc.protocol.bedrock.data.inventory.crafting.PotionMixData;
 import org.cloudburstmc.protocol.bedrock.data.inventory.crafting.RecipeUnlockingRequirement;
 import org.cloudburstmc.protocol.bedrock.data.inventory.crafting.recipe.ShapelessRecipeData;
 import org.cloudburstmc.protocol.bedrock.data.inventory.crafting.recipe.SmithingTransformRecipeData;
@@ -49,8 +50,8 @@ import org.geysermc.geyser.inventory.recipe.GeyserStonecutterData;
 import org.geysermc.geyser.inventory.recipe.TrimRecipes;
 import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.network.bedrock.GameProtocol;
-import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.registry.type.ItemMapping;
+import org.geysermc.geyser.registry.type.ItemMappings;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.cache.registry.JavaRegistries;
 import org.geysermc.geyser.session.cache.tags.GeyserHolderSet;
@@ -67,6 +68,7 @@ import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.Clientbound
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -95,6 +97,8 @@ public class JavaUpdateRecipesTranslator extends PacketTranslator<ClientboundUpd
     private static final Key SMITHING_BASE = MinecraftKey.key("smithing_base");
     private static final Key SMITHING_TEMPLATE = MinecraftKey.key("smithing_template");
     private static final Key SMITHING_ADDITION = MinecraftKey.key("smithing_addition");
+    private static final Key BREWING_INPUT = MinecraftKey.key("brewing_input");
+    private static final Key BREWING_REAGENT = MinecraftKey.key("brewing_reagent");
 
     @Override
     public void translate(GeyserSession session, ClientboundUpdateRecipesPacket packet) {
@@ -108,7 +112,6 @@ public class JavaUpdateRecipesTranslator extends PacketTranslator<ClientboundUpd
             } else {
                 craftingDataPacket.getCraftingData().addAll(CARTOGRAPHY_RECIPES);
             }
-            craftingDataPacket.getPotionMixData().addAll(Registries.POTION_MIXES.forVersion(session.getUpstream().getProtocolVersion()));
 
             for (GeyserRecipe recipe : session.getCraftingRecipes().values()) {
                 if (GameProtocol.is26_40orHigher(session.protocolVersion())) {
@@ -180,6 +183,8 @@ public class JavaUpdateRecipesTranslator extends PacketTranslator<ClientboundUpd
         }
         session.getGeyser().getLogger().debug("Using old smithing table workaround? " + oldSmithingTable);
         session.setOldSmithingTable(oldSmithingTable);
+
+        addPotionMixes(session.getItemMappings(), packet.getItemSets(), craftingDataPacket.getPotionMixData());
 
         Int2ObjectMap<List<SelectableRecipe>> rawStonecutterData = new Int2ObjectOpenHashMap<>();
 
@@ -253,5 +258,25 @@ public class JavaUpdateRecipesTranslator extends PacketTranslator<ClientboundUpd
         }
         GeyserImpl.getInstance().getLogger().debug("Unable to find item with identifier " + bedrockId);
         return ItemDescriptorWithCount.EMPTY;
+    }
+
+    private static void addPotionMixes(ItemMappings itemMappings, Map<Key, int[]> itemSets, List<PotionMixData> mixes) {
+        int[] brewingInputs = itemSets.get(BREWING_INPUT);
+        int[] brewingReagents = itemSets.get(BREWING_REAGENT);
+
+        // Bedrock demands an output, but Java doesn't give us one
+        // It doesn't matter much what the output is, since the client doesn't display it anywhere: so a simple potion will do
+        ItemMapping brewingOutput = itemMappings.getMapping(Items.POTION);
+
+        for (int input : brewingInputs) {
+            for (int reagent : brewingReagents) {
+                ItemMapping inputMapping = itemMappings.getMapping(input);
+                ItemMapping reagentMapping = itemMappings.getMapping(reagent);
+                mixes.add(new PotionMixData(
+                    inputMapping.getBedrockDefinition().getRuntimeId(), inputMapping.getBedrockData(),
+                    reagentMapping.getBedrockDefinition().getRuntimeId(), reagentMapping.getBedrockData(),
+                    brewingOutput.getBedrockDefinition().getRuntimeId(), brewingOutput.getBedrockData()));
+            }
+        }
     }
 }

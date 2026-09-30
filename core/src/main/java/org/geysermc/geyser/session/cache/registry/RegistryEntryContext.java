@@ -25,14 +25,14 @@
 
 package org.geysermc.geyser.session.cache.registry;
 
-import java.util.Optional;
-import java.util.function.ToIntFunction;
-
 import net.kyori.adventure.key.Key;
 import org.cloudburstmc.nbt.NbtMap;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.text.MessageTranslator;
 import org.geysermc.mcprotocollib.protocol.data.game.RegistryEntry;
+
+import java.util.Optional;
+import java.util.function.ToIntFunction;
 
 /**
  * Used to store context around a single registry entry when reading said entry's NBT.
@@ -55,11 +55,18 @@ public record RegistryEntryContext(RegistryEntry entry, ToIntFunction<Key> keyId
     }
 
     // Not annotated as nullable because data should never be null here
-    public NbtMap data() {
+    public Object data() {
         return entry.getData();
     }
 
+    /**
+     * Note that this unsafely casts the data to an {@link NbtMap}, only use if you're sure the data is a compound tag.
+     */
+    public NbtMap dataAsMap() {
+        return (NbtMap) data();
+    }
+
     public String deserializeDescription() {
-        return session.map(present -> MessageTranslator.deserializeDescription(present, data())).orElse("MISSING GEYSER SESSION");
+        return session.map(present -> MessageTranslator.deserializeDescription(present, dataAsMap())).orElse("MISSING GEYSER SESSION");
     }
 }

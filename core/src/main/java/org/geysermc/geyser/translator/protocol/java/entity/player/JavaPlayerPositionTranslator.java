@@ -41,7 +41,6 @@ import org.geysermc.geyser.util.MathUtils;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.PositionElement;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.entity.player.ClientboundPlayerPositionPacket;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.level.ServerboundAcceptTeleportationPacket;
-import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.player.ServerboundMovePlayerPosRotPacket;
 
 @Translator(packet = ClientboundPlayerPositionPacket.class)
 public class JavaPlayerPositionTranslator extends PacketTranslator<ClientboundPlayerPositionPacket> {
@@ -160,10 +159,7 @@ public class JavaPlayerPositionTranslator extends PacketTranslator<ClientboundPl
 
     private void acceptTeleport(GeyserSession session, Vector3d position, float yaw, float pitch, int id) {
         // Confirm the teleport when we receive it to match Java edition
-        ServerboundAcceptTeleportationPacket teleportConfirmPacket = new ServerboundAcceptTeleportationPacket(id);
+        ServerboundAcceptTeleportationPacket teleportConfirmPacket = new ServerboundAcceptTeleportationPacket(id, position.getX(), position.getY(), position.getZ(), yaw, pitch);
         session.sendDownstreamGamePacket(teleportConfirmPacket);
-        // Servers (especially ones like Hypixel) expect exact coordinates given back to them.
-        ServerboundMovePlayerPosRotPacket positionPacket = new ServerboundMovePlayerPosRotPacket(false, false, position.getX(), position.getY(), position.getZ(), yaw, pitch);
-        session.sendDownstreamGamePacket(positionPacket);
     }
 }

@@ -65,7 +65,7 @@ public class JavaDamageEventTranslator extends PacketTranslator<ClientboundDamag
      * distinct sound to the closest Bedrock cause.
      */
     public static EntityDamageCause readDamageCause(RegistryEntryContext context) {
-        return switch (context.data().getString("effects")) {
+        return switch (context.dataAsMap().getString("effects")) {
             case "burning" -> EntityDamageCause.FIRE_TICK;
             case "drowning" -> EntityDamageCause.DROWNING;
             case "freezing" -> EntityDamageCause.FREEZING;

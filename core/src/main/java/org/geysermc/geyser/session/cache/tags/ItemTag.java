@@ -39,6 +39,8 @@ public final class ItemTag {
     public static final Tag<Item> STONE_BRICKS = create("stone_bricks");
     public static final Tag<Item> WOODEN_BUTTONS = create("wooden_buttons");
     public static final Tag<Item> WOOL_CARPETS = create("wool_carpets");
+    public static final Tag<Item> WOOL_STAIRS = create("wool_stairs");
+    public static final Tag<Item> WOOL_SLABS = create("wool_slabs");
     public static final Tag<Item> WOODEN_DOORS = create("wooden_doors");
     public static final Tag<Item> WOODEN_STAIRS = create("wooden_stairs");
     public static final Tag<Item> WOODEN_SLABS = create("wooden_slabs");
@@ -55,6 +57,7 @@ public final class ItemTag {
     public static final Tag<Item> ACACIA_LOGS = create("acacia_logs");
     public static final Tag<Item> SPRUCE_LOGS = create("spruce_logs");
     public static final Tag<Item> MANGROVE_LOGS = create("mangrove_logs");
+    public static final Tag<Item> POPLAR_LOGS = create("poplar_logs");
     public static final Tag<Item> JUNGLE_LOGS = create("jungle_logs");
     public static final Tag<Item> CHERRY_LOGS = create("cherry_logs");
     public static final Tag<Item> CRIMSON_STEMS = create("crimson_stems");
@@ -87,10 +90,13 @@ public final class ItemTag {
     public static final Tag<Item> TERRACOTTA = create("terracotta");
     public static final Tag<Item> GLAZED_TERRACOTTA = create("glazed_terracotta");
     public static final Tag<Item> CONCRETE = create("concrete");
+    public static final Tag<Item> CONCRETE_STAIRS = create("concrete_stairs");
+    public static final Tag<Item> CONCRETE_SLABS = create("concrete_slabs");
     public static final Tag<Item> CONCRETE_POWDERS = create("concrete_powders");
     public static final Tag<Item> COMPLETES_FIND_TREE_TUTORIAL = create("completes_find_tree_tutorial");
     public static final Tag<Item> SHULKER_BOXES = create("shulker_boxes");
     public static final Tag<Item> COPPER = create("copper");
+    public static final Tag<Item> SKULLS = create("skulls");
     public static final Tag<Item> SIGNS = create("signs");
     public static final Tag<Item> HANGING_SIGNS = create("hanging_signs");
     public static final Tag<Item> BEE_FOOD = create("bee_food");
@@ -113,7 +119,6 @@ public final class ItemTag {
     public static final Tag<Item> IGNORED_BY_PIGLIN_BABIES = create("ignored_by_piglin_babies");
     public static final Tag<Item> PIGLIN_SAFE_ARMOR = create("piglin_safe_armor");
     public static final Tag<Item> DUPLICATES_ALLAYS = create("duplicates_allays");
-    public static final Tag<Item> BREWING_FUEL = create("brewing_fuel");
     public static final Tag<Item> EGGS = create("eggs");
     public static final Tag<Item> MEAT = create("meat");
     public static final Tag<Item> SNIFFER_FOOD = create("sniffer_food");
@@ -153,6 +158,7 @@ public final class ItemTag {
     public static final Tag<Item> NAUTILUS_FOOD = create("nautilus_food");
     public static final Tag<Item> NAUTILUS_TAMING_ITEMS = create("nautilus_taming_items");
     public static final Tag<Item> SULFUR_CUBE_FOOD = create("sulfur_cube_food");
+    public static final Tag<Item> MUSHROOMS = create("mushrooms");
     public static final Tag<Item> NON_FLAMMABLE_WOOD = create("non_flammable_wood");
     public static final Tag<Item> BOATS = create("boats");
     public static final Tag<Item> CHEST_BOATS = create("chest_boats");
@@ -183,13 +189,14 @@ public final class ItemTag {
     public static final Tag<Item> FREEZE_IMMUNE_WEARABLES = create("freeze_immune_wearables");
     public static final Tag<Item> CLUSTER_MAX_HARVESTABLES = create("cluster_max_harvestables");
     public static final Tag<Item> COMPASSES = create("compasses");
+    public static final Tag<Item> CLONABLE_MAPS = create("clonable_maps");
+    public static final Tag<Item> EXTENDABLE_MAPS = create("extendable_maps");
     public static final Tag<Item> CREEPER_IGNITERS = create("creeper_igniters");
     public static final Tag<Item> NOTEBLOCK_TOP_INSTRUMENTS = create("noteblock_top_instruments");
     public static final Tag<Item> FOOT_ARMOR = create("foot_armor");
     public static final Tag<Item> LEG_ARMOR = create("leg_armor");
     public static final Tag<Item> CHEST_ARMOR = create("chest_armor");
     public static final Tag<Item> HEAD_ARMOR = create("head_armor");
-    public static final Tag<Item> SKULLS = create("skulls");
     public static final Tag<Item> TRIMMABLE_ARMOR = create("trimmable_armor");
     public static final Tag<Item> TRIM_MATERIALS = create("trim_materials");
     public static final Tag<Item> DECORATED_POT_SHERDS = create("decorated_pot_sherds");
@@ -212,6 +219,7 @@ public final class ItemTag {
     public static final Tag<Item> CAULDRON_CAN_REMOVE_DYE = create("cauldron_can_remove_dye");
     public static final Tag<Item> CAT_COLLAR_DYES = create("cat_collar_dyes");
     public static final Tag<Item> WOLF_COLLAR_DYES = create("wolf_collar_dyes");
+    public static final Tag<Item> CUSHIONS = create("cushions");
     public static final Tag<Item> SKELETON_PREFERRED_WEAPONS = create("skeleton_preferred_weapons");
     public static final Tag<Item> DROWNED_PREFERRED_WEAPONS = create("drowned_preferred_weapons");
     public static final Tag<Item> PIGLIN_PREFERRED_WEAPONS = create("piglin_preferred_weapons");
@@ -219,6 +227,9 @@ public final class ItemTag {
     public static final Tag<Item> WITHER_SKELETON_DISLIKED_WEAPONS = create("wither_skeleton_disliked_weapons");
     public static final Tag<Item> SHEARABLE_FROM_COPPER_GOLEM = create("shearable_from_copper_golem");
     public static final Tag<Item> METAL_NUGGETS = create("metal_nuggets");
+    public static final Tag<Item> DOUSES_CAMPFIRES = create("douses_campfires");
+    public static final Tag<Item> BREWING_POTION_INPUTS = create("brewing_potion_inputs");
+    public static final Tag<Item> FURNACE_FUEL_BOTTOM_TAKEABLE = create("furnace_fuel_bottom_takeable");
     public static final Tag<Item> ENCHANTABLE_FOOT_ARMOR = create("enchantable/foot_armor");
     public static final Tag<Item> ENCHANTABLE_LEG_ARMOR = create("enchantable/leg_armor");
     public static final Tag<Item> ENCHANTABLE_CHEST_ARMOR = create("enchantable/chest_armor");

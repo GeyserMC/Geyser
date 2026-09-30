@@ -31,7 +31,6 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
-import net.kyori.adventure.key.Key;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
@@ -46,6 +45,7 @@ import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.cache.BundleCache;
 import org.geysermc.geyser.session.cache.registry.JavaRegistries;
+import org.geysermc.geyser.session.cache.tags.GeyserHolderSet;
 import org.geysermc.geyser.session.cache.tags.Tag;
 import org.geysermc.geyser.translator.item.ItemTranslator;
 import org.geysermc.geyser.util.ColorUtils;
@@ -118,9 +118,9 @@ public class GeyserItemStack {
             case ItemStackSlotDisplay(ItemStack itemStack) -> GeyserItemStack.from(session, itemStack);
             // Just create the first display
             case CompositeSlotDisplay(List<SlotDisplay> contents) -> contents.isEmpty() ? GeyserItemStack.EMPTY : from(session, contents.getFirst());
-            case TagSlotDisplay(Key tag) -> {
-                // Again, just create an itemstack of the first item in the tag, if possible
-                IntList itemTag = session.getTagCache().getRaw(new Tag<>(JavaRegistries.ITEM, tag));
+            case TagSlotDisplay(HolderSet set) -> {
+                // Again, just create an itemstack of the first item in the holder set, if possible
+                IntList itemTag = GeyserHolderSet.fromHolderSet(JavaRegistries.ITEM, set).resolveRaw(session.getTagCache());
                 if (itemTag.isEmpty()) {
                     yield GeyserItemStack.EMPTY;
                 }

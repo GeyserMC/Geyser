@@ -25,11 +25,11 @@
 
 package org.geysermc.geyser.translator.protocol.java.entity;
 
-import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.entity.ClientboundMoveEntityPosRotPacket;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
+import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.entity.ClientboundMoveEntityPosRotPacket;
 
 @Translator(packet = ClientboundMoveEntityPosRotPacket.class)
 public class JavaMoveEntityPosRotTranslator extends PacketTranslator<ClientboundMoveEntityPosRotPacket> {
@@ -39,6 +39,14 @@ public class JavaMoveEntityPosRotTranslator extends PacketTranslator<Clientbound
         Entity entity = session.getEntityCache().getEntityByJavaId(packet.getEntityId());
         if (entity == null) return;
 
-        entity.updatePositionAndRotation(packet.getMoveX(), packet.getMoveY(), packet.getMoveZ(), packet.getYaw(), packet.getPitch(), packet.isOnGround());
+        // TODO lerp
+        ClientboundMoveEntityPosRotPacket.DeltaStep lastStep;
+        if (packet.getSteps() != null) {
+            lastStep = packet.getSteps().getLast();
+        } else {
+            lastStep = new ClientboundMoveEntityPosRotPacket.DeltaStep(0, packet.getMoveX(), packet.getMoveY(), packet.getMoveZ());
+        }
+
+        entity.updatePositionAndRotation(lastStep.moveX(), lastStep.moveY(), lastStep.moveZ(), packet.getYaw(), packet.getPitch(), packet.isOnGround());
     }
 }

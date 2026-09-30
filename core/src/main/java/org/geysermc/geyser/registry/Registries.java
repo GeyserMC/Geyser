@@ -34,7 +34,6 @@ import net.kyori.adventure.key.Key;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.protocol.bedrock.data.biome.BiomeDefinitions;
-import org.cloudburstmc.protocol.bedrock.data.inventory.crafting.PotionMixData;
 import org.cloudburstmc.protocol.bedrock.packet.BedrockPacket;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.util.Identifier;
@@ -50,7 +49,7 @@ import org.geysermc.geyser.pack.ResourcePackHolder;
 import org.geysermc.geyser.registry.loader.BiomeIdentifierRegistryLoader;
 import org.geysermc.geyser.registry.loader.BlockEntityRegistryLoader;
 import org.geysermc.geyser.registry.loader.ParticleTypesRegistryLoader;
-import org.geysermc.geyser.registry.loader.PotionMixRegistryLoader;
+import org.geysermc.geyser.registry.loader.PotPatternRegistryLoader;
 import org.geysermc.geyser.registry.loader.ProviderRegistryLoader;
 import org.geysermc.geyser.registry.loader.RegistryLoaders;
 import org.geysermc.geyser.registry.loader.SoundEventsRegistryLoader;
@@ -123,6 +122,8 @@ public final class Registries {
      */
     public static final SimpleDeferredRegistry<Object2IntMap<String>> BIOME_IDENTIFIERS = SimpleDeferredRegistry.create("mappings/biomes.json", BiomeIdentifierRegistryLoader::new);
 
+    public static final SimpleMappedDeferredRegistry<Key, Key> DECORATED_POT_ASSETS = SimpleMappedDeferredRegistry.create("mappings/decorated_pot_patterns.json", PotPatternRegistryLoader::new);
+
     /**
      * A mapped registry which stores a block entity identifier to its {@link BlockEntityTranslator}.
      */
@@ -174,11 +175,6 @@ public final class Registries {
      * data primarily for how Bedrock should handle the particle.
      */
     public static final SimpleMappedDeferredRegistry<ParticleType, ParticleMapping> PARTICLES = SimpleMappedDeferredRegistry.create("mappings/particles.json", ParticleTypesRegistryLoader::new);
-
-    /**
-     * A registry holding all the potion mixes.
-     */
-    public static final VersionedDeferredRegistry<Set<PotionMixData>> POTION_MIXES = VersionedDeferredRegistry.create(VersionedRegistry::create, PotionMixRegistryLoader::new);
 
     /**
      * A mapped registry holding {@link ResourcePackHolder}'s with the pack uuid as keys.
@@ -247,6 +243,7 @@ public final class Registries {
         BIOMES_NBT.load();
         BIOMES.load();
         BIOME_IDENTIFIERS.load();
+        DECORATED_POT_ASSETS.load();
         BLOCK_ENTITIES.load();
         PARTICLES.load();
         // load potion mixes later
@@ -265,9 +262,6 @@ public final class Registries {
         PacketRegistryPopulator.populate();
         ItemRegistryPopulator.populate();
         TagRegistryPopulator.populate();
-
-        // potion mixes depend on other registries
-        POTION_MIXES.load();
 
         // Remove unneeded client generation data from NbtMapBuilder
         NbtMapBuilder biomesNbt = NbtMap.builder();

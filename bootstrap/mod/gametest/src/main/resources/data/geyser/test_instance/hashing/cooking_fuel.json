@@ -1,0 +1,18 @@
+{
+  "type": "geyser:component_hash",
+  "component": "minecraft:cooking_fuel",
+  "value": [
+    {
+      "burn_time": 50,
+      "speed_multiplier": 0.5
+    },
+    {
+      "burn_time": 1234,
+      "speed_multiplier": "minecraft:cooking_time_bamboo"
+    },
+    {
+      "burn_time": 2000,
+      "speed_multiplier": "minecraft:cooking_time_wool_slabs"
+    }
+  ]
+}

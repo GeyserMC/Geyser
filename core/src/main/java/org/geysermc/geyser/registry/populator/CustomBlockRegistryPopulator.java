@@ -254,7 +254,7 @@ public class CustomBlockRegistryPopulator {
             Block.Builder builder = Block.builder()
                 .javaId(stateRuntimeId)
                 .destroyTime(javaBlockState.blockHardness())
-                .pushReaction(pistonBehavior == null ? PistonBehavior.NORMAL : PistonBehavior.getByName(pistonBehavior));
+                    .pushReaction(pistonBehavior == null ? PistonBehavior.PUSH_PULL : PistonBehavior.getByName(pistonBehavior));
             if (!javaBlockState.canBreakWithHand()) {
                 builder.requiresCorrectToolForDrops();
             }

@@ -259,3 +259,5 @@ locales/
 /languages/
 /custom-skulls.yml
 /permissions.yml
+
+bootstrap/mod/gametest/src/main/generated/.cache

@@ -59,7 +59,7 @@ import org.geysermc.geyser.level.block.type.Block;
 import org.geysermc.geyser.level.block.type.BlockState;
 import org.geysermc.geyser.level.block.type.FlowerPotBlock;
 import org.geysermc.geyser.registry.BlockRegistries;
-import org.geysermc.geyser.registry.populator.conversion.ICanHasStates;
+import org.geysermc.geyser.registry.populator.conversion.WildernessBoundConverter;
 import org.geysermc.geyser.registry.type.BlockMappings;
 import org.geysermc.geyser.registry.type.GeyserBedrockBlock;
 import org.geysermc.geyser.util.JsonUtils;
@@ -122,8 +122,8 @@ public final class BlockRegistryPopulator {
 
     private static void registerBedrockBlocks() {
         var blockMappers = ImmutableMap.<ObjectIntPair<String>, Remapper>builder()
-                .put(ObjectIntPair.of("26_30", Bedrock_v1001.CODEC.getProtocolVersion()), ICanHasStates::convertBlock)
-                .put(ObjectIntPair.of("26_40", Bedrock_v2168.CODEC.getProtocolVersion()), ICanHasStates::convertBlock)
+                .put(ObjectIntPair.of("26_30", Bedrock_v1001.CODEC.getProtocolVersion()), WildernessBoundConverter::convertBlock)
+                .put(ObjectIntPair.of("26_40", Bedrock_v2168.CODEC.getProtocolVersion()), WildernessBoundConverter::convertBlock)
                 .put(ObjectIntPair.of("26_50", Bedrock_v2193.CODEC.getProtocolVersion()), tag -> tag)
             .build();
 

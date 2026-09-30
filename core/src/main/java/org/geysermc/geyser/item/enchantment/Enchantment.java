@@ -50,7 +50,7 @@ public record Enchantment(Set<EnchantmentComponent> effects,
                           @Nullable BedrockEnchantment bedrockEnchantment) {
 
     public static Enchantment read(RegistryEntryContext context) {
-        NbtMap data = context.data();
+        NbtMap data = context.dataAsMap();
         Set<EnchantmentComponent> effects = readEnchantmentComponents(data.getCompound("effects"));
 
         GeyserHolderSet<Item> supportedItems = context.session()

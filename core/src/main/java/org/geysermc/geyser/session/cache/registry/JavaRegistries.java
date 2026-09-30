@@ -83,6 +83,8 @@ public class JavaRegistries {
     public static final JavaRegistryKey<EntityDamageCause> DAMAGE_TYPE = create("damage_type");
     public static final JavaRegistryKey<Dialog> DIALOG = create("dialog");
     public static final JavaRegistryKey<RegistryUnit> WORLD_CLOCK = create("world_clock");
+    public static final JavaRegistryKey<Key> DECORATED_POT_PATTERN = create("decorated_pot_pattern");
+    public static final JavaRegistryKey<RegistryUnit> BLOCK_TRANSFORMER = create("block_transformer");
 
     public static final JavaRegistryKey<CatEntity.BuiltInVariant> CAT_VARIANT = create("cat_variant");
     public static final JavaRegistryKey<RegistryUnit> CAT_SOUND_VARIANT = create("cat_sound_variant");

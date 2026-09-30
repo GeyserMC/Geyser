@@ -52,7 +52,7 @@ public record JavaDimension(int minY, int height, boolean piglinSafe, boolean ul
     );
 
     public static JavaDimension read(RegistryEntryContext entry) {
-        NbtMap dimension = entry.data();
+        NbtMap dimension = entry.dataAsMap();
         int minY = dimension.getInt("min_y");
         int height = dimension.getInt("height");
         // Logical height can be ignored probably - seems to be for artificial limits like the Nether.
