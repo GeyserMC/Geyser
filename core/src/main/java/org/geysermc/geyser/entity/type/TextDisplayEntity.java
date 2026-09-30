@@ -25,11 +25,9 @@
 
 package org.geysermc.geyser.entity.type;
 
-import io.netty.util.internal.MathUtil;
 import lombok.Getter;
 import lombok.Setter;
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.cloudburstmc.math.imaginary.Quaternionf;
 import org.cloudburstmc.math.vector.Vector3f;
@@ -45,12 +43,15 @@ import org.geysermc.geyser.entity.VanillaEntities;
 import org.geysermc.geyser.entity.spawn.EntitySpawnContext;
 import org.geysermc.geyser.entity.type.living.ArmorStandEntity;
 import org.geysermc.geyser.translator.text.MessageTranslator;
+import org.geysermc.geyser.util.ColorUtils;
 import org.geysermc.geyser.util.MathUtils;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.EntityMetadata;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.BooleanEntityMetadata;
 import org.jetbrains.annotations.Nullable;
 
+import java.awt.*;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.Consumer;
 
 // Note: 1.19.4 requires that the billboard is set to something in order to show, on Java Edition
@@ -70,7 +71,7 @@ public class TextDisplayEntity extends DisplayBaseEntity {
      */
     private @Nullable ArmorStandEntity secondEntity = null;
     private boolean isInvisible = false;
-    private int lineCount;
+    private boolean sendUpdates = false;
 
     @Getter @Setter
     private @NonNull Component text = Component.empty();
@@ -141,6 +142,8 @@ public class TextDisplayEntity extends DisplayBaseEntity {
 
     @Override
     public void spawnEntity() {
+        sendUpdates = true;
+        valid = true;
         updatePrimitiveText();
     }
 
@@ -166,10 +169,13 @@ public class TextDisplayEntity extends DisplayBaseEntity {
 
     @Override
     public void despawnEntity() {
+        sendUpdates = false;
         if (secondEntity != null) {
             secondEntity.despawnEntity();
         }
         super.despawnEntity();
+
+        GeyserImpl.getInstance().getLogger().info("logging this despawn YOOOO");
 
         DebugDrawerPacket packet = new DebugDrawerPacket();
         packet.getShapes().add(new DebugShape(geyserId));
@@ -202,13 +208,6 @@ public class TextDisplayEntity extends DisplayBaseEntity {
         updatePrimitiveText();
     }
 
-    private int calculateLineCount(@Nullable Component text) {
-        if (text == null) {
-            return 0;
-        }
-        return PlainTextComponentSerializer.plainText().serialize(text).split("\n").length;
-    }
-
     @Override
     public void updateBedrockMetadata() {
         // Bundle metadata updates to ensure they aren't ignored
@@ -222,19 +221,23 @@ public class TextDisplayEntity extends DisplayBaseEntity {
     }
 
     public void updatePrimitiveText() {
-        String convertedMessage = MessageTranslator.convertMessage(text, session.locale());
-        int oldLineCount = this.lineCount;
-        this.lineCount = calculateLineCount(text);
+        if (!sendUpdates) return;
+        String message;
+        Color color = null;
 
-        // If the line count changed, update the position to account for the new offset
-        if (this.lineCount != oldLineCount) {
-            setOffset(calculateLineOffset());
-            moveAbsoluteRaw(position, yaw, pitch, headYaw, onGround, false);
+        Set<Color> colors = ColorUtils.extractAllColors(text);
+
+        if (colors.size() < 2) {
+            message = MessageTranslator.convertNoColorMessage(text, session.locale());
+            color = colors.isEmpty() ? null : colors.iterator().next();
+        } else {
+            message = MessageTranslator.convertMessage(text, session.locale());
         }
 
         DebugText text = new DebugText();
         text.setId(geyserId);
-        text.setText(convertedMessage);
+        text.setText(message);
+        text.setColor(color);
         text.setPosition(bedrockPosition().add(getBaseTranslation()));
         text.setRotation(bedrockRotation());
         text.setUseRotation(!getBillboard().equals(Billboard.CENTER));
@@ -266,19 +269,5 @@ public class TextDisplayEntity extends DisplayBaseEntity {
         secondEntity.getMetadata().put(EntityDataTypes.WIDTH, 0.0f);
         secondEntity.getMetadata().put(EntityDataTypes.HEIGHT, 0.0f);
         secondEntity.getMetadata().put(EntityDataTypes.HITBOX, NbtMap.EMPTY);
-    }
-
-    /**
-     * Calculates the Y offset needed to match Java Edition's text centering
-     * behavior for multi-line text displays.
-     * In Java Edition, multi-line text displays are centered vertically.
-     *
-     * @return the Y offset to apply based on the number of lines
-     */
-    public float calculateLineOffset() {
-        if (lineCount == 0) {
-            return 0;
-        }
-        return -0.6f + LINE_HEIGHT_OFFSET * lineCount;
     }
 }

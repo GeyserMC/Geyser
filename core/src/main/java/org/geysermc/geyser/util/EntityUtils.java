@@ -217,18 +217,6 @@ public final class EntityUtils {
                         zOffset = displayTranslation.getZ();
                     }
                 }
-                case PLAYER -> {
-                    if (passenger instanceof TextDisplayEntity textDisplay) {
-                        Vector3f displayTranslation = textDisplay.getBaseTranslation();
-                        int lines = textDisplay.getLineCount();
-                        if (lines != 0) {
-                            float multiplier = .1414f;
-                            xOffset = displayTranslation.getX();
-                            yOffset += displayTranslation.getY() + multiplier * lines;
-                            zOffset = displayTranslation.getZ();
-                        }
-                    }
-                }
                 case HAPPY_GHAST -> {
                     int seatingIndex = Math.min(index, 4);
                     xOffset = HappyGhastEntity.X_OFFSETS[seatingIndex];
