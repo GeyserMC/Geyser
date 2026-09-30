@@ -32,8 +32,6 @@ import com.viaversion.viaversion.api.protocol.version.ProtocolVersion;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
-import io.netty.channel.ChannelHandler;
-import io.netty.channel.socket.ServerSocketChannel;
 import org.bukkit.Bukkit;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.command.CommandSender;
@@ -60,7 +58,7 @@ import org.geysermc.geyser.configuration.GeyserPluginConfig;
 import org.geysermc.geyser.dump.BootstrapDumpInfo;
 import org.geysermc.geyser.level.WorldManager;
 import org.geysermc.geyser.network.bedrock.GameProtocol;
-import org.geysermc.geyser.network.bedrock.nethernet.SharedPortDetector;
+import org.geysermc.geyser.network.bedrock.nethernet.SharedJavaPort;
 import org.geysermc.geyser.ping.GeyserLegacyPingPassthrough;
 import org.geysermc.geyser.ping.IGeyserPingPassthrough;
 import org.geysermc.geyser.platform.spigot.command.SpigotCommandRegistry;
@@ -78,10 +76,8 @@ import org.incendo.cloud.paper.LegacyPaperCommandManager;
 
 import java.net.SocketAddress;
 import java.nio.file.Path;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 
 public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
@@ -93,11 +89,7 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
             new GeyserPaperLogger(this, getLogger()) : new GeyserSpigotLogger(getLogger());
     private IGeyserPingPassthrough geyserSpigotPingPassthrough;
     private GeyserSpigotWorldManager geyserWorldManager;
-    /**
-     * Receives signaling connections from the Java port, see {@link #shareJavaPort(Consumer)}.
-     */
-    private final AtomicReference<Consumer<Channel>> sharedPortSignaling = new AtomicReference<>();
-    private List<Channel> sharedPortChannels = List.of();
+    private final SharedJavaPort sharedJavaPort = new SharedJavaPort();
 
     private GeyserImpl geyser;
 
@@ -367,48 +359,14 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
         if (geyserInjector != null) {
             geyserInjector.shutdown();
         }
-        for (Channel channel : sharedPortChannels) {
-            if (channel.pipeline().get(SharedPortDetector.NAME) != null) {
-                channel.pipeline().remove(SharedPortDetector.NAME);
-            }
-        }
-        sharedPortChannels = List.of();
-        sharedPortSignaling.set(null);
+        sharedJavaPort.close();
     }
 
     @Override
     public boolean shareJavaPort(Consumer<Channel> signaling) {
-        // Already injected, e.g. after a reload
-        if (sharedPortSignaling.getAndSet(signaling) != null) {
-            return true;
-        }
-        try {
-            ChannelHandler acceptor = SharedPortDetector.acceptor(channel -> {
-                Consumer<Channel> current = sharedPortSignaling.get();
-                if (current != null) {
-                    current.accept(channel);
-                } else {
-                    channel.close();
-                }
-            });
-            List<Channel> channels = new ArrayList<>();
-            for (ChannelFuture future : GeyserSpigotInjector.findServerChannels()) {
-                // Skip Geyser's local channel and Unix sockets
-                if (future.channel() instanceof ServerSocketChannel channel) {
-                    channel.pipeline().addFirst(SharedPortDetector.NAME, acceptor);
-                    channels.add(channel);
-                }
-            }
-            if (!channels.isEmpty()) {
-                this.sharedPortChannels = channels;
-                return true;
-            }
-            geyserLogger.debug("Found no TCP channel the Java server listens on to share with NetherNet signaling");
-        } catch (Exception e) {
-            geyserLogger.debug("Could not share the Java server's port with NetherNet signaling: " + e);
-        }
-        sharedPortSignaling.set(null);
-        return false;
+        return sharedJavaPort.share(signaling, getServerPort(), () -> GeyserSpigotInjector.findServerChannels().stream()
+            .map(ChannelFuture::channel)
+            .toList(), geyserLogger);
     }
 
     @Override
