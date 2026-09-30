@@ -39,7 +39,6 @@ import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.skin.SkinManager;
 import org.geysermc.mcprotocollib.protocol.data.game.level.waypoint.TrackedWaypoint;
-import org.geysermc.mcprotocollib.protocol.data.game.level.waypoint.WaypointOperation;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.level.ClientboundTrackedWaypointPacket;
 
 import java.awt.Color;
@@ -53,8 +52,6 @@ public final class WaypointCache {
     private final GeyserSession session;
     private final Map<Identifier, CustomWaypointStyle> waypointStyles;
     private final Map<String, GeyserWaypoint> waypoints = new Object2ObjectOpenHashMap<>();
-    // TODO: remove when dropping 26.0 and below
-    private final Map<UUID, Color> waypointColors = new Object2ObjectOpenHashMap<>();
 
     public WaypointCache(GeyserSession session) {
         this.session = session;
@@ -98,12 +95,6 @@ public final class WaypointCache {
             case UNTRACK -> untrack(packet.getWaypoint());
             case UPDATE -> update(packet.getWaypoint());
         }
-
-        if ((packet.getOperation() == WaypointOperation.TRACK || packet.getOperation()== WaypointOperation.UNTRACK) && !GeyserWaypoint.uses26_10WaypointPacket(session)) {
-            // Only show locator bar when there are waypoints on it
-            // This is equivalent to Java, and the Java locator_bar game rule won't work otherwise
-            session.sendGameRule("locatorBar", !waypoints.isEmpty());
-        }
     }
 
     public void addEntity(Entity entity) {
@@ -123,16 +114,6 @@ public final class WaypointCache {
             // On 26.10 and above:
             // This will re-initialise the waypoint, adding the entity ID to it and letting the client take authority
             waypoint.setEntity(entity);
-        } else {
-            if (!GeyserWaypoint.uses26_10WaypointPacket(session)) {
-                // On 26.0 and below:
-                // If we haven't received a waypoint for the player, we need to tell the client to hide them
-                // Bedrock likes to create their own waypoints for players in render distance, but Java doesn't do this, and we don't want this either, since it could
-                // lead to duplicate/wrong waypoints on the locator bar
-                // For example, if a Java server hides a player from the locator bar even when they're not sneaking, bedrock will still show them when in render
-                // distance
-                sendHidePlayerPacket(session, entity.geyserId());
-            }
         }
     }
 
@@ -155,11 +136,6 @@ public final class WaypointCache {
         }
     }
 
-    // TODO: remove when dropping 26.0 and below
-    public Optional<Color> getWaypointColor(UUID uuid) {
-        return Optional.ofNullable(waypointColors.get(uuid));
-    }
-
     public void tick() {
         for (GeyserWaypoint waypoint : waypoints.values()) {
             if (waypoint instanceof TickingWaypoint ticking) {
@@ -176,26 +152,8 @@ public final class WaypointCache {
 
         GeyserWaypoint tracked = GeyserWaypoint.create(session, entity, waypoint, waypointStyles);
         if (tracked != null) {
-            uuid.ifPresent(id -> waypointColors.put(id, tracked.color()));
-            // On 26.0 and below, resend player entry with new waypoint colour
-            entity.ifPresent(anEntity -> {
-                if (!GeyserWaypoint.uses26_10WaypointPacket(session) && anEntity instanceof PlayerEntity player) {
-                    updatePlayerEntry(player);
-                }
-            });
-
             tracked.track(waypoint.data());
             waypoints.put(waypointId(waypoint), tracked);
-        } else {
-            entity.ifPresent(anEntity -> {
-                if (!GeyserWaypoint.uses26_10WaypointPacket(session) && anEntity instanceof PlayerEntity) {
-                    // On 26.0 and below:
-                    // When tracked waypoint is null, the waypoint shouldn't show up on the locator bar (Java type is EMPTY)
-                    // If this waypoint is linked to a player, tell the bedrock client to hide it
-                    // If we don't do this bedrock will show the waypoint anyway when the player is in render distance (read comments above in trackPlayer)
-                    sendHidePlayerPacket(session, anEntity.geyserId());
-                }
-            });
         }
     }
 
@@ -206,7 +164,6 @@ public final class WaypointCache {
     private void untrack(TrackedWaypoint waypoint) {
         getWaypoint(waypoint).ifPresent(GeyserWaypoint::untrack);
         waypoints.remove(waypointId(waypoint));
-        waypointColors.remove(waypoint.uuid());
     }
 
     private Optional<GeyserWaypoint> getWaypoint(TrackedWaypoint waypoint) {
@@ -243,9 +200,6 @@ public final class WaypointCache {
 
     public void clear() {
         waypoints.clear();
-        if (!GeyserWaypoint.uses26_10WaypointPacket(session)) {
-            session.sendGameRule("locatorBar", false);
-        }
     }
 
     private static void sendHidePlayerPacket(GeyserSession session, long playerId) {

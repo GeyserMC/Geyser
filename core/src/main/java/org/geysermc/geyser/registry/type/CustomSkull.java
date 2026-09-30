@@ -71,7 +71,7 @@ public class CustomSkull {
                         .texture("geyser." + skinHash + "_player_skin")
                         .renderMethod("alpha_test")
                         .faceDimming(true)
-                        .ambientOcclusion(true)
+                        .ambientOcclusionExponent(1.0f)
                         .build())
                 .lightDampening(0)
                 .placeAir(true)

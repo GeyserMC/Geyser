@@ -64,7 +64,7 @@ public class AzimuthWaypoint extends GeyserWaypoint implements TickingWaypoint {
     public void tick() {
         // Update position so that it remains accurate to the angle as the player moves around
         updatePosition();
-        sendLocationPacket(false);
+        sendLocationPacket();
     }
 
     private void updatePosition() {

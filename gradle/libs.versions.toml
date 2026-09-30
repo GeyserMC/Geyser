@@ -13,10 +13,15 @@ guava = "29.0-jre"
 gson = "2.3.1" # Provided by Spigot 1.8.8 TODO bump to 2.8.1 or similar (Spigot 1.16.5 version) after Merge
 gson-runtime = "2.10.1"
 websocket = "1.5.1"
-protocol-connection = "3.0.0.Beta13-20260824.114016-17"
-protocol-common = "3.0.0.Beta13-20260824.114016-17"
-protocol-codec = "3.0.0.Beta13-20260824.114016-17"
-raknet = "1.1.0.CR1-20260820.174333-6"
+protocol-connection = "3.0.0.Beta13-20260917.001841-27"
+protocol-common = "3.0.0.Beta13-20260917.001841-27"
+protocol-codec = "3.0.0.Beta13-20260917.001841-27"
+# CloudburstMC/Network, "nethernet" branch; RakNet and NetherNet come from the same build
+network = "2.0.0.CR3-20260916.135337-10"
+# opencollab-incubator/libdatachannel-java, which builds opencollab-incubator/libdatachannel and libjuice into its natives
+libdatachannel = "0.24.5.0-SNAPSHOT"
+bouncycastle-pkix = "1.85"
+bouncycastle-prov = "1.85.2"
 minecraftauth = "5.0.0"
 mcprotocollib = "26.2-20260824.124638-17"
 adventure = "5.2.0"
@@ -93,6 +98,7 @@ adventure-text-serializer-legacy = { group = "net.kyori", name = "adventure-text
 adventure-text-serializer-plain = { group = "net.kyori", name = "adventure-text-serializer-plain", version.ref = "adventure" }
 
 netty-codec-haproxy = { group = "io.netty", name = "netty-codec-haproxy", version.ref = "netty" }
+netty-codec-http = { group = "io.netty", name = "netty-codec-http", version.ref = "netty" }
 netty-handler = { group = "io.netty", name = "netty-handler", version.ref = "netty" }
 netty-transport-native-epoll = { group = "io.netty", name = "netty-transport-native-epoll", version.ref = "netty" }
 netty-transport-native-kqueue = { group = "io.netty", name = "netty-transport-native-kqueue", version.ref = "netty" }
@@ -143,7 +149,13 @@ gson-record-factory = { group = "com.github.Marcono1234", name = "gson-record-ty
 junit = { group = "org.junit.jupiter", name = "junit-jupiter", version.ref = "junit" }
 minecraftauth = { group = "net.raphimc", name = "MinecraftAuth", version.ref = "minecraftauth" }
 mcprotocollib = { group = "org.geysermc.mcprotocollib", name = "protocol", version.ref = "mcprotocollib" }
-raknet = { group = "org.cloudburstmc.netty", name = "netty-transport-raknet", version.ref = "raknet" }
+raknet = { group = "org.cloudburstmc.netty", name = "netty-transport-raknet", version.ref = "network" }
+nethernet-transport = { group = "org.cloudburstmc.netty", name = "netty-transport-nethernet", version.ref = "network" }
+nethernet-signaling = { group = "org.cloudburstmc.netty", name = "netty-external-signaling", version.ref = "network" }
+# Bundles the natives of every platform, and picks the right one at runtime
+libdatachannel = { group = "dev.opencollab", name = "libdatachannel-java-arch-detect", version.ref = "libdatachannel" }
+bouncycastle-pkix = { group = "org.bouncycastle", name = "bcpkix-jdk18on", version.ref = "bouncycastle-pkix" }
+bouncycastle-prov = { group = "org.bouncycastle", name = "bcprov-jdk18on", version.ref = "bouncycastle-prov" }
 terminalconsoleappender = { group = "net.minecrell", name = "terminalconsoleappender", version.ref = "terminalconsoleappender" }
 velocity-proxy = { group = "com.velocitypowered", name = "velocity-proxy", version.ref = "velocity" }
 velocity-api = { group = "com.velocitypowered", name = "velocity-api", version.ref = "velocity" }

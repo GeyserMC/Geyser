@@ -50,9 +50,9 @@ import io.netty.util.concurrent.DefaultThreadFactory;
 import io.netty.util.concurrent.ThreadAwareExecutor;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.GeyserBootstrap;
-import org.geysermc.geyser.network.netty.GeyserInjector;
-import org.geysermc.geyser.network.netty.IoHandlerWrapper;
-import org.geysermc.geyser.network.netty.LocalServerChannelWrapper;
+import org.geysermc.geyser.network.java.GeyserInjector;
+import org.geysermc.geyser.network.java.IoHandlerWrapper;
+import org.geysermc.geyser.network.java.LocalServerChannelWrapper;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;

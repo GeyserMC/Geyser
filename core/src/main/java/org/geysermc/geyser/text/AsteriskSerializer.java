@@ -83,9 +83,33 @@ public class AsteriskSerializer implements JsonSerializer<String> {
         }
     };
 
+    /**
+     * Censors a value that is never safe to publish, such as a token or a password.
+     * <p>
+     * Unlike {@link Asterisk} this ignores {@code showSensitive}, so a full dump censors it too: a
+     * dump is routinely posted to a public paste, and a reader helping with support has no use for
+     * the secret itself. An empty value is left alone so that "not configured" stays visible.
+     */
+    public static Processor.Factory<Secret, String> CONFIGURATE_SECRET = (data, fieldType) -> (value, destination) -> {
+        if (value == null || value.isEmpty()) {
+            return;
+        }
+        try {
+            destination.set("***");
+        } catch (SerializationException e) {
+            throw new RuntimeException("Unable to censor a secret", e); // Error over silently printing a secret.
+        }
+    };
+
     @Target({ElementType.FIELD, ElementType.METHOD})
     @Retention(RetentionPolicy.RUNTIME)
     public @interface Asterisk {
+
+    }
+
+    @Target({ElementType.FIELD, ElementType.METHOD})
+    @Retention(RetentionPolicy.RUNTIME)
+    public @interface Secret {
 
     }
 }
