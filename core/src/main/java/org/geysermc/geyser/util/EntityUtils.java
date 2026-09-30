@@ -210,10 +210,7 @@ public final class EntityUtils {
                 case TRADER_LLAMA, LLAMA -> zOffset = -0.3f;
                 case TEXT_DISPLAY -> {
                     if (passenger instanceof TextDisplayEntity textDisplay) {
-                        Vector3f displayTranslation = textDisplay.getTranslation();
-                        if (displayTranslation == null) {
-                            return;
-                        }
+                        Vector3f displayTranslation = textDisplay.getBaseTranslation();
 
                         xOffset = displayTranslation.getX();
                         yOffset = displayTranslation.getY() + 0.2f;
@@ -222,9 +219,9 @@ public final class EntityUtils {
                 }
                 case PLAYER -> {
                     if (passenger instanceof TextDisplayEntity textDisplay) {
-                        Vector3f displayTranslation = textDisplay.getTranslation();
+                        Vector3f displayTranslation = textDisplay.getBaseTranslation();
                         int lines = textDisplay.getLineCount();
-                        if (displayTranslation != null && lines != 0) {
+                        if (lines != 0) {
                             float multiplier = .1414f;
                             xOffset = displayTranslation.getX();
                             yOffset += displayTranslation.getY() + multiplier * lines;
