@@ -30,7 +30,10 @@ import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
+import io.netty.channel.ChannelInitializer;
 import io.netty.channel.embedded.EmbeddedChannel;
+import io.netty.handler.codec.haproxy.HAProxyMessage;
+import io.netty.handler.codec.haproxy.HAProxyMessageDecoder;
 import org.junit.jupiter.api.Test;
 
 import java.io.ByteArrayOutputStream;
@@ -53,18 +56,39 @@ class SharedPortDetectorTest {
     private final Capture signaling = new Capture();
     private final Capture minecraft = new Capture();
 
+    private EmbeddedChannel listener() {
+        return new EmbeddedChannel(SharedPortDetector.acceptor(channel -> {
+            handedOver.add(channel);
+            channel.pipeline().addLast("signaling", signaling);
+        }));
+    }
+
     /**
      * A connection as the Java server has it: accepted through the acceptor, then set up with the server's handlers.
      */
     private EmbeddedChannel accept() {
-        EmbeddedChannel listener = new EmbeddedChannel(SharedPortDetector.acceptor(channel -> {
-            handedOver.add(channel);
-            channel.pipeline().addLast("signaling", signaling);
-        }));
         EmbeddedChannel connection = new EmbeddedChannel();
-        listener.writeInbound(connection);
+        listener().writeInbound(connection);
         connection.pipeline().addLast("timeout", new ChannelInboundHandlerAdapter());
         connection.pipeline().addLast("minecraft", minecraft);
+        return connection;
+    }
+
+    /**
+     * A connection whose server initialiser puts a PROXY decoder first, as Velocity and BungeeCord do.
+     */
+    private EmbeddedChannel acceptBehindProxyDecoder() throws Exception {
+        EmbeddedChannel connection = new EmbeddedChannel(false, false);
+        listener().writeInbound(connection);
+        connection.pipeline().addLast(new ChannelInitializer<>() {
+            @Override
+            protected void initChannel(Channel channel) {
+                channel.pipeline().addLast("timeout", new ChannelInboundHandlerAdapter());
+                channel.pipeline().addLast("minecraft", minecraft);
+                channel.pipeline().addFirst("haproxy-decoder", new HAProxyMessageDecoder());
+            }
+        });
+        connection.register();
         return connection;
     }
 
@@ -189,6 +213,31 @@ class SharedPortDetectorTest {
     }
 
     @Test
+    void movesInFrontOfAProxyDecoderTheServerPutFirst() throws Exception {
+        EmbeddedChannel connection = acceptBehindProxyDecoder();
+        assertEquals(List.of(SharedPortDetector.NAME, "haproxy-decoder", "timeout", "minecraft"),
+            connection.pipeline().names().subList(0, 4));
+    }
+
+    @Test
+    void keepsTheProxyHeaderForSignalingBehindAProxyDecoder() throws Exception {
+        byte[] http = concat(PROXY_V1, HTTP);
+        EmbeddedChannel connection = acceptBehindProxyDecoder();
+        connection.writeInbound(Unpooled.wrappedBuffer(http));
+        assertHandedToSignaling(connection, http);
+        assertNull(connection.pipeline().get("haproxy-decoder"));
+    }
+
+    @Test
+    void leavesTheProxyHeaderToTheServersDecoder() throws Exception {
+        EmbeddedChannel connection = acceptBehindProxyDecoder();
+        connection.writeInbound(Unpooled.wrappedBuffer(concat(PROXY_V1, JAVA_HANDSHAKE)));
+        assertStaysWithJava(connection, JAVA_HANDSHAKE);
+        assertEquals(1, minecraft.messages.size());
+        assertEquals("203.0.113.7", ((HAProxyMessage) minecraft.messages.get(0)).sourceAddress());
+    }
+
+    @Test
     void readsHowLongAProxyHeaderIs() {
         assertEquals(PROXY_V1.length, SharedPortDetector.proxyHeaderLength(Unpooled.wrappedBuffer(PROXY_V1)));
         assertEquals(28, SharedPortDetector.proxyHeaderLength(Unpooled.wrappedBuffer(proxyV2())));
@@ -197,9 +246,10 @@ class SharedPortDetectorTest {
         assertEquals(0, SharedPortDetector.proxyHeaderLength(Unpooled.wrappedBuffer(JAVA_HANDSHAKE)));
     }
 
-    /** Collects the bytes that reach it. */
+    /** Collects the bytes that reach it, and any other messages. */
     private static final class Capture extends ChannelInboundHandlerAdapter {
         private final ByteArrayOutputStream received = new ByteArrayOutputStream();
+        private final List<Object> messages = new ArrayList<>();
 
         @Override
         public boolean isSharable() {
@@ -208,7 +258,11 @@ class SharedPortDetectorTest {
 
         @Override
         public void channelRead(ChannelHandlerContext ctx, Object msg) {
-            ByteBuf buf = (ByteBuf) msg;
+            if (!(msg instanceof ByteBuf buf)) {
+                // Kept unreleased, so tests can still read it
+                messages.add(msg);
+                return;
+            }
             byte[] bytes = new byte[buf.readableBytes()];
             buf.readBytes(bytes);
             buf.release();
