@@ -27,6 +27,7 @@ package org.geysermc.geyser.platform.bungeecord;
 
 import io.netty.channel.Channel;
 import net.md_5.bungee.BungeeCord;
+import net.md_5.bungee.ConnectionThrottle;
 import net.md_5.bungee.Util;
 import net.md_5.bungee.api.CommandSender;
 import net.md_5.bungee.api.config.ListenerInfo;
@@ -230,7 +231,15 @@ public class GeyserBungeePlugin extends Plugin implements GeyserBootstrap {
 
     @Override
     public boolean shareJavaPort(Consumer<Channel> signaling) {
-        return sharedJavaPort.share(signaling, getServerPort(), () -> GeyserBungeeInjector.findListeningChannels(getProxy()), geyserLogger);
+        Consumer<Channel> unthrottled = channel -> {
+            // BungeeCord counts every new connection towards its per-address throttle, signaling ones included
+            ConnectionThrottle throttle = BungeeCord.getInstance().getConnectionThrottle();
+            if (throttle != null) {
+                throttle.unthrottle(channel.remoteAddress());
+            }
+            signaling.accept(channel);
+        };
+        return sharedJavaPort.share(unthrottled, getServerPort(), () -> GeyserBungeeInjector.findListeningChannels(getProxy()), geyserLogger);
     }
 
     @Override
