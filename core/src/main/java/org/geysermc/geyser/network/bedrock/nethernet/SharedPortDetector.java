@@ -129,6 +129,18 @@ public final class SharedPortDetector extends ByteToMessageDecoder {
     }
 
     @Override
+    public void channelRegistered(ChannelHandlerContext ctx) throws Exception {
+        super.channelRegistered(ctx);
+        // The server's initialiser has run by now. Velocity and BungeeCord put their PROXY decoder first,
+        // which would take the header away from signaling, so this moves back in front of it
+        ChannelPipeline pipeline = ctx.pipeline();
+        if (pipeline.first() != this) {
+            pipeline.remove(this);
+            pipeline.addFirst(NAME, new SharedPortDetector(signaling));
+        }
+    }
+
+    @Override
     protected void decode(ChannelHandlerContext ctx, ByteBuf in, List<Object> out) {
         int header = proxyHeaderLength(in);
         if (header < 0 || in.readableBytes() < header + 2) {
