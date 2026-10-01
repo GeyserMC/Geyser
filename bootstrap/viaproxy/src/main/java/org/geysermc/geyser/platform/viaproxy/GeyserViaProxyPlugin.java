@@ -25,6 +25,7 @@
 package org.geysermc.geyser.platform.viaproxy;
 
 import io.netty.channel.AbstractChannel;
+import io.netty.channel.Channel;
 import net.lenni0451.lambdaevents.EventHandler;
 import net.lenni0451.reflect.stream.RStream;
 import net.raphimc.vialegacy.api.LegacyProtocolVersion;
@@ -53,6 +54,7 @@ import org.geysermc.geyser.configuration.ConfigLoader;
 import org.geysermc.geyser.configuration.GeyserConfig;
 import org.geysermc.geyser.configuration.GeyserPluginConfig;
 import org.geysermc.geyser.dump.BootstrapDumpInfo;
+import org.geysermc.geyser.network.bedrock.nethernet.SharedJavaPort;
 import org.geysermc.geyser.ping.GeyserLegacyPingPassthrough;
 import org.geysermc.geyser.ping.IGeyserPingPassthrough;
 import org.geysermc.geyser.platform.viaproxy.listener.GeyserServerTransferListener;
@@ -66,6 +68,7 @@ import java.net.SocketAddress;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.UUID;
+import java.util.function.Consumer;
 
 public class GeyserViaProxyPlugin extends ViaProxyPlugin implements GeyserBootstrap, EventRegistrar {
 
@@ -77,6 +80,7 @@ public class GeyserViaProxyPlugin extends ViaProxyPlugin implements GeyserBootst
     private StandaloneCloudCommandManager cloud;
     private CommandRegistry commandRegistry;
     private IGeyserPingPassthrough pingPassthrough;
+    private final SharedJavaPort sharedJavaPort = new SharedJavaPort();
 
     @Override
     public void onEnable() {
@@ -120,6 +124,11 @@ public class GeyserViaProxyPlugin extends ViaProxyPlugin implements GeyserBootst
 
     @EventHandler
     private void onClient2ProxyChannelInitialize(Client2ProxyChannelInitializeEvent event) {
+        if (event.getType() == ITyped.Type.PRE && !event.isLegacyPassthrough()) {
+            // Before ViaProxy adds its handlers
+            sharedJavaPort.detect(event.getChannel());
+            return;
+        }
         if (event.getType() != ITyped.Type.POST || event.isLegacyPassthrough()) {
             return;
         }
@@ -204,6 +213,14 @@ public class GeyserViaProxyPlugin extends ViaProxyPlugin implements GeyserBootst
     @Override
     public void onGeyserShutdown() {
         this.geyser.shutdown();
+        this.sharedJavaPort.close();
+    }
+
+    @Override
+    public boolean shareJavaPort(Consumer<Channel> signaling) {
+        // ViaProxy binds after Geyser starts, so each connection is handled as it is initialised
+        this.sharedJavaPort.share(signaling);
+        return true;
     }
 
     @Override

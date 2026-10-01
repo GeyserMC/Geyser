@@ -30,6 +30,8 @@ import com.viaversion.viaversion.api.data.MappingData;
 import com.viaversion.viaversion.api.protocol.ProtocolPathEntry;
 import com.viaversion.viaversion.api.protocol.version.ProtocolVersion;
 import io.netty.buffer.ByteBuf;
+import io.netty.channel.Channel;
+import io.netty.channel.ChannelFuture;
 import org.bukkit.Bukkit;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.command.CommandSender;
@@ -56,6 +58,7 @@ import org.geysermc.geyser.configuration.GeyserPluginConfig;
 import org.geysermc.geyser.dump.BootstrapDumpInfo;
 import org.geysermc.geyser.level.WorldManager;
 import org.geysermc.geyser.network.bedrock.GameProtocol;
+import org.geysermc.geyser.network.bedrock.nethernet.SharedJavaPort;
 import org.geysermc.geyser.ping.GeyserLegacyPingPassthrough;
 import org.geysermc.geyser.ping.IGeyserPingPassthrough;
 import org.geysermc.geyser.platform.spigot.command.SpigotCommandRegistry;
@@ -75,6 +78,7 @@ import java.net.SocketAddress;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Objects;
+import java.util.function.Consumer;
 
 public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
 
@@ -85,6 +89,7 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
             new GeyserPaperLogger(this, getLogger()) : new GeyserSpigotLogger(getLogger());
     private IGeyserPingPassthrough geyserSpigotPingPassthrough;
     private GeyserSpigotWorldManager geyserWorldManager;
+    private final SharedJavaPort sharedJavaPort = new SharedJavaPort();
 
     private GeyserImpl geyser;
 
@@ -354,6 +359,14 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
         if (geyserInjector != null) {
             geyserInjector.shutdown();
         }
+        sharedJavaPort.close();
+    }
+
+    @Override
+    public boolean shareJavaPort(Consumer<Channel> signaling) {
+        return sharedJavaPort.share(signaling, getServerPort(), () -> GeyserSpigotInjector.findServerChannels().stream()
+            .map(ChannelFuture::channel)
+            .toList(), geyserLogger);
     }
 
     @Override

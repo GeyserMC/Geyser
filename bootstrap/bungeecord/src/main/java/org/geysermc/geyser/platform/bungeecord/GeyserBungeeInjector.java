@@ -84,6 +84,20 @@ public class GeyserBungeeInjector extends GeyserInjector implements Listener {
         this.proxy = plugin.getProxy();
     }
 
+    /**
+     * Finds the channels BungeeCord listens on. The set is BungeeCord's own, so it includes the local channel
+     * once that is injected.
+     */
+    @SuppressWarnings("unchecked")
+    static Set<Channel> findListeningChannels(ProxyServer proxy) throws ReflectiveOperationException {
+        // The field that stores all listeners in BungeeCord
+        // As of https://github.com/ViaVersion/ViaVersion/pull/2698 ViaVersion adds a wrapper to this field to
+        // add its connections
+        Field listenerField = proxy.getClass().getDeclaredField("listeners");
+        listenerField.setAccessible(true);
+        return (Set<Channel>) listenerField.get(proxy);
+    }
+
     @Override
     @SuppressWarnings("unchecked")
     protected void initializeLocalChannel0(GeyserBootstrap bootstrap) throws Exception {
@@ -160,12 +174,7 @@ public class GeyserBungeeInjector extends GeyserInjector implements Listener {
                 bootstrap.config().advanced().java().useHaproxyProtocol() // If Geyser is expecting HAProxy, so should the Bungee end
         );
 
-        // The field that stores all listeners in BungeeCord
-        // As of https://github.com/ViaVersion/ViaVersion/pull/2698 ViaVersion adds a wrapper to this field to
-        // add its connections
-        Field listenerField = proxyClass.getDeclaredField("listeners");
-        listenerField.setAccessible(true);
-        bungeeChannels = (Set<Channel>) listenerField.get(proxy);
+        bungeeChannels = findListeningChannels(proxy);
 
         // This method is what initializes the connection in Java Edition, after Netty is all set.
         Method initChannel = ChannelInitializer.class.getDeclaredMethod("initChannel", Channel.class);

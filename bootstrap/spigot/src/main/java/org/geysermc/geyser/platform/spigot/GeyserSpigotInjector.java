@@ -37,6 +37,7 @@ import io.netty.util.concurrent.DefaultThreadFactory;
 import org.bukkit.Bukkit;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.GeyserBootstrap;
+import org.geysermc.geyser.network.bedrock.nethernet.SharedPortDetector;
 import org.geysermc.geyser.network.java.GeyserInjector;
 import org.geysermc.geyser.network.java.LocalServerChannelWrapper;
 import org.geysermc.geyser.network.java.LocalSession;
@@ -66,47 +67,9 @@ public class GeyserSpigotInjector extends GeyserInjector {
     @Override
     @SuppressWarnings("unchecked")
     protected void initializeLocalChannel0(GeyserBootstrap bootstrap) throws Exception {
-        Class<?> serverClazz;
-        try {
-            serverClazz = Class.forName("net.minecraft.server.MinecraftServer");
-            // We're using 1.17+
-        } catch (ClassNotFoundException e) {
-            // We're using pre-1.17
-            String prefix = Bukkit.getServer().getClass().getPackage().getName().replace("org.bukkit.craftbukkit", "net.minecraft.server");
-            serverClazz = Class.forName(prefix + ".MinecraftServer");
-        }
-        Method getServer = serverClazz.getDeclaredMethod("getServer");
-        Object server = getServer.invoke(null);
-        Object connection = null;
-        // Find the class that manages network IO
-        for (Method m : serverClazz.getDeclaredMethods()) {
-            // First is Spigot-mapped name, second is Mojang-mapped name which is implemented as future-proofing
-            if (m.getReturnType().getSimpleName().equals("ServerConnection") || m.getReturnType().getSimpleName().equals("ServerConnectionListener")) {
-                if (m.getParameterTypes().length == 0) {
-                    connection = m.invoke(server);
-                }
-            }
-        }
-        if (connection == null) {
-            throw new RuntimeException("Unable to find ServerConnection class!");
-        }
-
+        allServerChannels = findServerChannels();
         // Find the channel that Minecraft uses to listen to connections
-        ChannelFuture listeningChannel = null;
-        for (Field field : connection.getClass().getDeclaredFields()) {
-            if (field.getType() != List.class) {
-                continue;
-            }
-            field.setAccessible(true);
-            boolean rightList = ((ParameterizedType) field.getGenericType()).getActualTypeArguments()[0] == ChannelFuture.class;
-            if (!rightList) continue;
-
-            allServerChannels = (List<ChannelFuture>) field.get(connection);
-            for (ChannelFuture o : allServerChannels) {
-                listeningChannel = o;
-                break;
-            }
-        }
+        ChannelFuture listeningChannel = allServerChannels.isEmpty() ? null : allServerChannels.get(0);
         if (listeningChannel == null) {
             throw new RuntimeException("Unable to find listening channel!");
         }
@@ -146,11 +109,58 @@ public class GeyserSpigotInjector extends GeyserInjector {
         workAroundWeirdBug(bootstrap);
     }
 
+    /**
+     * Finds the channels the Java server listens on. The list is the server's own, so it includes the local channel
+     * once that is injected.
+     */
+    @SuppressWarnings("unchecked")
+    static List<ChannelFuture> findServerChannels() throws Exception {
+        Class<?> serverClazz;
+        try {
+            serverClazz = Class.forName("net.minecraft.server.MinecraftServer");
+            // We're using 1.17+
+        } catch (ClassNotFoundException e) {
+            // We're using pre-1.17
+            String prefix = Bukkit.getServer().getClass().getPackage().getName().replace("org.bukkit.craftbukkit", "net.minecraft.server");
+            serverClazz = Class.forName(prefix + ".MinecraftServer");
+        }
+        Method getServer = serverClazz.getDeclaredMethod("getServer");
+        Object server = getServer.invoke(null);
+        Object connection = null;
+        // Find the class that manages network IO
+        for (Method m : serverClazz.getDeclaredMethods()) {
+            // First is Spigot-mapped name, second is Mojang-mapped name which is implemented as future-proofing
+            if (m.getReturnType().getSimpleName().equals("ServerConnection") || m.getReturnType().getSimpleName().equals("ServerConnectionListener")) {
+                if (m.getParameterTypes().length == 0) {
+                    connection = m.invoke(server);
+                }
+            }
+        }
+        if (connection == null) {
+            throw new RuntimeException("Unable to find ServerConnection class!");
+        }
+
+        for (Field field : connection.getClass().getDeclaredFields()) {
+            if (field.getType() != List.class) {
+                continue;
+            }
+            field.setAccessible(true);
+            boolean rightList = ((ParameterizedType) field.getGenericType()).getActualTypeArguments()[0] == ChannelFuture.class;
+            if (rightList) {
+                return (List<ChannelFuture>) field.get(connection);
+            }
+        }
+        throw new RuntimeException("Unable to find listening channel!");
+    }
+
     @SuppressWarnings("unchecked")
     private ChannelInitializer<Channel> getChildHandler(GeyserBootstrap bootstrap, ChannelFuture listeningChannel) {
         List<String> names = listeningChannel.channel().pipeline().names();
         ChannelInitializer<Channel> childHandler = null;
         for (String name : names) {
+            if (name.equals(SharedPortDetector.NAME)) {
+                continue;
+            }
             ChannelHandler handler = listeningChannel.channel().pipeline().get(name);
             try {
                 Field childHandlerField = handler.getClass().getDeclaredField("childHandler");
