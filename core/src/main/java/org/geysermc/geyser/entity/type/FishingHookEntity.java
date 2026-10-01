@@ -67,6 +67,7 @@ public class FishingHookEntity extends ProjectileEntity {
     private int lavaTopY = Integer.MIN_VALUE;
     private Vector3i lavaScanCell;
     private boolean lavaHoverActive = false;
+    private boolean gravityBeforeHover;
 
     public FishingHookEntity(EntitySpawnContext context, PlayerEntity owner) {
         super(context.headYaw(0));
@@ -106,7 +107,7 @@ public class FishingHookEntity extends ProjectileEntity {
 
     /**
      * Looks for lava around the hook, once per block the hook is in. The client also removes a hook
-     * that is next to lava, so the neighbouring blocks count too. Hooks in water are skipped.
+     * that is next to lava, so the neighbouring blocks count too.
      */
     private void updateLavaTop(Vector3f position) {
         Vector3i cell = Vector3i.from(GenericMath.floor(position.getX()), GenericMath.floor(position.getY()), GenericMath.floor(position.getZ()));
@@ -115,9 +116,6 @@ public class FishingHookEntity extends ProjectileEntity {
         }
         lavaScanCell = cell;
         lavaTopY = Integer.MIN_VALUE;
-        if (BlockStateValues.getFluid(session.getGeyser().getWorldManager().getBlockAt(session, cell)) == Fluid.WATER) {
-            return;
-        }
         for (int dx = -1; dx <= 1; dx++) {
             for (int dz = -1; dz <= 1; dz++) {
                 for (int y = cell.getY() + 1; y >= cell.getY() - 1; y--) {
@@ -129,18 +127,36 @@ public class FishingHookEntity extends ProjectileEntity {
                 }
             }
         }
-        if (lavaTopY != Integer.MIN_VALUE && !lavaHoverActive) {
-            // Take the hook away from the client's own simulation before that carries it into the lava
-            lavaHoverActive = true;
-            setFlag(EntityFlag.HAS_GRAVITY, false);
-            if (isValid()) {
-                updateBedrockMetadata();
-                SetEntityMotionPacket motionPacket = new SetEntityMotionPacket();
-                motionPacket.setRuntimeEntityId(geyserId);
-                motionPacket.setMotion(Vector3f.ZERO);
-                session.sendUpstreamPacket(motionPacket);
+        if (lavaTopY != Integer.MIN_VALUE) {
+            if (!lavaHoverActive) {
+                // Take the hook away from the client's own simulation before that carries it into the lava
+                lavaHoverActive = true;
+                gravityBeforeHover = getFlag(EntityFlag.HAS_GRAVITY);
+                setFlag(EntityFlag.HAS_GRAVITY, false);
+                updateHoverState();
             }
+        } else if (lavaHoverActive) {
+            lavaHoverActive = false;
+            setFlag(EntityFlag.HAS_GRAVITY, gravityBeforeHover);
+            updateHoverState();
         }
+    }
+
+    private void updateHoverState() {
+        if (isValid()) {
+            updateBedrockMetadata();
+            SetEntityMotionPacket motionPacket = new SetEntityMotionPacket();
+            motionPacket.setRuntimeEntityId(geyserId);
+            motionPacket.setMotion(getMotion());
+            session.sendUpstreamPacket(motionPacket);
+        }
+    }
+
+    // A hovering hook has no gravity on the client and gets no position while it is held, so any
+    // motion it is sent, like a plugin floating the hook in the lava, carries it off into the sky
+    @Override
+    public Vector3f getMotion() {
+        return lavaHoverActive ? Vector3f.ZERO : motion;
     }
 
     @Override
