@@ -443,7 +443,7 @@ public final class VanillaEntities {
                     .addTranslator(null) // Right rotation
                     .addTranslator(MetadataTypes.BYTE, DisplayBaseEntity::setBillboard) // Billboard render constraints
                     .addTranslator(null) // Brightness override
-                    .addTranslator(null) // View range
+                    .addTranslator(MetadataTypes.FLOAT, DisplayBaseEntity::setViewDistance) // View range
                     .addTranslator(null) // Shadow radius
                     .addTranslator(null) // Shadow strength
                     .addTranslator(null) // Width
@@ -455,9 +455,9 @@ public final class VanillaEntities {
                     .bedrockDefinition(BedrockEntityDefinitions.ARMOR_STAND)
                     .addTranslator(MetadataTypes.COMPONENT, TextDisplayEntity::setTextMetadata)
                     .addTranslator(null) // Line width
-                    .addTranslator(null) // Background color
-                    .addTranslator(null) // Text opacity
-                    .addTranslator(null) // Bit mask
+                    .addTranslator(MetadataTypes.INT, TextDisplayEntity::setBackgroundColor) // Background color
+                    .addTranslator(MetadataTypes.BYTE, TextDisplayEntity::setTextOpacity) // Text opacity
+                    .addTranslator(MetadataTypes.BYTE, TextDisplayEntity::setStyleFlags) // Bit mask
                     .build();
 
             INTERACTION = VanillaEntityType.inherited(InteractionEntity::new, entityBase)
