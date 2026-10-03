@@ -333,6 +333,11 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
      */
     private long enteringBedUntil;
 
+    /**
+     * The teleport that put the player onto their bed, or -1. See {@link #confirmTeleport(Vector3f)}.
+     */
+    private int bedTeleportId = -1;
+
     @Setter
     private @Nullable Entity spectatedEntity;
 
@@ -2132,6 +2137,14 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     }
 
     /**
+     * Called when the Java server puts the player in bed. It teleports the player onto the bed right before
+     * that, so the teleport still unconfirmed at this point is the one onto the bed.
+     */
+    public void markBedTeleport() {
+        this.bedTeleportId = unconfirmedTeleport == null ? -1 : unconfirmedTeleport.getTeleportConfirmId();
+    }
+
+    /**
      * @return whether a bed click is still waiting on the Java server's answer.
      */
     public boolean isEnteringBed() {
@@ -2144,6 +2157,16 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         }
 
         if (unconfirmedTeleport.canConfirm(position)) {
+            unconfirmedTeleport = null;
+            return;
+        }
+
+        if (playerEntity.getBedPosition() != null && unconfirmedTeleport.getTeleportConfirmId() == bedTeleportId) {
+            // https://github.com/GeyserMC/Geyser/issues/6600
+            // Going to sleep teleports the player onto the bed, but a sleeping Bedrock client never reports that
+            // position back. Resending the teleport jolts the client out of its sleep animation and it answers with
+            // STOP_SLEEP, waking the player. The bed already places a sleeping player, so treat it as confirmed.
+            // Only that teleport: the one getting the player up again must still go through.
             unconfirmedTeleport = null;
             return;
         }

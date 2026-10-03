@@ -194,6 +194,9 @@ public abstract class AvatarEntity extends LivingEntity {
         if (this instanceof SessionPlayerEntity) {
             // The server has answered the bed click either way.
             session.stopEnteringBed();
+            if (bedPosition != null) {
+                session.markBedTeleport();
+            }
         }
         if (bedPosition != null) {
             // Indicate that the player should enter the sleep cycle
