@@ -45,6 +45,8 @@ public class JavaExplodeTranslator extends PacketTranslator<ClientboundExplodePa
 
     @Override
     public void translate(GeyserSession session, ClientboundExplodePacket packet) {
+        // A bed clicked in the Nether or End explodes instead; don't keep the player frozen in the blast.
+        session.stopEnteringBed();
         Vector3f vector = packet.getCenter().toFloat();
         LevelEventGenericPacket levelEventPacket = new LevelEventGenericPacket();
         levelEventPacket.setType(LevelEvent.PARTICLE_BLOCK_EXPLOSION);
