@@ -26,6 +26,7 @@
 package org.geysermc.geyser.translator.protocol.java.entity;
 
 import org.geysermc.geyser.entity.type.Entity;
+import org.geysermc.geyser.entity.type.LivingEntity;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
@@ -39,14 +40,11 @@ public class JavaMoveEntityPosTranslator extends PacketTranslator<ClientboundMov
         Entity entity = session.getEntityCache().getEntityByJavaId(packet.getEntityId());
         if (entity == null) return;
 
-        // TODO lerp
-        ClientboundMoveEntityPosPacket.DeltaStep lastStep;
-        if (packet.getSteps() != null) {
-            lastStep = packet.getSteps().getLast();
-        } else {
-            lastStep = new ClientboundMoveEntityPosPacket.DeltaStep(0, packet.getMoveX(), packet.getMoveY(), packet.getMoveZ());
+        if (entity instanceof LivingEntity) {
+            ((LivingEntity) entity).handleMoveEntityPosPacket(packet);
+            return;
         }
 
-        entity.moveRelative(lastStep.moveX(), lastStep.moveY(), lastStep.moveZ(), entity.getYaw(), entity.getPitch(), entity.getHeadYaw(), packet.isOnGround());
+        entity.moveRelative(packet.getMoveX(), packet.getMoveY(), packet.getMoveZ(), entity.getYaw(), entity.getPitch(), entity.getHeadYaw(), packet.isOnGround());
     }
 }

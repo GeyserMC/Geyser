@@ -61,7 +61,7 @@ public class SquidEntity extends AgeableWaterEntity implements Tickable {
         }
         dirtyPitch = oldPitch != pitch;
 
-        if (getLerpSteps() == 0) {
+        if (getLerpSteps().isEmpty()) {
             if (dirtyPitch || dirtyYaw) {
                 MoveEntityDeltaPacket packet = new MoveEntityDeltaPacket();
                 packet.setRuntimeEntityId(geyserId);

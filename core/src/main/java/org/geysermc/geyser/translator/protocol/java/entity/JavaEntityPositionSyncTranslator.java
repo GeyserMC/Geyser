@@ -28,12 +28,14 @@ package org.geysermc.geyser.translator.protocol.java.entity;
 import org.cloudburstmc.math.vector.Vector3d;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.geysermc.geyser.entity.type.Entity;
+import org.geysermc.geyser.entity.type.LivingEntity;
 import org.geysermc.geyser.entity.vehicle.ClientVehicle;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.entity.ClientboundEntityPositionSyncPacket;
 
+import java.util.List;
 import java.util.Objects;
 
 @Translator(packet = ClientboundEntityPositionSyncPacket.class)
@@ -46,13 +48,10 @@ public class JavaEntityPositionSyncTranslator extends PacketTranslator<Clientbou
 
         Vector3d pos = packet.getEndPosition();
         if (pos == null) {
-            // TODO lerp
-            pos = Objects.requireNonNull(packet.getSteps()).getLast().position();
+            List<ClientboundEntityPositionSyncPacket.PositionStep> steps = Objects.requireNonNull(packet.getSteps());
+            if (steps.isEmpty()) return;
+            pos = steps.getLast().position();
         }
-        Vector3f target = pos.toFloat();
-        // Compute before the cached position is overwritten. Java clients snap rather than
-        // interpolate a sync farther than 64 blocks; Bedrock needs teleport semantics there too
-        boolean teleported = entity.position().distanceSquared(target) > 4096;
 
         if (entity instanceof ClientVehicle clientVehicle) {
             // Ignore if player is controlling
@@ -62,7 +61,15 @@ public class JavaEntityPositionSyncTranslator extends PacketTranslator<Clientbou
             clientVehicle.getVehicleComponent().moveAbsolute(pos.getX(), pos.getY(), pos.getZ());
         }
 
-        // As in Entity#teleport, the head yaw follows the yaw
-        entity.moveAbsolute(target, packet.getYRot(), packet.getXRot(), packet.getYRot(), packet.isOnGround(), teleported);
+        if (entity instanceof LivingEntity) {
+            ((LivingEntity) entity).handlePositionSyncPacket(packet);
+            return;
+        }
+
+        Vector3f target = pos.toFloat();
+        // Compute before the cached position is overwritten. Java clients snap rather than
+        // interpolate a sync farther than 64 blocks; Bedrock needs teleport semantics there too
+        boolean teleported = entity.position().distanceSquared(target) > 4096;
+        entity.moveAbsolute(target, packet.getYRot(), packet.getXRot(), entity.getHeadYaw(), packet.isOnGround(), teleported);
     }
 }
