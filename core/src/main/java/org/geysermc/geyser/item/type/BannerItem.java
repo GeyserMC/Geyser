@@ -28,8 +28,6 @@ package org.geysermc.geyser.item.type;
 import it.unimi.dsi.fastutil.Pair;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.format.Style;
-import net.kyori.adventure.text.format.TextColor;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.cloudburstmc.nbt.NbtList;
 import org.cloudburstmc.nbt.NbtMap;
@@ -37,6 +35,7 @@ import org.cloudburstmc.nbt.NbtType;
 import org.geysermc.geyser.inventory.item.BannerPattern;
 import org.geysermc.geyser.inventory.item.DyeColor;
 import org.geysermc.geyser.item.TooltipOptions;
+import org.geysermc.geyser.item.components.Rarity;
 import org.geysermc.geyser.level.block.type.Block;
 import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.session.GeyserSession;
@@ -228,10 +227,8 @@ public class BannerItem extends BlockItem {
             components.put(DataComponentTypes.BANNER_PATTERNS, patternLayers);
             // The ominous banner item in the Java creative menu just has banner patterns hidden as of 1.21.5
             components.put(DataComponentTypes.TOOLTIP_DISPLAY, new TooltipDisplay(false, List.of(DataComponentTypes.BANNER_PATTERNS)));
-            components.put(DataComponentTypes.ITEM_NAME, Component
-                    .translatable("block.minecraft.ominous_banner")
-                    .style(Style.style(TextColor.color(16755200)))
-            );
+            components.put(DataComponentTypes.ITEM_NAME, Component.translatable("block.minecraft.ominous_banner"));
+            components.put(DataComponentTypes.RARITY, Rarity.UNCOMMON.ordinal());
         }
         // Bedrock's creative inventory does not support other patterns as of 1.20.5
     }
