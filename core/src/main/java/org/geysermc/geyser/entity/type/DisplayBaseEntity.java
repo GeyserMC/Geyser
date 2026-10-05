@@ -47,11 +47,11 @@ public class DisplayBaseEntity extends Entity {
     @Getter
     private @NonNull Vector3f baseScale = Vector3f.ONE;
 
-    @Getter @Setter
-    private @NonNull Quaternionf leftRotation = Quaternionf.ZERO;
+    @Getter
+    private @NonNull Quaternionf leftRotation = Quaternionf.IDENTITY;
 
-    @Getter @Setter
-    private @NonNull Quaternionf rightRotation = Quaternionf.ZERO;
+    @Getter
+    private @NonNull Quaternionf rightRotation = Quaternionf.IDENTITY;
 
     @Getter
     private @NonNull Billboard billboard = Billboard.FIXED;
@@ -81,8 +81,16 @@ public class DisplayBaseEntity extends Entity {
         }
     }
 
-    public void setScale(EntityMetadata<Vector3f, ?> translationMeta) {
-        this.baseScale = translationMeta.getValue();
+    public void setScale(EntityMetadata<Vector3f, ?> metadata) {
+        this.baseScale = metadata.getValue();
+    }
+
+    public void setLeftRotation(EntityMetadata<Quaternionf, ?> metadata) {
+        this.leftRotation = metadata.getValue();
+    }
+
+    public void setRightRotation(EntityMetadata<Quaternionf, ?> metadata) {
+        this.rightRotation = metadata.getValue();
     }
 
     public void setBillboard(ByteEntityMetadata metadata) {
