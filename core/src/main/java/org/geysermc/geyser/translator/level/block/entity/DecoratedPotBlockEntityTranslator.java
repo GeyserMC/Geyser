@@ -91,9 +91,9 @@ public class DecoratedPotBlockEntityTranslator extends BlockEntityTranslator {
         }
 
         // If no pattern was specified in the component patch, check the item's default components
-        Item item = BuiltInJavaRegistries.ITEM.getOrThrow(MinecraftKey.key(stack.getString("id")));
-        if (item != null) {
-            Integer patternId = item.getComponent(session.getComponentCache(), DataComponentTypes.PROVIDES_POTTERY_PATTERN);
+        Optional<Item> item = BuiltInJavaRegistries.ITEM.get(MinecraftKey.key(stack.getString("id")));
+        if (item.isPresent()) {
+            Integer patternId = item.get().getComponent(session.getComponentCache(), DataComponentTypes.PROVIDES_POTTERY_PATTERN);
             if (patternId != null) {
                 Optional<Key> bedrockItem = JavaRegistries.DECORATED_POT_PATTERN.get(registries, patternId);
                 if (bedrockItem.isPresent()) {

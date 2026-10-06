@@ -26,6 +26,7 @@
 package org.geysermc.geyser.registry.java;
 
 import it.unimi.dsi.fastutil.ints.IntList;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.entity.EntityTypeDefinition;
 import org.geysermc.geyser.entity.VanillaEntities;
 import org.geysermc.geyser.item.Items;
@@ -81,9 +82,11 @@ public final class BuiltInJavaRegistries {
     public static final JavaRegistryProvider PROVIDER = new JavaRegistryProvider() {
         @Override
         public <T> JavaRegistry<T> registry(JavaRegistryKey<T> registryKey) {
-            return ROOT.getByKey(registryKey.registryKey())
-                .map(registry -> (JavaRegistry<T>) registry.data())
-                .orElseThrow(() -> new IllegalArgumentException("Unknown built-in Java registry: " + registryKey));
+            JavaRegistry<T> registry = get(registryKey);
+            if (registry == null) {
+                throw new IllegalArgumentException("Unknown built-in Java registry: " + registryKey);
+            }
+            return registry;
         }
 
         @Override
@@ -102,13 +105,28 @@ public final class BuiltInJavaRegistries {
      * @return the created registry
      */
     private static <T> MutableJavaRegistry<T> register(JavaRegistryKey<T> key) {
-        SimpleJavaRegistry<T> registry = new SimpleJavaRegistry<>(key);
-        registry.allowUnsafeAccess();
-        return ROOT.register(key.registryKey(), registry);
+        return ROOT.register(key.registryKey(), new SimpleJavaRegistry<>(key));
+    }
+
+    /**
+     * Gets a built-in registry by its {@link JavaRegistryKey}, or returns {@code null} if that registry is not built-in.
+     *
+     * @param registryKey the {@link JavaRegistryKey}
+     * @param <T> the type of the registry
+     * @return the built-in registry as a {@link JavaRegistry}, or {@code null} if that registry is not built-in
+     */
+    @SuppressWarnings("unchecked")
+    public static <T> @Nullable JavaRegistry<T> get(JavaRegistryKey<T> registryKey) {
+        return (JavaRegistry<T>) ROOT.get(registryKey.registryKey()).orElse(null);
     }
 
     public static void bootstrap() {
         ROOT.freeze();
+        // Necessary for "legacy" code in CustomBlockRegistryPopulator and CustomItemRegistryPopulator, should not be used anywhere else
+        // (and that code should be cleaned up)
+        ((SimpleJavaRegistry<Block>) BLOCK).allowUnsafeAccess();
+        ((SimpleJavaRegistry<Item>) ITEM).allowUnsafeAccess();
+
         Blocks.bootstrap();
         Items.bootstrap();
         VanillaEntities.init();

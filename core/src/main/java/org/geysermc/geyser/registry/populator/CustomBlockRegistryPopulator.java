@@ -79,7 +79,7 @@ import static org.geysermc.geyser.registry.populator.BlockRegistryPopulator.MIN_
 public class CustomBlockRegistryPopulator {
 
     // Since 1.20.60, custom blocks need a block_id in their nbt tag
-    public static AtomicInteger BLOCK_ID = new AtomicInteger();
+    public static final AtomicInteger BLOCK_ID = new AtomicInteger();
 
     // Custom block id's start at 10000, and count up
     public static final int START_OFFSET = 10000;
@@ -259,10 +259,14 @@ public class CustomBlockRegistryPopulator {
                 builder.requiresCorrectToolForDrops();
             }
             String cleanJavaIdentifier = BlockUtils.getCleanIdentifier(javaBlockState.identifier());
-            Block block = new Block(cleanJavaIdentifier, builder);
-            block.setJavaId(javaBlockState.stateGroupId());
 
-            BuiltInJavaRegistries.BLOCK.register(javaBlockState.stateGroupId(), block.javaIdentifier(), block);
+            // Only register new block if it's not in the BLOCK registry yet
+            if (BuiltInJavaRegistries.BLOCK.get(javaBlockState.stateGroupId()).isEmpty()) {
+                Block block = new Block(cleanJavaIdentifier, builder);
+                block.setJavaId(javaBlockState.stateGroupId());
+                BuiltInJavaRegistries.BLOCK.register(javaBlockState.stateGroupId(), block.javaIdentifier(), block);
+            }
+
             BlockRegistries.JAVA_BLOCK_STATE_IDENTIFIER_TO_ID.register(javaId, stateRuntimeId);
             BlockRegistries.NON_VANILLA_BLOCK_IDS.register(set -> set.set(stateRuntimeId));
 

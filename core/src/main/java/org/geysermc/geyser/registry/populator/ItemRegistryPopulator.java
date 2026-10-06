@@ -150,6 +150,7 @@ public class ItemRegistryPopulator {
         GeyserMappingItem remap(Item item, GeyserMappingItem mapping);
     }
 
+    // TODO: ideally split the populating of the Java ITEM registry (non-vanilla items) from the populating of item mappings
     public static void populate() {
         List<PaletteVersion> paletteVersions = new ArrayList<>(3);
         paletteVersions.add(new PaletteVersion("26_30", Bedrock_v1001.CODEC.getProtocolVersion(), WildernessBoundConverter.itemMappings()));

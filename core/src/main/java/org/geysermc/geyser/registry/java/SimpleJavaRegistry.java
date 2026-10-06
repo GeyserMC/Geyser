@@ -25,24 +25,29 @@
 
 package org.geysermc.geyser.registry.java;
 
-import it.unimi.dsi.fastutil.ints.Int2ObjectLinkedOpenHashMap;
-import it.unimi.dsi.fastutil.ints.Int2ObjectSortedMap;
-import it.unimi.dsi.fastutil.ints.IntIterator;
+import it.unimi.dsi.fastutil.ints.Int2ObjectAVLTreeMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.objects.ObjectBidirectionalIterator;
+import it.unimi.dsi.fastutil.objects.Reference2ObjectOpenHashMap;
 import net.kyori.adventure.key.Key;
+import org.geysermc.geyser.GeyserImpl;
 
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.Iterator;
-import java.util.Map;
 import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.IntFunction;
 
 public class SimpleJavaRegistry<T> implements MutableJavaRegistry<T> {
     private final JavaRegistryKey<T> registryKey;
-    private final Int2ObjectSortedMap<RegistryEntryData<T>> byId = new Int2ObjectLinkedOpenHashMap<>();
-    private final Map<Key, RegistryEntryData<T>> byKey = new Object2ObjectOpenHashMap<>();
-    private final Map<T, RegistryEntryData<T>> byValue = new Object2ObjectOpenHashMap<>();
+    // Using an AVL tree here because we care mostly about lookup performance and much less about register performance, since that only happens once
+    private final Int2ObjectAVLTreeMap<RegistryEntryData<T>> byId = new Int2ObjectAVLTreeMap<>(Comparator.naturalOrder());
+    // Doesn't need to be linked because Keys aren't necessarily sorted in any order and are always unique
+    private final Object2ObjectOpenHashMap<Key, RegistryEntryData<T>> byKey = new Object2ObjectOpenHashMap<>();
+    // Intentionally holding references here for performance and to avoid issues on duplicate values
+    private final Reference2ObjectOpenHashMap<T, RegistryEntryData<T>> byValue = new Reference2ObjectOpenHashMap<>();
     private boolean frozen = false;
     private boolean allowsUnsafeAccess = false;
 
@@ -62,32 +67,28 @@ public class SimpleJavaRegistry<T> implements MutableJavaRegistry<T> {
 
     @Override
     public Optional<RegistryEntryData<T>> getById(int networkId) {
-        ensureFrozen();
+        ensureFrozen(true);
         return Optional.ofNullable(byId.get(networkId));
     }
 
     @Override
     public Optional<RegistryEntryData<T>> getByKey(Key key) {
-        ensureFrozen();
+        ensureFrozen(true);
         return Optional.ofNullable(byKey.get(key));
     }
 
+    // TODO ideally this lookup wouldn't be supported on RegistryUnit registries
     @Override
     public Optional<RegistryEntryData<T>> getByValue(T object) {
-        ensureFrozen();
+        // We can never allow this access here, as this map is only populated after freezing
+        ensureFrozen(false);
         return Optional.ofNullable(byValue.get(object));
     }
 
     @Override
     public Collection<Key> keys() {
-        ensureFrozen();
+        ensureFrozen(true);
         return byKey.keySet();
-    }
-
-    @Override
-    public Collection<T> values() {
-        ensureFrozen();
-        return byValue.keySet();
     }
 
     @Override
@@ -103,9 +104,6 @@ public class SimpleJavaRegistry<T> implements MutableJavaRegistry<T> {
 
         byId.put(entry.id(), entry);
         byKey.put(entry.key(), entry);
-        if (entry.isBound()) {
-            byValue.put(entry.data(), entry);
-        }
     }
 
     private void checkForDuplicates(RegistryEntryData<T> entry, RegistryEntryData<T> candidate) {
@@ -116,6 +114,8 @@ public class SimpleJavaRegistry<T> implements MutableJavaRegistry<T> {
 
     @Override
     public void clear() {
+        // Don't trim maps here yet - we expect a similarly sized registry at the next population,
+        // and the next freeze call will trim them if necessary
         byId.clear();
         byKey.clear();
         byValue.clear();
@@ -127,34 +127,47 @@ public class SimpleJavaRegistry<T> implements MutableJavaRegistry<T> {
         if (frozen) {
             return;
         }
+        try {
+            byId.forEach((id, entry) -> {
+                if (!entry.isBound()) {
+                    entry.bind(binder.apply(id));
+                }
+                // Only populate byValue at this stage, and only once - this ensures that the byValue map is sorted by network ID
+                byValue.putIfAbsent(entry.data(), entry);
+            });
+        } catch (RuntimeException exception) {
+            GeyserImpl.getInstance().getLogger().error("Failed to freeze " + this + "! This will result in issues. Report this over at our bugtracker!");
+            // Clear the half-populated byValue map, just in case
+            byValue.clear();
+            throw exception;
+        }
         frozen = true;
-        byId.forEach((id, entry) -> {
-            if (!entry.isBound()) {
-                entry.bind(binder.apply(id));
-                byValue.put(entry.data(), entry);
-            }
-        });
+
+        // Trim maps at the end of freezing - now that the registry is frozen, we don't expect the size to change anymore
+        byKey.trim();
+        byValue.trim();
     }
 
     @Override
     public void forEachEntry(Consumer<RegistryEntryData<T>> action) {
-        ensureFrozen();
+        ensureFrozen(true);
         byId.forEach((id, entry) -> action.accept(entry));
     }
 
     @Override
     public Iterator<T> iterator() {
-        ensureFrozen();
-        IntIterator idIterator = byId.keySet().iterator();
+        ensureFrozen(true);
+        // Using byId map here (instead of byValue.keySet) to ensure duplicate values are correctly passed multiple items
+        ObjectBidirectionalIterator<Int2ObjectMap.Entry<RegistryEntryData<T>>> iterator = byId.int2ObjectEntrySet().iterator();
         return new Iterator<>() {
             @Override
             public boolean hasNext() {
-                return idIterator.hasNext();
+                return iterator.hasNext();
             }
 
             @Override
             public T next() {
-                return byId.get(idIterator.nextInt()).data();
+                return iterator.next().getValue().data();
             }
         };
     }
@@ -164,8 +177,8 @@ public class SimpleJavaRegistry<T> implements MutableJavaRegistry<T> {
         return "Simple " + registryKey;
     }
 
-    private void ensureFrozen() {
-        if (!allowsUnsafeAccess && !frozen) {
+    private void ensureFrozen(boolean allowUnsafe) {
+        if (!(allowsUnsafeAccess && allowUnsafe) && !frozen) {
             throw new IllegalStateException("Registry must be frozen to access its entries");
         }
     }

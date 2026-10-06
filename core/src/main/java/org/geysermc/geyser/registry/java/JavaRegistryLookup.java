@@ -66,7 +66,7 @@ public interface JavaRegistryLookup<T> {
      * @return the network ID correlating to the object, or an empty optional if it didn't exist
      */
     default OptionalInt getId(T object) {
-        return getByValue(object).stream().mapToInt(RegistryEntryData::id).findAny();
+        return getByValue(object).map(entry -> OptionalInt.of(entry.id())).orElseGet(OptionalInt::empty);
     }
 
     /**
@@ -87,7 +87,7 @@ public interface JavaRegistryLookup<T> {
      * @return the network ID correlating to the key, or an empty optional if it didn't exist
      */
     default OptionalInt getId(Key key) {
-        return getByKey(key).stream().mapToInt(RegistryEntryData::id).findAny();
+        return getByKey(key).map(entry -> OptionalInt.of(entry.id())).orElseGet(OptionalInt::empty);
     }
 
     /**

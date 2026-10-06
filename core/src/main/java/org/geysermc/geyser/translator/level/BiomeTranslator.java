@@ -46,6 +46,8 @@ import org.geysermc.mcprotocollib.protocol.data.game.chunk.palette.GlobalPalette
 import org.geysermc.mcprotocollib.protocol.data.game.chunk.palette.Palette;
 import org.geysermc.mcprotocollib.protocol.data.game.chunk.palette.SingletonPalette;
 
+import java.util.Optional;
+
 // Array index formula by https://wiki.vg/Chunk_Format
 public class BiomeTranslator {
 
@@ -67,11 +69,11 @@ public class BiomeTranslator {
      * render sensibly instead of always defaulting to ocean.
      */
     private static int bedrockBiomeId(GeyserSession session, JavaRegistryLookup<Integer> biomeTranslations, int javaId) {
-        Integer bedrockId = javaId < 0 ? null : biomeTranslations.getIdOrThrow(javaId);
-        if (bedrockId == null || bedrockId == UNKNOWN_BIOME) {
+        Optional<Integer> bedrockId = javaId < 0 ? Optional.empty() : biomeTranslations.get(javaId);
+        if (bedrockId.isEmpty() || bedrockId.get() == UNKNOWN_BIOME) {
             return fallbackBiomeId(session.getDimensionType());
         }
-        return bedrockId;
+        return bedrockId.get();
     }
 
     private static int fallbackBiomeId(@Nullable JavaDimension dimension) {

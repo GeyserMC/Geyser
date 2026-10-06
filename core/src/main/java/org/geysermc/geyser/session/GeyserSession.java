@@ -166,6 +166,7 @@ import org.geysermc.geyser.level.physics.CollisionManager;
 import org.geysermc.geyser.network.bedrock.GameProtocol;
 import org.geysermc.geyser.network.java.LocalSession;
 import org.geysermc.geyser.registry.Registries;
+import org.geysermc.geyser.registry.java.JavaRegistry;
 import org.geysermc.geyser.registry.type.BlockMappings;
 import org.geysermc.geyser.registry.type.ItemMappings;
 import org.geysermc.geyser.session.auth.AuthData;
@@ -904,13 +905,17 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
      * Send all necessary packets to load Bedrock into the server
      */
     public void connect() {
-        // Note: this.dimensionType may be null here if the player is connecting from online mode
+        // Note: DIMENSION_TYPE registry may be uninitialised here if the player is connecting from online mode,
+        // so we have to check explicitly using isEmpty
         int minY = BedrockDimension.OVERWORLD.minY();
         int maxY = BedrockDimension.OVERWORLD.maxY();
-        for (JavaDimension javaDimension : this.javaRegistries.registry(JavaRegistries.DIMENSION_TYPE).values()) {
-            if (javaDimension.bedrockId() == BedrockDimension.OVERWORLD_ID) {
-                minY = Math.min(minY, javaDimension.minY());
-                maxY = Math.max(maxY, javaDimension.minY() + javaDimension.height());
+        JavaRegistry<JavaDimension> dimensions = this.javaRegistries.registry(JavaRegistries.DIMENSION_TYPE);
+        if (!dimensions.isEmpty()) {
+            for (JavaDimension javaDimension : this.javaRegistries.registry(JavaRegistries.DIMENSION_TYPE)) {
+                if (javaDimension.bedrockId() == BedrockDimension.OVERWORLD_ID) {
+                    minY = Math.min(minY, javaDimension.minY());
+                    maxY = Math.max(maxY, javaDimension.minY() + javaDimension.height());
+                }
             }
         }
         minY = Math.max(minY, -512);

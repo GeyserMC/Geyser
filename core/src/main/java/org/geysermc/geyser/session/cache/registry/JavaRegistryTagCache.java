@@ -53,8 +53,14 @@ public final class JavaRegistryTagCache implements JavaRegistryProvider {
 
     @Override
     public <T> JavaRegistry<T> registry(JavaRegistryKey<T> registryKey) {
-        return registryCache.registry(registryKey)
-            .orElseGet(() -> BuiltInJavaRegistries.PROVIDER.registry(registryKey));
+        JavaRegistry<T> registry = registryCache.registry(registryKey);
+        if (registry == null) {
+            registry = BuiltInJavaRegistries.get(registryKey);
+            if (registry == null) {
+                throw new IllegalArgumentException(registryKey + " was not built-in and not in registry cache!");
+            }
+        }
+        return registry;
     }
 
     @Override

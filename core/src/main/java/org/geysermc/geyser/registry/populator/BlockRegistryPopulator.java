@@ -241,8 +241,7 @@ public final class BlockRegistryPopulator {
             Block lastBlockSeen = null;
 
             // Stream isn't ideal.
-            List<Block> javaPottable = BuiltInJavaRegistries.BLOCK.values()
-                    .parallelStream()
+            List<Block> javaPottable = BuiltInJavaRegistries.BLOCK.parallelStream()
                     .flatMap(block -> {
                         if (block instanceof FlowerPotBlock flowerPot && flowerPot.flower() != Blocks.AIR) {
                             return Stream.of(flowerPot.flower());

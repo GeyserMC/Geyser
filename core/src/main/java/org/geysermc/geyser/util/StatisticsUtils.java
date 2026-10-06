@@ -50,6 +50,7 @@ import org.geysermc.mcprotocollib.protocol.data.game.statistic.UseItemStatistic;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.Optional;
 import java.util.function.IntFunction;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -104,9 +105,9 @@ public class StatisticsUtils {
 
                                     for (Object2IntMap.Entry<Statistic> entry : session.getStatistics().object2IntEntrySet()) {
                                         if (entry.getKey() instanceof BreakBlockStatistic statistic) {
-                                            Block block = BuiltInJavaRegistries.BLOCK.getOrThrow(statistic.getId());
-                                            if (block != null) {
-                                                String identifier = "block.minecraft." + block.javaIdentifier().value();
+                                            Optional<Block> block = BuiltInJavaRegistries.BLOCK.get(statistic.getId());
+                                            if (block.isPresent()) {
+                                                String identifier = "block.minecraft." + block.get().javaIdentifier().value();
                                                 content.add(identifier + ": " + entry.getIntValue());
                                             }
                                         }

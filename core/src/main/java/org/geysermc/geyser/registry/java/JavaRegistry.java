@@ -28,7 +28,11 @@ package org.geysermc.geyser.registry.java;
 import net.kyori.adventure.key.Key;
 
 import java.util.Collection;
+import java.util.Spliterator;
+import java.util.Spliterators;
 import java.util.function.Consumer;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 /**
  * Extends {@link JavaRegistryLookup} with methods to iterate over a registry's contents.
@@ -55,13 +59,11 @@ public interface JavaRegistry<T> extends JavaRegistryLookup<T>, Iterable<T> {
     Collection<Key> keys();
 
     /**
-     * Returns a collection of all values in this registry.
-     *
-     * <p>Note that this collection may not necessarily be sorted by network ID.</p>
-     *
-     * @return a collection of all values in this registry
+     * @return true if this registry is empty
      */
-    Collection<T> values();
+    default boolean isEmpty() {
+        return size() == 0;
+    }
 
     /**
      * @return the amount of entries in this registry
@@ -76,4 +78,23 @@ public interface JavaRegistry<T> extends JavaRegistryLookup<T>, Iterable<T> {
      * @param action the action to execute for each {@link RegistryEntryData}
      */
     void forEachEntry(Consumer<RegistryEntryData<T>> action);
+
+    @Override
+    default Spliterator<T> spliterator() {
+        return Spliterators.spliterator(iterator(), size(), 0);
+    }
+
+    /**
+     * @return a stream iterating over all the entries in this registry, sorted by network ID
+     */
+    default Stream<T> stream() {
+        return StreamSupport.stream(spliterator(), false);
+    }
+
+    /**
+     * @return a parallel stream iterating over all the entries in this registry, sorted by network ID
+     */
+    default Stream<T> parallelStream() {
+        return StreamSupport.stream(spliterator(), true);
+    }
 }

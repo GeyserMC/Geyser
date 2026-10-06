@@ -52,6 +52,7 @@ public final class RegistryEntryData<T> {
     private final int id;
     @Getter
     private final Key key;
+    @EqualsAndHashCode.Exclude
     private @Nullable T data;
 
     public RegistryEntryData(int id, Key key) {

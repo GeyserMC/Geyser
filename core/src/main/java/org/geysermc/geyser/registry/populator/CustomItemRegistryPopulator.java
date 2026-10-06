@@ -58,6 +58,7 @@ import org.geysermc.geyser.item.custom.GeyserCustomItemBedrockOptions;
 import org.geysermc.geyser.item.custom.GeyserCustomItemDefinition;
 import org.geysermc.geyser.item.exception.InvalidItemComponentsException;
 import org.geysermc.geyser.item.type.Item;
+import org.geysermc.geyser.registry.java.BuiltInJavaRegistries;
 import org.geysermc.geyser.registry.mappings.BuiltInMappings;
 import org.geysermc.geyser.registry.mappings.MappingsConfigReader;
 import org.geysermc.geyser.registry.mappings.MappingsType;
@@ -177,10 +178,17 @@ public class CustomItemRegistryPopulator {
         String bedrockIdentifier = customItem.bedrockIdentifier().toString();
         NbtMapBuilder bedrockComponents = createComponentNbt(MinecraftKey.identifierToKey(customItem.identifier()), context);
 
-        Item javaItem = new Item(customItem.identifier().toString(), Item.builder()
-            .components(context.components())
-            .resolvableComponents(context.resolvableComponents()));
-        Items.register(javaItem, customItem.javaId());
+        Item javaItem;
+        // Register item on the first pass, and on other passes get the item back from the registry.
+        // This code really should be improved: only register at the start and freeze ITEM registry before populating item mappings!!!
+        if (firstPass) {
+            javaItem = new Item(customItem.identifier().toString(), Item.builder()
+                .components(context.components())
+                .resolvableComponents(context.resolvableComponents()));
+            Items.register(javaItem, customItem.javaId());
+        } else {
+            javaItem = BuiltInJavaRegistries.ITEM.getOrThrow(customItem.javaId());
+        }
 
         ItemMapping customMapping = ItemMapping.builder()
             .bedrockIdentifier(bedrockIdentifier)

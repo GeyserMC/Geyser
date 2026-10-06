@@ -80,7 +80,7 @@ public interface GeyserInstrument {
         JavaRegistry<GeyserInstrument> instruments = session.javaRegistries().registry(JavaRegistries.INSTRUMENT);
         BedrockInstrument bedrockInstrument = BedrockInstrument.getByBedrockId(id);
         if (bedrockInstrument != null) {
-            for (int i = 0; i < instruments.values().size(); i++) {
+            for (int i = 0; i < instruments.size(); i++) {
                 GeyserInstrument instrument = instruments.getOrThrow(i);
                 if (instrument.bedrockInstrument() == bedrockInstrument) {
                     return i;

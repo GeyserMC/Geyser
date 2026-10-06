@@ -62,6 +62,7 @@ import org.geysermc.mcprotocollib.protocol.data.game.item.component.PotionConten
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.Function;
 
 /**
@@ -99,12 +100,12 @@ public final class ItemStackParser {
             return Items.AIR_ID;
         }
 
-        Item item = BuiltInJavaRegistries.ITEM.getOrThrow(MinecraftKey.key(identifier));
-        if (item == null) {
+        Optional<Item> item = BuiltInJavaRegistries.ITEM.get(MinecraftKey.key(identifier));
+        if (item.isEmpty()) {
             GeyserImpl.getInstance().getLogger().warning("Received unknown item ID " + identifier + " whilst parsing NBT item stack!");
             return Items.AIR_ID;
         }
-        return item.javaId();
+        return item.get().javaId();
     }
 
     private static ItemEnchantments parseEnchantments(GeyserSession session, NbtMap map) {

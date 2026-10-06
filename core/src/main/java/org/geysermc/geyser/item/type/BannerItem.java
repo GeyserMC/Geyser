@@ -54,6 +54,7 @@ import org.geysermc.mcprotocollib.protocol.data.game.item.component.TooltipDispl
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.OptionalInt;
 
 public class BannerItem extends BlockItem {
     /**
@@ -148,15 +149,13 @@ public class BannerItem extends BlockItem {
         } else {
             List<NbtMap> patternList = new ArrayList<>(patterns.size());
             for (BannerPatternLayer patternLayer : patterns) {
-                patternLayer.getPattern().ifId(id -> {
-                    JavaRegistries.BANNER_PATTERN.get(registries, id).ifPresent(bannerPattern -> {
-                        NbtMap tag = NbtMap.builder()
-                            .putString("Pattern", bannerPattern.getBedrockIdentifier())
-                            .putInt("Color", 15 - patternLayer.getColorId())
-                            .build();
-                        patternList.add(tag);
-                    });
-                });
+                patternLayer.getPattern().ifId(id -> JavaRegistries.BANNER_PATTERN.get(registries, id).ifPresent(bannerPattern -> {
+                    NbtMap tag = NbtMap.builder()
+                        .putString("Pattern", bannerPattern.getBedrockIdentifier())
+                        .putInt("Color", 15 - patternLayer.getColorId())
+                        .build();
+                    patternList.add(tag);
+                }));
             }
             builder.putList("Patterns", NbtType.COMPOUND, patternList);
         }
@@ -193,9 +192,9 @@ public class BannerItem extends BlockItem {
         BannerPattern bannerPattern = BannerPattern.getByBedrockIdentifier(pattern.getString("Pattern"));
         DyeColor dyeColor = DyeColor.getById(15 - pattern.getInt("Color"));
         if (dyeColor != null) {
-            int id = registry.getIdOrThrow(bannerPattern);
-            if (id != -1) {
-                return new BannerPatternLayer(Holder.ofId(id), dyeColor.ordinal());
+            OptionalInt id = registry.getId(bannerPattern);
+            if (id.isPresent()) {
+                return new BannerPatternLayer(Holder.ofId(id.getAsInt()), dyeColor.ordinal());
             }
         }
         return null;

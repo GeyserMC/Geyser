@@ -28,6 +28,7 @@ package org.geysermc.geyser.session.cache.registry;
 import it.unimi.dsi.fastutil.objects.Reference2ObjectMap;
 import it.unimi.dsi.fastutil.objects.Reference2ObjectOpenHashMap;
 import net.kyori.adventure.key.Key;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtType;
 import org.geysermc.geyser.GeyserImpl;
@@ -57,7 +58,7 @@ import java.util.Optional;
  *
  * <p>Crafted as of 1.20.5 for easy "add new registry" functionality in the future.</p>
  */
-public final class RegistryCache {
+final class RegistryCache {
     private static final Map<JavaRegistryKey<?>, Map<Key, NbtMap>> DEFAULTS;
 
     static {
@@ -89,8 +90,8 @@ public final class RegistryCache {
     }
 
     @SuppressWarnings("unchecked")
-    public <T> Optional<JavaRegistry<T>> registry(JavaRegistryKey<T> registryKey) {
-        return Optional.ofNullable((JavaRegistry<T>) registries.get(registryKey));
+    public <T> @Nullable JavaRegistry<T> registry(JavaRegistryKey<T> registryKey) {
+        return (JavaRegistry<T>) registries.get(registryKey);
     }
 
     /**
