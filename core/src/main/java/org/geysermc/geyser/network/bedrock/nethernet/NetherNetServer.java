@@ -245,7 +245,7 @@ public final class NetherNetServer implements EventRegistrar {
                     // setting already accepts the login chain it forwards
                     .setTokenTrust(geyser.config().advanced().bedrock().validateBedrockLogin()
                             ? TokenTrust.MINECRAFT_AUTH : TokenTrust.ANY)
-                    .setMotdProvider((host, remoteAddress) -> {
+                    .setMotdProvider((host, remoteAddress, client) -> {
                         BedrockPong pong = pingResponder.onQuery(GUID, remoteAddress);
 
                         return new PongData.Builder()
