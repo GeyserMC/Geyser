@@ -31,6 +31,7 @@ import org.cloudburstmc.netty.channel.nethernet.NetherNetChannelFactory;
 import org.cloudburstmc.netty.channel.nethernet.config.NetherChannelOption;
 import org.cloudburstmc.netty.channel.nethernet.signaling.NetherNetHTTPServerSignaling;
 import org.cloudburstmc.netty.channel.nethernet.signaling.NetherNetServerSignaling;
+import org.cloudburstmc.netty.util.nethernet.EndpointAddress;
 import org.cloudburstmc.netty.util.nethernet.NetherNetLogging;
 import org.cloudburstmc.netty.util.nethernet.SecretValue;
 import org.cloudburstmc.netty.util.nethernet.OperatorIdentity;
@@ -87,6 +88,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * The NetherNet (WebRTC) transport, used instead of RakNet: inbuilt HTTP signaling, NXS provider registration, or both,
@@ -199,6 +201,15 @@ public final class NetherNetServer implements EventRegistrar {
     }
 
     private void startInbuilt() {
+        GeyserConfig.SignalingConfig.BuiltinConfig builtin = geyser.config().bedrock().signaling().builtin();
+        Set<String> advertised;
+        try {
+            advertised = advertisedAddresses(geyser.config().bedrock(), builtin);
+        } catch (IllegalArgumentException e) {
+            logger().error("Built-in signaling will not start! " + e.getMessage());
+            return;
+        }
+
         // Created on the first start and kept afterwards, as clients pin its public key
         OperatorIdentity identity;
         try {
@@ -216,14 +227,12 @@ public final class NetherNetServer implements EventRegistrar {
             // Keep libdatachannel's own logging out of the way
             NetherNetLogging.setNativeLogLevel("WARN");
 
-            GeyserConfig.SignalingConfig.BuiltinConfig builtin = geyser.config().bedrock().signaling().builtin();
-
             NetherNetHTTPServerSignaling.Builder signalingBuilder = new NetherNetHTTPServerSignaling.Builder()
                     .setIdentity(identity)
                     // The same "behind a proxy" settings RakNet uses, applied to the TCP listener
                     .setTrustedProxies(TrustedProxies.parse(geyser.config().advanced().bedrock().haproxyProtocolWhitelistedIps()))
                     .setProxyProtocol(geyser.config().advanced().bedrock().useHaproxyProtocol())
-                    .setAdvertisedAddresses(advertisedAddresses(geyser.config().bedrock()))
+                    .setAdvertisedAddresses(advertised)
                     // Behind a proxy the peer is the proxy, signing its own assertion. The same
                     // setting already accepts the login chain it forwards
                     .setTokenTrust(geyser.config().advanced().bedrock().validateBedrockLogin()
@@ -288,20 +297,21 @@ public final class NetherNetServer implements EventRegistrar {
     }
 
     /**
-     * Which local addresses may appear in an answer: those in {@code -DgeyserAdvertiseAddresses}, comma
-     * separated, else the bound address, unless that is a wildcard, in which case everything ICE gathers.
-     * An address this machine does not hold is announced as the public side of a NAT forwarding the media
-     * port here, same port, which is how a container without a public address of its own is reached.
+     * Which addresses may appear in an answer: those in {@code -DgeyserAdvertiseAddresses}, comma separated,
+     * else those in the config, else the bound address, unless that is a wildcard, in which case everything
+     * ICE gathers. An address this machine does not hold is announced as the public side of a NAT forwarding
+     * the media port here, which is how a container without a public address of its own is reached.
      */
-    private Set<String> advertisedAddresses(GeyserConfig.BedrockConfig bedrock) {
+    private Set<String> advertisedAddresses(GeyserConfig.BedrockConfig bedrock, GeyserConfig.SignalingConfig.BuiltinConfig builtin) {
         String property = System.getProperty("geyserAdvertiseAddresses", "");
-        Set<String> configured = Arrays.stream(property.split(","))
-            .map(String::trim)
-            .filter(address -> !address.isEmpty())
-            .collect(Collectors.toUnmodifiableSet());
-        if (!configured.isEmpty()) {
-            logger().info("Advertised addresses set from system property: " + String.join(", ", configured));
-            return configured;
+        Set<String> fromProperty = addresses(Arrays.stream(property.split(",")), "-DgeyserAdvertiseAddresses");
+        if (!fromProperty.isEmpty()) {
+            logger().info("Advertised addresses set from system property: " + String.join(", ", fromProperty));
+            return fromProperty;
+        }
+        Set<String> fromConfig = addresses(builtin.advertiseAddresses().stream(), "\"advertise-addresses\"");
+        if (!fromConfig.isEmpty()) {
+            return fromConfig;
         }
         byte[] bound = NetUtil.createByteArrayFromIpAddressString(bedrock.address());
         try {
@@ -312,6 +322,20 @@ public final class NetherNetServer implements EventRegistrar {
             return Set.of();
         }
         return Set.of(bedrock.address());
+    }
+
+    private static Set<String> addresses(Stream<String> entries, String source) {
+        Set<String> addresses = entries.map(String::trim)
+            .filter(address -> !address.isEmpty())
+            .collect(Collectors.toUnmodifiableSet());
+        for (String address : addresses) {
+            try {
+                EndpointAddress.parseEndpoint(address);
+            } catch (IllegalArgumentException e) {
+                throw new IllegalArgumentException("Invalid address in " + source + ": " + e.getMessage(), e);
+            }
+        }
+        return addresses;
     }
 
     private void startProvider() {
