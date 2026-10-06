@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2026 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -129,6 +129,7 @@ public final class FloodgateSkinUploader {
                             verifyCode = node.get("verify_code").getAsString();
                             // Should fallback to true when absent, as this used to be the behavior before this introduction
                             allowSubscribers = !node.has("allow_subscribers") || node.get("allow_subscribers").getAsBoolean();
+                            subscribersCount = 1;
                             break;
                         case SUBSCRIBER_COUNT:
                             subscribersCount = node.get("subscribers_count").getAsInt();
@@ -136,7 +137,7 @@ public final class FloodgateSkinUploader {
                         case SKIN_UPLOADED:
                             // if Geyser is the only subscriber we have send it to the server manually
                             // otherwise it's handled by the Floodgate plugin subscribers
-                            if (subscribersCount != 1) {
+                            if (subscribersCount != 1 && allowSubscribers) {
                                 break;
                             }
 
