@@ -28,11 +28,11 @@ package org.geysermc.geyser.network.bedrock.nethernet;
 import org.cloudburstmc.netty.util.nethernet.TrustedProxies;
 import org.cloudburstmc.netty.channel.nethernet.NetherNetChannelFactory;
 import org.cloudburstmc.netty.channel.nethernet.config.NetherChannelOption;
-import org.cloudburstmc.netty.channel.nethernet.signaling.NetherNetHTTPSignaling;
-import org.cloudburstmc.netty.channel.nethernet.signaling.NetherNetServerSignaling;
+import org.cloudburstmc.netty.channel.nethernet.signaling.NetherNetHTTPServerSignaling;
+import org.cloudburstmc.netty.channel.nethernet.signaling.PongData;
 import org.cloudburstmc.netty.util.nethernet.NetherNetLogging;
 import org.cloudburstmc.netty.util.nethernet.SecretValue;
-import org.cloudburstmc.netty.util.nethernet.ServerIdentity;
+import org.cloudburstmc.netty.util.nethernet.OperatorIdentity;
 import org.cloudburstmc.netty.util.nethernet.TokenTrust;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.Channel;
@@ -49,6 +49,7 @@ import org.cloudburstmc.netty.signaling.ProviderStateStore;
 import org.cloudburstmc.netty.signaling.ProviderTransport;
 import org.cloudburstmc.netty.signaling.ServerStatus;
 import org.cloudburstmc.protocol.bedrock.BedrockPong;
+import org.geysermc.geyser.GeyserBootstrap;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.GeyserLogger;
 import org.geysermc.geyser.api.event.EventRegistrar;
@@ -67,7 +68,6 @@ import org.cloudburstmc.netty.signaling.provider.ProviderShutdown;
 import org.geysermc.geyser.network.bedrock.nethernet.signaling.provider.WardenClaimAdapter;
 import org.geysermc.geyser.session.GeyserSession;
 import tel.schich.libdatachannel.LibDataChannelArchDetect;
-import tel.schich.libdatachannel.PeerConnectionConfiguration;
 
 import java.io.IOException;
 import java.net.InetAddress;
@@ -120,7 +120,7 @@ public final class NetherNetServer implements EventRegistrar {
     private EventLoopGroup eventLoopGroup;
     private Channel netherNetChannel;
     private NetherNetChannelInitialiser providerInitialiser;
-    private NetherNetServerSignaling signaling;
+    private volatile NetherNetHTTPServerSignaling signaling;
     private EventLoopGroup inbuiltEventLoopGroup;
     private Channel inbuiltChannel;
     private NetherNetChannelInitialiser inbuiltInitialiser;
@@ -159,8 +159,10 @@ public final class NetherNetServer implements EventRegistrar {
             return;
         }
 
-        if (inbuilt && signalingPort == geyser.config().java().port()) {
-            // e.g. clone-remote-port: the Java server owns that TCP port
+        // e.g. clone-remote-port: the Java server owns that TCP port, so built-in signaling needs the platform to share it
+        boolean sharedJavaPort = inbuilt && signalingPort == geyser.config().java().port()
+            && geyser.getBootstrap().shareJavaPort(this::serveOnJavaPort);
+        if (inbuilt && !sharedJavaPort && signalingPort == geyser.config().java().port()) {
             inbuilt = false;
             String reason = "Built-in signaling cannot use port " + signalingPort + " because the Java server already uses it. ";
             if (!provider) {
@@ -194,15 +196,30 @@ public final class NetherNetServer implements EventRegistrar {
         // TODO TEST hybrid: both use UDP on the WebRTC port. They should share it through libjuice's in-process ICE mux,
         //  where the provider's listener takes unknown requests and inbuilt connections attach as agents; this relies on both
         //  binding the same address (inbuilt ICE leaves a wildcard address unset, the provider passes it explicitly).
-        if (inbuilt) startInbuilt();
+        if (inbuilt) startInbuilt(sharedJavaPort);
         if (provider) startProvider();
     }
 
-    private void startInbuilt() {
+    /**
+     * Serves signaling on a connection from the Java server's port, see {@link GeyserBootstrap#shareJavaPort}.
+     */
+    private void serveOnJavaPort(Channel channel) {
+        NetherNetHTTPServerSignaling signaling = this.signaling;
+        if (signaling == null || stopping) {
+            channel.close();
+            return;
+        }
+        signaling.initChannel(channel);
+    }
+
+    /**
+     * @param sharedJavaPort whether signaling uses the Java server's port instead of its own listener
+     */
+    private void startInbuilt(boolean sharedJavaPort) {
         // Created on the first start and kept afterwards, as clients pin its public key
-        ServerIdentity identity;
+        OperatorIdentity identity;
         try {
-            identity = ServerIdentity.fromPemOrCreate(dataFolder.resolve("identity.pem").toFile(),
+            identity = OperatorIdentity.fromPemOrCreate(dataFolder.resolve("identity.pem").toFile(),
                     GeyserImpl.NAME + "-" + geyser.config().gameplay().serverName());
         } catch (Exception e) {
             logger().error("Built-in signaling will not start! Could not load or create this server's identity file, "
@@ -218,7 +235,7 @@ public final class NetherNetServer implements EventRegistrar {
 
             GeyserConfig.SignalingConfig.BuiltinConfig builtin = geyser.config().bedrock().signaling().builtin();
 
-            NetherNetHTTPSignaling.Builder signalingBuilder = new NetherNetHTTPSignaling.Builder()
+            NetherNetHTTPServerSignaling.Builder signalingBuilder = new NetherNetHTTPServerSignaling.Builder()
                     .setIdentity(identity)
                     // The same "behind a proxy" settings RakNet uses, applied to the TCP listener
                     .setTrustedProxies(TrustedProxies.parse(geyser.config().advanced().bedrock().haproxyProtocolWhitelistedIps()))
@@ -228,10 +245,10 @@ public final class NetherNetServer implements EventRegistrar {
                     // setting already accepts the login chain it forwards
                     .setTokenTrust(geyser.config().advanced().bedrock().validateBedrockLogin()
                             ? TokenTrust.MINECRAFT_AUTH : TokenTrust.ANY)
-                    .setMotdProvider((host, remoteAddress) -> {
+                    .setMotdProvider((host, remoteAddress, client) -> {
                         BedrockPong pong = pingResponder.onQuery(GUID, remoteAddress);
 
-                        return new NetherNetServerSignaling.PongData.Builder()
+                        return new PongData.Builder()
                                 .setServerName(pong.motd())
                                 .setProtocol(pong.protocolVersion())
                                 .setVersion(pong.version())
@@ -257,7 +274,9 @@ public final class NetherNetServer implements EventRegistrar {
             // The channel binds HTTP signaling over TCP to the signaling port, and by default pins ICE to its UDP side.
             // When the WebRTC port is another port, ICE goes there instead.
             boolean separateIcePort = webrtcPort != signalingPort;
-            this.signaling = signalingBuilder.setIceOnLocalPort(!separateIcePort).build();
+            this.signaling = signalingBuilder.setIceOnLocalPort(!separateIcePort)
+                    .setServeHttp(!sharedJavaPort)
+                    .build();
 
             this.inbuiltEventLoopGroup = new MultiThreadIoEventLoopGroup(NioIoHandler.newFactory());
             this.inbuiltInitialiser = new NetherNetChannelInitialiser(geyser);
@@ -272,8 +291,8 @@ public final class NetherNetServer implements EventRegistrar {
                     @Override
                     protected void initChannel(Channel channel) {
                         var options = channel.config();
-                        options.setOption(NetherChannelOption.NETHER_PEER_CONNECTION_CONFIG,
-                            pinIce(options.getOption(NetherChannelOption.NETHER_PEER_CONNECTION_CONFIG), listener.address(), webrtcPort));
+                        options.setOption(NetherChannelOption.NETHER_SERVER_ICE_ADDRESS,
+                            new InetSocketAddress(listener.address(), webrtcPort));
                     }
                 });
             }
@@ -281,16 +300,22 @@ public final class NetherNetServer implements EventRegistrar {
             this.inbuiltChannel = b.bind(new InetSocketAddress(listener.address(), signalingPort)).sync().channel();
 
             // TLS is served on the same port as plaintext, so both schemes reach it when configured
-            String endpoint = https.certificate().isBlank()
-                    ? "http://" + listener.address() + ":" + signalingPort
-                    : "https:// and http:// on " + listener.address() + ":" + signalingPort;
-            logger().info("Built-in signaling started on " + endpoint
-                + (separateIcePort ? ", with NetherNet on UDP port " + webrtcPort : ""));
+            String scheme = https.certificate().isBlank() ? "http" : "https and http";
+            if (sharedJavaPort) {
+                logger().info("Built-in signaling started on the Java server's TCP port " + signalingPort + " (" + scheme
+                    + "), with NetherNet on UDP port " + webrtcPort);
+            } else {
+                String endpoint = https.certificate().isBlank()
+                        ? "http://" + listener.address() + ":" + signalingPort
+                        : "https:// and http:// on " + listener.address() + ":" + signalingPort;
+                logger().info("Built-in signaling started on " + endpoint
+                    + (separateIcePort ? ", with NetherNet on UDP port " + webrtcPort : ""));
+            }
         } catch (Throwable e) {
             // Throwable: the WebRTC natives are not available on every platform
             closeInbuiltResources();
-            logger().warning("Built-in signaling could not start. Make sure no other program is using TCP port "
-                + signalingPort + ". Enable debug mode for more details.");
+            logger().warning("Built-in signaling could not start." + (sharedJavaPort ? "" : " Make sure no other program is using TCP port "
+                + signalingPort + ".") + " Enable debug mode for more details.");
             logger().debug("Built-in signaling failure: " + e);
         }
     }
@@ -320,21 +345,6 @@ public final class NetherNetServer implements EventRegistrar {
             return Set.of();
         }
         return Set.of(bedrock.address());
-    }
-
-    /**
-     * Pins ICE to one UDP port the way the server channel does for its own bind address, but for another port.
-     */
-    private static PeerConnectionConfiguration pinIce(PeerConnectionConfiguration config, String address, int port) {
-        // A wildcard bind is left unset so ICE keeps gathering on every interface
-        InetAddress host = new InetSocketAddress(address, port).getAddress();
-        if (host != null && !host.isAnyLocalAddress()) {
-            config = config.withBindAddress(host);
-        }
-        return config
-            .withEnableIceUdpMux(true)
-            .withPortRangeBegin(port)
-            .withPortRangeEnd(port);
     }
 
     private void startProvider() {
@@ -371,7 +381,13 @@ public final class NetherNetServer implements EventRegistrar {
                 initializingTransport = transport;
                 transport = new GameOutcomeTransport(transport, gameOutcomes);
                 ProviderClient client = new ProviderClient(runtime.clientConfiguration(), store, transport,
-                        () -> providerStatusSupplier.get(), () -> health(runtime.capacity()), message -> logger().warning(message));
+                        () -> providerStatusSupplier.get(), () -> health(runtime.capacity()), diagnostic -> {
+                            switch (diagnostic.level()) {
+                                case DEBUG -> logger().debug(diagnostic.message());
+                                case INFO -> logger().info(diagnostic.message());
+                                case WARN -> logger().warning(diagnostic.message());
+                            }
+                        });
                 store = null; // ProviderClient now owns its lifetime.
                 initializingTransport = null;
                 synchronized (providerLifecycle) {
@@ -448,8 +464,7 @@ public final class NetherNetServer implements EventRegistrar {
 
     private ProviderClient.Health health(int capacity) {
         int players = geyser.getSessionManager().size();
-        return new ProviderClient.Health(true, true, capacity,
-            Math.min(1, (double) players / Math.max(1, capacity)), "nethernet", GeyserImpl.VERSION,
+        return new ProviderClient.Health(true, capacity, GeyserImpl.VERSION,
             new ProviderClient.PlayerCount(players, System.currentTimeMillis()));
     }
 

@@ -129,8 +129,8 @@ public interface GeyserConfig {
     interface SignalingConfig {
         @Comment("""
             How Bedrock players find this server over NetherNet.
-            "builtin": Geyser runs a local signaling server on the Bedrock port over TCP. This option is not compatible
-            with running the Java server on the Bedrock port.
+            "builtin": Geyser runs a local signaling server on the Bedrock port over TCP. When the Java server or proxy runs
+            on the Bedrock port too, Geyser shares that port with it; Geyser Standalone needs a port of its own.
             "nxs": Geyser registers with the external signaling service configured below.
             "hybrid": uses both "builtin" and "nxs".
             "none" turns signaling off.""")

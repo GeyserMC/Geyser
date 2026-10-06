@@ -36,6 +36,7 @@ import com.velocitypowered.api.network.ProtocolVersion;
 import com.velocitypowered.api.plugin.Plugin;
 import com.velocitypowered.api.plugin.PluginContainer;
 import com.velocitypowered.api.proxy.ProxyServer;
+import io.netty.channel.Channel;
 import lombok.Getter;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
@@ -49,6 +50,7 @@ import org.geysermc.geyser.command.GeyserCommandSource;
 import org.geysermc.geyser.configuration.GeyserPluginConfig;
 import org.geysermc.geyser.dump.BootstrapDumpInfo;
 import org.geysermc.geyser.network.bedrock.GameProtocol;
+import org.geysermc.geyser.network.bedrock.nethernet.SharedJavaPort;
 import org.geysermc.geyser.ping.GeyserLegacyPingPassthrough;
 import org.geysermc.geyser.ping.IGeyserPingPassthrough;
 import org.geysermc.geyser.platform.velocity.command.VelocityCommandSource;
@@ -64,6 +66,7 @@ import java.net.SocketAddress;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Optional;
+import java.util.function.Consumer;
 
 @Plugin(id = "geyser", name = GeyserImpl.NAME + "-Velocity", version = GeyserImpl.VERSION, url = "https://geysermc.org", authors = "GeyserMC")
 public class GeyserVelocityPlugin implements GeyserBootstrap {
@@ -77,6 +80,7 @@ public class GeyserVelocityPlugin implements GeyserBootstrap {
     private CommandRegistry commandRegistry;
     private GeyserImpl geyser;
     private boolean started = false;
+    private final SharedJavaPort sharedJavaPort = new SharedJavaPort();
 
     @Getter
     private final Path configFolder = Paths.get("plugins/" + GeyserImpl.NAME + "-Velocity/");
@@ -174,6 +178,12 @@ public class GeyserVelocityPlugin implements GeyserBootstrap {
         if (geyserInjector != null) {
             geyserInjector.shutdown();
         }
+        sharedJavaPort.close();
+    }
+
+    @Override
+    public boolean shareJavaPort(Consumer<Channel> signaling) {
+        return sharedJavaPort.share(signaling, getServerPort(), () -> GeyserVelocityInjector.findListeningChannels(proxyServer), geyserLogger);
     }
 
     @Override

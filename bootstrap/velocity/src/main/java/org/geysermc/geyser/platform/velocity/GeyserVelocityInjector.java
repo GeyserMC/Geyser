@@ -25,7 +25,9 @@
 
 package org.geysermc.geyser.platform.velocity;
 
+import com.google.common.collect.Multimap;
 import com.velocitypowered.api.proxy.ProxyServer;
+import com.velocitypowered.proxy.network.Endpoint;
 import com.velocitypowered.proxy.network.TransportType;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.Channel;
@@ -56,6 +58,7 @@ import org.geysermc.geyser.network.java.LocalServerChannelWrapper;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.util.Collection;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ThreadFactory;
 import java.util.function.Supplier;
@@ -65,6 +68,21 @@ public class GeyserVelocityInjector extends GeyserInjector {
 
     public GeyserVelocityInjector(ProxyServer proxy) {
         this.proxy = proxy;
+    }
+
+    /**
+     * Finds the channels Velocity listens on.
+     */
+    @SuppressWarnings("unchecked")
+    static Collection<Channel> findListeningChannels(ProxyServer proxy) throws ReflectiveOperationException {
+        Field cm = proxy.getClass().getDeclaredField("cm");
+        cm.setAccessible(true);
+        Object connectionManager = cm.get(proxy);
+
+        Field endpointsField = connectionManager.getClass().getDeclaredField("endpoints");
+        endpointsField.setAccessible(true);
+        Multimap<?, Endpoint> endpoints = (Multimap<?, Endpoint>) endpointsField.get(connectionManager);
+        return endpoints.values().stream().map(Endpoint::getChannel).toList();
     }
 
     @Override

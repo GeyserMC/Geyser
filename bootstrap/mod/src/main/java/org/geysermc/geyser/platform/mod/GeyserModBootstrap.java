@@ -25,6 +25,8 @@
 
 package org.geysermc.geyser.platform.mod;
 
+import io.netty.channel.Channel;
+import io.netty.channel.ChannelFuture;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
@@ -40,6 +42,7 @@ import org.geysermc.geyser.command.CommandRegistry;
 import org.geysermc.geyser.configuration.GeyserPluginConfig;
 import org.geysermc.geyser.dump.BootstrapDumpInfo;
 import org.geysermc.geyser.level.WorldManager;
+import org.geysermc.geyser.network.bedrock.nethernet.SharedJavaPort;
 import org.geysermc.geyser.ping.GeyserLegacyPingPassthrough;
 import org.geysermc.geyser.ping.IGeyserPingPassthrough;
 import org.geysermc.geyser.platform.mod.platform.GeyserModPlatform;
@@ -49,6 +52,7 @@ import org.geysermc.geyser.text.GeyserLocale;
 import java.io.InputStream;
 import java.net.SocketAddress;
 import java.nio.file.Path;
+import java.util.function.Consumer;
 
 @RequiredArgsConstructor
 public abstract class GeyserModBootstrap implements GeyserBootstrap {
@@ -72,6 +76,7 @@ public abstract class GeyserModBootstrap implements GeyserBootstrap {
     private final GeyserModLogger geyserLogger = new GeyserModLogger();
     private IGeyserPingPassthrough geyserPingPassthrough;
     private WorldManager geyserWorldManager;
+    private final SharedJavaPort sharedJavaPort = new SharedJavaPort();
 
     @Override
     public void onGeyserInitialize() {
@@ -134,10 +139,22 @@ public abstract class GeyserModBootstrap implements GeyserBootstrap {
             geyser.shutdown();
             geyser = null;
         }
+        sharedJavaPort.close();
         if (geyserInjector != null) {
             geyserInjector.shutdown();
             this.server = null;
         }
+    }
+
+    @Override
+    public boolean shareJavaPort(Consumer<Channel> signaling) {
+        // Like the local channel, only on dedicated servers
+        if (!isServer()) {
+            return false;
+        }
+        return sharedJavaPort.share(signaling, getServerPort(), () -> ((GeyserChannelGetter) server.getConnection()).geyser$getChannels().stream()
+            .map(ChannelFuture::channel)
+            .toList(), geyserLogger);
     }
 
     @Override

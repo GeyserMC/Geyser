@@ -27,6 +27,7 @@ package org.geysermc.geyser.platform.bungeecord;
 
 import io.netty.channel.Channel;
 import net.md_5.bungee.BungeeCord;
+import net.md_5.bungee.ConnectionThrottle;
 import net.md_5.bungee.Util;
 import net.md_5.bungee.api.CommandSender;
 import net.md_5.bungee.api.config.ListenerInfo;
@@ -44,6 +45,7 @@ import org.geysermc.geyser.command.GeyserCommandSource;
 import org.geysermc.geyser.configuration.GeyserPluginConfig;
 import org.geysermc.geyser.dump.BootstrapDumpInfo;
 import org.geysermc.geyser.network.bedrock.GameProtocol;
+import org.geysermc.geyser.network.bedrock.nethernet.SharedJavaPort;
 import org.geysermc.geyser.ping.GeyserLegacyPingPassthrough;
 import org.geysermc.geyser.ping.IGeyserPingPassthrough;
 import org.geysermc.geyser.platform.bungeecord.command.BungeeCommandSource;
@@ -63,6 +65,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
 
 public class GeyserBungeePlugin extends Plugin implements GeyserBootstrap {
 
@@ -72,6 +75,7 @@ public class GeyserBungeePlugin extends Plugin implements GeyserBootstrap {
     private final GeyserBungeeLogger geyserLogger = new GeyserBungeeLogger(getLogger());
     private IGeyserPingPassthrough geyserBungeePingPassthrough;
     private GeyserImpl geyser;
+    private final SharedJavaPort sharedJavaPort = new SharedJavaPort();
 
     @Override
     public void onLoad() {
@@ -222,6 +226,20 @@ public class GeyserBungeePlugin extends Plugin implements GeyserBootstrap {
         if (geyserInjector != null) {
             geyserInjector.shutdown();
         }
+        sharedJavaPort.close();
+    }
+
+    @Override
+    public boolean shareJavaPort(Consumer<Channel> signaling) {
+        Consumer<Channel> unthrottled = channel -> {
+            // BungeeCord counts every new connection towards its per-address throttle, signaling ones included
+            ConnectionThrottle throttle = BungeeCord.getInstance().getConnectionThrottle();
+            if (throttle != null) {
+                throttle.unthrottle(channel.remoteAddress());
+            }
+            signaling.accept(channel);
+        };
+        return sharedJavaPort.share(unthrottled, getServerPort(), () -> GeyserBungeeInjector.findListeningChannels(getProxy()), geyserLogger);
     }
 
     @Override
