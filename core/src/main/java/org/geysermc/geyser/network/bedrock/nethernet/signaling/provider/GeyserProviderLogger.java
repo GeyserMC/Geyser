@@ -25,17 +25,26 @@
 
 package org.geysermc.geyser.network.bedrock.nethernet.signaling.provider;
 
-import org.cloudburstmc.protocol.bedrock.BedrockPong;
-import org.cloudburstmc.netty.signaling.ServerStatus;
+import org.cloudburstmc.netty.signaling.ProviderDiagnostic;
+import org.geysermc.geyser.GeyserLogger;
 
-/**
- * The Bedrock query supplies the listing name and capacity; actual Geyser sessions supply players.
- */
-public final class GeyserStatusCollector {
-    private GeyserStatusCollector() {
-    }
+import java.util.function.Consumer;
 
-    public static ServerStatus snapshot(BedrockPong pong, int sessions, String level, int gameType) {
-        return new ServerStatus(pong.motd(), level, sessions, pong.maximumPlayerCount(), gameType);
+/** Forwards Network log messages to the Geyser console at their original severity. */
+public record GeyserProviderLogger(GeyserLogger logger) implements Consumer<ProviderDiagnostic> {
+    @Override
+    public void accept(ProviderDiagnostic logMessage) {
+        String message = "NXS: " + logMessage.message();
+        switch (logMessage.level()) {
+            case DEBUG -> {
+                logger.debug(message);
+            }
+            case INFO -> {
+                logger.info(message);
+            }
+            case WARN -> {
+                logger.warning(message);
+            }
+        }
     }
 }
