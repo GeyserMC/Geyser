@@ -154,7 +154,6 @@ import org.geysermc.geyser.inventory.InventoryHolder;
 import org.geysermc.geyser.inventory.LecternContainer;
 import org.geysermc.geyser.inventory.PlayerInventory;
 import org.geysermc.geyser.inventory.recipe.GeyserRecipe;
-import org.geysermc.geyser.inventory.recipe.GeyserSmithingRecipe;
 import org.geysermc.geyser.inventory.recipe.GeyserStonecutterData;
 import org.geysermc.geyser.inventory.recipe.TrimRecipes;
 import org.geysermc.geyser.item.Items;
@@ -566,7 +565,6 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
      */
     @Setter
     private Int2ObjectMap<GeyserStonecutterData> stonecutterRecipes = Int2ObjectMaps.emptyMap();
-    private final List<GeyserSmithingRecipe> smithingRecipes = new ArrayList<>();
     private final TrimRecipes trimRecipes = new TrimRecipes();
 
     /**

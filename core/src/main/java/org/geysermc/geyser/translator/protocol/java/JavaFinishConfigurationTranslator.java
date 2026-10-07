@@ -72,13 +72,12 @@ public class JavaFinishConfigurationTranslator extends PacketTranslator<Clientbo
             session.getLastRecipeNetId().set(InventoryUtils.LAST_RECIPE_NET_ID + 1);
             session.getCraftingRecipes().clear();
             session.getJavaToBedrockRecipeIds().clear();
-            session.getSmithingRecipes().clear();
             session.setStonecutterRecipes(Int2ObjectMaps.emptyMap());
         } else {
             session.getUpstream().queuePostStartGamePacket(craftingDataPacket);
         }
 
-        // We can avoid re-sending potion mixes / crafting recipes again in the JavaUpdateRecipesTranslator
+        // We can avoid re-sending crafting recipes again in the JavaUpdateRecipesTranslator
         session.setCleanRecipesRequired(false);
 
         // while ClientboundLoginPacket holds the level, it doesn't hold the scoreboard.
