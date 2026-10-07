@@ -387,7 +387,7 @@ public class MessageTranslator {
     }
 
     /**
-     * Should only be used by {@link org.geysermc.geyser.session.cache.RegistryCache.RegistryReader}s, as these do not always have a {@link GeyserSession} available.
+     * Should only be used by {@link JavaRegistryReader}s, as these do not always have a {@link GeyserSession} available.
      */
     public static @Nullable String convertFromNullableNbtTag(Optional<GeyserSession> session, @Nullable Object nbtTag) {
         if (nbtTag == null) {
