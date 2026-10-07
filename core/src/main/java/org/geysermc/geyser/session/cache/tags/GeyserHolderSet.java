@@ -250,38 +250,30 @@ public final class GeyserHolderSet<T> {
     }
 
     /**
-     * Reads a HolderSet from a NBT object. Does not support reading HolderSets that can hold inline values.
+     * Reads a HolderSet from a NBT object. When the HolderSet contains inline elements, and a suitable reader exists in {@link JavaRegistryReaders},
+     * that reader will be used to parse the inline element.
      *
-     * <p>Uses {@link JavaRegistryKey#getId(JavaRegistryProvider, Key)} to resolve registry keys to network IDs.</p>
-     *
-     * @param registries TODO the Geyser session.
-     * @param registry the registry the HolderSet contains IDs from.
-     * @param holderSet the HolderSet as a NBT object.
-     */ // TODO deprecate?
-    public static <T> GeyserHolderSet<T> readHolderSet(JavaRegistryProvider registries, JavaRegistryKey<T> registry, @Nullable Object holderSet) {
-        return readHolderSet(registries, registry, holderSet, Optional.empty());
-    }
-
-    /**
-     * Reads a HolderSet from a NBT object. Does not support reading HolderSets that can hold inline values.
-     *
-     * @param session TODO
-     * @param registry the registry the HolderSet contains IDs from.
-     * @param holderSet the HolderSet as a NBT object.
-     * @param <T> TODO
+     * @param session the {@link GeyserSession}
+     * @param registry the registry the HolderSet contains elements from
+     * @param holderSet the HolderSet as an NBT object
+     * @param <T> the type of the registry/HolderSet
      */
     public static <T> GeyserHolderSet<T> readHolderSet(GeyserSession session, JavaRegistryKey<T> registry, @Nullable Object holderSet) {
         return readHolderSet(session.javaRegistries(), registry, holderSet, Optional.of(session));
     }
 
     /**
-     * Reads a HolderSet from a NBT object. When {@code reader} is not null, this method can read HolderSets with inline registry elements as well, using the passed reader to decode
-     * registry elements.
+     * Reads a HolderSet from a NBT object. When the HolderSet contains inline elements, and a suitable reader exists in {@link JavaRegistryReaders},
+     * that reader will be used to parse the inline element.
      *
-     * @param registries TODO
-     * @param registry the registry the HolderSet contains IDs from.
-     * @param holderSet the HolderSet as a NBT object.
-     * @param <T> TODO
+     * <p>This method should generally only be used in a {@link JavaRegistryReader}, where {@link GeyserSession}s may not always be present. Outside of registry readers,
+     * you should generally use {@link GeyserHolderSet#readHolderSet(GeyserSession, JavaRegistryKey, Object)}.</p>
+     *
+     * @param registries the {@link JavaRegistryProvider}
+     * @param registry the registry the HolderSet contains elements from
+     * @param holderSet the HolderSet as an NBT object
+     * @param session the {@link GeyserSession} as an {@link Optional}
+     * @param <T> the type of the registry/HolderSet
      */
     public static <T> GeyserHolderSet<T> readHolderSet(JavaRegistryProvider registries, JavaRegistryKey<T> registry,
                                                        @Nullable Object holderSet, Optional<GeyserSession> session) {
