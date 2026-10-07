@@ -78,7 +78,10 @@ import java.nio.ByteBuffer;
 import java.nio.channels.SeekableByteChannel;
 import java.util.ArrayDeque;
 import java.util.Arrays;
+import java.util.BitSet;
 import java.util.Deque;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.OptionalInt;
 import java.util.UUID;
 
@@ -88,6 +91,7 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
     private boolean receivedLoginPacket = false;
     private boolean finishedResourcePackSending = false;
     private final Deque<String> packsToSend = new ArrayDeque<>();
+    private final Map<UUID, BitSet> sentChunks = new HashMap<>();
     private final CompressionStrategy compressionStrategy;
     private SessionLoadResourcePacksEventImpl resourcePackLoadEvent;
 
@@ -367,6 +371,14 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
             session.disconnect("Duplicate resource pack packet received!");
             return;
         }
+
+        // Send each chunk once, so a client can't make us send more than the pack
+        int index = packet.getChunkIndex();
+        BitSet sent = sentChunks.computeIfAbsent(packet.getPackId(), id -> new BitSet());
+        if (index < 0 || (long) index * GeyserResourcePack.CHUNK_SIZE >= codec.size() || sent.get(index)) {
+            return;
+        }
+        sent.set(index);
 
         ResourcePackChunkDataPacket data = new ResourcePackChunkDataPacket();
         data.setChunkIndex(packet.getChunkIndex());
