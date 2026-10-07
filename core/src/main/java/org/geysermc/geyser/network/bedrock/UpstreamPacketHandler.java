@@ -80,10 +80,7 @@ import java.util.ArrayDeque;
 import java.util.Arrays;
 import java.util.Deque;
 import java.util.OptionalInt;
-import java.util.Queue;
 import java.util.UUID;
-import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.TimeUnit;
 
 public class UpstreamPacketHandler extends LoggingPacketHandler {
 
@@ -92,10 +89,6 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
     private boolean finishedResourcePackSending = false;
     private final Deque<String> packsToSend = new ArrayDeque<>();
     private final CompressionStrategy compressionStrategy;
-    // Avoid overloading consoles when downloading larger resource packs
-    private static final int PACKET_SEND_DELAY = 4 * 50;
-    private final Queue<ResourcePackChunkRequestPacket> chunkRequestQueue = new ConcurrentLinkedQueue<>();
-    private boolean currentlySendingChunks = false;
     private SessionLoadResourcePacksEventImpl resourcePackLoadEvent;
 
     public UpstreamPacketHandler(GeyserImpl geyser, GeyserSession session) {
@@ -343,20 +336,13 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
             return PacketSignal.HANDLED;
         }
 
-        // Resolve some console pack downloading issues.
-        // See <https://github.com/PowerNukkitX/PowerNukkitX/pull/1997> for reference
-        chunkRequestQueue.add(packet);
-        if (!currentlySendingChunks) {
-            currentlySendingChunks = true;
-            processNextChunk();
-        }
+        // No delay needed, the client limits how many chunks it requests at once
+        session.executeInEventLoop(() -> sendChunk(packet));
         return PacketSignal.HANDLED;
     }
 
-    public void processNextChunk() {
-        ResourcePackChunkRequestPacket packet = chunkRequestQueue.poll();
-        if (packet == null || session.isClosed()) {
-            currentlySendingChunks = false;
+    private void sendChunk(ResourcePackChunkRequestPacket packet) {
+        if (session.isClosed()) {
             return;
         }
 
@@ -364,7 +350,6 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
         if (holder == null) {
             GeyserImpl.getInstance().getLogger().debug("Client %s tried to request pack id %s not sent to it!",
                 session.bedrockUsername(), packet.getPackId());
-            chunkRequestQueue.clear();
             session.disconnect("disconnectionScreen.resourcePack");
             return;
         }
@@ -375,13 +360,11 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
             ResourcePackLoader.testRemotePack(session, urlPackCodec, holder);
             if (!resourcePackLoadEvent.value(holder.uuid(), ResourcePackOption.Type.FALLBACK, true)) {
                 session.disconnect("Unable to provide downloaded resource pack. Contact an administrator!");
-                chunkRequestQueue.clear();
                 return;
             }
         } else if (finishedResourcePackSending) {
             GeyserImpl.getInstance().getLogger().warning("Received resource pack chunk packet after stage completed! " + packet);
             session.disconnect("Duplicate resource pack packet received!");
-            chunkRequestQueue.clear();
             return;
         }
 
@@ -406,9 +389,7 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
         data.setData(Unpooled.wrappedBuffer(packData));
 
         // Also flushes packets
-        // Avoids bursting slower / delayed clients
         session.sendUpstreamPacketImmediately(data);
-        session.scheduleInEventLoop(this::processNextChunk, PACKET_SEND_DELAY, TimeUnit.MILLISECONDS);
 
         // Check if it is the last chunk and send next pack in queue when available.
         if (remainingSize <= GeyserResourcePack.CHUNK_SIZE && !packsToSend.isEmpty()) {
