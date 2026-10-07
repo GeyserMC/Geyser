@@ -7,6 +7,7 @@ import org.geysermc.geyser.item.components.Rarity;
 import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.scoreboard.network.util.GeyserMockContext;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.text.ChatColor;
 import org.geysermc.geyser.translator.item.ItemTranslator;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentTypes;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
@@ -43,10 +44,10 @@ class BannerItemTest {
         when(mapping.getJavaItem()).thenReturn(banner);
         // Use literal text to keep this check independent of downloaded language files.
         components.put(DataComponentTypes.ITEM_NAME, Component.text("Ominous Banner"));
-        assertEquals("\u00a7r\u00a7eOminous Banner",
+        assertEquals(ChatColor.RESET + ChatColor.YELLOW + "Ominous Banner",
                 ItemTranslator.getCustomName(session, components, mapping, Rarity.UNCOMMON.getColor(), false, false));
         components.put(DataComponentTypes.ITEM_NAME, Component.text("Named Banner", NamedTextColor.RED));
-        assertEquals("\u00a7r\u00a7e\u00a7cNamed Banner",
+        assertEquals(ChatColor.RESET + ChatColor.YELLOW + ChatColor.RED + "Named Banner",
                 ItemTranslator.getCustomName(session, components, mapping, Rarity.UNCOMMON.getColor(), false, false));
 
         DataComponents ordinaryBanner = new DataComponents(new HashMap<>());
