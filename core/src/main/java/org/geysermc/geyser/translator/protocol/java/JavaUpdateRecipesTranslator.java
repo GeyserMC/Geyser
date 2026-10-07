@@ -244,6 +244,10 @@ public class JavaUpdateRecipesTranslator extends PacketTranslator<ClientboundUpd
         int[] brewingInputs = itemSets.get(BREWING_INPUT);
         int[] brewingReagents = itemSets.get(BREWING_REAGENT);
 
+        if (brewingInputs == null || brewingReagents == null) {
+            return;
+        }
+
         // Bedrock demands an output, but Java doesn't give us one
         // It doesn't matter much what the output is, since the client doesn't display it anywhere: so a simple potion will do
         ItemMapping brewingOutput = itemMappings.getMapping(Items.POTION);
