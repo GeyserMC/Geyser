@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2026 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -49,6 +49,7 @@ import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.util.JsonUtils;
 import org.geysermc.geyser.util.PluginMessageUtils;
 import org.java_websocket.client.WebSocketClient;
+import org.java_websocket.framing.CloseFrame;
 import org.java_websocket.handshake.ServerHandshake;
 
 public final class FloodgateSkinUploader {
@@ -78,6 +79,8 @@ public final class FloodgateSkinUploader {
      */
     @Getter private boolean allowSubscribers = false;
     private int subscribersCount;
+
+    private int protocolErrorCount = 0;
 
     public FloodgateSkinUploader(GeyserImpl geyser) {
         this.logger = geyser.getLogger();
@@ -126,6 +129,7 @@ public final class FloodgateSkinUploader {
                             verifyCode = node.get("verify_code").getAsString();
                             // Should fallback to true when absent, as this used to be the behavior before this introduction
                             allowSubscribers = !node.has("allow_subscribers") || node.get("allow_subscribers").getAsBoolean();
+                            subscribersCount = 1;
                             break;
                         case SUBSCRIBER_COUNT:
                             subscribersCount = node.get("subscribers_count").getAsInt();
@@ -133,7 +137,7 @@ public final class FloodgateSkinUploader {
                         case SKIN_UPLOADED:
                             // if Geyser is the only subscriber we have send it to the server manually
                             // otherwise it's handled by the Floodgate plugin subscribers
-                            if (subscribersCount != 1) {
+                            if (subscribersCount != 1 && allowSubscribers) {
                                 break;
                             }
 
@@ -179,6 +183,22 @@ public final class FloodgateSkinUploader {
             @Override
             public void onClose(int code, String reason, boolean remote) {
                 allowSubscribers = false;
+
+                // If we seem to get protocol errors quite a bit, try our alternative url.
+                // But if that one fails too for a few times, just revert back to our main url.
+                if (code == CloseFrame.PROTOCOL_ERROR) {
+                    boolean shouldSwitch = false;
+                    if (protocolErrorCount < 5) {
+                        shouldSwitch = ++protocolErrorCount == 5;
+                    }
+                    if (protocolErrorCount >= 5 && Constants.GLOBAL_API_WS_URI_ALT != null) {
+                        if (shouldSwitch) {
+                            uri = Constants.GLOBAL_API_WS_URI_ALT;
+                        } else if (++protocolErrorCount == 10) {
+                            uri = Constants.GLOBAL_API_WS_URI;
+                        }
+                    }
+                }
 
                 if (reason != null && !reason.isEmpty()) {
                     try {

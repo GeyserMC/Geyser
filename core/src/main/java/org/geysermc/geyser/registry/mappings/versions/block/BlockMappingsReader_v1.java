@@ -575,16 +575,18 @@ public class BlockMappingsReader_v1 implements MappingsReader<String, CustomBloc
             faceDimming = node.get("face_dimming").getAsBoolean();
         }
 
-        boolean ambientOcclusion = true;
+        float ambientOcclusion = 1.0f;
         if (node.has("ambient_occlusion")) {
-            ambientOcclusion = node.get("ambient_occlusion").getAsBoolean();
+            // Boolean in older block format versions; since format version 1.26.20 Bedrock only accepts the 0.0-10.0 exponent form
+            JsonPrimitive value = node.get("ambient_occlusion").getAsJsonPrimitive();
+            ambientOcclusion = value.isBoolean() ? (value.getAsBoolean() ? 1.0f : 0.0f) : value.getAsFloat();
         }
 
         return new GeyserMaterialInstance.Builder()
             .texture(texture)
             .renderMethod(renderMethod)
             .faceDimming(faceDimming)
-            .ambientOcclusion(ambientOcclusion)
+            .ambientOcclusionExponent(ambientOcclusion)
             .build();
     }
 

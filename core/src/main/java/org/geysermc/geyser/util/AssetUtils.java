@@ -31,7 +31,7 @@ import com.google.gson.JsonParser;
 import com.google.gson.annotations.SerializedName;
 import lombok.Getter;
 import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.network.GameProtocol;
+import org.geysermc.geyser.network.bedrock.GameProtocol;
 import org.geysermc.geyser.text.GeyserLocale;
 
 import java.io.BufferedReader;

@@ -30,8 +30,7 @@ import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.GameMode;
-import org.geysermc.mcprotocollib.protocol.data.game.entity.player.Hand;
-import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.player.ServerboundSwingPacket;
+import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.player.ServerboundPunchPacket;
 
 import java.util.concurrent.TimeUnit;
 
@@ -75,7 +74,7 @@ public class BedrockAnimateTranslator extends PacketTranslator<AnimatePacket> {
                         // and Bedrock 1.19.51.
                         // Note for the future: we should probably largely ignore this packet and instead replicate
                         // all actions on our end, and send swings where needed. Can be done once we replicate Block and Item interactions fully.
-                        session.sendDownstreamGamePacket(new ServerboundSwingPacket(Hand.MAIN_HAND));
+                        session.sendDownstreamGamePacket(ServerboundPunchPacket.INSTANCE);
                         session.activateArmAnimationTicking();
                     }
                 },

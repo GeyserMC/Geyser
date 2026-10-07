@@ -71,7 +71,7 @@ public interface BlockSoundInteractionTranslator extends SoundInteractionTransla
                     continue;
                 }
                 if (handIdentifier == null) {
-                    handIdentifier = itemInHand.asItem().javaIdentifier();
+                    handIdentifier = itemInHand.asItem().javaKey().asString();
                 }
                 boolean contains = false;
                 for (String itemIdentifier : interactionEntry.getKey().items()) {

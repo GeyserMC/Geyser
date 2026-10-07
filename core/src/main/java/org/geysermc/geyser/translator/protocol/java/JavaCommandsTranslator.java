@@ -37,16 +37,21 @@ import lombok.ToString;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.checkerframework.checker.nullness.qual.MonotonicNonNull;
-import org.cloudburstmc.protocol.bedrock.data.command.*;
+import org.cloudburstmc.protocol.bedrock.data.command.CommandData;
+import org.cloudburstmc.protocol.bedrock.data.command.CommandEnumConstraint;
+import org.cloudburstmc.protocol.bedrock.data.command.CommandEnumData;
+import org.cloudburstmc.protocol.bedrock.data.command.CommandOverloadData;
+import org.cloudburstmc.protocol.bedrock.data.command.CommandParam;
+import org.cloudburstmc.protocol.bedrock.data.command.CommandParamData;
+import org.cloudburstmc.protocol.bedrock.data.command.CommandPermission;
 import org.cloudburstmc.protocol.bedrock.packet.AvailableCommandsPacket;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.event.java.ServerDefineCommandsEvent;
 import org.geysermc.geyser.api.util.PlatformType;
 import org.geysermc.geyser.command.CommandRegistry;
-import org.geysermc.geyser.registry.BlockRegistries;
-import org.geysermc.geyser.registry.Registries;
+import org.geysermc.geyser.registry.java.BuiltInJavaRegistries;
 import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.geyser.session.cache.registry.JavaRegistries;
+import org.geysermc.geyser.registry.java.JavaRegistries;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 import org.geysermc.geyser.util.EntityUtils;
@@ -56,7 +61,16 @@ import org.geysermc.mcprotocollib.protocol.data.game.command.properties.Resource
 import org.geysermc.mcprotocollib.protocol.data.game.entity.attribute.AttributeType;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.ClientboundCommandsPacket;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.EnumSet;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
 import java.util.function.Supplier;
 
 @SuppressWarnings("removal") // We know. This is our doing.
@@ -66,7 +80,7 @@ public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommands
     /**
      * Wait until the registries load before getting all the block names.
      */
-    private static final Supplier<String[]> ALL_BLOCK_NAMES = Suppliers.memoize(() -> BlockRegistries.JAVA_BLOCKS.get().stream().map(block -> block.javaIdentifier().toString()).toArray(String[]::new));
+    private static final Supplier<String[]> ALL_BLOCK_NAMES = Suppliers.memoize(() -> BuiltInJavaRegistries.BLOCK.keys().stream().map(Key::asString).toArray(String[]::new));
     private static final String[] ALL_EFFECT_IDENTIFIERS = EntityUtils.getAllEffectIdentifiers();
     private static final String[] ATTRIBUTES = AttributeType.Builtin.BUILTIN.values().stream().map(type -> type.getIdentifier().asString()).toList().toArray(new String[0]);
     private static final String[] ENUM_BOOLEAN = {"true", "false"};
@@ -382,21 +396,21 @@ public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommands
             if (enchantments != null) {
                 return enchantments;
             }
-            return (enchantments = session.getRegistryCache().registry(JavaRegistries.ENCHANTMENT).keys().stream().map(Key::asString).toArray(String[]::new));
+            return (enchantments = session.javaRegistries().registry(JavaRegistries.ENCHANTMENT).keys().stream().map(Key::asString).toArray(String[]::new));
         }
 
         private String[] getEntityTypes() {
             if (entityTypes != null) {
                 return entityTypes;
             }
-            return (entityTypes = Registries.JAVA_ENTITY_IDENTIFIERS.get().keySet().toArray(new String[0]));
+            return (entityTypes = BuiltInJavaRegistries.ENTITY_TYPE.keys().stream().map(Key::asString).toArray(String[]::new));
         }
 
         public String[] getItemNames() {
             if (itemNames != null) {
                 return itemNames;
             }
-            return (itemNames = Registries.JAVA_ITEM_IDENTIFIERS.get().keySet().toArray(new String[0]));
+            return (itemNames = BuiltInJavaRegistries.ITEM.keys().stream().map(Key::asString).toArray(String[]::new));
         }
 
         private CommandEnumData getTeams() {

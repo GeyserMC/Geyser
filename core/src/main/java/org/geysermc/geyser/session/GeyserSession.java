@@ -55,6 +55,7 @@ import org.cloudburstmc.math.vector.Vector2f;
 import org.cloudburstmc.math.vector.Vector2i;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.math.vector.Vector3i;
+import org.cloudburstmc.nbt.NbtList;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.netty.channel.raknet.RakChildChannel;
 import org.cloudburstmc.netty.handler.codec.raknet.common.RakSessionCodec;
@@ -88,6 +89,7 @@ import org.cloudburstmc.protocol.bedrock.packet.CreativeContentPacket;
 import org.cloudburstmc.protocol.bedrock.packet.DimensionDataPacket;
 import org.cloudburstmc.protocol.bedrock.packet.GameRulesChangedPacket;
 import org.cloudburstmc.protocol.bedrock.packet.ItemComponentPacket;
+import org.cloudburstmc.protocol.bedrock.packet.JigsawStructureDataPacket;
 import org.cloudburstmc.protocol.bedrock.packet.LevelEventPacket;
 import org.cloudburstmc.protocol.bedrock.packet.LevelSoundEventPacket;
 import org.cloudburstmc.protocol.bedrock.packet.NetworkStackLatencyPacket;
@@ -99,6 +101,7 @@ import org.cloudburstmc.protocol.bedrock.packet.SetTimePacket;
 import org.cloudburstmc.protocol.bedrock.packet.StartGamePacket;
 import org.cloudburstmc.protocol.bedrock.packet.SyncEntityPropertyPacket;
 import org.cloudburstmc.protocol.bedrock.packet.TextPacket;
+import org.cloudburstmc.protocol.bedrock.packet.ToastRequestPacket;
 import org.cloudburstmc.protocol.bedrock.packet.TransferPacket;
 import org.cloudburstmc.protocol.bedrock.packet.UpdateAbilitiesPacket;
 import org.cloudburstmc.protocol.bedrock.packet.UpdateAdventureSettingsPacket;
@@ -151,7 +154,6 @@ import org.geysermc.geyser.inventory.InventoryHolder;
 import org.geysermc.geyser.inventory.LecternContainer;
 import org.geysermc.geyser.inventory.PlayerInventory;
 import org.geysermc.geyser.inventory.recipe.GeyserRecipe;
-import org.geysermc.geyser.inventory.recipe.GeyserSmithingRecipe;
 import org.geysermc.geyser.inventory.recipe.GeyserStonecutterData;
 import org.geysermc.geyser.inventory.recipe.TrimRecipes;
 import org.geysermc.geyser.item.Items;
@@ -160,9 +162,10 @@ import org.geysermc.geyser.level.BedrockDimension;
 import org.geysermc.geyser.level.JavaDimension;
 import org.geysermc.geyser.level.gamerule.GameRuleHandler;
 import org.geysermc.geyser.level.physics.CollisionManager;
-import org.geysermc.geyser.network.GameProtocol;
-import org.geysermc.geyser.network.netty.LocalSession;
+import org.geysermc.geyser.network.bedrock.GameProtocol;
+import org.geysermc.geyser.network.java.LocalSession;
 import org.geysermc.geyser.registry.Registries;
+import org.geysermc.geyser.registry.java.JavaRegistry;
 import org.geysermc.geyser.registry.type.BlockMappings;
 import org.geysermc.geyser.registry.type.ItemMappings;
 import org.geysermc.geyser.session.auth.AuthData;
@@ -180,16 +183,15 @@ import org.geysermc.geyser.session.cache.InputCache;
 import org.geysermc.geyser.session.cache.LodestoneCache;
 import org.geysermc.geyser.session.cache.PistonCache;
 import org.geysermc.geyser.session.cache.PreferencesCache;
-import org.geysermc.geyser.session.cache.RegistryCache;
 import org.geysermc.geyser.session.cache.SkullCache;
 import org.geysermc.geyser.session.cache.StructureBlockCache;
-import org.geysermc.geyser.session.cache.TagCache;
 import org.geysermc.geyser.session.cache.TeleportCache;
 import org.geysermc.geyser.session.cache.WorldBorder;
 import org.geysermc.geyser.session.cache.WorldCache;
-import org.geysermc.geyser.session.cache.registry.JavaRegistries;
+import org.geysermc.geyser.registry.java.JavaRegistries;
+import org.geysermc.geyser.registry.java.JavaRegistryProvider;
+import org.geysermc.geyser.session.cache.registry.JavaRegistryTagCache;
 import org.geysermc.geyser.session.cache.tags.DialogTag;
-import org.geysermc.geyser.session.cache.waypoint.GeyserWaypoint;
 import org.geysermc.geyser.session.cache.waypoint.WaypointCache;
 import org.geysermc.geyser.session.dialog.BuiltInDialog;
 import org.geysermc.geyser.session.dialog.Dialog;
@@ -310,10 +312,10 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     private final LodestoneCache lodestoneCache;
     private final PistonCache pistonCache;
     private final PreferencesCache preferencesCache;
-    private final RegistryCache registryCache;
+    @Accessors(fluent = true)
+    private final JavaRegistryProvider javaRegistries;
     private final SkullCache skullCache;
     private final StructureBlockCache structureBlockCache;
-    private final TagCache tagCache;
     private final WaypointCache waypointCache;
     private final WorldCache worldCache;
 
@@ -563,7 +565,6 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
      */
     @Setter
     private Int2ObjectMap<GeyserStonecutterData> stonecutterRecipes = Int2ObjectMaps.emptyMap();
-    private final List<GeyserSmithingRecipe> smithingRecipes = new ArrayList<>();
     private final TrimRecipes trimRecipes = new TrimRecipes();
 
     /**
@@ -872,10 +873,9 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         this.lodestoneCache = new LodestoneCache();
         this.pistonCache = new PistonCache(this);
         this.preferencesCache = new PreferencesCache(this);
-        this.registryCache = new RegistryCache(this);
+        this.javaRegistries = new JavaRegistryTagCache();
         this.skullCache = new SkullCache(this);
         this.structureBlockCache = new StructureBlockCache();
-        this.tagCache = new TagCache(this);
         this.waypointCache = new WaypointCache(this);
         this.worldCache = new WorldCache(this);
         this.cameraData = new GeyserCameraData(this);
@@ -903,13 +903,17 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
      * Send all necessary packets to load Bedrock into the server
      */
     public void connect() {
-        // Note: this.dimensionType may be null here if the player is connecting from online mode
+        // Note: DIMENSION_TYPE registry may be uninitialised here if the player is connecting from online mode,
+        // so we have to check explicitly using isEmpty
         int minY = BedrockDimension.OVERWORLD.minY();
         int maxY = BedrockDimension.OVERWORLD.maxY();
-        for (JavaDimension javaDimension : this.registryCache.registry(JavaRegistries.DIMENSION_TYPE).values()) {
-            if (javaDimension.bedrockId() == BedrockDimension.OVERWORLD_ID) {
-                minY = Math.min(minY, javaDimension.minY());
-                maxY = Math.max(maxY, javaDimension.minY() + javaDimension.height());
+        JavaRegistry<JavaDimension> dimensions = this.javaRegistries.registry(JavaRegistries.DIMENSION_TYPE);
+        if (!dimensions.isEmpty()) {
+            for (JavaDimension javaDimension : this.javaRegistries.registry(JavaRegistries.DIMENSION_TYPE)) {
+                if (javaDimension.bedrockId() == BedrockDimension.OVERWORLD_ID) {
+                    minY = Math.min(minY, javaDimension.minY());
+                    maxY = Math.max(maxY, javaDimension.minY() + javaDimension.height());
+                }
             }
         }
         minY = Math.max(minY, -512);
@@ -924,7 +928,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
             geyser.getLogger().debug("Extending overworld dimension to " + minY + " - " + maxY);
 
             DimensionDataPacket dimensionDataPacket = new DimensionDataPacket();
-            dimensionDataPacket.getDefinitions().add(new DimensionDefinition("minecraft:overworld", maxY, minY, 5, 3, GeyserIntegratedPackUtil.INTEGRATED_PACK_UUID));
+            dimensionDataPacket.getDefinitions().add(new DimensionDefinition("minecraft:overworld", maxY, minY, 5, 3, GeyserIntegratedPackUtil.INTEGRATED_PACK_UUID, ""));
             upstream.sendPacket(dimensionDataPacket);
         }
 
@@ -1010,15 +1014,9 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         // Recipe unlocking
         gamerulePacket.getGameRules().add(new GameRuleData<>("recipesunlock", true));
 
-        if (!GeyserWaypoint.uses26_10WaypointPacket(this)) {
-            // We disable the locator bar until we are certain that the server wants us to enable it
-            // See WaypointCache for details
-            gamerulePacket.getGameRules().add(new GameRuleData<>("locatorBar", false));
-        } else {
-            // On bedrock 26.10 and above, the client only shows the locator bar when there are
-            // waypoints on it, so we're fine doing this
-            gamerulePacket.getGameRules().add(new GameRuleData<>("locatorBar", true));
-        }
+        // On bedrock 26.10 and above, the client only shows the locator bar when there are
+        // waypoints on it, so we're fine doing this
+        gamerulePacket.getGameRules().add(new GameRuleData<>("locatorBar", true));
 
         upstream.sendPacket(gamerulePacket);
     }
@@ -1811,7 +1809,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
 
     @Override
     public void openPauseScreenAdditions() {
-        List<Dialog> additions = tagCache.get(DialogTag.PAUSE_SCREEN_ADDITIONS);
+        List<Dialog> additions = javaRegistries.tag(DialogTag.PAUSE_SCREEN_ADDITIONS);
         if (additions.isEmpty()) {
             if (!serverLinks.isEmpty()) {
                 dialogManager.openDialog(BuiltInDialog.SERVER_LINKS);
@@ -1825,7 +1823,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
 
     @Override
     public void openQuickActions() {
-        List<Dialog> quickActions = tagCache.get(DialogTag.QUICK_ACTIONS);
+        List<Dialog> quickActions = javaRegistries.tag(DialogTag.QUICK_ACTIONS);
         if (!quickActions.isEmpty()) {
             if (quickActions.size() == 1) {
                 dialogManager.openDialog(quickActions.getFirst());
@@ -1975,12 +1973,19 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         this.upstream.getCodecHelper().setBlockDefinitions(this.blockMappings);
         this.upstream.getCodecHelper().setCameraPresetDefinitions(CameraDefinitions.CAMERA_DEFINITIONS);
 
-        if (GameProtocol.is26_20orHigher(protocolVersion())) {
-            VoxelShapesPacket voxelShapesPacket = new VoxelShapesPacket();
-            voxelShapesPacket.setNameMap(new HashMap<>());
-            voxelShapesPacket.setShapes(new ArrayList<>());
-            upstream.sendPacket(voxelShapesPacket);
-        }
+        JigsawStructureDataPacket jigsawStructureDataPacket = new JigsawStructureDataPacket();
+        jigsawStructureDataPacket.setJigsawStructureDataTag(NbtMap.fromMap(Map.of(
+            "processors", NbtList.EMPTY,
+            "template_pools", NbtList.EMPTY,
+            "jigsaws", NbtList.EMPTY,
+            "structure_sets", NbtList.EMPTY
+        )));
+        upstream.sendPacket(jigsawStructureDataPacket);
+
+        VoxelShapesPacket voxelShapesPacket = new VoxelShapesPacket();
+        voxelShapesPacket.setNameMap(new HashMap<>());
+        voxelShapesPacket.setShapes(new ArrayList<>());
+        upstream.sendPacket(voxelShapesPacket);
 
         StartGamePacket startGamePacket = buildStartGamePacket();
         configureExperiments(startGamePacket);
@@ -2697,7 +2702,13 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
             return 0;
         }
 
-        RakSessionCodec rakSessionCodec = ((RakChildChannel) getUpstream().getSession().getPeer().getChannel()).rakPipeline().get(RakSessionCodec.class);
+        // TODO fixme
+        // TODO NetherNet: expose the WebRTC round trip time
+        if (!(getUpstream().getSession().getPeer().getChannel() instanceof RakChildChannel rakChannel)) {
+            return 0;
+        }
+
+        RakSessionCodec rakSessionCodec = rakChannel.rakPipeline().get(RakSessionCodec.class);
         return (int) Math.floor(rakSessionCodec.getPing());
     }
 
@@ -2745,6 +2756,14 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
             latencyPingCache.add(runnable);
         }
         sendUpstreamPacket(latencyPacket);
+    }
+
+    @Override
+    public void sendToast(@NonNull String title, @NonNull String content) {
+        ToastRequestPacket packet = new ToastRequestPacket();
+        packet.setTitle(Objects.requireNonNull(title, "title cannot be null!"));
+        packet.setContent(Objects.requireNonNull(content, "content cannot be null!"));
+        sendUpstreamPacket(packet);
     }
 
     public String getDebugInfo() {

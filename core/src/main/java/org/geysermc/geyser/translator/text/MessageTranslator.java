@@ -42,8 +42,9 @@ import org.cloudburstmc.nbt.NbtList;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.protocol.bedrock.packet.TextPacket;
 import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.registry.java.JavaRegistries;
+import org.geysermc.geyser.registry.java.reader.JavaRegistryReader;
 import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.geyser.session.cache.registry.JavaRegistries;
 import org.geysermc.geyser.text.ChatColor;
 import org.geysermc.geyser.text.ChatDecoration;
 import org.geysermc.geyser.text.GeyserLocale;
@@ -78,7 +79,7 @@ public class MessageTranslator {
     private static final String RESET = BASE + "r";
     private static final Pattern LOCALIZATION_PATTERN = Pattern.compile("%(?:(\\d+)\\$)?s");
 
-    private static final String ERROR_MESSAGE = "§cReport at Geyser";
+    private static final String ERROR_MESSAGE = "§cReport to Geyser";
 
     static {
         // Customize the formatting characters of our legacy serializer for bedrock edition
@@ -234,7 +235,9 @@ public class MessageTranslator {
 
             return finalLegacy.toString();
         } catch (Exception e) {
-            GeyserImpl.getInstance().getLogger().debug(DefaultComponentSerializer.nbt().serialize(message));
+            if (GeyserImpl.getInstance().config().debugMode()) {
+                GeyserImpl.getInstance().getLogger().debug(DefaultComponentSerializer.nbt().serialize(message));
+            }
             GeyserImpl.getInstance().getLogger().error("Failed to parse message", e);
 
             return "";
@@ -349,7 +352,7 @@ public class MessageTranslator {
     }
 
     /**
-     * Shorthand for {@link MessageTranslator#convertLenientNbtMessage(GeyserSession, Object, String)}, uses {@code "Report at Geyser"} as fallback.
+     * Shorthand for {@link MessageTranslator#convertLenientNbtMessage(GeyserSession, Object, String)}, uses {@code "Report to Geyser"} as fallback.
      */
     public static String convertLenientNbtMessage(GeyserSession session, @Nullable Object tag) {
         return convertLenientNbtMessage(session, tag, ERROR_MESSAGE);
@@ -549,7 +552,7 @@ public class MessageTranslator {
 
         textPacket.setNeedsTranslation(false);
 
-        ChatType chatType = chatTypeHolder.getOrCompute(session.getRegistryCache().registry(JavaRegistries.CHAT_TYPE)::byId);
+        ChatType chatType = chatTypeHolder.getOrCompute(JavaRegistries.CHAT_TYPE.resolver(session));
         if (chatType != null && chatType.chat() != null) {
             var chat = chatType.chat();
             // As of 1.19 - do this to apply all the styling for signed messages

@@ -41,7 +41,9 @@ import org.geysermc.cumulus.response.SimpleFormResponse;
 import org.geysermc.cumulus.response.result.FormResponseResult;
 import org.geysermc.cumulus.response.result.ValidFormResponseResult;
 import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.network.CodecProcessor;
+import org.geysermc.geyser.network.bedrock.CodecProcessor;
+import org.cloudburstmc.netty.util.nethernet.TransportIdentityBinding;
+import org.geysermc.geyser.network.bedrock.nethernet.NetherNetPeer;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.auth.AuthData;
 import org.geysermc.geyser.session.auth.BedrockClientData;
@@ -102,6 +104,16 @@ public class LoginEncryptionUtils {
             data.setOriginalString(jwt);
             session.setClientData(data);
 
+            // A proxy re-signs the chain with its own key, so the two only line up for a direct client.
+            // Every other transport binds the chain through the encryption handshake below instead.
+            if (!geyser.config().advanced().bedrock().useWaterdogpeForwarding()
+                    && session.getUpstream().getSession().getPeer() instanceof NetherNetPeer) {
+                if (refusedByBinding(geyser, session, TransportIdentityBinding.mismatch(
+                        session.getUpstream().getSession().getPeer().getChannel(), identityPublicKey))) {
+                    return;
+                }
+            }
+
             IdentityData extraData = result.identityClaims().extraData;
             String xuid = extraData.xuid;
             if (geyser.config().advanced().bedrock().useWaterdogpeForwarding()) {
@@ -112,6 +124,13 @@ public class LoginEncryptionUtils {
                     session.getUpstream().setInetAddress(new InetSocketAddress(waterdogIp, 0));
                 } else {
                     session.disconnect("Did not receive IP and xuid forwarded from the proxy!");
+                    return;
+                }
+                // The proxy authenticated this player, so there is no key of theirs to compare.
+                // Spending the binding is what stops the admission expiring under a live session,
+                // and it only happens once the forwarded fields above have been accepted.
+                if (refusedByBinding(geyser, session, TransportIdentityBinding.acceptForwardedIdentity(
+                        session.getUpstream().getSession().getPeer().getChannel()))) {
                     return;
                 }
             }
@@ -137,6 +156,12 @@ public class LoginEncryptionUtils {
     }
 
     private static void startEncryptionHandshake(GeyserSession session, PublicKey key) throws Exception {
+        if (session.getUpstream().getSession().getPeer() instanceof NetherNetPeer) {
+            // The data channel is already encrypted by DTLS, so the peer ignores an encryption key.
+            // Sending the handshake anyway would have the client encrypt what the server cannot read.
+            return;
+        }
+
         KeyPair serverKeyPair = EncryptionUtils.createKeyPair();
         byte[] token = EncryptionUtils.generateRandomToken();
 
@@ -146,6 +171,21 @@ public class LoginEncryptionUtils {
 
         SecretKey encryptionKey = EncryptionUtils.getSecretKey(serverKeyPair.getPrivate(), key, token);
         session.getUpstream().getSession().enableEncryption(encryptionKey);
+    }
+
+    /**
+     * Disconnects the session when the transport identity binding turned the login away.
+     *
+     * @param refusal why the binding refused it, or null when it did not
+     * @return whether the login was refused, and the session already disconnected
+     */
+    private static boolean refusedByBinding(GeyserImpl geyser, GeyserSession session, String refusal) {
+        if (refusal == null) {
+            return false;
+        }
+        geyser.getLogger().info("Refused a login from " + session.getSocketAddress() + ", " + refusal);
+        session.disconnect(GeyserLocale.getLocaleStringLog("geyser.network.remote.invalid_xbox_account"));
+        return true;
     }
 
     private static void sendEncryptionFailedMessage(GeyserImpl geyser) {

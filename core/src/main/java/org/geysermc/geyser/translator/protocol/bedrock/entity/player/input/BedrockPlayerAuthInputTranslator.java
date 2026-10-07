@@ -47,21 +47,19 @@ import org.geysermc.geyser.entity.type.player.SessionPlayerEntity;
 import org.geysermc.geyser.entity.vehicle.ClientVehicle;
 import org.geysermc.geyser.entity.vehicle.HorseVehicleComponent;
 import org.geysermc.geyser.level.physics.BoundingBox;
-import org.geysermc.geyser.network.GameProtocol;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 import org.geysermc.geyser.util.CooldownUtils;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.Pose;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.GameMode;
-import org.geysermc.mcprotocollib.protocol.data.game.entity.player.Hand;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.PlayerState;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.ServerboundClientTickEndPacket;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.level.ServerboundMoveVehiclePacket;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.player.ServerboundPlayerAbilitiesPacket;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.player.ServerboundPlayerCommandPacket;
+import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.player.ServerboundPunchPacket;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.player.ServerboundSpectatorActionPacket;
-import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.player.ServerboundSwingPacket;
 
 import java.util.HashSet;
 import java.util.List;
@@ -76,7 +74,7 @@ public final class BedrockPlayerAuthInputTranslator extends PacketTranslator<Pla
         SessionPlayerEntity entity = session.getPlayerEntity();
 
         session.setClientTicks(packet.getTick());
-        session.setInClientPredictedVehicle(packet.getInputData().contains(PlayerAuthInputData.IN_CLIENT_PREDICTED_IN_VEHICLE) && entity.getVehicle() != null && GameProtocol.is26_10orHigher(session.protocolVersion()));
+        session.setInClientPredictedVehicle(packet.getInputData().contains(PlayerAuthInputData.IN_CLIENT_PREDICTED_IN_VEHICLE) && entity.getVehicle() != null);
 
         boolean wasJumping = session.getInputCache().wasJumping();
         session.getInputCache().processInputs(entity, packet);
@@ -187,7 +185,7 @@ public final class BedrockPlayerAuthInputTranslator extends PacketTranslator<Pla
                     if (session.getGameMode() == GameMode.SPECTATOR) {
                         session.sendDownstreamGamePacket(new ServerboundSpectatorActionPacket(OptionalInt.empty()));
                     } else if (session.getArmAnimationTicks() != 0 && session.getArmAnimationTicks() != 1) {
-                        session.sendDownstreamGamePacket(new ServerboundSwingPacket(Hand.MAIN_HAND));
+                        session.sendDownstreamGamePacket(ServerboundPunchPacket.INSTANCE);
                         session.activateArmAnimationTicking();
                     }
 

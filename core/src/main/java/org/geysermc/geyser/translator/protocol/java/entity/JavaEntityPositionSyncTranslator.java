@@ -34,6 +34,8 @@ import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.entity.ClientboundEntityPositionSyncPacket;
 
+import java.util.Objects;
+
 @Translator(packet = ClientboundEntityPositionSyncPacket.class)
 public class JavaEntityPositionSyncTranslator extends PacketTranslator<ClientboundEntityPositionSyncPacket> {
 
@@ -42,7 +44,11 @@ public class JavaEntityPositionSyncTranslator extends PacketTranslator<Clientbou
         Entity entity = session.getEntityCache().getEntityByJavaId(packet.getId());
         if (entity == null) return;
 
-        Vector3d pos = packet.getPosition();
+        Vector3d pos = packet.getEndPosition();
+        if (pos == null) {
+            // TODO lerp
+            pos = Objects.requireNonNull(packet.getSteps()).getLast().position();
+        }
         Vector3f target = pos.toFloat();
         // Compute before the cached position is overwritten. Java clients snap rather than
         // interpolate a sync farther than 64 blocks; Bedrock needs teleport semantics there too

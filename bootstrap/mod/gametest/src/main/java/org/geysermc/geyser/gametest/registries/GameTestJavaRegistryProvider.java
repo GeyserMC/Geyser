@@ -25,25 +25,47 @@
 
 package org.geysermc.geyser.gametest.registries;
 
-import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
-import net.minecraft.core.RegistryAccess;
-import org.geysermc.geyser.session.cache.registry.JavaRegistry;
-import org.geysermc.geyser.session.cache.registry.JavaRegistryKey;
-import org.geysermc.geyser.session.cache.registry.JavaRegistryProvider;
+import net.minecraft.core.LayeredRegistryAccess;
+import net.minecraft.network.protocol.configuration.ConfigurationProtocols;
+import net.minecraft.server.RegistryLayer;
+import net.minecraft.server.network.ConfigurationTask;
+import net.minecraft.server.network.config.SynchronizeRegistriesTask;
+import org.geysermc.geyser.gametest.mixin.SynchronizeRegistriesTaskAccessor;
+import org.geysermc.geyser.gametest.util.NetworkUtil;
+import org.geysermc.geyser.registry.java.JavaRegistryProvider;
+import org.geysermc.geyser.session.cache.registry.JavaRegistryTagCache;
+import org.geysermc.mcprotocollib.network.packet.Packet;
+import org.geysermc.mcprotocollib.protocol.packet.common.clientbound.ClientboundUpdateTagsPacket;
+import org.geysermc.mcprotocollib.protocol.packet.configuration.clientbound.ClientboundRegistryDataPacket;
 
-import java.util.Map;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 
-public class GameTestJavaRegistryProvider implements JavaRegistryProvider {
-    private final RegistryAccess registries;
-    private final Map<JavaRegistryKey<?>, GameTestJavaRegistry<?>> registryCache = new Object2ObjectOpenHashMap<>();
+public final class GameTestJavaRegistryProvider {
 
-    public GameTestJavaRegistryProvider(RegistryAccess registries) {
-        this.registries = registries;
-    }
+    private GameTestJavaRegistryProvider() {}
 
-    @Override
-    public <T> JavaRegistry<T> registry(JavaRegistryKey<T> registryKey) {
-        //noinspection unchecked
-        return (JavaRegistry<T>) registryCache.computeIfAbsent(registryKey, key -> new GameTestJavaRegistry<>(registries, key));
+    public static JavaRegistryProvider create(LayeredRegistryAccess<RegistryLayer> registries) {
+        JavaRegistryTagCache provider = new JavaRegistryTagCache();
+
+        // List.of() is known packs and doesn't matter in this context
+        ConfigurationTask synchronizeRegistriesTask = new SynchronizeRegistriesTask(List.of(), registries);
+
+        ((SynchronizeRegistriesTaskAccessor) synchronizeRegistriesTask).invokeSendRegistries(
+            packet -> {
+                Packet mcpl = NetworkUtil.mojangToGeyserPacket(ConfigurationProtocols.CLIENTBOUND, packet);
+                if (mcpl instanceof ClientboundRegistryDataPacket registryDataPacket) {
+                    provider.loadRegistryData(Optional.empty(), registryDataPacket);
+                } else if (mcpl instanceof ClientboundUpdateTagsPacket tagsPacket) {
+                    provider.loadTags(Optional.empty(), tagsPacket);
+                } else {
+                    throw new IllegalStateException("Unexpected packet during registry synchronisation: " + mcpl);
+                }
+            },
+            Set.of()
+        );
+
+        return provider;
     }
 }

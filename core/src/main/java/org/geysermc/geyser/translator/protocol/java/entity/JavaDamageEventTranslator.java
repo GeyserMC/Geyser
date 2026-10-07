@@ -25,16 +25,18 @@
 
 package org.geysermc.geyser.translator.protocol.java.entity;
 
-import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.entity.ClientboundDamageEventPacket;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDamageCause;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityEventType;
 import org.cloudburstmc.protocol.bedrock.packet.EntityEventPacket;
 import org.geysermc.geyser.entity.type.Entity;
+import org.geysermc.geyser.registry.java.JavaRegistries;
+import org.geysermc.geyser.registry.java.reader.JavaRegistryReader;
 import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.geyser.session.cache.registry.JavaRegistries;
-import org.geysermc.geyser.session.cache.registry.RegistryEntryContext;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
+import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.entity.ClientboundDamageEventPacket;
+
+import java.util.Optional;
 
 @Translator(packet = ClientboundDamageEventPacket.class)
 public class JavaDamageEventTranslator extends PacketTranslator<ClientboundDamageEventPacket> {
@@ -46,16 +48,16 @@ public class JavaDamageEventTranslator extends PacketTranslator<ClientboundDamag
             return;
         }
 
-        EntityDamageCause cause = session.getRegistryCache().registry(JavaRegistries.DAMAGE_TYPE).byId(packet.getSourceTypeId());
-        if (cause == null) {
-            cause = EntityDamageCause.OVERRIDE;
+        Optional<EntityDamageCause> cause = JavaRegistries.DAMAGE_TYPE.get(session.javaRegistries(), packet.getSourceTypeId());
+        if (cause.isEmpty()) {
+            cause = Optional.of(EntityDamageCause.OVERRIDE);
         }
 
         EntityEventPacket entityEventPacket = new EntityEventPacket();
         entityEventPacket.setRuntimeEntityId(entity.geyserId());
         entityEventPacket.setType(EntityEventType.HURT);
         // EntityDamageCause.NONE is -1 on the wire, so the cause id is its ordinal minus one.
-        entityEventPacket.setData(cause.ordinal() - 1);
+        entityEventPacket.setData(cause.get().ordinal() - 1);
         session.sendUpstreamPacket(entityEventPacket);
     }
 
@@ -64,8 +66,8 @@ public class JavaDamageEventTranslator extends PacketTranslator<ClientboundDamag
      * plays. The Java client picks hurt sounds from the damage type's effects field, so map each effect with a
      * distinct sound to the closest Bedrock cause.
      */
-    public static EntityDamageCause readDamageCause(RegistryEntryContext context) {
-        return switch (context.data().getString("effects")) {
+    public static EntityDamageCause readDamageCause(JavaRegistryReader.Context context) {
+        return switch (context.dataAsMap().getString("effects")) {
             case "burning" -> EntityDamageCause.FIRE_TICK;
             case "drowning" -> EntityDamageCause.DROWNING;
             case "freezing" -> EntityDamageCause.FREEZING;

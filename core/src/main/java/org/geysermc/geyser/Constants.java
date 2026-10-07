@@ -30,6 +30,7 @@ import java.net.URISyntaxException;
 
 public final class Constants {
     public static final URI GLOBAL_API_WS_URI;
+    public static final URI GLOBAL_API_WS_URI_ALT;
 
     public static final String NEWS_OVERVIEW_URL = "https://api.geysermc.org/v2/news/";
     public static final String NEWS_PROJECT_NAME = "geyser";
@@ -42,7 +43,7 @@ public final class Constants {
 
     public static final String MINECRAFT_SKIN_SERVER_URL = "https://textures.minecraft.net/texture/";
 
-    public static final int CONFIG_VERSION = 7;
+    public static final int CONFIG_VERSION = 8;
 
     public static final int BSTATS_ID = 5273;
 
@@ -54,5 +55,12 @@ public final class Constants {
             e.printStackTrace();
         }
         GLOBAL_API_WS_URI = wsUri;
+
+        URI wsUriAlt = null;
+        try {
+            wsUriAlt = new URI("wss://ws.geysermc.org/ws");
+        } catch (URISyntaxException ignored) {
+        }
+        GLOBAL_API_WS_URI_ALT = wsUriAlt;
     }
 }

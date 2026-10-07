@@ -29,8 +29,8 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.nbt.NbtMap;
 import org.geysermc.geyser.inventory.item.BedrockEnchantment;
 import org.geysermc.geyser.item.type.Item;
-import org.geysermc.geyser.session.cache.registry.JavaRegistries;
-import org.geysermc.geyser.session.cache.registry.RegistryEntryContext;
+import org.geysermc.geyser.registry.java.JavaRegistries;
+import org.geysermc.geyser.registry.java.reader.RegistryEntryContext;
 import org.geysermc.geyser.session.cache.tags.GeyserHolderSet;
 
 import java.util.HashSet;
@@ -50,17 +50,15 @@ public record Enchantment(Set<EnchantmentComponent> effects,
                           @Nullable BedrockEnchantment bedrockEnchantment) {
 
     public static Enchantment read(RegistryEntryContext context) {
-        NbtMap data = context.data();
+        NbtMap data = context.dataAsMap();
         Set<EnchantmentComponent> effects = readEnchantmentComponents(data.getCompound("effects"));
 
-        GeyserHolderSet<Item> supportedItems = context.session()
-            .map(session -> GeyserHolderSet.readHolderSet(session, JavaRegistries.ITEM, data.get("supported_items")))
-            .orElseGet(() -> GeyserHolderSet.empty(JavaRegistries.ITEM));
+        GeyserHolderSet<Item> supportedItems = GeyserHolderSet.readHolderSet(context.registries(), JavaRegistries.ITEM, data.get("supported_items"), context.session());
 
         int maxLevel = data.getInt("max_level");
         int anvilCost = data.getInt("anvil_cost");
 
-        GeyserHolderSet<Enchantment> exclusiveSet = GeyserHolderSet.readHolderSet(JavaRegistries.ENCHANTMENT, data.get("exclusive_set"), context::getNetworkId);
+        GeyserHolderSet<Enchantment> exclusiveSet = GeyserHolderSet.readHolderSet(context.registries(), JavaRegistries.ENCHANTMENT, data.get("exclusive_set"), context.session());
 
         BedrockEnchantment bedrockEnchantment = BedrockEnchantment.getByJavaIdentifier(context.id().asString());
 

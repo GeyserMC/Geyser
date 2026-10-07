@@ -25,13 +25,11 @@
 
 package org.geysermc.geyser.inventory;
 
-import it.unimi.dsi.fastutil.ints.IntList;
 import lombok.AccessLevel;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
-import net.kyori.adventure.key.Key;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
@@ -41,14 +39,16 @@ import org.geysermc.geyser.inventory.item.Potion;
 import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.item.components.resolvable.ResolvableComponentGetter;
 import org.geysermc.geyser.item.type.Item;
-import org.geysermc.geyser.registry.Registries;
+import org.geysermc.geyser.registry.java.BuiltInJavaRegistries;
 import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.cache.BundleCache;
-import org.geysermc.geyser.session.cache.registry.JavaRegistries;
+import org.geysermc.geyser.registry.java.JavaRegistries;
+import org.geysermc.geyser.session.cache.tags.GeyserHolderSet;
 import org.geysermc.geyser.session.cache.tags.Tag;
 import org.geysermc.geyser.translator.item.ItemTranslator;
 import org.geysermc.geyser.util.ColorUtils;
+import org.geysermc.mcprotocollib.protocol.data.game.Holder;
 import org.geysermc.mcprotocollib.protocol.data.game.item.ItemStack;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentTypes;
@@ -118,13 +118,13 @@ public class GeyserItemStack {
             case ItemStackSlotDisplay(ItemStack itemStack) -> GeyserItemStack.from(session, itemStack);
             // Just create the first display
             case CompositeSlotDisplay(List<SlotDisplay> contents) -> contents.isEmpty() ? GeyserItemStack.EMPTY : from(session, contents.getFirst());
-            case TagSlotDisplay(Key tag) -> {
-                // Again, just create an itemstack of the first item in the tag, if possible
-                IntList itemTag = session.getTagCache().getRaw(new Tag<>(JavaRegistries.ITEM, tag));
+            case TagSlotDisplay(HolderSet set) -> {
+                // Again, just create an itemstack of the first item in the holder set, if possible
+                List<Holder<Item>> itemTag = GeyserHolderSet.fromMCPL(JavaRegistries.ITEM, set).resolveHolders(session.javaRegistries());
                 if (itemTag.isEmpty()) {
                     yield GeyserItemStack.EMPTY;
                 }
-                yield GeyserItemStack.of(session, itemTag.getFirst(), 1);
+                yield GeyserItemStack.of(session, itemTag.getFirst().id(), 1);
             }
             case DyedSlotDisplay(SlotDisplay dye, SlotDisplay target) -> {
                 // This probably works... MC does it a little differently
@@ -167,11 +167,11 @@ public class GeyserItemStack {
     }
 
     public boolean is(GeyserSession session, Tag<Item> tag) {
-        return session.getTagCache().is(tag, javaId);
+        return session.javaRegistries().is(tag, javaId);
     }
 
     public boolean is(GeyserSession session, HolderSet set) {
-        return session.getTagCache().is(set, JavaRegistries.ITEM, javaId);
+        return session.javaRegistries().is(JavaRegistries.ITEM, set, javaId);
     }
 
     public boolean isSameItem(GeyserItemStack other) {
@@ -353,7 +353,7 @@ public class GeyserItemStack {
             return Items.AIR;
         }
         if (item == null) {
-            return (item = Registries.JAVA_ITEMS.get().get(javaId));
+            return (item = BuiltInJavaRegistries.ITEM.getOrThrow(javaId));
         }
         return item;
     }

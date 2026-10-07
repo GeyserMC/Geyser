@@ -31,7 +31,7 @@ import org.geysermc.geyser.Constants;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.network.AuthType;
 import org.geysermc.geyser.api.util.PlatformType;
-import org.geysermc.geyser.network.netty.LocalSession;
+import org.geysermc.geyser.network.java.LocalSession;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.session.auth.BedrockClientData;
 import org.geysermc.geyser.skin.FloodgateSkinUploader;

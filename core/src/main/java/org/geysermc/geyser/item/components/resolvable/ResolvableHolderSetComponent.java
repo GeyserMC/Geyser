@@ -30,9 +30,9 @@ import com.google.gson.JsonObject;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntLists;
 import net.kyori.adventure.key.Key;
-import org.geysermc.geyser.session.cache.registry.JavaRegistries;
-import org.geysermc.geyser.session.cache.registry.JavaRegistryKey;
-import org.geysermc.geyser.session.cache.registry.JavaRegistryProvider;
+import org.geysermc.geyser.registry.java.JavaRegistries;
+import org.geysermc.geyser.registry.java.JavaRegistryKey;
+import org.geysermc.geyser.registry.java.JavaRegistryProvider;
 import org.geysermc.geyser.util.MinecraftKey;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.HolderSet;
@@ -62,7 +62,7 @@ public record ResolvableHolderSetComponent(DataComponentType<HolderSet> type, Op
     @Override
     public @Nullable HolderSet resolve(JavaRegistryProvider registries) {
         return registry.map(theRegistry -> references.stream()
-            .mapToInt(key -> theRegistry.networkId(registries, key))
+            .mapToInt(key -> theRegistry.getIdOrThrow(registries, key))
             .toArray())
             .map(IntArrayList::new)
             .map(HolderSet::new)

@@ -30,19 +30,22 @@ import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.protocol.bedrock.data.ParticleType;
 import org.cloudburstmc.protocol.bedrock.data.SoundEvent;
+import org.cloudburstmc.protocol.bedrock.packet.ClientboundUpdateSoundDataPacket;
 import org.cloudburstmc.protocol.bedrock.packet.LevelEventGenericPacket;
 import org.cloudburstmc.protocol.bedrock.packet.LevelEventPacket;
 import org.cloudburstmc.protocol.bedrock.packet.LevelSoundEventPacket;
 import org.cloudburstmc.protocol.bedrock.packet.PlaySoundPacket;
+import org.cloudburstmc.protocol.bedrock.packet.RecordStartedPacket;
 import org.cloudburstmc.protocol.bedrock.packet.SpawnParticleEffectPacket;
 import org.cloudburstmc.protocol.bedrock.packet.StopSoundPacket;
 import org.cloudburstmc.protocol.bedrock.packet.TextPacket;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.level.JukeboxSong;
+import org.geysermc.geyser.network.bedrock.GameProtocol;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.registry.type.SoundMapping;
 import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.geyser.session.cache.registry.JavaRegistries;
+import org.geysermc.geyser.registry.java.JavaRegistries;
 import org.geysermc.geyser.translator.level.event.LevelEventTranslator;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
@@ -79,15 +82,15 @@ public class JavaLevelEventTranslator extends PacketTranslator<ClientboundLevelE
         // Separate case since each RecordEventData in Java is an individual track in Bedrock
         if (levelEvent == LevelEventType.SOUND_PLAY_JUKEBOX_SONG) {
             RecordEventData recordEventData = (RecordEventData) packet.getData();
-            JukeboxSong jukeboxSong = session.getRegistryCache().registry(JavaRegistries.JUKEBOX_SONG).byId(recordEventData.getRecordId());
-            if (jukeboxSong == null) {
+            Optional<JukeboxSong> jukeboxSong = JavaRegistries.JUKEBOX_SONG.get(session.javaRegistries(), recordEventData.getRecordId());
+            if (jukeboxSong.isEmpty()) {
                 return;
             }
             Vector3i origin = packet.getPosition();
             Vector3f pos = Vector3f.from(origin.getX() + 0.5f, origin.getY() + 0.5f, origin.getZ() + 0.5f);
 
             // Prioritize level events because it makes parrots dance.
-            SoundMapping mapping = Registries.SOUNDS.get(jukeboxSong.soundEvent().replace("minecraft:", ""));
+            SoundMapping mapping = Registries.SOUNDS.get(jukeboxSong.get().soundEvent().replace("minecraft:", ""));
             SoundEvent soundEvent = null;
             if (mapping != null) {
                 String bedrock = mapping.bedrock();
@@ -96,27 +99,45 @@ public class JavaLevelEventTranslator extends PacketTranslator<ClientboundLevelE
                 }
             }
 
-            if (soundEvent != null) {
-                LevelSoundEventPacket levelSoundEvent = new LevelSoundEventPacket();
-                levelSoundEvent.setIdentifier("");
-                levelSoundEvent.setSound(soundEvent);
-                levelSoundEvent.setPosition(pos);
-                levelSoundEvent.setRelativeVolumeDisabled(packet.isBroadcast());
-                levelSoundEvent.setExtraData(-1);
-                levelSoundEvent.setBabySound(false);
-                session.sendUpstreamPacket(levelSoundEvent);
-            } else {
-                String bedrockSound = SoundUtils.translatePlaySound(jukeboxSong.soundEvent());
-                // Pitch and volume from Java 1.21
+            if (GameProtocol.is26_50orHigher(session.protocolVersion())) {
+                String bedrockSound = SoundUtils.translatePlaySound(jukeboxSong.get().soundEvent());
+                long id = session.getWorldCache().addPlayingRecord(packet.getPosition());
+
                 PlaySoundPacket playSoundPacket = new PlaySoundPacket();
+                playSoundPacket.setServerSoundHandle(id);
                 playSoundPacket.setPosition(pos);
                 playSoundPacket.setSound(bedrockSound);
                 playSoundPacket.setPitch(1.0f);
                 playSoundPacket.setVolume(4.0f);
                 session.sendUpstreamPacket(playSoundPacket);
 
-                // Special behavior so we can cancel the record on our end
-                session.getWorldCache().addActiveRecord(origin, bedrockSound);
+                RecordStartedPacket recordStartedPacket = new RecordStartedPacket();
+                recordStartedPacket.setBlockPos(origin);
+                recordStartedPacket.setServerSoundHandle(id);
+                session.sendUpstreamPacket(recordStartedPacket);
+            } else {
+                if (soundEvent != null) {
+                    LevelSoundEventPacket levelSoundEvent = new LevelSoundEventPacket();
+                    levelSoundEvent.setIdentifier("");
+                    levelSoundEvent.setSound(soundEvent);
+                    levelSoundEvent.setPosition(pos);
+                    levelSoundEvent.setRelativeVolumeDisabled(packet.isBroadcast());
+                    levelSoundEvent.setExtraData(-1);
+                    levelSoundEvent.setBabySound(false);
+                    session.sendUpstreamPacket(levelSoundEvent);
+                } else {
+                    String bedrockSound = SoundUtils.translatePlaySound(jukeboxSong.get().soundEvent());
+                    // Pitch and volume from Java 1.21
+                    PlaySoundPacket playSoundPacket = new PlaySoundPacket();
+                    playSoundPacket.setPosition(pos);
+                    playSoundPacket.setSound(bedrockSound);
+                    playSoundPacket.setPitch(1.0f);
+                    playSoundPacket.setVolume(4.0f);
+                    session.sendUpstreamPacket(playSoundPacket);
+
+                    // Special behavior so we can cancel the record on our end
+                    session.getWorldCache().addActiveRecord(origin, bedrockSound);
+                }
             }
 
             // The level event for Java also indicates to show the text packet with the jukebox's description
@@ -127,7 +148,7 @@ public class JavaLevelEventTranslator extends PacketTranslator<ClientboundLevelE
             textPacket.setPlatformChatId("");
             textPacket.setSourceName(null);
             textPacket.setMessage("record.nowPlaying");
-            textPacket.setParameters(Collections.singletonList(jukeboxSong.description()));
+            textPacket.setParameters(Collections.singletonList(jukeboxSong.get().description()));
             session.sendUpstreamPacket(textPacket);
             return;
         }
@@ -324,7 +345,7 @@ public class JavaLevelEventTranslator extends PacketTranslator<ClientboundLevelE
             }
             case DRIPSTONE_DRIP -> effectPacket.setType(org.cloudburstmc.protocol.bedrock.data.LevelEvent.PARTICLE_DRIPSTONE_DRIP);
             case PARTICLES_ELECTRIC_SPARK -> effectPacket.setType(org.cloudburstmc.protocol.bedrock.data.LevelEvent.PARTICLE_ELECTRIC_SPARK); // Matches with a Bedrock server but doesn't seem to match up with Java
-            case PARTICLES_AND_SOUND_WAX_ON -> effectPacket.setType(org.cloudburstmc.protocol.bedrock.data.LevelEvent.PARTICLE_WAX_ON);
+            case PARTICLES_WAX_ON -> effectPacket.setType(org.cloudburstmc.protocol.bedrock.data.LevelEvent.PARTICLE_WAX_ON);
             case PARTICLES_WAX_OFF -> effectPacket.setType(org.cloudburstmc.protocol.bedrock.data.LevelEvent.PARTICLE_WAX_OFF);
             case PARTICLES_SCRAPE -> effectPacket.setType(org.cloudburstmc.protocol.bedrock.data.LevelEvent.PARTICLE_SCRAPE);
             case PARTICLES_SCULK_CHARGE -> {
@@ -426,22 +447,31 @@ public class JavaLevelEventTranslator extends PacketTranslator<ClientboundLevelE
             }
             case PARTICLES_TRIAL_SPAWNER_SPAWN_ITEM -> effectPacket.setType(org.cloudburstmc.protocol.bedrock.data.LevelEvent.PARTICLE_TRIAL_SPAWNER_EJECTING);
             case SOUND_STOP_JUKEBOX_SONG -> {
-                String bedrockSound = session.getWorldCache().removeActiveRecord(origin);
-                if (bedrockSound == null) {
-                    // Vanilla record
-                    LevelSoundEventPacket levelSoundEvent = new LevelSoundEventPacket();
-                    levelSoundEvent.setIdentifier("");
-                    levelSoundEvent.setSound(SoundEvent.STOP_RECORD);
-                    levelSoundEvent.setPosition(pos);
-                    levelSoundEvent.setRelativeVolumeDisabled(false);
-                    levelSoundEvent.setExtraData(-1);
-                    levelSoundEvent.setBabySound(false);
-                    session.sendUpstreamPacket(levelSoundEvent);
+                if (GameProtocol.is26_50orHigher(session.protocolVersion())) {
+                    Long id = session.getWorldCache().removePlayingRecord(origin);
+                    if (id != null) { // Not sure how this would ever happen...
+                        ClientboundUpdateSoundDataPacket updateSoundDataPacket = new ClientboundUpdateSoundDataPacket();
+                        updateSoundDataPacket.setServerSoundHandle(id);
+                        session.sendUpstreamPacket(updateSoundDataPacket);
+                    }
                 } else {
-                    // Custom record
-                    StopSoundPacket stopSound = new StopSoundPacket();
-                    stopSound.setSoundName(bedrockSound);
-                    session.sendUpstreamPacket(stopSound);
+                    String bedrockSound = session.getWorldCache().removeActiveRecord(origin);
+                    if (bedrockSound == null) {
+                        // Vanilla record
+                        LevelSoundEventPacket levelSoundEvent = new LevelSoundEventPacket();
+                        levelSoundEvent.setIdentifier("");
+                        levelSoundEvent.setSound(SoundEvent.STOP_RECORD);
+                        levelSoundEvent.setPosition(pos);
+                        levelSoundEvent.setRelativeVolumeDisabled(false);
+                        levelSoundEvent.setExtraData(-1);
+                        levelSoundEvent.setBabySound(false);
+                        session.sendUpstreamPacket(levelSoundEvent);
+                    } else {
+                        // Custom record
+                        StopSoundPacket stopSound = new StopSoundPacket();
+                        stopSound.setSoundName(bedrockSound);
+                        session.sendUpstreamPacket(stopSound);
+                    }
                 }
                 return;
             }

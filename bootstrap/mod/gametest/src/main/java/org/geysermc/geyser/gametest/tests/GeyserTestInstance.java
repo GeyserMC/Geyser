@@ -39,7 +39,7 @@ import net.minecraft.gametest.framework.TestEnvironmentDefinition;
 import net.minecraft.resources.Identifier;
 import net.minecraft.resources.RegistryOps;
 import org.geysermc.geyser.gametest.registries.GameTestJavaRegistryProvider;
-import org.geysermc.geyser.session.cache.registry.JavaRegistryProvider;
+import org.geysermc.geyser.registry.java.JavaRegistryProvider;
 
 public abstract class GeyserTestInstance extends GameTestInstance {
 
@@ -48,7 +48,7 @@ public abstract class GeyserTestInstance extends GameTestInstance {
     }
 
     protected JavaRegistryProvider createRegistryProvider(GameTestHelper helper) {
-        return new GameTestJavaRegistryProvider(helper.getLevel().registryAccess());
+        return GameTestJavaRegistryProvider.create(helper.getLevel().getServer().registries());
     }
 
     protected static <T extends GeyserTestInstance> Products.P2<RecordCodecBuilder.Mu<T>, HolderGetter<TestEnvironmentDefinition<?>>, Boolean> commonFields(RecordCodecBuilder.Instance<T> instance) {

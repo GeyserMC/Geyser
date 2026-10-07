@@ -45,6 +45,7 @@ import org.geysermc.geyser.api.event.lifecycle.GeyserDefineEntityPropertiesEvent
 import org.geysermc.geyser.api.util.Identifier;
 import org.geysermc.geyser.entity.BedrockEntityDefinition;
 import org.geysermc.geyser.entity.CustomBedrockEntityDefinition;
+import org.geysermc.geyser.entity.EntityTypeDefinition;
 import org.geysermc.geyser.entity.GeyserEntityType;
 import org.geysermc.geyser.entity.VanillaEntities;
 import org.geysermc.geyser.entity.properties.type.BooleanProperty;
@@ -64,8 +65,9 @@ import org.geysermc.geyser.entity.type.living.animal.horse.CamelEntity;
 import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.registry.Registries;
+import org.geysermc.geyser.registry.java.JavaRegistryProvider;
 import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.geyser.session.cache.registry.JavaRegistries;
+import org.geysermc.geyser.registry.java.JavaRegistries;
 import org.geysermc.geyser.session.cache.tags.GeyserHolderSet;
 import org.geysermc.geyser.text.MinecraftLocale;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.Effect;
@@ -358,13 +360,13 @@ public final class EntityUtils {
         return translatedEntityName(typeName.namespace(), typeName.path(), session);
     }
 
-    public static boolean equipmentUsableByEntity(GeyserSession session, Equippable equippable, GeyserEntityType entity) {
+    public static boolean equipmentUsableByEntity(JavaRegistryProvider registries, Equippable equippable, EntityTypeDefinition<?> entity) {
         if (equippable.allowedEntities() == null) {
             return true;
         }
 
-        GeyserHolderSet<GeyserEntityType> holderSet = GeyserHolderSet.fromHolderSet(JavaRegistries.ENTITY_TYPE, equippable.allowedEntities());
-        return holderSet.contains(session, entity);
+        GeyserHolderSet<EntityTypeDefinition<?>> holderSet = GeyserHolderSet.fromMCPL(JavaRegistries.ENTITY_TYPE, equippable.allowedEntities());
+        return holderSet.contains(registries, entity);
     }
 
     // From ViaVersion! thank u!!
