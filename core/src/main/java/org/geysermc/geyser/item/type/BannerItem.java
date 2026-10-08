@@ -37,6 +37,7 @@ import org.cloudburstmc.nbt.NbtType;
 import org.geysermc.geyser.inventory.item.BannerPattern;
 import org.geysermc.geyser.inventory.item.DyeColor;
 import org.geysermc.geyser.item.TooltipOptions;
+import org.geysermc.geyser.item.components.Rarity;
 import org.geysermc.geyser.level.block.type.Block;
 import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.session.GeyserSession;
@@ -203,6 +204,24 @@ public class BannerItem extends BlockItem {
     }
 
     @Override
+    public @NonNull Rarity getRarity(GeyserSession session, DataComponents components) {
+        if (components == null) {
+            return Rarity.COMMON;
+        }
+        Integer explicitRarity = components.get(DataComponentTypes.RARITY);
+        if (explicitRarity != null) {
+            return Rarity.fromId(explicitRarity);
+        }
+        if (session != null) {
+            List<BannerPatternLayer> patterns = components.get(DataComponentTypes.BANNER_PATTERNS);
+            if (patterns != null && isOminous(session, patterns)) {
+                return Rarity.UNCOMMON;
+            }
+        }
+        return super.getRarity(session, components);
+    }
+
+    @Override
     public void translateComponentsToBedrock(@NonNull GeyserSession session, @NonNull DataComponents components, @NonNull TooltipOptions tooltip, @NonNull BedrockItemBuilder builder) {
         super.translateComponentsToBedrock(session, components, tooltip, builder);
 
@@ -232,6 +251,7 @@ public class BannerItem extends BlockItem {
                     .translatable("block.minecraft.ominous_banner")
                     .style(Style.style(TextColor.color(16755200)))
             );
+            components.put(DataComponentTypes.RARITY, Rarity.UNCOMMON.ordinal());
         }
         // Bedrock's creative inventory does not support other patterns as of 1.20.5
     }

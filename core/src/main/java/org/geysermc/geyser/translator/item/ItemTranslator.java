@@ -47,6 +47,7 @@ import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.item.TooltipOptions;
 import org.geysermc.geyser.item.components.Rarity;
 import org.geysermc.geyser.item.type.Item;
+import org.geysermc.geyser.item.type.BannerItem;
 import org.geysermc.geyser.item.type.PotionItem;
 import org.geysermc.geyser.level.block.type.Block;
 import org.geysermc.geyser.registry.BlockRegistries;
@@ -69,6 +70,7 @@ import org.geysermc.mcprotocollib.protocol.data.game.entity.attribute.ModifierOp
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.ResolvableProfile;
 import org.geysermc.mcprotocollib.protocol.data.game.item.ItemStack;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.AdventureModePredicate;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.BannerPatternLayer;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentTypes;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.HolderSet;
@@ -197,7 +199,7 @@ public final class ItemTranslator {
         // Translate item-specific components
         javaItem.translateComponentsToBedrock(session, components, tooltip, nbtBuilder);
 
-        Rarity rarity = Rarity.fromId(components.getOrDefault(DataComponentTypes.RARITY, 0));
+        Rarity rarity = javaItem.getRarity(session, components);
         String customName = getCustomName(session, customComponents, bedrockItem, rarity.getColor(), false, false);
         if (customName != null) {
             PotionContents potionContents = components.get(DataComponentTypes.POTION_CONTENTS);
@@ -600,11 +602,20 @@ public final class ItemTranslator {
                     }
                 }
 
+                if (mapping.getJavaItem() instanceof BannerItem) {
+                    List<BannerPatternLayer> patterns = components.get(DataComponentTypes.BANNER_PATTERNS);
+                    if (patterns != null && BannerItem.isOminous(session, patterns)) {
+                        if (components.get(DataComponentTypes.ITEM_NAME) == null) {
+                            return ChatColor.RESET + ChatColor.ESCAPE + translationColor + MinecraftLocale.getLocaleString("block.minecraft.ominous_banner", session.locale());
+                        }
+                    }
+                }
+
                 customName = components.get(DataComponentTypes.ITEM_NAME);
                 if (customName != null) {
                     // Get the translated name and prefix it with a reset char to prevent italics - matches Java Edition
                     // behavior as of 1.21
-                    return ChatColor.RESET + ChatColor.ESCAPE + translationColor + MessageTranslator.convertMessage(customName, session.locale());
+                    return ChatColor.RESET + ChatColor.ESCAPE + translationColor + MessageTranslator.convertMessageRaw(customName, session.locale());
                 }
             }
         }

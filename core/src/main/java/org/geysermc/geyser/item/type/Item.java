@@ -39,6 +39,7 @@ import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.inventory.item.BedrockEnchantment;
 import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.item.TooltipOptions;
+import org.geysermc.geyser.item.components.Rarity;
 import org.geysermc.geyser.item.components.resolvable.ResolvableComponent;
 import org.geysermc.geyser.item.components.resolvable.ResolvableComponentGetter;
 import org.geysermc.geyser.item.enchantment.Enchantment;
@@ -212,6 +213,17 @@ public class Item {
 
     public ItemMapping toBedrockDefinition(DataComponents components, ItemMappings mappings) {
         return mappings.getMapping(javaId);
+    }
+
+    /**
+     * Gets the rarity of this item given its components.
+     *
+     * @param session the session translating the item
+     * @param components the items' data components
+     * @return the item rarity
+     */
+    public @NonNull Rarity getRarity(GeyserSession session, DataComponents components) {
+        return components == null ? Rarity.COMMON : Rarity.fromId(components.getOrDefault(DataComponentTypes.RARITY, 0));
     }
 
     /**
