@@ -96,7 +96,7 @@ public class CustomItemRegistryPopulator {
         Consumable.ItemUseAnimation.DRINK, 2,
         Consumable.ItemUseAnimation.BLOCK, 3,
         Consumable.ItemUseAnimation.BOW, 4,
-        Consumable.ItemUseAnimation.SPEAR, 6,
+        Consumable.ItemUseAnimation.TRIDENT, 6,
         Consumable.ItemUseAnimation.CROSSBOW, 9,
         Consumable.ItemUseAnimation.SPYGLASS, 10,
         Consumable.ItemUseAnimation.BRUSH, 12
