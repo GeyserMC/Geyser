@@ -64,6 +64,18 @@ public abstract class GeyserDefineCustomBlocksEvent implements Event {
     public abstract void registerItemOverride(String javaIdentifier, CustomBlockData customBlockData);
 
     /**
+     * Registers the given {@link CustomBlockData} as an override for items matching both
+     * the Java item identifier and {@code minecraft:item_model} component.
+     *
+     * @param javaIdentifier the Java item identifier to match
+     * @param itemModel the value of the Java item's {@code minecraft:item_model} component
+     * @param customBlockData the custom block data with which to represent the matching item
+     */
+    public void registerItemOverride(String javaIdentifier, String itemModel, CustomBlockData customBlockData) {
+        throw new UnsupportedOperationException("Model-specific custom block item overrides are not supported by this runtime");
+    }
+
+    /**
      * Registers the given {@link CustomBlockState} as an override for the
      * given {@link JavaBlockState}
      *
