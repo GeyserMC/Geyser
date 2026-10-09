@@ -92,6 +92,16 @@ public class CollisionRegistryLoader extends MultiResourceRegistryLoader<String,
                 continue;
             }
 
+            // The bundled collision data only covers vanilla block states. BLOCK_STATES can be
+            // longer than that on a modded server, where non-vanilla state overrides push the
+            // list past the vanilla range, so indexing it directly throws. Those blocks carry
+            // their own collision through their custom block components, so there is nothing
+            // to look up here.
+            if (i >= indices.length) {
+                collisions.add(null);
+                continue;
+            }
+
             BlockCollision newCollision = instantiateCollision(state, annotationMap, indices[i], collisionList);
 
             if (newCollision != null) {
