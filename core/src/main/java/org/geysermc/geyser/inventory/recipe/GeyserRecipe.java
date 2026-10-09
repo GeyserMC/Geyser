@@ -36,6 +36,12 @@ import java.util.List;
  */
 public interface GeyserRecipe<T extends RecipeData> {
     /**
+     * The Java Edition {@code RecipeDisplayId} this recipe was created from, as sent to us by the backend
+     * server. Needed to place this recipe via a {@link org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.inventory.ServerboundPlaceRecipePacket}.
+     */
+    int id();
+
+    /**
      * Whether the recipe is flexible or not in which items can be placed where.
      */
     boolean isShaped();

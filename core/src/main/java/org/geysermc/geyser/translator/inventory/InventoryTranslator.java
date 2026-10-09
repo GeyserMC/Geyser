@@ -80,6 +80,7 @@ import org.geysermc.mcprotocollib.protocol.data.game.inventory.ContainerType;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentTypes;
 import org.geysermc.mcprotocollib.protocol.data.game.recipe.display.slot.EmptySlotDisplay;
 import org.geysermc.mcprotocollib.protocol.data.game.recipe.display.slot.SlotDisplay;
+import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.inventory.ServerboundPlaceRecipePacket;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -751,22 +752,25 @@ public abstract class InventoryTranslator<Type extends Inventory> {
         }
         int gridDimensions = gridSize == 4 ? 2 : 3;
 
+        GeyserRecipe recipe = null;
         List<SlotDisplay> ingredients = Collections.emptyList();
-        SlotDisplay output = null;
         int recipeWidth = 0;
         int ingRemaining = 0;
         int ingredientIndex = -1;
 
         Int2IntMap consumedSlots = new Int2IntOpenHashMap();
         int prioritySlot = -1;
-        int tempSlot;
 
-        int resultSize;
         int timesCrafted = 0;
         Int2ObjectMap<Int2IntMap> ingredientMap = new Int2ObjectOpenHashMap<>();
         CraftState craftState = CraftState.START;
 
-        ClickPlan plan = new ClickPlan(session, this, inventory);
+        // Only used to simulate, locally, the crafting grid that the single ServerboundPlaceRecipePacket below
+        // will cause the backend server to fill - none of these simulated clicks are sent as real packets. This
+        // keeps Bedrock's own already-applied prediction (removing ingredients from its inventory slots)
+        // confirmed by our response immediately, instead of it momentarily reverting until the server's real,
+        // separate container sync arrives.
+        ClickPlan fillPlan = new ClickPlan(session, this, inventory);
         requestLoop:
         for (ItemStackRequestAction action : request.getActions()) {
             switch (action.getType()) {
@@ -779,11 +783,11 @@ public abstract class InventoryTranslator<Type extends Inventory> {
                     craftState = CraftState.RECIPE_ID;
 
                     int recipeId = autoCraftAction.getRecipeNetworkId();
-                    GeyserRecipe recipe = session.getCraftingRecipes().get(recipeId);
+                    recipe = session.getCraftingRecipes().get(recipeId);
                     if (recipe == null) {
                         return rejectRequest(request);
                     }
-                    if (!plan.getCursor().isEmpty()) {
+                    if (!fillPlan.getCursor().isEmpty()) {
                         return rejectRequest(request);
                     }
                     //reject if crafting grid is not clear
@@ -797,7 +801,6 @@ public abstract class InventoryTranslator<Type extends Inventory> {
                         GeyserShapedRecipe shapedRecipe = (GeyserShapedRecipe) recipe;
                         ingredients = shapedRecipe.ingredients();
                         recipeWidth = shapedRecipe.width();
-                        output = shapedRecipe.result();
                         if (recipeWidth > gridDimensions || shapedRecipe.height() > gridDimensions) {
                             return rejectRequest(request);
                         }
@@ -805,7 +808,6 @@ public abstract class InventoryTranslator<Type extends Inventory> {
                         GeyserShapelessRecipe shapelessRecipe = (GeyserShapelessRecipe) recipe;
                         ingredients = shapelessRecipe.ingredients();
                         recipeWidth = gridDimensions;
-                        output = shapelessRecipe.result();
                         if (ingredients.size() > gridSize) {
                             return rejectRequest(request);
                         }
@@ -822,7 +824,7 @@ public abstract class InventoryTranslator<Type extends Inventory> {
                     if (deprecatedCraftAction.getResultItems().length != 1) {
                         return rejectRequest(request);
                     }
-                    resultSize = deprecatedCraftAction.getResultItems()[0].getCount();
+                    int resultSize = deprecatedCraftAction.getResultItems()[0].getCount();
                     timesCrafted = deprecatedCraftAction.getTimesCrafted();
                     if (resultSize <= 0 || timesCrafted <= 0) {
                         return rejectRequest(request);
@@ -872,18 +874,17 @@ public abstract class InventoryTranslator<Type extends Inventory> {
                         return rejectRequest(request);
                     }
 
-                    int javaSlot = bedrockSlotToJava(transferAction.getDestination());
-                    if (isCursor(transferAction.getDestination())) { //TODO
-                        if (timesCrafted > 1) {
-                            tempSlot = findTempSlot(plan, GeyserItemStack.from(session, output), true);
-                            if (tempSlot == -1) {
-                                return rejectRequest(request);
-                            }
+                    // We only need Bedrock's preferred source slot for the single grid fill below - the rest of
+                    // what this action used to drive (juggling the cursor across multiple grid refills) no
+                    // longer applies now that we mirror a single real Java shift-click instead of looping locally.
+                    if (isCursor(transferAction.getDestination())) {
+                        break requestLoop;
+                    } else {
+                        int javaSlot = bedrockSlotToJava(transferAction.getDestination());
+                        if (inventory.getItem(javaSlot).getAmount() == consumedSlots.get(javaSlot)) {
+                            prioritySlot = javaSlot;
+                            break requestLoop;
                         }
-                        break requestLoop;
-                    } else if (inventory.getItem(javaSlot).getAmount() == consumedSlots.get(javaSlot)) {
-                        prioritySlot = bedrockSlotToJava(transferAction.getDestination());
-                        break requestLoop;
                     }
                     break;
                 }
@@ -892,40 +893,42 @@ public abstract class InventoryTranslator<Type extends Inventory> {
             }
         }
 
-        final int maxLoops = Math.min(64, timesCrafted);
-        for (int loops = 0; loops < maxLoops; loops++) {
-            boolean done = true;
-            for (Int2ObjectMap.Entry<Int2IntMap> entry : ingredientMap.int2ObjectEntrySet()) {
-                Int2IntMap sources = entry.getValue();
-                if (sources.isEmpty())
-                    continue;
-
-                done = false;
-                int gridSlot = entry.getIntKey();
-                if (!plan.getItem(gridSlot).isEmpty())
-                    continue;
-
-                int sourceSlot;
-                if (loops == 0 && sources.containsKey(prioritySlot)) {
-                    sourceSlot = prioritySlot;
-                } else {
-                    sourceSlot = sources.keySet().iterator().nextInt();
-                }
-                int transferAmount = sources.remove(sourceSlot);
-                transferSlot(plan, sourceSlot, gridSlot, transferAmount);
-            }
-
-            if (!done) {
-                //TODO: sometimes the server does not agree on this slot?
-                plan.add(Click.LEFT_SHIFT, 0, true);
-            } else {
-                break;
-            }
+        if (recipe == null || timesCrafted <= 0) {
+            return rejectRequest(request);
         }
 
-        inventory.setItem(0, GeyserItemStack.from(session, output), session);
-        plan.execute(true);
-        return acceptRequest(request, makeContainerEntries(session, inventory, plan.getAffectedSlots()));
+        for (Int2ObjectMap.Entry<Int2IntMap> entry : ingredientMap.int2ObjectEntrySet()) {
+            Int2IntMap sources = entry.getValue();
+            if (sources.isEmpty()) {
+                continue;
+            }
+            int gridSlot = entry.getIntKey();
+            int sourceSlot = sources.containsKey(prioritySlot) ? prioritySlot : sources.keySet().iterator().nextInt();
+            transferSlot(fillPlan, sourceSlot, gridSlot, sources.get(sourceSlot));
+        }
+        // Commit the simulated grid fill locally - the real Java server performs the equivalent fill itself,
+        // server-side, in response to the ServerboundPlaceRecipePacket sent below.
+        for (int slot : fillPlan.getAffectedSlots()) {
+            inventory.setItem(slot, fillPlan.getItem(slot), session);
+        }
+        session.getPlayerInventory().setCursor(fillPlan.getCursor(), session);
+
+        // Mirrors what a real Java Edition client sends for a recipe book shift-click: one packet to fill the
+        // crafting grid with as many ingredients as can be crafted (ServerPlaceRecipe#calculateAmountToCraft
+        // on the backend server does this the same way for both platforms), and one shift-click to collect
+        // the result. This replaces simulating every individual ingredient transfer as its own click, which
+        // could send dozens of ServerboundContainerClickPackets to the backend server for a single Bedrock
+        // auto-craft action.
+        session.sendDownstreamGamePacket(new ServerboundPlaceRecipePacket(inventory.getJavaId(), recipe.id(), timesCrafted > 1));
+
+        inventory.setItem(0, GeyserItemStack.from(session, recipe.result()), session);
+        ClickPlan collectPlan = new ClickPlan(session, this, inventory);
+        collectPlan.add(Click.LEFT_SHIFT, 0, true);
+        collectPlan.execute(true);
+
+        IntSet affectedSlots = new IntOpenHashSet(fillPlan.getAffectedSlots());
+        affectedSlots.addAll(collectPlan.getAffectedSlots());
+        return acceptRequest(request, makeContainerEntries(session, inventory, affectedSlots));
     }
 
     /**
