@@ -47,6 +47,10 @@ public class JavaSystemChatTranslator extends PacketTranslator<ClientboundSystem
     @Override
     public void translate(GeyserSession session, ClientboundSystemChatPacket packet) {
         if (packet.getContent() instanceof TranslatableComponent component) {
+            if (component.key().startsWith("block.minecraft.") && component.key().contains("bed")) {
+                // The server refused a bed click (not night, monsters nearby, too far...); stop holding movement.
+                session.stopEnteringBed();
+            }
             if (component.key().equals("chat.disabled.missingProfileKey")) {
                 // We likely got this message as a response to a player trying to chat
                 // As there SHOULD be no false flags for this, print every time it shows up in chat.
