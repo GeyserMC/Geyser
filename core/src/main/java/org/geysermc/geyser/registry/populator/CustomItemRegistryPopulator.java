@@ -381,7 +381,7 @@ public class CustomItemRegistryPopulator {
         }
 
         // Bedrock doesn't really use these otherwise
-        if (throwable != null || chargeable != null || consumableComponent.isPresent()) {
+        if (throwable != null || chargeable != null || consumableComponent.isPresent() || kineticWeapon != null) {
             computeUseEffectsProperties(itemProperties, componentBuilder,
                 context.components().getOrDefault(DataComponentTypes.USE_EFFECTS, DEFAULT_USE_EFFECTS),
                 consumableComponent.map(Consumable::consumeSeconds));
@@ -685,9 +685,14 @@ public class CustomItemRegistryPopulator {
             .putFloat("damage_multiplier", 1.0F);
 
         addAttackRangeProperties(component, attackRange);
+        addKineticConditionMap(component, "damage_conditions", weapon.damageConditions());
+        addKineticConditionMap(component, "knockback_conditions", weapon.knockbackConditions());
         addKineticConditionMap(component, "dismount_conditions", weapon.dismountConditions());
 
-        componentBuilder.putCompound("minecraft:kinetic_weapon", component.build());
+        // BDS sends these nested in a second minecraft:kinetic_weapon tag, the client reads everything as 0 when they're not
+        componentBuilder.putCompound("minecraft:kinetic_weapon", NbtMap.builder()
+            .putCompound("minecraft:kinetic_weapon", component.build())
+            .build());
     }
 
     private static void computePiercingWeaponProperties(NbtMapBuilder componentBuilder, AttackRange attackRange) {
