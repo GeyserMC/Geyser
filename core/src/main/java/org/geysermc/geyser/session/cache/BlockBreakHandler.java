@@ -447,7 +447,9 @@ public class BlockBreakHandler {
         }
 
         Entity itemFrameEntity = ItemFrameEntity.getItemFrameEntity(session, position);
-        if (itemFrameEntity != null) {
+        // A frame sharing its cell with a real block is not the block the player can see or aim at,
+        // so breaking there has to hit that block instead of the frame
+        if (itemFrameEntity != null && session.getGeyser().getWorldManager().blockAt(session, position).isAir()) {
             ServerboundAttackPacket attackPacket = new ServerboundAttackPacket(itemFrameEntity.getEntityId());
             session.sendDownstreamGamePacket(attackPacket);
             interactPosition = position;

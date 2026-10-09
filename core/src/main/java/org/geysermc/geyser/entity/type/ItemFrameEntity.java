@@ -34,6 +34,7 @@ import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
 import org.cloudburstmc.protocol.bedrock.packet.BlockEntityDataPacket;
 import org.cloudburstmc.protocol.bedrock.packet.UpdateBlockPacket;
 import org.geysermc.geyser.entity.spawn.EntitySpawnContext;
+import org.geysermc.geyser.level.block.type.BlockState;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.item.ItemTranslator;
 import org.geysermc.geyser.util.InteractionResult;
@@ -153,16 +154,12 @@ public class ItemFrameEntity extends HangingEntity {
 
     @Override
     public void despawnEntity() {
-        UpdateBlockPacket updateBlockPacket = new UpdateBlockPacket();
-        updateBlockPacket.setDataLayer(0);
-        updateBlockPacket.setBlockPosition(bedrockPosition);
-        updateBlockPacket.setDefinition(session.getBlockMappings().getBedrockAir()); //TODO maybe set this to the world block or another item frame?
-        updateBlockPacket.getFlags().add(UpdateBlockPacket.Flag.PRIORITY);
-        updateBlockPacket.getFlags().add(UpdateBlockPacket.Flag.NETWORK);
-        updateBlockPacket.getFlags().add(UpdateBlockPacket.Flag.NEIGHBORS);
-        session.sendUpstreamPacket(updateBlockPacket);
-
         session.getItemFrameCache().remove(bedrockPosition, this);
+
+        // Send whatever Java has in the cell: air when the frame stood alone, or the real block it
+        // was sharing the cell with
+        BlockState javaBlock = session.getGeyser().getWorldManager().blockAt(session, bedrockPosition);
+        javaBlock.block().updateBlock(session, javaBlock, bedrockPosition);
 
         valid = false;
     }
@@ -186,6 +183,19 @@ public class ItemFrameEntity extends HangingEntity {
      * Updates the item frame as a block
      */
     public void updateBlock(boolean force) {
+        updateBlock(session.getGeyser().getWorldManager().blockAt(session, bedrockPosition), force);
+    }
+
+    /**
+     * Updates the item frame as a block, when the caller already knows the authoritative Java
+     * block sharing this cell. A non-air block always wins over the frame; the frame is revealed
+     * again by {@link org.geysermc.geyser.util.ChunkUtils#updateBlockClientSide} once it breaks.
+     */
+    public void updateBlock(BlockState javaBlock, boolean force) {
+        if (!javaBlock.isAir()) {
+            // Leave 'changed' untouched so the pending update happens on reveal
+            return;
+        }
         if (!changed && !force) {
             // Don't send a block update packet - nothing changed
             return;
