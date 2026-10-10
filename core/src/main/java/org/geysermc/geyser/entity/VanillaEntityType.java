@@ -30,6 +30,7 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
 import lombok.experimental.Accessors;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.api.util.Identifier;
 import org.geysermc.geyser.entity.factory.EntityFactory;
 import org.geysermc.geyser.entity.properties.type.PropertyType;
@@ -49,16 +50,16 @@ import java.util.function.BiConsumer;
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
 public class VanillaEntityType<T extends Entity> extends EntityTypeDefinition<T> {
-    private final GeyserEntityType entityType;
+    private final @Nullable GeyserEntityType entityType;
 
-    public VanillaEntityType(EntityFactory<T> factory, GeyserEntityType entityType, float width, float height, float offset, BedrockEntityDefinition bedrockDefinition, List<EntityMetadataTranslator<? super T, ?, ?>> translators) {
+    public VanillaEntityType(EntityFactory<T> factory, @Nullable GeyserEntityType entityType, float width, float height, float offset, BedrockEntityDefinition bedrockDefinition, List<EntityMetadataTranslator<? super T, ?, ?>> translators) {
         super(factory, entityType, width, height, offset, bedrockDefinition, translators);
         this.entityType = entityType;
     }
 
     @Override
     public boolean is(EntityType builtin) {
-        return entityType.is(builtin);
+        return entityType != null && entityType.is(builtin);
     }
 
     public static <T extends Entity> Builder<T> builder(EntityFactory<T> factory) {
