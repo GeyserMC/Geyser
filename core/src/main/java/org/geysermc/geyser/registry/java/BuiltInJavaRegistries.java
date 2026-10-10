@@ -129,7 +129,7 @@ public final class BuiltInJavaRegistries {
 
         Blocks.bootstrap();
         Items.bootstrap();
-        VanillaEntities.init();
+        VanillaEntities.bootstrap();
 
         JavaRegistryReaders.bootstrap();
     }

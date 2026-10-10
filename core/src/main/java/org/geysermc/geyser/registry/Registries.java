@@ -70,6 +70,7 @@ import org.geysermc.geyser.translator.level.block.entity.BlockEntityTranslator;
 import org.geysermc.geyser.translator.level.event.LevelEventTranslator;
 import org.geysermc.geyser.translator.sound.SoundInteractionTranslator;
 import org.geysermc.geyser.translator.sound.SoundTranslator;
+import org.geysermc.geyser.util.EntityUtils;
 import org.geysermc.mcprotocollib.network.packet.Packet;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
 import org.geysermc.mcprotocollib.protocol.data.game.level.block.BlockEntityType;
@@ -274,5 +275,8 @@ public final class Registries {
 
         // Freeze registries holding built-in Java Edition content (populators may have registered custom content)
         BuiltInJavaRegistries.freeze();
+
+        // Call events adding custom entity definitions and such
+        EntityUtils.callEntityEvents();
     }
 }

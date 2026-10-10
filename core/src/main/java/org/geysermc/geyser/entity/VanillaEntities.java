@@ -162,7 +162,6 @@ import org.geysermc.geyser.entity.type.player.MannequinEntity;
 import org.geysermc.geyser.entity.type.player.PlayerEntity;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.translator.text.MessageTranslator;
-import org.geysermc.geyser.util.EntityUtils;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.MetadataTypes;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.BooleanEntityMetadata;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.FloatEntityMetadata;
@@ -1314,8 +1313,8 @@ public final class VanillaEntities {
             .build();
     }
 
-    public static void init() {
-        EntityUtils.callEntityEvents();
+    public static void bootstrap() {
+        // noop
     }
 
     private VanillaEntities() {
