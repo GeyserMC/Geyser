@@ -149,6 +149,7 @@ gson-record-factory = { group = "com.github.Marcono1234", name = "gson-record-ty
 junit = { group = "org.junit.jupiter", name = "junit-jupiter", version.ref = "junit" }
 minecraftauth = { group = "net.raphimc", name = "MinecraftAuth", version.ref = "minecraftauth" }
 mcprotocollib = { group = "org.geysermc.mcprotocollib", name = "protocol", version.ref = "mcprotocollib" }
+netty-transport-common = { group = "org.cloudburstmc.netty", name = "netty-transport-common", version.ref = "network" }
 raknet = { group = "org.cloudburstmc.netty", name = "netty-transport-raknet", version.ref = "network" }
 nethernet-transport = { group = "org.cloudburstmc.netty", name = "netty-transport-nethernet", version.ref = "network" }
 nethernet-signaling = { group = "org.cloudburstmc.netty", name = "netty-external-signaling", version.ref = "network" }
