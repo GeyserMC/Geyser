@@ -187,7 +187,10 @@ public class ConfigMigrations {
             .addVersion(7, ConfigurationTransformation.builder()
                 .addAction(path("gameplay", "show-cooldown"), rename(new Object[] { "gameplay", "cooldown-type" }))
                 .build())
+            // NetherNet config options
             .addVersion(8, ConfigurationTransformation.empty())
+            // Addition of advertise-addresses option
+            .addVersion(9, ConfigurationTransformation.empty())
         .build();
 
     static TransformAction renameAndMove(String... newPath) {
