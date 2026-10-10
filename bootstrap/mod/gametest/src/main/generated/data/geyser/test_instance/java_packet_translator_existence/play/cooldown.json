@@ -1,0 +1,6 @@
+{
+  "type": "geyser:java_packet_translator_existence",
+  "flow": "clientbound",
+  "packet": "minecraft:cooldown",
+  "protocol": "play"
+}

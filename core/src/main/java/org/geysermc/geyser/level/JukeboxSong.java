@@ -26,14 +26,14 @@
 package org.geysermc.geyser.level;
 
 import org.cloudburstmc.nbt.NbtMap;
-import org.geysermc.geyser.session.cache.registry.RegistryEntryContext;
+import org.geysermc.geyser.registry.java.reader.JavaRegistryReader;
 import org.geysermc.geyser.util.SoundUtils;
 
 public record JukeboxSong(String soundEvent, String description) {
 
-    public static JukeboxSong read(RegistryEntryContext context) {
-        NbtMap data = context.data();
-        String soundEvent = SoundUtils.readSoundEvent(data, "jukebox song " + context.id());
+    public static JukeboxSong read(JavaRegistryReader.Context context) {
+        NbtMap data = context.dataAsMap();
+        String soundEvent = SoundUtils.readSoundEvent(data, "jukebox song " + context.data());
         return new JukeboxSong(soundEvent, context.deserializeDescription());
     }
 }

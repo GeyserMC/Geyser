@@ -31,7 +31,7 @@ import org.geysermc.geyser.api.GeyserApi;
 import org.geysermc.geyser.api.util.GenericBuilder;
 
 /**
- * The swing animation component is used to specify the swing animation to play when attacking or interacting using the item.
+ * The swing animation component is used to specify the swing animation to play when attacking or mining using the item.
  *
  * <p>Currently, only the duration property is supported on Bedrock.</p>
  * @since 2.9.3

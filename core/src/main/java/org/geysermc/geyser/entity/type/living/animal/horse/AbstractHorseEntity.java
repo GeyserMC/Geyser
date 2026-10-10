@@ -273,7 +273,7 @@ public class AbstractHorseEntity extends AnimalEntity implements ClientVehicle {
 
     protected boolean additionalTestForInventoryOpen(@NonNull GeyserItemStack itemInHand) {
         // TODO this doesn't seem right anymore... (as of Java 1.21.9)
-        return itemInHand.asItem().javaIdentifier().endsWith("_horse_armor");
+        return itemInHand.asItem().javaKey().value().endsWith("_horse_armor");
     }
 
     /* Just a place to stuff common code for the undead variants without having duplicate code */

@@ -33,9 +33,12 @@ import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.protocol.bedrock.packet.UpdateBlockPacket;
 import org.geysermc.geyser.entity.EntityTypeDefinition;
 import org.geysermc.geyser.level.block.type.BlockState;
-import org.geysermc.geyser.registry.Registries;
+import org.geysermc.geyser.registry.java.BuiltInJavaRegistries;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.util.MinecraftKey;
 import org.geysermc.mcprotocollib.protocol.data.game.level.block.BlockEntityType;
+
+import java.util.Optional;
 
 @BlockEntity(type = BlockEntityType.MOB_SPAWNER)
 public class SpawnerBlockEntityTranslator extends BlockEntityTranslator {
@@ -118,10 +121,10 @@ public class SpawnerBlockEntityTranslator extends BlockEntityTranslator {
             // As of 1.19.3, spawners can be empty
             builder.put("EntityIdentifier", entityId);
 
-            EntityTypeDefinition<?> definition = Registries.JAVA_ENTITY_IDENTIFIERS.get(entityId);
-            if (definition != null) {
-                builder.putFloat("DisplayEntityWidth", definition.width());
-                builder.putFloat("DisplayEntityHeight", definition.height());
+            Optional<EntityTypeDefinition<?>> definition = BuiltInJavaRegistries.ENTITY_TYPE.get(MinecraftKey.key(entityId));
+            if (definition.isPresent()) {
+                builder.putFloat("DisplayEntityWidth", definition.get().width());
+                builder.putFloat("DisplayEntityHeight", definition.get().height());
                 builder.putFloat("DisplayEntityScale", 1.0f);
             }
         }

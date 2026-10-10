@@ -112,6 +112,15 @@
     {
       "on_consume_effects": [
         {
+          "type": "teleport_randomly",
+          "diameter": 5.0,
+          "directional_particles": false
+        }
+      ]
+    },
+    {
+      "on_consume_effects": [
+        {
           "type": "play_sound",
           "sound": {
             "sound_id": "geyser:epic_consuming_sound",

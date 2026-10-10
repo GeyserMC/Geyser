@@ -29,7 +29,7 @@ import net.kyori.adventure.key.InvalidKeyException;
 import net.kyori.adventure.key.Key;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.nbt.NbtMap;
-import org.geysermc.geyser.session.cache.registry.RegistryEntryContext;
+import org.geysermc.geyser.registry.java.reader.RegistryEntryContext;
 import org.geysermc.geyser.util.DimensionUtils;
 import org.geysermc.geyser.util.MinecraftKey;
 
@@ -52,7 +52,7 @@ public record JavaDimension(int minY, int height, boolean piglinSafe, boolean ul
     );
 
     public static JavaDimension read(RegistryEntryContext entry) {
-        NbtMap dimension = entry.data();
+        NbtMap dimension = entry.dataAsMap();
         int minY = dimension.getInt("min_y");
         int height = dimension.getInt("height");
         // Logical height can be ignored probably - seems to be for artificial limits like the Nether.

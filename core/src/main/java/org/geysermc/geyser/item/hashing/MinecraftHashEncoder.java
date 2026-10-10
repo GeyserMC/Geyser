@@ -32,7 +32,7 @@ import com.google.common.hash.Hashing;
 import org.cloudburstmc.nbt.NbtList;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtType;
-import org.geysermc.geyser.session.cache.registry.JavaRegistryProvider;
+import org.geysermc.geyser.registry.java.JavaRegistryProvider;
 
 import java.util.ArrayList;
 import java.util.Comparator;

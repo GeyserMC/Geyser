@@ -29,6 +29,7 @@ import net.kyori.adventure.key.Key;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtType;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.registry.java.JavaRegistryProvider;
 import org.geysermc.geyser.util.MinecraftKey;
 
 import java.util.List;
@@ -40,9 +41,9 @@ public class MultiActionDialog extends DialogWithButtons {
 
     private final List<DialogButton> buttons;
 
-    protected MultiActionDialog(Optional<GeyserSession> session, NbtMap map, IdGetter idGetter) {
-        super(session, map, readDefaultExitAction(session, map, idGetter));
-        buttons = DialogButton.readList(session, map.getList("actions", NbtType.COMPOUND), idGetter);
+    protected MultiActionDialog(JavaRegistryProvider registries, Optional<GeyserSession> session, NbtMap map) {
+        super(session, map, readDefaultExitAction(registries, session, map));
+        buttons = DialogButton.readList(registries, session, map.getList("actions", NbtType.COMPOUND));
     }
 
     @Override

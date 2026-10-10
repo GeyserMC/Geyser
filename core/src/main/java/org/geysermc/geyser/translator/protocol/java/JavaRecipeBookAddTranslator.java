@@ -28,14 +28,12 @@ package org.geysermc.geyser.translator.protocol.java;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import org.cloudburstmc.protocol.bedrock.data.inventory.crafting.recipe.ShapedRecipeData;
 import org.cloudburstmc.protocol.bedrock.data.inventory.crafting.recipe.ShapelessRecipeData;
-import org.cloudburstmc.protocol.bedrock.data.inventory.crafting.recipe.SmithingTransformRecipeData;
 import org.cloudburstmc.protocol.bedrock.packet.CraftingDataPacket;
 import org.cloudburstmc.protocol.bedrock.packet.UnlockedRecipesPacket;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.inventory.recipe.GeyserRecipe;
 import org.geysermc.geyser.inventory.recipe.GeyserShapedRecipe;
 import org.geysermc.geyser.inventory.recipe.GeyserShapelessRecipe;
-import org.geysermc.geyser.inventory.recipe.GeyserSmithingRecipe;
 import org.geysermc.geyser.network.bedrock.GameProtocol;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
@@ -46,13 +44,10 @@ import org.geysermc.mcprotocollib.protocol.data.game.recipe.display.RecipeDispla
 import org.geysermc.mcprotocollib.protocol.data.game.recipe.display.ShapedCraftingRecipeDisplay;
 import org.geysermc.mcprotocollib.protocol.data.game.recipe.display.ShapelessCraftingRecipeDisplay;
 import org.geysermc.mcprotocollib.protocol.data.game.recipe.display.SmithingRecipeDisplay;
-import org.geysermc.mcprotocollib.protocol.data.game.recipe.display.slot.SmithingTrimDemoSlotDisplay;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.ClientboundRecipeBookAddPacket;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 @Translator(packet = ClientboundRecipeBookAddPacket.class)
 public class JavaRecipeBookAddTranslator extends PacketTranslator<ClientboundRecipeBookAddPacket> {
@@ -67,9 +62,6 @@ public class JavaRecipeBookAddTranslator extends PacketTranslator<ClientboundRec
         UnlockedRecipesPacket recipesPacket = new UnlockedRecipesPacket();
         recipesPacket.setAction(packet.isReplace() ? UnlockedRecipesPacket.ActionType.INITIALLY_UNLOCKED : UnlockedRecipesPacket.ActionType.NEWLY_UNLOCKED);
 
-        // Hacky fix, see below
-        Set<GeyserShapelessRecipe.FurnaceRecipeType> knownFurnaceRecipes = new HashSet<>();
-
         for (ClientboundRecipeBookAddPacket.Entry entry : packet.getEntries()) {
             RecipeDisplayEntry contents = entry.contents();
             if (javaToBedrockRecipeIds.containsKey(contents.id())) {
@@ -82,7 +74,6 @@ public class JavaRecipeBookAddTranslator extends PacketTranslator<ClientboundRec
             // TODO rewrite this, but properly
             if (display instanceof FurnaceRecipeDisplay furnaceRecipe) {
                 GeyserShapelessRecipe geyserRecipe = new GeyserShapelessRecipe(contents.id(), netId, furnaceRecipe, contents.category());
-                knownFurnaceRecipes.add(GeyserShapelessRecipe.FurnaceRecipeType.fromCategory(contents.category()));
 
                 List<ShapelessRecipeData> recipeData = geyserRecipe.asRecipeData(session);
                 if (GameProtocol.is26_40orHigher(session.protocolVersion())) {
@@ -141,27 +132,8 @@ public class JavaRecipeBookAddTranslator extends PacketTranslator<ClientboundRec
                     }
                     javaToBedrockRecipeIds.put(contents.id(), List.copyOf(bedrockRecipeIds));
                 }
-                case SmithingRecipeDisplay smithingRecipe -> {
-                    if (contents.display().result() instanceof SmithingTrimDemoSlotDisplay) {
-                        // Skip these - Bedrock already knows about them from the TrimDataPacket
-                        continue;
-                    }
-
-                    GeyserSmithingRecipe geyserRecipe = new GeyserSmithingRecipe(contents.id(), netId, smithingRecipe);
-                    session.getSmithingRecipes().add(geyserRecipe);
-
-                    List<SmithingTransformRecipeData> recipeData = geyserRecipe.asRecipeData(session);
-                    if (GameProtocol.is26_40orHigher(session.protocolVersion())) {
-                        craftingDataPacket.getSmithingTransformData().addAll(recipeData);
-                    } else {
-                        craftingDataPacket.getCraftingData().addAll(recipeData);
-                    }
-
-                    netId += recipeData.size();
-                }
-                default -> {
-                    GeyserImpl.getInstance().getLogger().debug("Ignoring unknown recipe display type! " + entry);
-                }
+                case SmithingRecipeDisplay smithingRecipe -> netId += session.getTrimRecipes().addSmithingRecipe(contents, smithingRecipe, netId).addToPacket(session, craftingDataPacket);
+                default -> GeyserImpl.getInstance().getLogger().debug("Ignoring unknown recipe display type! " + entry);
             }
         }
 

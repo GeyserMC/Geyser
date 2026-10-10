@@ -68,7 +68,7 @@ public class StoredItemMappings {
     private ItemMapping load(Map<Item, ItemMapping> itemMappings, Item item) {
         ItemMapping mapping = itemMappings.get(item);
         if (mapping == null) {
-            throw new RuntimeException("Could not find item " + item.javaIdentifier());
+            throw new RuntimeException("Could not find item " + item.javaKey());
         }
 
         return mapping;

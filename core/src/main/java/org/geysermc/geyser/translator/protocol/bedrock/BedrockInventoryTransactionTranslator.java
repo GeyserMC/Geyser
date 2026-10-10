@@ -90,8 +90,8 @@ import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.inventory.S
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.player.ServerboundAttackPacket;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.player.ServerboundInteractPacket;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.player.ServerboundPlayerActionPacket;
+import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.player.ServerboundPunchPacket;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.player.ServerboundSpectatorActionPacket;
-import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.player.ServerboundSwingPacket;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.player.ServerboundUseItemOnPacket;
 
 import java.util.List;
@@ -469,7 +469,7 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                     case 3 -> {
                         if (session.getPlayerInventory().getItemInHand().getComponent(DataComponentTypes.PIERCING_WEAPON) != null && session.getGameMode() != GameMode.SPECTATOR) {
                             session.sendDownstreamPacket(new ServerboundPlayerActionPacket(PlayerAction.STAB, Vector3i.ZERO, org.geysermc.mcprotocollib.protocol.data.game.entity.object.Direction.DOWN, 0));
-                            session.sendDownstreamPacket(new ServerboundSwingPacket(Hand.MAIN_HAND));
+                            session.sendDownstreamPacket(ServerboundPunchPacket.INSTANCE);
                             CooldownUtils.setCooldownHitTime(session);
                         }
                     }
@@ -524,7 +524,7 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                         // Even though it is true that we already send this in BedrockAnimateTranslator, the behaviour is a bit inconsistent and
                         // beside we want to ensure that this should be sent right away after we send interact packet or else the order will
                         // be weird eg: interact - some packet - swing, which is not vanilla behaviour and might flag some anticheats.
-                        session.sendDownstreamGamePacket(new ServerboundSwingPacket(Hand.MAIN_HAND));
+                        session.sendDownstreamGamePacket(ServerboundPunchPacket.INSTANCE);
 
                         // Since 1.19.10, LevelSoundEventPackets are no longer sent by the client when attacking entities
                         CooldownUtils.setCooldownHitTime(session);
@@ -554,12 +554,9 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                     result = entity.interact(hand);
                 }
 
+                // TODO 26.3: pretty sure the server swings for us now, but:
+                // TODO Note here to look into sending the animation packet back to Bedrock (SwingSource.PREDICTED)
                 if (result.consumesAction()) {
-                    if (result.shouldSwing() && hand == Hand.OFF_HAND) {
-                        // Currently, Bedrock will send us the arm swing packet in most cases. But it won't for offhand.
-                        session.sendDownstreamGamePacket(new ServerboundSwingPacket(hand));
-                        // Note here to look into sending the animation packet back to Bedrock
-                    }
                     return;
                 }
             }

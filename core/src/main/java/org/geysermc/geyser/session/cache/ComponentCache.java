@@ -31,7 +31,7 @@ import it.unimi.dsi.fastutil.objects.Reference2ObjectOpenHashMap;
 import org.geysermc.geyser.item.components.resolvable.ResolvableComponent;
 import org.geysermc.geyser.item.components.resolvable.ResolvableComponentGetter;
 import org.geysermc.geyser.item.type.Item;
-import org.geysermc.geyser.registry.Registries;
+import org.geysermc.geyser.registry.java.BuiltInJavaRegistries;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
 
@@ -52,12 +52,12 @@ public class ComponentCache implements ResolvableComponentGetter {
 
     public void resolveComponents() {
         resolvedComponents.clear();
-        for (Item item : Registries.JAVA_ITEMS.get()) {
+        for (Item item : BuiltInJavaRegistries.ITEM) {
             List<ResolvableComponent<?>> toResolve = item.resolvableComponents();
             if (!toResolve.isEmpty()) {
                 DataComponents resolved = new DataComponents(new Object2ObjectOpenHashMap<>());
                 for (ResolvableComponent<?> component : toResolve) {
-                    component.resolve(session.getRegistryCache(), resolved);
+                    component.resolve(session.javaRegistries(), resolved);
                 }
                 resolvedComponents.put(item, resolved);
             }
