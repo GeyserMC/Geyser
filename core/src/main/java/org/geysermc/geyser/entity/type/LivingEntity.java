@@ -31,6 +31,7 @@ import lombok.Setter;
 import net.kyori.adventure.text.Component;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.math.GenericMath;
+import org.cloudburstmc.math.vector.Vector3d;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.protocol.bedrock.data.AttributeData;
@@ -60,6 +61,7 @@ import org.geysermc.geyser.util.EntityUtils;
 import org.geysermc.geyser.util.InteractionResult;
 import org.geysermc.geyser.util.MathUtils;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.EquipmentSlot;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.MinecartStep;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.attribute.Attribute;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.attribute.AttributeType;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.EntityMetadata;
@@ -74,11 +76,16 @@ import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponen
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.Equippable;
 import org.geysermc.mcprotocollib.protocol.data.game.level.particle.ColorParticleData;
 import org.geysermc.mcprotocollib.protocol.data.game.level.particle.Particle;
+import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.entity.ClientboundEntityPositionSyncPacket;
+import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.entity.ClientboundMoveEntityPosPacket;
+import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.entity.ClientboundMoveEntityPosRotPacket;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.EnumMap;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 @Getter
@@ -103,13 +110,16 @@ public class LivingEntity extends Entity implements Tickable {
     @Setter(AccessLevel.NONE)
     protected float attributeScale;
 
-    private Vector3f lerpPosition;
-    private int lerpSteps;
+    // private Vector3f lerpPosition;
+
+    private int lerpStepsCount;
+
+    private final List<ClientboundEntityPositionSyncPacket.PositionStep> lerpSteps = new LinkedList<>();
+
     protected boolean dirtyYaw, dirtyHeadYaw, dirtyPitch;
 
     public LivingEntity(EntitySpawnContext context) {
         super(context);
-        this.lerpPosition = position;
     }
 
     public GeyserItemStack getItemInSlot(EquipmentSlot slot) {
@@ -421,6 +431,9 @@ public class LivingEntity extends Entity implements Tickable {
         return super.interact(hand);
     }
 
+
+    /*
+
     @Override
     public void moveRelative(double relX, double relY, double relZ, float yaw, float pitch, float headYaw, boolean isOnGround) {
         if (this instanceof ClientVehicle clientVehicle) {
@@ -467,6 +480,23 @@ public class LivingEntity extends Entity implements Tickable {
         }
     }
 
+
+     */
+
+    @Override
+    public void moveRelative(double relX, double relY, double relZ, float yaw, float pitch, float headYaw, boolean isOnGround) {
+        this.lerpSteps.clear();
+        this.lerpStepsCount = 0;
+        super.moveRelative(relX, relY, relZ, yaw, pitch, headYaw, isOnGround);
+    }
+
+    @Override
+    public void moveAbsolute(Vector3f position, float yaw, float pitch, float headYaw, boolean isOnGround, boolean teleported) {
+        this.lerpSteps.clear();
+        this.lerpStepsCount = 0;
+        super.moveAbsolute(position, yaw, pitch, headYaw, isOnGround, teleported);
+    }
+
     public boolean shouldLerp() {
         // We shouldn't lerp the vehicle if the client is controlling is, or we're controlling it.
         if (this instanceof ClientVehicle clientVehicle) {
@@ -475,53 +505,184 @@ public class LivingEntity extends Entity implements Tickable {
         return true;
     }
 
+    // skip remaining lerp steps
+    private Vector3f lerpPosition() {
+        return lerpSteps.isEmpty() ? position : lerpSteps.getLast().position().toFloat();
+    }
+
+    public void handleMoveEntityPosRotPacket(ClientboundMoveEntityPosRotPacket packet) {
+        Vector3f start = this.lerpPosition();
+
+        List<ClientboundEntityPositionSyncPacket.PositionStep> path = new LinkedList<>();
+
+        if (packet.getStepCount() > 0) {
+            Vector3f base = start;
+            for (ClientboundMoveEntityPosRotPacket.DeltaStep step : Objects.requireNonNull(packet.getSteps())) {
+                base = base.add(step.moveX(), step.moveY(), step.moveZ());
+                path.add(new ClientboundEntityPositionSyncPacket.PositionStep(base.toDouble(), step.ticks()));
+            }
+        } else {
+            path.add(new ClientboundEntityPositionSyncPacket.PositionStep(start.add(packet.getMoveX(), packet.getMoveY(), packet.getMoveZ()).toDouble(), 3));
+        }
+
+        Vector3f end = path.getLast().position().toFloat();
+
+        if (this instanceof ClientVehicle clientVehicle) {
+            if (clientVehicle.shouldSimulateMovement()) {
+                return;
+            }
+
+            Vector3f delta = end.sub(start);
+            clientVehicle.getVehicleComponent().moveRelative(delta.getX(), delta.getY(), delta.getZ());
+        }
+
+        lerpSteps.clear();
+        lerpStepsCount = 0;
+
+        if (shouldLerp() && !start.equals(end) && position.distanceSquared(session.getPlayerEntity().position()) < 4096) {
+            setOnGround(packet.isOnGround());
+
+            this.dirtyPitch = packet.getPitch() != this.pitch;
+            this.dirtyYaw = packet.getYaw() != this.yaw;
+
+            setYaw(packet.getYaw());
+            setPitch(packet.getPitch());
+
+            this.lerpSteps.addAll(path);
+        } else {
+            super.moveAbsolute(end.toFloat(), packet.getYaw(), packet.getPitch(), headYaw, packet.isOnGround(), false);
+        }
+    }
+
+    public void handleMoveEntityPosPacket(ClientboundMoveEntityPosPacket packet) {
+        Vector3f start = this.lerpPosition();
+
+        List<ClientboundEntityPositionSyncPacket.PositionStep> path = new LinkedList<>();
+
+        if (packet.getStepCount() > 0) {
+            Vector3f base = start;
+            for (ClientboundMoveEntityPosPacket.DeltaStep step : Objects.requireNonNull(packet.getSteps())) {
+                base = base.add(step.moveX(), step.moveY(), step.moveZ());
+                path.add(new ClientboundEntityPositionSyncPacket.PositionStep(base.toDouble(), step.ticks()));
+            }
+        } else {
+            path.add(new ClientboundEntityPositionSyncPacket.PositionStep(start.add(packet.getMoveX(), packet.getMoveY(), packet.getMoveZ()).toDouble(), 3));
+        }
+
+        Vector3f end = path.getLast().position().toFloat();
+
+        if (this instanceof ClientVehicle clientVehicle) {
+            if (clientVehicle.shouldSimulateMovement()) {
+                return;
+            }
+
+            Vector3f delta = end.sub(start);
+            clientVehicle.getVehicleComponent().moveRelative(delta.getX(), delta.getY(), delta.getZ());
+        }
+
+        lerpSteps.clear();
+        lerpStepsCount = 0;
+
+        if (shouldLerp() && !start.equals(end) && position.distanceSquared(session.getPlayerEntity().position()) < 4096) {
+            setOnGround(packet.isOnGround());
+            this.lerpSteps.addAll(path);
+        } else {
+            super.moveAbsolute(end.toFloat(), yaw, pitch, headYaw, packet.isOnGround(), false);
+        }
+    }
+
+    public void handlePositionSyncPacket(ClientboundEntityPositionSyncPacket packet) {
+        List<ClientboundEntityPositionSyncPacket.PositionStep> path;
+        if (packet.isStepped()) {
+            path = Objects.requireNonNull(packet.getSteps());
+            if (path.isEmpty()) {
+                return;
+            }
+        } else {
+            path = List.of(new ClientboundEntityPositionSyncPacket.PositionStep(Objects.requireNonNull(packet.getEndPosition()), 3));
+        }
+
+        Vector3f end = path.getLast().position().toFloat();
+        boolean teleported = position.distanceSquared(end) > 4096;
+
+        float yaw = packet.getYRot();
+        float pitch = packet.getXRot();
+
+        lerpSteps.clear();
+        lerpStepsCount = 0;
+
+        if (shouldLerp() && !teleported && position.distanceSquared(session.getPlayerEntity().position()) < 4096) {
+            this.dirtyYaw = yaw != this.yaw;
+            this.dirtyPitch = pitch != this.pitch;
+
+            setYaw(yaw);
+            setPitch(pitch);
+
+            setOnGround(packet.isOnGround());
+            lerpSteps.addAll(path);
+        } else {
+            super.moveAbsolute(end, yaw, pitch, headYaw, packet.isOnGround(), teleported);
+        }
+    }
+
     @Override
     public void tick() {
-        if (this.lerpSteps > 0) {
-            float time = 1.0f / this.lerpSteps;
-            float lerpXTotal = GenericMath.lerp(this.position.getX(), this.lerpPosition.getX(), time);
-            float lerpYTotal = GenericMath.lerp(this.position.getY(), this.lerpPosition.getY(), time);
-            float lerpZTotal = GenericMath.lerp(this.position.getZ(), this.lerpPosition.getZ(), time);
 
-            MoveEntityDeltaPacket moveEntityPacket = new MoveEntityDeltaPacket();
-            moveEntityPacket.getFlags().add(MoveEntityDeltaPacket.Flag.TELEPORTING);
-            moveEntityPacket.setRuntimeEntityId(geyserId);
-            if (onGround) {
-                moveEntityPacket.getFlags().add(MoveEntityDeltaPacket.Flag.ON_GROUND);
-            }
-            if (lerpXTotal != this.position.getX()) {
-                moveEntityPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_X);
-            }
-            if (lerpYTotal != this.position.getY()) {
-                moveEntityPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_Y);
-            }
-            if (lerpZTotal != this.position.getZ()) {
-                moveEntityPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_Z);
-            }
-            if (this.dirtyYaw) {
-                moveEntityPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_YAW);
-            }
-            if (this.dirtyHeadYaw) {
-                moveEntityPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_HEAD_YAW);
-            }
-            if (this.dirtyPitch) {
-                moveEntityPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_PITCH);
-            }
-            this.position = Vector3f.from(lerpXTotal, lerpYTotal, lerpZTotal);
-            Vector3f bedrockPosition = bedrockPosition();
-            moveEntityPacket.setX(bedrockPosition.getX());
-            moveEntityPacket.setY(bedrockPosition.getY());
-            moveEntityPacket.setZ(bedrockPosition.getZ());
-            moveEntityPacket.setYaw(getYaw());
-            moveEntityPacket.setPitch(getPitch());
-            moveEntityPacket.setHeadYaw(getHeadYaw());
+        if (lerpSteps.isEmpty()) {
+            return;
+        }
 
-            this.dirtyPitch = this.dirtyYaw = this.dirtyHeadYaw = false;
+        ClientboundEntityPositionSyncPacket.PositionStep step = lerpSteps.getFirst();
 
-            // Queue this and send it immediately later with the rest.
-            session.getQueuedImmediatelyPackets().add(moveEntityPacket);
+        if (this.lerpStepsCount <= 0) {
+            this.lerpStepsCount = Math.max(1, step.tickOffset());
+        }
 
-            this.lerpSteps--;
+        float time = 1.0f / this.lerpStepsCount;
+        float lerpXTotal = GenericMath.lerp(this.position.getX(), step.position().toFloat().getX(), time);
+        float lerpYTotal = GenericMath.lerp(this.position.getY(), step.position().toFloat().getY(), time);
+        float lerpZTotal = GenericMath.lerp(this.position.getZ(), step.position().toFloat().getZ(), time);
+
+        MoveEntityDeltaPacket moveEntityPacket = new MoveEntityDeltaPacket();
+        moveEntityPacket.getFlags().add(MoveEntityDeltaPacket.Flag.TELEPORTING);
+        moveEntityPacket.setRuntimeEntityId(geyserId);
+        if (onGround) {
+            moveEntityPacket.getFlags().add(MoveEntityDeltaPacket.Flag.ON_GROUND);
+        }
+        if (lerpXTotal != this.position.getX()) {
+            moveEntityPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_X);
+        }
+        if (lerpYTotal != this.position.getY()) {
+            moveEntityPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_Y);
+        }
+        if (lerpZTotal != this.position.getZ()) {
+            moveEntityPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_Z);
+        }
+        if (this.dirtyYaw) {
+            moveEntityPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_YAW);
+        }
+        if (this.dirtyHeadYaw) {
+            moveEntityPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_HEAD_YAW);
+        }
+        if (this.dirtyPitch) {
+            moveEntityPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_PITCH);
+        }
+        this.position = Vector3f.from(lerpXTotal, lerpYTotal, lerpZTotal);
+        Vector3f bedrockPosition = bedrockPosition();
+        moveEntityPacket.setX(bedrockPosition.getX());
+        moveEntityPacket.setY(bedrockPosition.getY());
+        moveEntityPacket.setZ(bedrockPosition.getZ());
+        moveEntityPacket.setYaw(getYaw());
+        moveEntityPacket.setPitch(getPitch());
+        moveEntityPacket.setHeadYaw(getHeadYaw());
+
+        this.dirtyPitch = this.dirtyYaw = this.dirtyHeadYaw = false;
+
+        // Queue this and send it immediately later with the rest.
+        session.getQueuedImmediatelyPackets().add(moveEntityPacket);
+
+        if (--this.lerpStepsCount == 0) {
+            this.lerpSteps.removeFirst();
         }
     }
 
