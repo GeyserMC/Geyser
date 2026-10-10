@@ -186,13 +186,14 @@ class GameOutcomeReporterTest {
             return CompletableFuture.completedFuture(null);
         }
 
-        public CompletionStage<ApplyResult> applyState(String state) {
-            return CompletableFuture.completedFuture(ApplyResult.APPLIED);
+        public List<JsonObject> pollEvents() {
+            return pollEvents(events.size());
         }
 
-        public List<JsonObject> pollEvents() {
-            List<JsonObject> result = new ArrayList<>(events);
-            events.clear();
+        public List<JsonObject> pollEvents(int maximum) {
+            List<JsonObject> taken = events.subList(0, Math.min(maximum, events.size()));
+            List<JsonObject> result = new ArrayList<>(taken);
+            taken.clear();
             return result;
         }
 
