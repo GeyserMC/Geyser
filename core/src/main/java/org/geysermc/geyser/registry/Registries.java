@@ -273,10 +273,11 @@ public final class Registries {
         }
         BIOMES_NBT.set(biomesNbt.build());
 
+        // Call events adding custom entity definitions and such
+        // Intentionally calling before built-in Java registries are frozen, to allow unofficial support for overriding vanilla entity types
+        EntityUtils.callEntityEvents();
+
         // Freeze registries holding built-in Java Edition content (populators may have registered custom content)
         BuiltInJavaRegistries.freeze();
-
-        // Call events adding custom entity definitions and such
-        EntityUtils.callEntityEvents();
     }
 }
