@@ -29,13 +29,13 @@ import org.cloudburstmc.protocol.bedrock.BedrockPong;
 import org.cloudburstmc.netty.signaling.ServerStatus;
 
 /**
- * The Bedrock query supplies protocol/version; actual Geyser sessions supply players.
+ * The Bedrock query supplies the listing name and capacity; actual Geyser sessions supply players.
  */
 public final class GeyserStatusCollector {
     private GeyserStatusCollector() {
     }
 
     public static ServerStatus snapshot(BedrockPong pong, int sessions, String level, int gameType) {
-        return new ServerStatus(pong.motd(), pong.protocolVersion(), pong.version(), level, sessions, pong.maximumPlayerCount(), gameType);
+        return new ServerStatus(pong.motd(), level, sessions, pong.maximumPlayerCount(), gameType);
     }
 }

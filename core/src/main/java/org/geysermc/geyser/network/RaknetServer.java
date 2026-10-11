@@ -25,8 +25,8 @@
 
 package org.geysermc.geyser.network;
 
-import org.cloudburstmc.netty.util.nethernet.TrustedProxies;
 import org.cloudburstmc.netty.util.nethernet.IpRangeSet;
+import org.cloudburstmc.netty.util.nethernet.TrustedProxies;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
@@ -74,6 +74,7 @@ public final class RaknetServer {
     private static final int SHUTDOWN_TIMEOUT_MS = 500;
 
     private final GeyserImpl geyser;
+    /** Parsed once here: a URL entry is fetched on every parse, and a connection is not the time for that. */
     private final IpRangeSet trustedProxies;
     private EventLoopGroup group;
     // Split childGroup may improve IO
@@ -93,10 +94,7 @@ public final class RaknetServer {
 
     public RaknetServer(GeyserImpl geyser, int threadCount) {
         this.geyser = geyser;
-        // URL entries are fetched once per listener, including when Geyser reloads.
-        var bedrock = geyser.config().advanced().bedrock();
-        this.trustedProxies = bedrock.useHaproxyProtocol()
-            ? TrustedProxies.parse(bedrock.haproxyProtocolWhitelistedIps()) : IpRangeSet.empty();
+        this.trustedProxies = TrustedProxies.parse(geyser.config().advanced().bedrock().haproxyProtocolWhitelistedIps());
         this.listenCount = Bootstraps.isReusePortAvailable() ?  Integer.getInteger("Geyser.ListenCount", 1) : 1;
         GeyserImpl.getInstance().getLogger().debug("Listen thread count: " + listenCount);
         this.group = TRANSPORT.eventLoopGroupFactory().apply(listenCount, new DefaultThreadFactory("GeyserServer", true));
@@ -213,7 +211,7 @@ public final class RaknetServer {
     public boolean onConnectionRequest(InetSocketAddress inetSocketAddress, InetSocketAddress clientAddress) {
         List<String> allowedProxyIPs = geyser.config().advanced().bedrock().haproxyProtocolWhitelistedIps();
         if (geyser.config().advanced().bedrock().useHaproxyProtocol() && !allowedProxyIPs.isEmpty()) {
-            if (!trustedProxies.contains(inetSocketAddress.getAddress())) {
+            if (!this.trustedProxies.contains(inetSocketAddress.getAddress())) {
                 connectionAttempts++;
                 return false;
             }

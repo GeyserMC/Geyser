@@ -38,6 +38,9 @@ import java.util.concurrent.CompletionStage;
  * Uses the provider client's existing signed, durable ticket-event delivery.
  */
 public final class GameOutcomeTransport implements ProviderTransport {
+    // ProviderClient refuses a poll larger than this
+    private static final int CLIENT_POLL_LIMIT = 100;
+
     private final ProviderTransport delegate;
     private final GameOutcomeReporter outcomes;
 
@@ -113,19 +116,13 @@ public final class GameOutcomeTransport implements ProviderTransport {
 
     @Override
     public List<JsonObject> pollEvents() {
-        return pollEvents(100);
+        return pollEvents(CLIENT_POLL_LIMIT);
     }
 
     @Override
     public List<JsonObject> pollEvents(int maximum) {
-        if (maximum < 0 || maximum > 256) {
-            throw new IllegalArgumentException("Invalid outcome poll bound");
-        }
-        if (maximum == 0) {
-            return List.of();
-        }
         List<JsonObject> batch = new ArrayList<>(delegate.pollEvents(maximum));
-        outcomes.drainTo(batch, Math.max(0, maximum - batch.size()));
+        outcomes.drainTo(batch, maximum - batch.size());
         return batch;
     }
 
