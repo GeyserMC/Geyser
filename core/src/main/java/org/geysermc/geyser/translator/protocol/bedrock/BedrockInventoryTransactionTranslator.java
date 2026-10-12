@@ -46,6 +46,7 @@ import org.cloudburstmc.protocol.bedrock.packet.PlaySoundPacket;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.type.FishingHookEntity;
 import org.geysermc.geyser.entity.type.ItemFrameEntity;
+import org.geysermc.geyser.entity.type.player.SessionPlayerEntity;
 import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.inventory.Inventory;
 import org.geysermc.geyser.inventory.PlayerInventory;
@@ -59,6 +60,7 @@ import org.geysermc.geyser.item.type.Item;
 import org.geysermc.geyser.item.type.SpawnEggItem;
 import org.geysermc.geyser.level.block.Blocks;
 import org.geysermc.geyser.level.block.property.Properties;
+import org.geysermc.geyser.level.block.type.BedBlock;
 import org.geysermc.geyser.level.block.type.Block;
 import org.geysermc.geyser.level.block.type.BlockState;
 import org.geysermc.geyser.level.block.type.ButtonBlock;
@@ -281,14 +283,28 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
 
                         BlockState blockState = session.getGeyser().getWorldManager().blockAt(session, packet.getBlockPosition());
 
+                        // Clear any pending bed interactions as we are interacting with a new block now - see the bed check below as well
+                        session.getPlayerEntity().setPendingBedInteraction(null);
+
                         // Buttons on Java Edition cannot be interacted with when they are powered
                         if (blockState.block() instanceof ButtonBlock && blockState.getValue(Properties.POWERED)) {
                             return;
-                        }
-
-                        if (blockState.block() instanceof DoorBlock) {
+                        } else if (blockState.block() instanceof DoorBlock) {
                             // See DoorBlock#updateBlock: ensure server-side lower-half door updates are translated
                             session.setLastLowerDoorPosition(null);
+                        } else if (blockState.block() instanceof BedBlock || blockState.block() == Blocks.STRAW_BED) {
+                            // See the Javadocs over at SessionPlayerEntity#pendingBedInteraction
+
+                            // This is hardcoded by extracting player position packets from Java 26.3.
+                            double yOffset = blockState.block() == Blocks.STRAW_BED ? 0.375 : 0.6875;
+                            String part = blockState.getValue(Properties.BED_PART);
+                            if (!part.equals("head")) {
+                                // Need to offset by 1 to get the head position
+                                Direction facing = blockState.getValue(Properties.HORIZONTAL_FACING);
+                                session.getPlayerEntity().setPendingBedInteraction(new SessionPlayerEntity.PendingBedInteraction(packetBlockPosition.add(facing.getUnitVector()), yOffset));
+                            } else {
+                                session.getPlayerEntity().setPendingBedInteraction(new SessionPlayerEntity.PendingBedInteraction(packetBlockPosition, yOffset));
+                            }
                         }
 
                         if (packet.getItemInHand() != null && session.getItemMappings().getMapping(packet.getItemInHand()).getJavaItem() instanceof SpawnEggItem) {
