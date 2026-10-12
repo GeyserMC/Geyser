@@ -27,10 +27,12 @@ package org.geysermc.geyser.item.components.resolvable;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import it.unimi.dsi.fastutil.ints.IntArrayList;
+import it.unimi.dsi.fastutil.ints.IntLists;
 import net.kyori.adventure.key.Key;
-import org.geysermc.geyser.session.cache.registry.JavaRegistries;
-import org.geysermc.geyser.session.cache.registry.JavaRegistryKey;
-import org.geysermc.geyser.session.cache.registry.JavaRegistryProvider;
+import org.geysermc.geyser.registry.java.JavaRegistries;
+import org.geysermc.geyser.registry.java.JavaRegistryKey;
+import org.geysermc.geyser.registry.java.JavaRegistryProvider;
 import org.geysermc.geyser.util.MinecraftKey;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.HolderSet;
@@ -40,7 +42,7 @@ import java.util.List;
 import java.util.Optional;
 
 public record ResolvableHolderSetComponent(DataComponentType<HolderSet> type, Optional<JavaRegistryKey<?>> registry, List<Key> references) implements ResolvableComponent<HolderSet> {
-    private static final HolderSet EMPTY = new HolderSet(new int[0]);
+    private static final HolderSet EMPTY = new HolderSet(IntLists.emptyList());
 
     public static ResolvableHolderSetComponent parse(DataComponentType<HolderSet> type, JsonObject object) {
         Optional<JavaRegistryKey<?>> registry = Optional.ofNullable(object.get("registry"))
@@ -60,8 +62,9 @@ public record ResolvableHolderSetComponent(DataComponentType<HolderSet> type, Op
     @Override
     public @Nullable HolderSet resolve(JavaRegistryProvider registries) {
         return registry.map(theRegistry -> references.stream()
-            .mapToInt(key -> theRegistry.networkId(registries, key))
+            .mapToInt(key -> theRegistry.getIdOrThrow(registries, key))
             .toArray())
+            .map(IntArrayList::new)
             .map(HolderSet::new)
             .orElse(EMPTY);
     }

@@ -28,18 +28,16 @@ package org.geysermc.geyser.platform.spigot.world.manager;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
 import org.bukkit.block.Block;
-import org.bukkit.block.DecoratedPot;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 import org.cloudburstmc.math.vector.Vector3i;
-import org.geysermc.erosion.bukkit.BukkitUtils;
 import org.geysermc.erosion.bukkit.SchedulerUtils;
 import org.geysermc.geyser.level.WorldManager;
 import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.GameMode;
 
-import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 
@@ -88,19 +86,8 @@ public class GeyserSpigotWorldManager extends WorldManager {
         return GameMode.byId(Bukkit.getDefaultGameMode().ordinal());
     }
 
-    public void getDecoratedPotData(GeyserSession session, Vector3i pos, Consumer<List<String>> apply) {
-        Player bukkitPlayer;
-        if ((bukkitPlayer = Bukkit.getPlayer(session.getPlayerEntity().uuid())) == null) {
-            return;
-        }
-        Block block = bukkitPlayer.getWorld().getBlockAt(pos.getX(), pos.getY(), pos.getZ());
-        SchedulerUtils.runTask(this.plugin, () -> {
-            var state = BukkitUtils.getBlockState(block);
-            if (!(state instanceof DecoratedPot pot)) {
-                return;
-            }
-            apply.accept(pot.getShards().stream().map(material -> material.getKey().toString()).toList());
-        }, block);
+    public void getDecoratedPotData(GeyserSession session, Vector3i pos, Consumer<Map<String, String>> apply) {
+        // FIXME 26.3
     }
 
     /**

@@ -1,0 +1,15 @@
+{
+  "type": "geyser:holder_set",
+  "registry": "minecraft:dialog",
+  "set": [
+    "minecraft:custom_options",
+    {
+      "type": "minecraft:server_links",
+      "after_action": "none",
+      "button_width": 10,
+      "columns": 1,
+      "pause": false,
+      "title": ""
+    }
+  ]
+}

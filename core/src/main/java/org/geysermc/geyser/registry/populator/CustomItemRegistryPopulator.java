@@ -58,7 +58,7 @@ import org.geysermc.geyser.item.custom.GeyserCustomItemBedrockOptions;
 import org.geysermc.geyser.item.custom.GeyserCustomItemDefinition;
 import org.geysermc.geyser.item.exception.InvalidItemComponentsException;
 import org.geysermc.geyser.item.type.Item;
-import org.geysermc.geyser.network.GameProtocol;
+import org.geysermc.geyser.registry.java.BuiltInJavaRegistries;
 import org.geysermc.geyser.registry.mappings.BuiltInMappings;
 import org.geysermc.geyser.registry.mappings.MappingsConfigReader;
 import org.geysermc.geyser.registry.mappings.MappingsType;
@@ -178,10 +178,17 @@ public class CustomItemRegistryPopulator {
         String bedrockIdentifier = customItem.bedrockIdentifier().toString();
         NbtMapBuilder bedrockComponents = createComponentNbt(MinecraftKey.identifierToKey(customItem.identifier()), context);
 
-        Item javaItem = new Item(customItem.identifier().toString(), Item.builder()
-            .components(context.components())
-            .resolvableComponents(context.resolvableComponents()));
-        Items.register(javaItem, customItem.javaId());
+        Item javaItem;
+        // Register item on the first pass, and on other passes get the item back from the registry.
+        // This code really should be improved: only register at the start and freeze ITEM registry before populating item mappings!!!
+        if (firstPass) {
+            javaItem = new Item(customItem.identifier().toString(), Item.builder()
+                .components(context.components())
+                .resolvableComponents(context.resolvableComponents()));
+            Items.register(javaItem, customItem.javaId());
+        } else {
+            javaItem = BuiltInJavaRegistries.ITEM.getOrThrow(customItem.javaId());
+        }
 
         ItemMapping customMapping = ItemMapping.builder()
             .bedrockIdentifier(bedrockIdentifier)
@@ -326,9 +333,9 @@ public class CustomItemRegistryPopulator {
         // Please note that technically this component is present on all items in vanilla Minecraft, which, if we think about consistency, would mean
         // we'd have to translate its default value if the component is removed using a patch or not present on a non-vanilla item
         // It doesn't really matter though, since Bedrock has its own default values if the component isn't present
-        SwingAnimation swingAnimation = context.components().get(DataComponentTypes.SWING_ANIMATION);
-        if (swingAnimation != null) {
-            computeSwingAnimationProperties(componentBuilder, swingAnimation);
+        SwingAnimation attackAnimation = context.components().get(DataComponentTypes.ATTACK_ANIMATION);
+        if (attackAnimation != null) {
+            computeSwingAnimationProperties(componentBuilder, attackAnimation);
         }
 
         Optional<Consumable> consumableComponent = Optional.ofNullable(context.components().get(DataComponentTypes.CONSUMABLE))
@@ -408,6 +415,19 @@ public class CustomItemRegistryPopulator {
             computeEntityPlacerProperties(componentBuilder);
         }
 
+        if (context.components().get(DataComponentTypes.COMPOSTABLE) != null) {
+            componentBuilder.putCompound("minecraft:compostable", NbtMap.builder()
+                .putInt("composting_chance", 1)
+                .build());
+        }
+
+        // The client only lets an item into furnace fuel slots when it has this component.
+        if (context.components().get(DataComponentTypes.COOKING_FUEL) != null) {
+            componentBuilder.putCompound("minecraft:fuel", NbtMap.builder()
+                .putFloat("duration", 1.0F)
+                .build());
+        }
+
         // this is not ideal, remove once v1 is removed!
         if (context.definition() instanceof GeyserCustomItemDefinition definition && definition.isOldConvertedItem()) {
             CustomRenderOffsets renderOffsets = definition.getRenderOffsets();
@@ -444,12 +464,11 @@ public class CustomItemRegistryPopulator {
         // This makes bedrock use a 3D render of the block this item places as icon
         GeyserBlockPlacer blockPlacer = definition.components().get(GeyserItemDataComponents.BLOCK_PLACER);
         if (blockPlacer == null || !blockPlacer.useBlockIcon()) {
-            NbtMap iconMap = NbtMap.builder()
-                .putCompound("textures", NbtMap.builder()
-                    .putString("default", definition.icon())
-                    .build())
-                .build();
-            itemProperties.putCompound("minecraft:icon", iconMap);
+            NbtMapBuilder textureMap = NbtMap.builder().putString("default", definition.iconData().defaultIcon());
+            if (options.dyeable().isPresent()) {
+                textureMap.putString("dyed", definition.iconData().dyedIcon());
+            }
+            itemProperties.putCompound("minecraft:icon", NbtMap.builder().putCompound("textures", textureMap.build()).build());
         }
 
         if (options.creativeCategory() != CreativeCategory.NONE) {
@@ -480,26 +499,13 @@ public class CustomItemRegistryPopulator {
         // This can be missing if a non-vanilla item didn't specify a max stack size, or if a component patch removed the component. In that case vanilla Minecraft defaults to 1
         int stackSize = components.getOrDefault(DataComponentTypes.MAX_STACK_SIZE, 1);
 
-        // Before 1.26.30, minecraft:wearable overrides this component, which leaves equippable items unstackable, see MCPE-176931
-        boolean sendStackSizeComponent = GameProtocol.is26_30orHigher(context.protocolVersion());
-
-        // Hack for v1 compat: Allow e.g. carved pumpkins to continue working as a base
-        if (!sendStackSizeComponent && stackSize > 1 && definition instanceof GeyserCustomItemDefinition customItemDefinition && customItemDefinition.isOldConvertedItem()) {
-            Equippable equippable = components.get(DataComponentTypes.EQUIPPABLE);
-            if (equippable != null) {
-                stackSize = 1;
-            }
-        }
-
         int bedrockStackSize = Math.min(stackSize, Item.BEDROCK_MAX_STACK_SIZE);
         itemProperties.putInt("max_stack_size", bedrockStackSize);
-        if (sendStackSizeComponent) {
-            // Also sent as a component, as a byte: without it minecraft:wearable resets the stack size to one,
-            // and the client refuses to move any slot holding more than one of the item
-            componentBuilder.putCompound("minecraft:max_stack_size", NbtMap.builder()
-                .putByte("value", (byte) bedrockStackSize)
-                .build());
-        }
+        // Also sent as a component, as a byte: without it minecraft:wearable resets the stack size to one,
+        // and the client refuses to move any slot holding more than one of the item
+        componentBuilder.putCompound("minecraft:max_stack_size", NbtMap.builder()
+            .putByte("value", (byte) bedrockStackSize)
+            .build());
 
         // Ignore durability if the item's predicates requires that it be unbreakable
         if (maxDamage > 0 && !isUnbreakableItem(definition)) {
@@ -711,9 +717,9 @@ public class CustomItemRegistryPopulator {
         componentBuilder.putCompound("minecraft:piercing_weapon", addAttackRangeProperties(NbtMap.builder(), attackRange).build());
     }
 
-    private static void computeSwingAnimationProperties(NbtMapBuilder componentBuilder, SwingAnimation swingAnimation) {
+    private static void computeSwingAnimationProperties(NbtMapBuilder componentBuilder, SwingAnimation attackAnimation) {
         componentBuilder.putCompound("minecraft:swing_duration", NbtMap.builder()
-            .putFloat("value", swingAnimation.duration() / 20.0F) // Java is in ticks, bedrock is in seconds
+            .putFloat("value", attackAnimation.duration() / 20.0F) // Java is in ticks, bedrock is in seconds
             .build());
     }
 

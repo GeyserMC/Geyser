@@ -28,12 +28,14 @@ package org.geysermc.geyser.item.components.resolvable;
 import com.google.gson.JsonObject;
 import net.kyori.adventure.key.Key;
 import org.checkerframework.checker.nullness.qual.Nullable;
-import org.geysermc.geyser.session.cache.registry.JavaRegistries;
-import org.geysermc.geyser.session.cache.registry.JavaRegistryKey;
-import org.geysermc.geyser.session.cache.registry.JavaRegistryProvider;
+import org.geysermc.geyser.registry.java.JavaRegistries;
+import org.geysermc.geyser.registry.java.JavaRegistryKey;
+import org.geysermc.geyser.registry.java.JavaRegistryProvider;
 import org.geysermc.geyser.util.MinecraftKey;
 import org.geysermc.mcprotocollib.protocol.data.game.Holder;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType;
+
+import java.util.OptionalInt;
 
 public record ResolvableHolderComponent<T>(DataComponentType<Holder<T>> type, JavaRegistryKey<?> registry, Key reference) implements ResolvableComponent<Holder<T>> {
 
@@ -46,10 +48,10 @@ public record ResolvableHolderComponent<T>(DataComponentType<Holder<T>> type, Ja
 
     @Override
     public @Nullable Holder<T> resolve(JavaRegistryProvider registries) {
-        int numericId = registry.networkId(registries, reference);
-        if (numericId == -1) {
+        OptionalInt numericId = registry.getId(registries, reference);
+        if (numericId.isEmpty()) {
             return null;
         }
-        return Holder.ofId(numericId);
+        return Holder.ofId(numericId.getAsInt());
     }
 }

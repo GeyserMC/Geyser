@@ -29,9 +29,9 @@ import net.kyori.adventure.key.Key;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.nbt.NbtMap;
 import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.geyser.session.cache.registry.JavaRegistries;
-import org.geysermc.geyser.session.cache.registry.JavaRegistry;
-import org.geysermc.geyser.session.cache.registry.RegistryEntryContext;
+import org.geysermc.geyser.registry.java.JavaRegistries;
+import org.geysermc.geyser.registry.java.JavaRegistry;
+import org.geysermc.geyser.registry.java.reader.RegistryEntryContext;
 import org.geysermc.geyser.translator.text.MessageTranslator;
 import org.geysermc.geyser.util.MinecraftKey;
 import org.geysermc.geyser.util.SoundUtils;
@@ -44,7 +44,7 @@ import java.util.Locale;
 public interface GeyserInstrument {
 
     static GeyserInstrument read(RegistryEntryContext context) {
-        NbtMap data = context.data();
+        NbtMap data = context.dataAsMap();
         String soundEvent = SoundUtils.readSoundEvent(data, "instrument " + context.id());
         float range = data.getFloat("range");
         BedrockInstrument bedrockInstrument = BedrockInstrument.getByJavaIdentifier(context.id());
@@ -60,7 +60,7 @@ public interface GeyserInstrument {
      */
     String description();
 
-    BedrockInstrument bedrockInstrument();
+    @Nullable BedrockInstrument bedrockInstrument();
 
     /**
      * @return the ID of the Bedrock counterpart for this instrument. If there is none ({@link #bedrockInstrument()} is null), then -1 is returned.
@@ -77,11 +77,11 @@ public interface GeyserInstrument {
      * @return the ID of the Java counterpart for the given Bedrock ID. If an invalid Bedrock ID was given, or there is no counterpart, -1 is returned.
      */
     static int bedrockIdToJava(GeyserSession session, int id) {
-        JavaRegistry<GeyserInstrument> instruments = session.getRegistryCache().registry(JavaRegistries.INSTRUMENT);
+        JavaRegistry<GeyserInstrument> instruments = session.javaRegistries().registry(JavaRegistries.INSTRUMENT);
         BedrockInstrument bedrockInstrument = BedrockInstrument.getByBedrockId(id);
         if (bedrockInstrument != null) {
-            for (int i = 0; i < instruments.values().size(); i++) {
-                GeyserInstrument instrument = instruments.byId(i);
+            for (int i = 0; i < instruments.size(); i++) {
+                GeyserInstrument instrument = instruments.getOrThrow(i);
                 if (instrument.bedrockInstrument() == bedrockInstrument) {
                     return i;
                 }
@@ -95,7 +95,7 @@ public interface GeyserInstrument {
         if (component.isCustom()) {
             return new Wrapper(component.custom(), session.locale());
         } else if (component.isId()) {
-            return session.getRegistryCache().registry(JavaRegistries.INSTRUMENT).byId(component.id());
+            return JavaRegistries.INSTRUMENT.getOrThrow(session.javaRegistries(), component.id());
         }
         throw new IllegalStateException("Instrument must either be custom or have an id");
     }

@@ -43,13 +43,26 @@ import java.util.Set;
 public interface CustomItemBedrockOptions {
 
     /**
-     * Gets the item's icon. When not present, the item's Bedrock identifier is used.
+     * Gets the item's icon, if it was manually set.
      *
      * @return the item's icon
-     * @see CustomItemDefinition#icon()
+     * @see CustomItemIcons#defaultIcon()
+     * @deprecated since 2.12.0: use {@link CustomItemBedrockOptions#iconData()} and {@link CustomItemIcons#defaultIcon()} instead
      * @since 2.9.3
      */
-    @Nullable String icon();
+    @Deprecated
+    default @Nullable String icon() {
+        return iconData().defaultIcon();
+    }
+
+    /**
+     * Gets the item's icon data.
+     *
+     * @return the item's icon data
+     * @see CustomItemIcons
+     * @since 2.12.0
+     */
+    CustomItemIcons iconData();
 
     /**
      * If the item is allowed to be put into the offhand. Defaults to true.
@@ -132,15 +145,45 @@ public interface CustomItemBedrockOptions {
     interface Builder {
 
         /**
-         * Sets the item's icon.
+         * Shorthand method for setting the item's default icon.
          *
-         * @param icon the item's icon
-         * @see CustomItemBedrockOptions#icon()
+         * <p>This will clear the item's dyeable icon, if it was set.</p>
+         *
+         * @param icon the item's default icon
+         * @see CustomItemIcons#defaultIcon()
+         * @see CustomItemIcons.Builder#defaultIcon(String)
+         * @see Builder#iconData(CustomItemIcons)
          * @return this builder
          * @since 2.9.3
          */
         @This
-        Builder icon(@Nullable String icon);
+        default Builder icon(@Nullable String icon) {
+            return iconData(CustomItemIcons.builder().defaultIcon(icon));
+        }
+
+        /**
+         * Shorthand method for {@link Builder#iconData(CustomItemIcons)}, sets this item's icon data.
+         *
+         * @param builder the {@link CustomItemIcons.Builder} instance
+         * @see CustomItemIcons
+         * @return this builder
+         * @since 2.12.0
+         */
+        @This
+        default Builder iconData(CustomItemIcons.Builder builder) {
+            return iconData(builder.build());
+        }
+
+        /**
+         * Sets this item's icon data.
+         *
+         * @param iconData the {@link CustomItemIcons} instance
+         * @see CustomItemIcons
+         * @return this builder
+         * @since 2.12.0
+         */
+        @This
+        Builder iconData(CustomItemIcons iconData);
 
         /**
          * Sets if the item is allowed to be put into the offhand.
@@ -256,6 +299,7 @@ public interface CustomItemBedrockOptions {
          * Creates the custom item bedrock options.
          *
          * @return the new instance of bedrock options
+         * @throws IllegalStateException when the set {@link CustomItemIcons} has a dyeable icon, but the item is not marked as dyeable
          * @since 2.9.3
          */
         CustomItemBedrockOptions build();

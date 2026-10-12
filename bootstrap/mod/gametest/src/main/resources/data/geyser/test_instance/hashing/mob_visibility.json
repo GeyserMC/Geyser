@@ -1,0 +1,24 @@
+{
+  "type": "geyser:component_hash",
+  "component": "minecraft:mob_visibility",
+  "value": [
+    {
+      "targeting_entity_types": [
+        "minecraft:zombie",
+        "minecraft:skeleton",
+        "minecraft:spider"
+      ],
+      "visibility": 5.0
+    },
+    {
+      "targeting_entity_types": "#minecraft:accepts_iron_golem_gift",
+      "visibility": 10.0
+    },
+    {
+      "targeting_entity_types": [
+        "minecraft:pig"
+      ],
+      "visibility": 1.5
+    }
+  ]
+}

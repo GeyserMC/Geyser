@@ -37,9 +37,10 @@ import org.geysermc.cumulus.form.SimpleForm;
 import org.geysermc.cumulus.form.util.FormBuilder;
 import org.geysermc.cumulus.response.CustomFormResponse;
 import org.geysermc.cumulus.response.FormResponse;
+import org.geysermc.geyser.registry.java.JavaRegistries;
+import org.geysermc.geyser.registry.java.JavaRegistryProvider;
+import org.geysermc.geyser.registry.java.reader.JavaRegistryReader;
 import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.geyser.session.cache.registry.JavaRegistries;
-import org.geysermc.geyser.session.cache.registry.RegistryEntryContext;
 import org.geysermc.geyser.session.dialog.input.DialogInput;
 import org.geysermc.geyser.session.dialog.input.ParsedInputs;
 import org.geysermc.geyser.text.MinecraftLocale;
@@ -50,9 +51,7 @@ import org.geysermc.mcprotocollib.protocol.data.game.Holder;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
-import java.util.Objects;
 import java.util.Optional;
-import java.util.function.ToIntFunction;
 
 @Accessors(fluent = true)
 public abstract class Dialog {
@@ -159,37 +158,38 @@ public abstract class Dialog {
         return Optional.of(parsed);
     }
 
-    public static Dialog readDialog(RegistryEntryContext context) {
-        return readDialogFromNbt(context.session(), context.data(), context::getNetworkId);
+    public static Dialog readDialog(JavaRegistryReader.Context context) {
+        return readDialogFromNbt(context.registries(), context.session(), context.dataAsMap());
     }
 
-    public static Dialog readDialogFromNbt(Optional<GeyserSession> session, NbtMap map, IdGetter idGetter) {
+    public static Dialog readDialogFromNbt(JavaRegistryProvider registries, Optional<GeyserSession> session, NbtMap map) {
         Key type = MinecraftKey.key(map.getString("type"));
         if (type.equals(NoticeDialog.TYPE)) {
-            return new NoticeDialog(session, map, idGetter);
+            return new NoticeDialog(registries, session, map);
         } else if (type.equals(ServerLinksDialog.TYPE)) {
-            return new ServerLinksDialog(session, map, idGetter);
+            return new ServerLinksDialog(registries, session, map);
         } else if (type.equals(DialogListDialog.TYPE)) {
-            return new DialogListDialog(session, map, idGetter);
+            return new DialogListDialog(registries, session, map);
         } else if (type.equals(MultiActionDialog.TYPE)) {
-            return new MultiActionDialog(session, map, idGetter);
+            return new MultiActionDialog(registries, session, map);
         } else if (type.equals(ConfirmationDialog.TYPE)) {
-            return new ConfirmationDialog(session, map, idGetter);
+            return new ConfirmationDialog(registries, session, map);
         }
 
         throw new UnsupportedOperationException("Unable to read unknown dialog type " + type + "!");
     }
 
     public static Dialog getDialogFromHolder(GeyserSession session, Holder<NbtMap> holder) {
+        JavaRegistryProvider registries = session.javaRegistries();
         if (holder.isId()) {
-            return Objects.requireNonNull(JavaRegistries.DIALOG.value(session, holder.id()));
+            return JavaRegistries.DIALOG.getOrThrow(registries, holder.id());
         } else {
-            return Dialog.readDialogFromNbt(Optional.of(session), holder.custom(), key -> JavaRegistries.DIALOG.networkId(session, key));
+            return Dialog.readDialogFromNbt(registries, Optional.of(session), holder.custom());
         }
     }
 
-    public static Dialog getDialogFromKey(GeyserSession session, Key key) {
-        return Objects.requireNonNull(JavaRegistries.DIALOG.value(session, key));
+    public static Dialog getDialogFromKey(JavaRegistryProvider registries, Key key) {
+        return JavaRegistries.DIALOG.getOrThrow(registries, key);
     }
 
     public enum AfterAction {
@@ -206,7 +206,4 @@ public abstract class Dialog {
             return CLOSE;
         }
     }
-
-    @FunctionalInterface
-    public interface IdGetter extends ToIntFunction<Key> {}
 }
