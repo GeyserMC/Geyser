@@ -127,6 +127,8 @@ public class SimpleJavaRegistry<T> implements MutableJavaRegistry<T> {
         if (frozen) {
             return;
         }
+        frozen = true;
+
         try {
             byId.forEach((id, entry) -> {
                 if (!entry.isBound()) {
@@ -139,9 +141,9 @@ public class SimpleJavaRegistry<T> implements MutableJavaRegistry<T> {
             GeyserImpl.getInstance().getLogger().error("Failed to freeze " + this + "! This will result in issues. Report this over at our bugtracker!");
             // Clear the half-populated byValue map, just in case
             byValue.clear();
+            frozen = false;
             throw exception;
         }
-        frozen = true;
 
         // Trim maps at the end of freezing - now that the registry is frozen, we don't expect the size to change anymore
         byKey.trim();
