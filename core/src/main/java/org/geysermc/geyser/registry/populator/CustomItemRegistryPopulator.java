@@ -464,13 +464,11 @@ public class CustomItemRegistryPopulator {
         // This makes bedrock use a 3D render of the block this item places as icon
         GeyserBlockPlacer blockPlacer = definition.components().get(GeyserItemDataComponents.BLOCK_PLACER);
         if (blockPlacer == null || !blockPlacer.useBlockIcon()) {
-            NbtMap iconMap = NbtMap.builder()
-                .putCompound("textures", NbtMap.builder()
-                    .putString("default", definition.icon())
-                    .putString("dyed", definition.dyedIcon())
-                    .build())
-                .build();
-            itemProperties.putCompound("minecraft:icon", iconMap);
+            NbtMapBuilder textureMap = NbtMap.builder().putString("default", definition.iconData().defaultIcon());
+            if (options.dyeable().isPresent()) {
+                textureMap.putString("dyed", definition.iconData().dyedIcon());
+            }
+            itemProperties.putCompound("minecraft:icon", NbtMap.builder().putCompound("textures", textureMap.build()).build());
         }
 
         if (options.creativeCategory() != CreativeCategory.NONE) {

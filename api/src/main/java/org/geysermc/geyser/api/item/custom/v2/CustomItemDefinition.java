@@ -96,29 +96,27 @@ public interface CustomItemDefinition {
     Identifier model();
 
     /**
-     * The icon used for this item.
+     * Shorthand method to get the default icon used for this item.
      *
-     * <p>If none is set in the item's Bedrock options, then the item's Bedrock identifier is used,
-     * the namespace separator ({@code :}) replaced with {@code .} and the path separators ({@code /}) replaced with {@code _}. For example:</p>
-     *
-     * <p>{@code my_datapack:my_custom_item} => {@code my_datapack.my_custom_item}</p>
-     * <p>{@code my_datapack:cool_items/cool_item_1} => {@code my_datapack.cool_items_cool_item_1}</p>
-     *
-     * @return the icon shown to Bedrock players
+     * @return the icon shown to Bedrock players by default
+     * @see CustomItemDefinition#iconData()
+     * @see CustomItemIcons#defaultIcon()
+     * @see CustomItemIcons#resolve(Identifier)
      * @since 2.9.3
      */
-    String icon();
+    default String icon() {
+        return iconData().defaultIcon();
+    }
 
     /**
-     * The icon used for this item if it's marked as {@code dyeable}
+     * The icon data for this item, resolved using {@link CustomItemIcons#resolve(Identifier)}.
      *
-     * <p>If none is set in the item's Bedrock options, then the item's default icon is used.
-     *
-     * @return the icon shown to Bedrock players if the item is marked dyeable
-     * @see #icon()
-     * @since 2.10.1
+     * @return this item's {@link CustomItemIcons.Resolved} instance
+     * @see CustomItemIcons.Resolved
+     * @see CustomItemIcons#resolve(Identifier)
+     * @since 2.12.0
      */
-    String dyedIcon();
+    CustomItemIcons.Resolved iconData();
 
     /**
      * The predicates that have to match for this item definition to be used. These predicates can access properties similar to the Java item model predicates.
