@@ -158,7 +158,7 @@ public class JavaMountScreenOpenTranslator extends PacketTranslator<ClientboundM
                 slots.add(SADDLE_SLOT);
                 if (entity instanceof NautilusEntity) {
                     slots.add(NAUTILUS_ARMOR_SLOT);
-                } else if (!(entity instanceof SkeletonHorseEntity || entity instanceof ZombieHorseEntity)) {
+                } else if (!(entity instanceof SkeletonHorseEntity)) {
                     slots.add(HORSE_ARMOR_SLOT);
                 }
             }

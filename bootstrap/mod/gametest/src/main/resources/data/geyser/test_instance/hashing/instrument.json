@@ -1,0 +1,27 @@
+{
+  "type": "geyser:component_hash",
+  "component": "minecraft:instrument",
+  "value": [
+    "minecraft:ponder_goat_horn",
+    "minecraft:sing_goat_horn",
+    "minecraft:seek_goat_horn",
+    "minecraft:feel_goat_horn",
+    "minecraft:admire_goat_horn",
+    "minecraft:call_goat_horn",
+    "minecraft:yearn_goat_horn",
+    "minecraft:dream_goat_horn",
+    {
+      "sound_event": "minecraft:entity.allay.death",
+      "use_duration": 5.5,
+      "range": 50.4,
+      "description": "death of the allay"
+    },
+    {
+      "sound_event": "minecraft:ambient.cave",
+      "use_duration": 2,
+      "range": 120,
+      "durability_damage": 3,
+      "description": "scary noise"
+    }
+  ]
+}

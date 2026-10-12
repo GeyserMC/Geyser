@@ -31,8 +31,8 @@ import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.geysermc.geyser.entity.spawn.EntitySpawnContext;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.item.type.Item;
-import org.geysermc.geyser.session.cache.registry.JavaRegistries;
-import org.geysermc.geyser.session.cache.registry.JavaRegistryKey;
+import org.geysermc.geyser.registry.java.JavaRegistries;
+import org.geysermc.geyser.registry.java.JavaRegistryKey;
 import org.geysermc.geyser.session.cache.tags.ItemTag;
 import org.geysermc.geyser.session.cache.tags.Tag;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.Pose;
@@ -61,7 +61,7 @@ public class FrogEntity extends AnimalEntity implements VariantIntHolder {
 
     @Override
     public void setBedrockVariantId(int bedrockId) {
-        dirtyMetadata.put(EntityDataTypes.VARIANT, bedrockId);
+        metadata.put(EntityDataTypes.VARIANT, bedrockId);
     }
 
     public void setTongueTarget(ObjectEntityMetadata<OptionalInt> entityMetadata) {
@@ -69,10 +69,10 @@ public class FrogEntity extends AnimalEntity implements VariantIntHolder {
         if (entityId.isPresent()) {
             Entity entity = session.getEntityCache().getEntityByJavaId(entityId.getAsInt());
             if (entity != null) {
-                dirtyMetadata.put(EntityDataTypes.TARGET_EID, entity.geyserId());
+                metadata.put(EntityDataTypes.TARGET_EID, entity.geyserId());
             }
         } else {
-            dirtyMetadata.put(EntityDataTypes.TARGET_EID, 0L);
+            metadata.put(EntityDataTypes.TARGET_EID, 0L);
         }
     }
 

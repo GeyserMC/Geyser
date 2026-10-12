@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2026 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -32,6 +32,7 @@ import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 import org.geysermc.geyser.util.InventoryUtils;
+import org.geysermc.geyser.util.MathUtils;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.inventory.ServerboundContainerButtonClickPacket;
 
 /**
@@ -49,15 +50,24 @@ public class BedrockLecternUpdateTranslator extends PacketTranslator<LecternUpda
             return;
         }
 
-        if (lecternContainer.getCurrentBedrockPage() == packet.getPage()) {
+        // Books on java can only be 100 pages so clamp the page number to that
+        // This also forces requested pages to be sequential
+        // This is 25 for showing page 49/50, and 50 for 99/100
+        int currentPage = lecternContainer.getCurrentBedrockPage();
+        int requestedPage = packet.getPage();
+        int page = MathUtils.constrain(MathUtils.constrain(requestedPage, currentPage - 1, currentPage + 1), 0, lecternContainer.getMaxPages());
+
+        if (currentPage == requestedPage) {
             // The same page means Bedrock is closing the window
             InventoryUtils.sendJavaContainerClose(holder);
             InventoryUtils.closeInventory(session, holder, false);
+        } else if (currentPage == page) {
+            // The requested page was clamped back to the current page so do nothing
         } else {
             // Each "page" Bedrock gives to us actually represents two pages (think opening a book and seeing two pages)
             // Each "page" on Java is just one page (think a spiral notebook folded back to only show one page)
-            int newJavaPage = (packet.getPage() * 2);
-            int currentJavaPage = (lecternContainer.getCurrentBedrockPage() * 2);
+            int newJavaPage = (page * 2);
+            int currentJavaPage = (currentPage * 2);
 
             // So, fun fact: We need to separately handle fake lecterns!
             // Since those are not actually a real lectern... the Java server won't respond to our requests.

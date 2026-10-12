@@ -1,0 +1,14 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "org.geysermc.geyser.gametest.mixin",
+  "compatibilityLevel": "JAVA_25",
+  "mixins": [
+    "SynchedEntityDataAccessor",
+    "SynchedEntityDataMixin",
+    "SynchronizeRegistriesTaskAccessor"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

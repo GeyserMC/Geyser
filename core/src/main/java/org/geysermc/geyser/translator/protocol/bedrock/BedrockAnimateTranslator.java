@@ -29,8 +29,8 @@ import org.cloudburstmc.protocol.bedrock.packet.AnimatePacket;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
-import org.geysermc.mcprotocollib.protocol.data.game.entity.player.Hand;
-import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.player.ServerboundSwingPacket;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.player.GameMode;
+import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.player.ServerboundPunchPacket;
 
 import java.util.concurrent.TimeUnit;
 
@@ -60,7 +60,7 @@ public class BedrockAnimateTranslator extends PacketTranslator<AnimatePacket> {
 
             // We also send this right after entity attack to ensure packet order.
             session.scheduleInEventLoop(() -> {
-                    if (session.getArmAnimationTicks() != 0 && (session.getTicks() - session.getLastAirHitTick() > 2)) {
+                    if (session.getArmAnimationTicks() != 0 && (session.getTicks() - session.getLastAirHitTick() > 2) && session.getGameMode() != GameMode.SPECTATOR) {
                         // So, generally, a Java player can only do one *thing* at a time.
                         // If a player right-clicks, for example, then there's probably only one action associated with
                         // that right-click that will send a swing.
@@ -74,7 +74,7 @@ public class BedrockAnimateTranslator extends PacketTranslator<AnimatePacket> {
                         // and Bedrock 1.19.51.
                         // Note for the future: we should probably largely ignore this packet and instead replicate
                         // all actions on our end, and send swings where needed. Can be done once we replicate Block and Item interactions fully.
-                        session.sendDownstreamGamePacket(new ServerboundSwingPacket(Hand.MAIN_HAND));
+                        session.sendDownstreamGamePacket(ServerboundPunchPacket.INSTANCE);
                         session.activateArmAnimationTicking();
                     }
                 },

@@ -25,22 +25,18 @@
 
 package org.geysermc.geyser.api.connection;
 
-import org.checkerframework.checker.index.qual.NonNegative;
 import org.checkerframework.checker.index.qual.Positive;
 import org.geysermc.api.connection.Connection;
 import org.geysermc.geyser.api.bedrock.camera.CameraData;
 import org.geysermc.geyser.api.bedrock.camera.CameraShake;
 import org.geysermc.geyser.api.command.CommandSource;
 import org.geysermc.geyser.api.entity.EntityData;
-import org.geysermc.geyser.api.entity.type.GeyserEntity;
 import org.geysermc.geyser.api.entity.type.player.GeyserPlayerEntity;
 import org.geysermc.geyser.api.skin.SkinData;
-import org.jspecify.annotations.Nullable;
 
 import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
 
 /**
  * Represents a player connection used in Geyser.
@@ -57,7 +53,7 @@ public interface GeyserConnection extends Connection, CommandSource {
 
     /**
      * Exposes the {@link EntityData} for this connection.
-     * It allows you to get entities by their Java entity ID, show emotes, and get the player entity.
+     * It allows you to look up other entities through various methods.
      *
      * @return the EntityData for this connection.
      */
@@ -165,14 +161,6 @@ public interface GeyserConnection extends Connection, CommandSource {
     void sendSkin(UUID player, SkinData skinData);
 
     /**
-     * @param javaId the Java entity ID to look up.
-     * @return a {@link GeyserEntity} if present in this connection's entity tracker.
-     * @deprecated Use {@link EntityData#entityByJavaId(int)} instead
-     */
-    @Deprecated
-    CompletableFuture<@Nullable GeyserEntity> entityByJavaId(@NonNegative int javaId);
-
-    /**
      * Displays a player entity as emoting to this client.
      *
      * @param emoter the player entity emoting.
@@ -255,4 +243,14 @@ public interface GeyserConnection extends Connection, CommandSource {
      * @since 2.9.4
      */
     String playFabId();
+
+    /**
+     * Sends a toast notification to this player.
+     *
+     * @param title the title of the toast notification
+     * @param content the content of the toast notification
+     *
+     * @since 2.11.3
+     */
+    void sendToast(String title, String content);
 }

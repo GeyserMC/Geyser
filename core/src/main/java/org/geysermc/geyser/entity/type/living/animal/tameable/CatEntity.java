@@ -33,8 +33,8 @@ import org.geysermc.geyser.entity.spawn.EntitySpawnContext;
 import org.geysermc.geyser.entity.type.living.animal.VariantIntHolder;
 import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.item.type.Item;
-import org.geysermc.geyser.session.cache.registry.JavaRegistries;
-import org.geysermc.geyser.session.cache.registry.JavaRegistryKey;
+import org.geysermc.geyser.registry.java.JavaRegistries;
+import org.geysermc.geyser.registry.java.JavaRegistryKey;
 import org.geysermc.geyser.session.cache.tags.ItemTag;
 import org.geysermc.geyser.session.cache.tags.Tag;
 import org.geysermc.geyser.util.InteractionResult;
@@ -56,7 +56,7 @@ public class CatEntity extends TameableEntity implements VariantIntHolder {
     protected void initializeMetadata() {
         super.initializeMetadata();
         // Default value (minecraft:black).
-        dirtyMetadata.put(EntityDataTypes.VARIANT, 1);
+        metadata.put(EntityDataTypes.VARIANT, 1);
     }
 
     @Override
@@ -87,7 +87,7 @@ public class CatEntity extends TameableEntity implements VariantIntHolder {
 
     @Override
     public void setBedrockVariantId(int bedrockId) {
-        dirtyMetadata.put(EntityDataTypes.VARIANT, bedrockId);
+        metadata.put(EntityDataTypes.VARIANT, bedrockId);
     }
 
     public void setResting(BooleanEntityMetadata entityMetadata) {
@@ -102,7 +102,7 @@ public class CatEntity extends TameableEntity implements VariantIntHolder {
     private void updateCollarColor() {
         // Needed or else wild cats are a red color
         if (getFlag(EntityFlag.TAMED)) {
-            dirtyMetadata.put(EntityDataTypes.COLOR, collarColor);
+            metadata.put(EntityDataTypes.COLOR, collarColor);
         }
     }
 

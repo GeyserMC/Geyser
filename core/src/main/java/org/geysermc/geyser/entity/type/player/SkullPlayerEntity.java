@@ -65,9 +65,9 @@ public class SkullPlayerEntity extends AvatarEntity {
     protected void initializeMetadata() {
         // Deliberately do not call super
         // Set bounding box to almost nothing so the skull is able to be broken and not cause entity to cast a shadow
-        dirtyMetadata.put(EntityDataTypes.SCALE, 1.08f);
-        dirtyMetadata.put(EntityDataTypes.HEIGHT, 0.001f);
-        dirtyMetadata.put(EntityDataTypes.WIDTH, 0.001f);
+        metadata.put(EntityDataTypes.SCALE, 1.08f);
+        metadata.put(EntityDataTypes.HEIGHT, 0.001f);
+        metadata.put(EntityDataTypes.WIDTH, 0.001f);
         setFlag(EntityFlag.CAN_SHOW_NAME, false);
         setFlag(EntityFlag.INVISIBLE, true); // Until the skin is loaded
     }

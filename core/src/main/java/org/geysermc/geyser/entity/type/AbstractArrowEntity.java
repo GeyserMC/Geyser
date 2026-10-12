@@ -40,7 +40,7 @@ public class AbstractArrowEntity extends ProjectileEntity {
         super(context);
 
         // Set the correct texture if using the resource pack
-        setFlag(EntityFlag.BRIBED, definition.entityType() == EntityType.SPECTRAL_ARROW);
+        setFlag(EntityFlag.BRIBED, javaDefinition.type().is(EntityType.SPECTRAL_ARROW));
 
         setMotion(motion);
     }

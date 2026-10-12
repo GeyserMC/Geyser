@@ -31,7 +31,11 @@ dependencies {
     shadowBundle(libs.protocol.connection)
     shadowBundle(libs.protocol.common)
     shadowBundle(libs.protocol.codec)
+    // Shared by raknet and nethernet, so it must be relocated along with them
+    shadowBundle(libs.netty.transport.common)
     shadowBundle(libs.raknet)
+    shadowBundle(libs.nethernet.transport)
+    shadowBundle(libs.nethernet.signaling)
     shadowBundle(libs.mcprotocollib)
 
     // Shade + relocate configurate as we're using a fork
@@ -59,15 +63,6 @@ relocate("org.cloudburstmc.netty")
 relocate("org.cloudburstmc.protocol")
 relocate("org.spongepowered.configurate")
 
-fabricApi {
-    configureTests {
-        createSourceSet = true
-        modId = "geyser-gametest"
-        enableClientGameTests = false
-        eula = true
-    }
-}
-
 tasks {
     named<Jar>("mergeShadowAndJarJar") {
         from (
@@ -82,19 +77,6 @@ tasks {
             }
         )
         archiveBaseName.set("Geyser-Fabric")
-    }
-
-    getByName("processGametestResources", ProcessResources::class) {
-        filesMatching("fabric.mod.json") {
-            expand(
-                "id" to "geyser",
-                "name" to "Geyser",
-                "version" to project.version,
-                "description" to project.description!!,
-                "url" to "https://geysermc.org",
-                "author" to "GeyserMC"
-            )
-        }
     }
 }
 

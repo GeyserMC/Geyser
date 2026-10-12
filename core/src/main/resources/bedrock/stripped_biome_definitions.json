@@ -2513,5 +2513,31 @@
             "pale_garden"
         ],
         "chunkGenData": null
+    },
+    "minecraft:sulfur_caves": {
+        "id": null,
+        "temperature": 0.8,
+        "downfall": 0.4,
+        "redSporeDensity": 0.0,
+        "blueSporeDensity": 0.0,
+        "ashDensity": 0.0,
+        "whiteAshDensity": 0.0,
+        "foliageSnow": 0.0,
+        "depth": 0.1,
+        "scale": 0.2,
+        "mapWaterColor": {
+            "a": 166,
+            "r": 96,
+            "g": 183,
+            "b": 255
+        },
+        "rain": true,
+        "tags": [
+            "caves",
+            "sulfur_caves",
+            "overworld",
+            "monster"
+        ],
+        "chunkGenData": null
     }
 }

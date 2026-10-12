@@ -51,7 +51,7 @@ public class AxolotlEntity extends AnimalEntity {
             case 1 -> variant = 3; // Java - "Wild" (brown)
             case 3 -> variant = 1; // Java - cyan
         }
-        dirtyMetadata.put(EntityDataTypes.VARIANT, variant);
+        metadata.put(EntityDataTypes.VARIANT, variant);
     }
 
     public void setPlayingDead(BooleanEntityMetadata entityMetadata) {

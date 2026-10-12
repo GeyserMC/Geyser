@@ -25,7 +25,6 @@
 
 package org.geysermc.geyser.util;
 
-import net.kyori.adventure.key.Key;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtMap;
@@ -50,8 +49,6 @@ import org.geysermc.geyser.level.block.type.BlockState;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.registry.type.ItemMappings;
 import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.geyser.session.cache.registry.JavaRegistries;
-import org.geysermc.geyser.session.cache.tags.Tag;
 import org.geysermc.geyser.text.ChatColor;
 import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.translator.protocol.java.inventory.JavaMerchantOffersTranslator;
@@ -59,6 +56,7 @@ import org.geysermc.mcprotocollib.protocol.data.game.item.ItemStack;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentTypes;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.HolderSet;
 import org.geysermc.mcprotocollib.protocol.data.game.recipe.display.slot.CompositeSlotDisplay;
 import org.geysermc.mcprotocollib.protocol.data.game.recipe.display.slot.DyedSlotDisplay;
 import org.geysermc.mcprotocollib.protocol.data.game.recipe.display.slot.EmptySlotDisplay;
@@ -384,8 +382,8 @@ public class InventoryUtils {
             return itemStack.getJavaId() == other.getId() && itemStack.getAmount() >= other.getAmount()
                 && Objects.equals(itemStack.getComponents(), other.getDataComponentsPatch());
         }
-        if (slotDisplay instanceof TagSlotDisplay(Key tag)) {
-            return itemStack.is(session, new Tag<>(JavaRegistries.ITEM, tag));
+        if (slotDisplay instanceof TagSlotDisplay(HolderSet set)) {
+            return itemStack.is(session, set);
         }
         if (slotDisplay instanceof OnlyWithComponentSlotDisplay(SlotDisplay source, DataComponentType<?> component)) {
             return itemStack.has(component) && acceptsAsInput(session, source, itemStack);

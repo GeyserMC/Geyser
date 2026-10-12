@@ -42,9 +42,10 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.floodgate.util.DeviceOs;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.GeyserApi;
+import org.geysermc.geyser.api.entity.custom.CustomEntityDefinition;
 import org.geysermc.geyser.api.extension.Extension;
 import org.geysermc.geyser.api.util.MinecraftVersion;
-import org.geysermc.geyser.network.GameProtocol;
+import org.geysermc.geyser.network.bedrock.GameProtocol;
 import org.geysermc.geyser.pack.ResourcePackHolder;
 import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.registry.Registries;
@@ -110,7 +111,8 @@ public class DumpInfo {
         try {
             // Workaround for JsonAdapter not being allowed on methods
             ConfigurationOptions options = InterfaceDefaultOptions.addTo(ConfigurationOptions.defaults(), builder ->
-                    builder.addProcessor(AsteriskSerializer.Asterisk.class, String.class, AsteriskSerializer.CONFIGURATE_SERIALIZER))
+                    builder.addProcessor(AsteriskSerializer.Asterisk.class, String.class, AsteriskSerializer.CONFIGURATE_SERIALIZER)
+                            .addProcessor(AsteriskSerializer.Secret.class, String.class, AsteriskSerializer.CONFIGURATE_SECRET))
                 .shouldCopyDefaults(false);
 
             ConfigurationNode configNode = CommentedConfigurationNode.root(options);
@@ -169,7 +171,8 @@ public class DumpInfo {
             .toList();
         this.mappingInfo = new MappingInfo(BlockRegistries.CUSTOM_BLOCKS.get().length,
             BlockRegistries.CUSTOM_SKULLS.get().size(),
-            Registries.ITEMS.forVersion(GameProtocol.DEFAULT_BEDROCK_PROTOCOL).getCustomIdMappings().size()
+            Registries.ITEMS.forVersion(GameProtocol.DEFAULT_BEDROCK_PROTOCOL).getCustomIdMappings().size(),
+            Registries.BEDROCK_ENTITY_DEFINITIONS.get().values().stream().filter(def -> def instanceof CustomEntityDefinition).toArray().length
         );
     }
 
@@ -340,6 +343,6 @@ public class DumpInfo {
         }
     }
 
-    public record MappingInfo(int customBlocks, int customSkulls, int customItems) {
+    public record MappingInfo(int customBlocks, int customSkulls, int customItems, int customEntities) {
     }
 }

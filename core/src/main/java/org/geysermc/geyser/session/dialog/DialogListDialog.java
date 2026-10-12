@@ -28,7 +28,8 @@ package org.geysermc.geyser.session.dialog;
 import net.kyori.adventure.key.Key;
 import org.cloudburstmc.nbt.NbtMap;
 import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.geyser.session.cache.registry.JavaRegistries;
+import org.geysermc.geyser.registry.java.JavaRegistries;
+import org.geysermc.geyser.registry.java.JavaRegistryProvider;
 import org.geysermc.geyser.session.cache.tags.GeyserHolderSet;
 import org.geysermc.geyser.session.dialog.action.DialogAction;
 import org.geysermc.geyser.util.MinecraftKey;
@@ -42,14 +43,14 @@ public class DialogListDialog extends DialogWithButtons {
 
     private final GeyserHolderSet<Dialog> dialogs;
 
-    public DialogListDialog(Optional<GeyserSession> session, NbtMap map, IdGetter idGetter) {
-        super(session, map, readDefaultExitAction(session, map, idGetter));
-        dialogs = GeyserHolderSet.readHolderSet(JavaRegistries.DIALOG, map.get("dialogs"), idGetter, dialog -> Dialog.readDialogFromNbt(session, dialog, idGetter));
+    public DialogListDialog(JavaRegistryProvider registries, Optional<GeyserSession> session, NbtMap map) {
+        super(session, map, readDefaultExitAction(registries, session, map));
+        dialogs = GeyserHolderSet.readHolderSet(registries, JavaRegistries.DIALOG, map.get("dialogs"), session);
     }
 
     @Override
     protected List<DialogButton> buttons(DialogHolder holder) {
-        return dialogs.resolve(holder.session()).stream()
+        return dialogs.resolve(holder.session().javaRegistries()).stream()
                 .map(dialog -> new DialogButton(dialog.externalTitle().orElseGet(dialog::title),
                         Optional.of(new DialogAction.ShowDialog(dialog))))
                 .toList();

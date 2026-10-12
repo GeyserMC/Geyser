@@ -41,8 +41,10 @@ import org.geysermc.geyser.level.block.property.Property;
 import org.geysermc.geyser.level.physics.PistonBehavior;
 import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.geyser.session.cache.registry.JavaRegistries;
+import org.geysermc.geyser.registry.java.JavaRegistries;
 import org.geysermc.geyser.session.cache.tags.Tag;
+import org.geysermc.geyser.translator.level.block.entity.BedrockChunkWantsBlockEntityTag;
+import org.geysermc.geyser.util.BlockEntityUtils;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.HolderSet;
 import org.geysermc.mcprotocollib.protocol.data.game.level.block.BlockEntityType;
 import org.intellij.lang.annotations.Subst;
@@ -93,6 +95,10 @@ public class Block {
 
         BlockDefinition definition = session.getBlockMappings().getBedrockBlock(state);
         sendBlockUpdatePacket(session, state, definition, position);
+
+        if (this instanceof BedrockChunkWantsBlockEntityTag blockEntity) {
+            BlockEntityUtils.updateBlockEntity(session, blockEntity.createTag(session, position, state), position);
+        }
     }
 
     protected void sendBlockUpdatePacket(GeyserSession session, BlockState state, BlockDefinition definition, Vector3i position) {
@@ -180,11 +186,11 @@ public class Block {
     }
 
     public boolean is(GeyserSession session, Tag<Block> tag) {
-        return session.getTagCache().is(tag, javaId);
+        return session.javaRegistries().is(tag, javaId);
     }
 
     public boolean is(GeyserSession session, HolderSet set) {
-        return session.getTagCache().is(set, JavaRegistries.BLOCK, javaId);
+        return session.javaRegistries().is(JavaRegistries.BLOCK, set, javaId);
     }
 
     @Override
@@ -207,7 +213,7 @@ public class Block {
         private final Map<Property<?>, List<Comparable<?>>> states = new LinkedHashMap<>();
         private boolean requiresCorrectToolForDrops = false;
         private BlockEntityType blockEntityType = null;
-        private PistonBehavior pushReaction = PistonBehavior.NORMAL;
+        private PistonBehavior pushReaction = PistonBehavior.PUSH_PULL;
         private float destroyTime;
 
         // We'll use this field after building

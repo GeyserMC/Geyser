@@ -35,7 +35,7 @@ import com.velocitypowered.api.proxy.server.ServerPing;
 import com.velocitypowered.api.proxy.server.ServerPing.Version;
 import lombok.AllArgsConstructor;
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
-import org.geysermc.geyser.network.GameProtocol;
+import org.geysermc.geyser.network.bedrock.GameProtocol;
 import org.geysermc.geyser.ping.GeyserPingInfo;
 import org.geysermc.geyser.ping.IGeyserPingPassthrough;
 
@@ -53,10 +53,10 @@ public class GeyserVelocityPingPassthrough implements IGeyserPingPassthrough {
         ProxyPingEvent event;
         try {
             event = server.getEventManager().fire(new ProxyPingEvent(new GeyserInboundConnection(inetSocketAddress), ServerPing.builder()
-                    .description(server.getConfiguration().getMotd()).onlinePlayers(server.getPlayerCount())
-                    .maximumPlayers(server.getConfiguration().getShowMaxPlayers())
-                    .version(new Version(GameProtocol.getJavaProtocolVersion(), GameProtocol.getJavaMinecraftVersion())) 
-                    .build())).get();
+                .description(server.getConfiguration().getMotd())
+                .onlinePlayers(server.getPlayerCount())
+                .maximumPlayers(server.getConfiguration().getShowMaxPlayers())
+                .version(new Version(GameProtocol.getJavaProtocolVersion(), GameProtocol.getJavaMinecraftVersion())).build())).get();
         } catch (ExecutionException | InterruptedException e) {
             throw new RuntimeException(e);
         }

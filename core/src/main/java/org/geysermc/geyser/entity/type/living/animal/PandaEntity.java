@@ -53,7 +53,7 @@ public class PandaEntity extends AnimalEntity {
     public void setEatingCounter(IntEntityMetadata entityMetadata) {
         int count = entityMetadata.getPrimitiveValue();
         setFlag(EntityFlag.EATING, count > 0);
-        dirtyMetadata.put(EntityDataTypes.EATING_COUNTER, count);
+        metadata.put(EntityDataTypes.EATING_COUNTER, count);
         if (count != 0) {
             // Particles and sound
             EntityEventPacket packet = new EntityEventPacket();
@@ -81,8 +81,8 @@ public class PandaEntity extends AnimalEntity {
         setFlag(EntityFlag.ROLLING, (xd & 0x04) == 0x04);
         setFlag(EntityFlag.SITTING, (xd & 0x08) == 0x08);
         // Required to put these both for sitting to actually show
-        dirtyMetadata.put(EntityDataTypes.SITTING_AMOUNT, (xd & 0x08) == 0x08 ? 1f : 0f);
-        dirtyMetadata.put(EntityDataTypes.SITTING_AMOUNT_PREVIOUS, (xd & 0x08) == 0x08 ? 1f : 0f);
+        metadata.put(EntityDataTypes.SITTING_AMOUNT, (xd & 0x08) == 0x08 ? 1f : 0f);
+        metadata.put(EntityDataTypes.SITTING_AMOUNT_PREVIOUS, (xd & 0x08) == 0x08 ? 1f : 0f);
         setFlag(EntityFlag.LAYING_DOWN, (xd & 0x10) == 0x10);
     }
 
@@ -133,14 +133,14 @@ public class PandaEntity extends AnimalEntity {
         if (mainGene.isRecessive) {
             if (mainGene == hiddenGene) {
                 // Main and hidden genes match; this is what the panda looks like.
-                dirtyMetadata.put(EntityDataTypes.VARIANT, mainGene.ordinal());
+                metadata.put(EntityDataTypes.VARIANT, mainGene.ordinal());
             } else {
                 // Genes have no effect on appearance
-                dirtyMetadata.put(EntityDataTypes.VARIANT, Gene.NORMAL.ordinal());
+                metadata.put(EntityDataTypes.VARIANT, Gene.NORMAL.ordinal());
             }
         } else {
             // No need to worry about hidden gene
-            dirtyMetadata.put(EntityDataTypes.VARIANT, mainGene.ordinal());
+            metadata.put(EntityDataTypes.VARIANT, mainGene.ordinal());
         }
     }
 

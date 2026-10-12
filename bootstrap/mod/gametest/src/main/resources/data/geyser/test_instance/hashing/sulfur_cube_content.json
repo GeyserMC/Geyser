@@ -1,0 +1,46 @@
+{
+  "type": "geyser:component_hash",
+  "component": "minecraft:sulfur_cube_content",
+  "value": [
+    {
+      "id": "minecraft:stone"
+    },
+    {
+      "id": "minecraft:slime_block",
+      "count": 5
+    },
+    {
+      "id": "minecraft:diamond_block",
+      "count": 3,
+      "components": {
+        "minecraft:enchantment_glint_override": true
+      }
+    },
+    {
+      "id": "minecraft:enchanted_golden_apple",
+      "count": 68,
+      "components": {
+        "minecraft:enchantment_glint_override": false,
+        "minecraft:max_stack_size": 96,
+        "minecraft:bundle_contents": [
+          {
+            "id": "minecraft:bundle",
+            "count": 2,
+            "components": {
+              "minecraft:max_stack_size": 2,
+              "minecraft:bundle_contents": [
+                {
+                  "id": "minecraft:diamond",
+                  "components": {
+                    "minecraft:custom_name": "Now that's a fun item!",
+                    "!minecraft:item_name": {}
+                  }
+                }
+              ]
+            }
+          }
+        ]
+      }
+    }
+  ]
+}

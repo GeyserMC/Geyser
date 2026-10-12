@@ -43,24 +43,31 @@ import org.cloudburstmc.protocol.bedrock.packet.MoveEntityAbsolutePacket;
 import org.cloudburstmc.protocol.bedrock.packet.MoveEntityDeltaPacket;
 import org.cloudburstmc.protocol.bedrock.packet.RemoveEntityPacket;
 import org.cloudburstmc.protocol.bedrock.packet.SetEntityDataPacket;
+import org.geysermc.geyser.api.entity.data.GeyserEntityDataType;
+import org.geysermc.geyser.api.entity.definition.GeyserEntityDefinition;
 import org.geysermc.geyser.api.entity.property.BatchPropertyUpdater;
 import org.geysermc.geyser.api.entity.property.GeyserEntityProperty;
 import org.geysermc.geyser.api.entity.type.GeyserEntity;
-import org.geysermc.geyser.entity.EntityDefinition;
-import org.geysermc.geyser.entity.GeyserDirtyMetadata;
+import org.geysermc.geyser.entity.BedrockEntityDefinition;
+import org.geysermc.geyser.entity.EntityTypeDefinition;
+import org.geysermc.geyser.entity.EntitySpectateHelper;
+import org.geysermc.geyser.entity.GeyserEntityDataManager;
 import org.geysermc.geyser.entity.properties.GeyserEntityProperties;
 import org.geysermc.geyser.entity.properties.GeyserEntityPropertyManager;
 import org.geysermc.geyser.entity.properties.type.PropertyType;
 import org.geysermc.geyser.entity.spawn.EntitySpawnContext;
 import org.geysermc.geyser.entity.type.living.MobEntity;
 import org.geysermc.geyser.entity.type.player.PlayerEntity;
+import org.geysermc.geyser.entity.type.player.SessionPlayerEntity;
 import org.geysermc.geyser.entity.vehicle.ClientVehicle;
+import org.geysermc.geyser.entity.EntityDataBehaviorRegistry;
 import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.item.type.Item;
 import org.geysermc.geyser.level.physics.BoundingBox;
 import org.geysermc.geyser.scoreboard.Team;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.text.MessageTranslator;
+import org.geysermc.geyser.util.ChunkUtils;
 import org.geysermc.geyser.util.EntityUtils;
 import org.geysermc.geyser.util.InteractionResult;
 import org.geysermc.geyser.util.InteractiveTag;
@@ -87,11 +94,14 @@ public class Entity implements GeyserEntity {
     private static final boolean PRINT_ENTITY_SPAWN_DEBUG = Boolean.parseBoolean(System.getProperty("Geyser.PrintEntitySpawnDebug", "false"));
 
     protected final GeyserSession session;
+    @Accessors(fluent = true)
+    protected BedrockEntityDefinition bedrockDefinition;
+    protected EntityTypeDefinition<?> javaDefinition;
 
     protected int entityId;
-
     @Accessors(fluent = true)
-    protected final long geyserId;
+    @Setter(AccessLevel.NONE)
+    protected long geyserId;
     @Accessors(fluent = true)
     protected UUID uuid;
     /**
@@ -104,7 +114,13 @@ public class Entity implements GeyserEntity {
 
     protected Vector3f position;
     protected Vector3f motion;
-    protected float offset;
+    private float offset;
+    /**
+     * The vertical offset set via the entity data API, or {@code null} if no override is active.
+     * Written on the event loop, but readable from any thread through the entity data API.
+     */
+    @Setter(AccessLevel.NONE)
+    private volatile @Nullable Float offsetOverride;
 
     /**
      * x = Yaw, y = Pitch, z = HeadYaw
@@ -118,8 +134,6 @@ public class Entity implements GeyserEntity {
      * Saves if the entity should be on the ground. Otherwise entities like parrots are flapping when rotating
      */
     protected boolean onGround;
-
-    protected EntityDefinition<?> definition;
 
     /**
      * Indicates if the entity has been initialized and spawned
@@ -140,10 +154,17 @@ public class Entity implements GeyserEntity {
 
     protected List<Entity> passengers = Collections.emptyList();
     protected Entity vehicle;
+
     /**
-     * A container to store temporary metadata before it's sent to Bedrock.
+     * The metadata handler for this entity, including:
+     * <ul>
+     * <li>A container to store temporary metadata before it's sent to Bedrock</li>
+     * <li>Storing API entity data overrides</li>
+     * <li>Storing "real" values for tracked metadata</li>
+     * </ul>
      */
-    protected final GeyserDirtyMetadata dirtyMetadata = new GeyserDirtyMetadata();
+    protected final GeyserEntityDataManager metadata = new GeyserEntityDataManager();
+
     /**
      * The entity flags for the Bedrock entity.
      * These must always be saved - if flags are updated and the other values aren't present, the Bedrock client will
@@ -158,23 +179,25 @@ public class Entity implements GeyserEntity {
     @Setter(AccessLevel.PROTECTED) // For players
     private boolean flagsDirty = false;
 
-    protected final GeyserEntityPropertyManager propertyManager;
+    protected float scale = 1.0F;
+    protected final @Nullable GeyserEntityPropertyManager propertyManager;
 
     public Entity(EntitySpawnContext context) {
         this.session = context.session();
-        this.definition = context.entityTypeDefinition();
+        this.javaDefinition = context.entityTypeDefinition();
+        this.bedrockDefinition = context.bedrockEntityDefinition();
 
         this.entityId = context.javaId();
         this.geyserId = context.geyserId();
         this.uuid = context.uuid();
         this.motion = context.motion();
-        this.offset = context.offset();
         this.yaw = context.yaw();
         this.pitch = context.pitch();
         this.headYaw = context.headYaw();
         this.valid = false;
-        this.propertyManager = definition.registeredProperties().isEmpty() ? null : new GeyserEntityPropertyManager(definition.registeredProperties());
+        this.propertyManager = bedrockDefinition.registeredProperties().isEmpty() ? null : new GeyserEntityPropertyManager(bedrockDefinition.registeredProperties());
 
+        setOffset(javaDefinition.offset());
         setPosition(context.position());
         setAirSupply(getMaxAir());
 
@@ -185,10 +208,12 @@ public class Entity implements GeyserEntity {
      * Called on entity spawn. Used to populate the entity metadata and flags with default values.
      */
     protected void initializeMetadata() {
-        dirtyMetadata.put(EntityDataTypes.SCALE, 1f);
-        dirtyMetadata.put(EntityDataTypes.COLOR, (byte) 0);
-        dirtyMetadata.put(EntityDataTypes.AIR_SUPPLY_MAX, getMaxAir());
+        metadata.put(EntityDataTypes.SCALE, scale);
+        metadata.put(EntityDataTypes.COLOR, (byte) 0);
+        metadata.put(EntityDataTypes.AIR_SUPPLY_MAX, getMaxAir());
         setDimensionsFromPose(Pose.STANDING);
+        metadata.put(EntityDataTypes.WIDTH, boundingBoxWidth);
+        metadata.put(EntityDataTypes.HEIGHT, boundingBoxHeight);
         setFlag(EntityFlag.HAS_GRAVITY, true);
         setFlag(EntityFlag.HAS_COLLISION, true);
         setFlag(EntityFlag.CAN_SHOW_NAME, true);
@@ -204,16 +229,16 @@ public class Entity implements GeyserEntity {
 
     public void spawnEntity() {
         AddEntityPacket addEntityPacket = new AddEntityPacket();
-        addEntityPacket.setIdentifier(definition.identifier());
+        addEntityPacket.setIdentifier(bedrockDefinition.identifier().toString());
         addEntityPacket.setRuntimeEntityId(geyserId);
         addEntityPacket.setUniqueEntityId(geyserId);
-        addEntityPacket.setPosition(bedrockPosition());
+        addEntityPacket.setPosition(spawnPosition(bedrockPosition()));
         addEntityPacket.setMotion(motion);
         addEntityPacket.setRotation(Vector2f.from(pitch, yaw));
         addEntityPacket.setHeadRotation(headYaw);
         addEntityPacket.setBodyRotation(yaw); // TODO: This should be bodyYaw
         addEntityPacket.getMetadata().putFlags(flags);
-        dirtyMetadata.apply(addEntityPacket.getMetadata());
+        metadata.apply(addEntityPacket.getMetadata());
         if (propertyManager != null) {
             propertyManager.applyIntProperties(addEntityPacket.getProperties().getIntProperties());
             propertyManager.applyFloatProperties(addEntityPacket.getProperties().getFloatProperties());
@@ -227,9 +252,7 @@ public class Entity implements GeyserEntity {
         flagsDirty = false;
 
         if (session.getGeyser().config().debugMode() && PRINT_ENTITY_SPAWN_DEBUG) {
-            EntityType type = definition.entityType();
-            String name = type != null ? type.name() : getClass().getSimpleName();
-            session.getGeyser().getLogger().debug("Spawned entity " + name + " at location " + position + " with id " + geyserId + " (java id " + entityId + ")");
+            session.getGeyser().getLogger().debug("Spawned entity " + javaDefinition.type() + " at location " + position + " with id " + geyserId + " (java id " + entityId + ")");
         }
     }
 
@@ -237,6 +260,39 @@ public class Entity implements GeyserEntity {
      * To be overridden in other entity classes, if additional things need to be done to the spawn entity packet.
      */
     public void addAdditionalSpawnData(AddEntityPacket addEntityPacket) {
+    }
+
+    /**
+     * The position to use in the entity spawn packet. Bedrock discards an actor added far outside the area
+     * it has loaded and no later movement brings it back, while Java's entity tracker can legitimately
+     * pair an entity at an outdated position and correct it right afterwards (e.g. a player
+     * teleporting into view). This mainly occurs on Vanilla / Fabric, and can be replicated inconsistently by a 
+     * player teleporting to another player over a large distance. 
+     * The first correction or movement fixes the position, and prevents despawn. An entity that never moves again is corrected by the
+     * position sync Java forces once its tracker reaches 400 ticks, except for the few types that
+     * are tracked on a very long interval.
+     */
+    protected Vector3f spawnPosition(Vector3f packetPosition) {
+        int radius = ChunkUtils.squareToCircle(session.getServerRenderDistance());
+        if (session.getClientRenderDistance() > 0) {
+            radius = Math.min(radius, session.getClientRenderDistance());
+        }
+        if (!session.isSpawned() || radius < 2) {
+            return packetPosition;
+        }
+
+        Vector3f playerPosition = session.getPlayerEntity().position();
+        float dx = packetPosition.getX() - playerPosition.getX();
+        float dz = packetPosition.getZ() - playerPosition.getZ();
+        float limit = radius << 4;
+        float distanceSquared = dx * dx + dz * dz;
+        if (distanceSquared <= limit * limit) {
+            return packetPosition;
+        }
+
+        // A chunk inside the edge, along the real direction, so it lands in terrain the client has
+        float scale = (limit - 16) / (float) Math.sqrt(distanceSquared);
+        return Vector3f.from(playerPosition.getX() + dx * scale, packetPosition.getY(), playerPosition.getZ() + dz * scale);
     }
 
     /**
@@ -250,6 +306,10 @@ public class Entity implements GeyserEntity {
             passenger.setVehicle(null);
             passenger.setFlag(EntityFlag.RIDING, false);
             passenger.updateBedrockMetadata();
+
+            if (passenger instanceof SessionPlayerEntity entity) {
+                entity.setRemovedPlayerVehicleId(this.entityId);
+            }
         }
 
         RemoveEntityPacket removeEntityPacket = new RemoveEntityPacket();
@@ -352,10 +412,6 @@ public class Entity implements GeyserEntity {
         }
     }
 
-    public Vector3f position() {
-        return position;
-    }
-
     /**
      * Teleports an entity to a new location. Used in JavaTeleportEntityTranslator.
      * @param position The new position of the entity.
@@ -423,20 +479,42 @@ public class Entity implements GeyserEntity {
             return;
         }
 
-        if (dirtyMetadata.hasEntries() || flagsDirty) {
+        if (metadata.hasEntries() || flagsDirty || (propertyManager != null && propertyManager.hasProperties())) {
             SetEntityDataPacket entityDataPacket = new SetEntityDataPacket();
             entityDataPacket.setRuntimeEntityId(geyserId);
             if (flagsDirty) {
-                entityDataPacket.getMetadata().putFlags(flags);
+                // Re-assert the first-person hide; a server flags-byte refresh would otherwise un-hide the target
+                if (session.getSpectatedEntity() == this && session.getSpectateMode() == EntitySpectateHelper.SpectateMode.FIRST_PERSON) {
+                    entityDataPacket.getMetadata().putFlags(spectateHiddenFlags());
+                } else {
+                    entityDataPacket.getMetadata().putFlags(flags);
+                }
                 flagsDirty = false;
             }
-            dirtyMetadata.apply(entityDataPacket.getMetadata());
+            metadata.apply(entityDataPacket.getMetadata());
             if (propertyManager != null && propertyManager.hasProperties()) {
                 propertyManager.applyIntProperties(entityDataPacket.getProperties().getIntProperties());
                 propertyManager.applyFloatProperties(entityDataPacket.getProperties().getFloatProperties());
             }
             session.sendUpstreamPacket(entityDataPacket);
         }
+    }
+
+    /** Per-viewer invisibility toggle that doesn't mutate the cached flags (entity spectating). */
+    public void sendSpectateInvisible(boolean hidden) {
+        if (!valid) {
+            return;
+        }
+        SetEntityDataPacket packet = new SetEntityDataPacket();
+        packet.setRuntimeEntityId(geyserId);
+        packet.getMetadata().putFlags(hidden ? spectateHiddenFlags() : flags);
+        session.sendUpstreamPacket(packet);
+    }
+
+    protected EnumMap<EntityFlag, Boolean> spectateHiddenFlags() {
+        EnumMap<EntityFlag, Boolean> overridden = new EnumMap<>(flags);
+        overridden.put(EntityFlag.INVISIBLE, true);
+        return overridden;
     }
 
     /**
@@ -498,7 +576,7 @@ public class Entity implements GeyserEntity {
     }
 
     protected void setAirSupply(int amount) {
-        dirtyMetadata.put(EntityDataTypes.AIR_SUPPLY, (short) MathUtils.constrain(amount, 0, getMaxAir()));
+        metadata.put(EntityDataTypes.AIR_SUPPLY, (short) MathUtils.constrain(amount, 0, getMaxAir()));
     }
 
     protected short getMaxAir() {
@@ -518,7 +596,7 @@ public class Entity implements GeyserEntity {
         // CustomName is ignored for players, and is always their username.
         Optional<Component> name = entityMetadata.getValue();
         if (name.isPresent()) {
-            this.customName = MessageTranslator.convertMessage(name.get(), session.locale());
+            this.customName = MessageTranslator.convertMessageRaw(name.get(), session.locale());
             setNametag(customName, true);
             return;
         }
@@ -527,7 +605,7 @@ public class Entity implements GeyserEntity {
     }
 
     protected String standardDisplayName() {
-        return EntityUtils.translatedEntityName(definition.entityType(), session);
+        return EntityUtils.translatedEntityName(javaDefinition.type(), session);
     }
 
     protected void setNametag(@Nullable String nametag, boolean applyTeamStyling) {
@@ -557,7 +635,7 @@ public class Entity implements GeyserEntity {
 
     // See TextDisplayEntity for context
     protected void setNameEntityData(String nametag) {
-        dirtyMetadata.put(EntityDataTypes.NAME, nametag);
+        metadata.put(EntityDataTypes.NAME, nametag);
     }
 
     public void updateNametag(@Nullable Team team) {
@@ -606,7 +684,7 @@ public class Entity implements GeyserEntity {
     }
 
     public void setNametagAlwaysShow(boolean value) {
-        dirtyMetadata.put(EntityDataTypes.NAMETAG_ALWAYS_SHOW, (byte) (value ? 1 : 0));
+        metadata.put(EntityDataTypes.NAMETAG_ALWAYS_SHOW, (byte) (value ? 1 : 0));
     }
 
     public final void setSilent(BooleanEntityMetadata entityMetadata) {
@@ -633,14 +711,14 @@ public class Entity implements GeyserEntity {
      */
     protected void setDimensionsFromPose(Pose pose) {
         // No flexibility options for basic entities
-        setBoundingBoxHeight(definition.height());
-        setBoundingBoxWidth(definition.width());
+        setBoundingBoxHeight(javaDefinition.height());
+        setBoundingBoxWidth(javaDefinition.width());
     }
 
     public boolean setBoundingBoxHeight(float height) {
         if (height != boundingBoxHeight) {
             boundingBoxHeight = height;
-            dirtyMetadata.put(EntityDataTypes.HEIGHT, boundingBoxHeight);
+            metadata.put(EntityDataTypes.HEIGHT, boundingBoxHeight);
 
             updatePassengerOffsets();
             return true;
@@ -651,8 +729,17 @@ public class Entity implements GeyserEntity {
     public void setBoundingBoxWidth(float width) {
         if (width != boundingBoxWidth) {
             boundingBoxWidth = width;
-            dirtyMetadata.put(EntityDataTypes.WIDTH, boundingBoxWidth);
+            metadata.put(EntityDataTypes.WIDTH, boundingBoxWidth);
         }
+    }
+
+    public void setScale(float scale) {
+        this.scale = scale;
+        applyScale();
+    }
+
+    protected void applyScale() {
+        metadata.put(EntityDataTypes.SCALE, scale);
     }
 
     /**
@@ -663,12 +750,12 @@ public class Entity implements GeyserEntity {
         // The Java client caps its freezing tick percentage at 140
         int freezingTicks = Math.min(entityMetadata.getPrimitiveValue(), 140);
         float freezingPercentage = freezingTicks / 140f;
-        dirtyMetadata.put(EntityDataTypes.FREEZING_EFFECT_STRENGTH, freezingPercentage);
+        metadata.put(EntityDataTypes.FREEZING_EFFECT_STRENGTH, freezingPercentage);
         return freezingPercentage;
     }
 
     public void setRiderSeatPosition(Vector3f position) {
-        dirtyMetadata.put(EntityDataTypes.SEAT_OFFSET, position);
+        metadata.put(EntityDataTypes.SEAT_OFFSET, position);
     }
 
     /**
@@ -701,6 +788,7 @@ public class Entity implements GeyserEntity {
      * Gets the Bedrock edition position with the offset applied
      */
     public Vector3f bedrockPosition() {
+        float offset = getOffset();
         if (offset == 0f) {
             return position;
         }
@@ -752,7 +840,7 @@ public class Entity implements GeyserEntity {
                 break;
             }
         }
-        session.getPlayerEntity().getDirtyMetadata().put(EntityDataTypes.INTERACT_TEXT, tag.getValue());
+        session.getPlayerEntity().getMetadata().put(EntityDataTypes.INTERACT_TEXT, tag.getValue());
         session.getPlayerEntity().updateBedrockMetadata();
     }
 
@@ -807,7 +895,7 @@ public class Entity implements GeyserEntity {
 
     public boolean hasLeashesToDrop() {
         BoundingBox searchBB = new BoundingBox(position.getX(), position.getY(), position.getZ(), 32, 32, 32);
-        List<Leashable> leashedInRange = session.getEntityCache().getEntities().values().stream()
+        List<Leashable> leashedInRange = session.getEntityCache().getEntitiesUnsafe().values().stream()
             .filter(entity -> entity instanceof Leashable leashablex && leashablex.leashHolderBedrockId() == this.geyserId())
             .filter(entity -> {
                 BoundingBox leashedBB = new BoundingBox(entity.position().toDouble(), entity.boundingBoxWidth, entity.boundingBoxHeight, entity.boundingBoxWidth);
@@ -848,44 +936,99 @@ public class Entity implements GeyserEntity {
     }
 
     @Override
-    public void updatePropertiesBatched(Consumer<BatchPropertyUpdater> consumer, boolean immediate) {
+    public @Nullable GeyserEntity vehicle() {
+        return this.vehicle;
+    }
+
+    @Override
+    public @NonNull List<GeyserEntity> passengers() {
+        return List.copyOf(this.passengers);
+    }
+
+    @Override
+    public void updatePropertiesBatched(@NonNull Consumer<BatchPropertyUpdater> consumer, boolean immediate) {
         if (this.propertyManager == null) {
             throw new IllegalArgumentException("Given entity has no registered properties!");
         }
-
         Objects.requireNonNull(consumer);
-        GeyserEntityProperties propertyDefinitions = definition.registeredProperties();
-        consumer.accept(new BatchPropertyUpdater() {
-            @Override
-            public <T> void update(@NonNull GeyserEntityProperty<T> property, @Nullable T value) {
-                Objects.requireNonNull(property, "property must not be null!");
-                if (!(property instanceof PropertyType<T, ?> propertyType)) {
-                    throw new IllegalArgumentException("Invalid property implementation! Got: " + property.getClass().getSimpleName());
-                }
-                int index = propertyDefinitions.getPropertyIndex(property.identifier().toString());
-                if (index < 0) {
-                    throw new IllegalArgumentException("No property with the name " + property.identifier() + " has been registered.");
-                }
 
-                var expectedProperty = propertyDefinitions.getProperties().get(index);
-                if (!expectedProperty.equals(propertyType)) {
-                    throw new IllegalArgumentException("The supplied property was not registered with this entity type!");
-                }
+        session.ensureInEventLoop(() -> {
+            GeyserEntityProperties propertyDefinitions = bedrockDefinition.registeredProperties();
+            consumer.accept(new BatchPropertyUpdater() {
+                @Override
+                public <T> void update(@NonNull GeyserEntityProperty<T> property, @Nullable T value) {
+                    Objects.requireNonNull(property, "property must not be null!");
+                    if (!(property instanceof PropertyType<T, ?> propertyType)) {
+                        throw new IllegalArgumentException("Invalid property implementation! Got: " + property.getClass().getSimpleName());
+                    }
+                    int index = propertyDefinitions.getPropertyIndex(property.identifier().toString());
+                    if (index < 0) {
+                        throw new IllegalArgumentException("No property with the name " + property.identifier() + " has been registered.");
+                    }
 
-                propertyType.apply(propertyManager, value);
+                    var expectedProperty = propertyDefinitions.getProperties().get(index);
+                    if (!expectedProperty.equals(propertyType)) {
+                        throw new IllegalArgumentException("The supplied property was not registered with this entity type!");
+                    }
+
+                    propertyType.apply(propertyManager, value);
+                }
+            });
+
+            if (propertyManager.hasProperties()) {
+                if (immediate) {
+                    SetEntityDataPacket packet = new SetEntityDataPacket();
+                    packet.setRuntimeEntityId(geyserId());
+                    propertyManager.applyFloatProperties(packet.getProperties().getFloatProperties());
+                    propertyManager.applyIntProperties(packet.getProperties().getIntProperties());
+                    session.sendUpstreamPacketImmediately(packet);
+                } else {
+                    session.getEntityCache().markDirty(this);
+                }
             }
         });
+    }
 
-        if (propertyManager.hasProperties()) {
-            SetEntityDataPacket packet = new SetEntityDataPacket();
-            packet.setRuntimeEntityId(geyserId());
-            propertyManager.applyFloatProperties(packet.getProperties().getFloatProperties());
-            propertyManager.applyIntProperties(packet.getProperties().getIntProperties());
-            if (immediate) {
-                session.sendUpstreamPacketImmediately(packet);
-            } else {
-                session.sendUpstreamPacket(packet);
-            }
+    public float getOffset() {
+        return Objects.requireNonNullElse(this.offsetOverride, offset);
+    }
+
+    public void setOffsetOverride(@Nullable Float offset) {
+        this.offsetOverride = offset;
+        if (isValid()) {
+            this.moveRelativeRaw(0, 0, 0, 0, 0, 0, isOnGround());
         }
+    }
+
+    @Override
+    public @NonNull GeyserEntityDefinition definition() {
+        return bedrockDefinition;
+    }
+
+    @Override
+    public @NonNull Vector3f position() {
+        return position;
+    }
+
+    @Override
+    public <T> void override(@NonNull GeyserEntityDataType<T> dataType, @Nullable T value) {
+        session.ensureInEventLoop(() -> {
+            EntityDataBehaviorRegistry.update(this, dataType, value);
+            session.getEntityCache().markDirty(this);
+        });
+    }
+
+    @Override
+    public @Nullable <T> T value(@NonNull GeyserEntityDataType<T> dataType) {
+        return EntityDataBehaviorRegistry.value(this, dataType);
+    }
+
+    @Override
+    public @Nullable <T> T override(@NonNull GeyserEntityDataType<T> dataType) {
+        return EntityDataBehaviorRegistry.override(this, dataType);
+    }
+
+    public EntityType getEntityType() {
+        return javaDefinition.type().mcpl();
     }
 }

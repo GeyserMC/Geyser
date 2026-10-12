@@ -27,13 +27,15 @@ package org.geysermc.geyser.registry;
 
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.registry.loader.RegistryLoader;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 import java.util.function.Supplier;
 
-public class ListRegistry<M> extends Registry<List<M>> {
+public class ListRegistry<M> extends Registry<List<M>> implements Iterable<M> {
     private boolean frozen = false;
 
     /**
@@ -112,6 +114,11 @@ public class ListRegistry<M> extends Registry<List<M>> {
             this.mappings.addAll(Collections.nCopies(index - this.mappings.size() + 1, defaultValue));
         }
         return this.mappings.set(index, value);
+    }
+
+    @Override
+    public @NotNull Iterator<M> iterator() {
+        return get().iterator();
     }
 
     /**

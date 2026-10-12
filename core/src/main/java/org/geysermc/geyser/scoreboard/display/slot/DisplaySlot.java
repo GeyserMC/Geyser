@@ -55,7 +55,7 @@ public abstract class DisplaySlot {
     public DisplaySlot(GeyserSession session, Objective objective, ScoreboardPosition slot) {
         this.session = session;
         this.objective = objective;
-        this.objectiveId = String.valueOf(objective.getScoreboard().nextId());
+        this.objectiveId = String.valueOf(objective.getScoreboard().nextDisplayId());
         this.slot = slot;
         this.teamColor = teamColor(slot);
         this.positionName = positionName(slot);

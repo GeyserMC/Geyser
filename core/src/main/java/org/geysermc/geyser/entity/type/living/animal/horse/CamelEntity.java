@@ -55,7 +55,7 @@ public class CamelEntity extends AbstractHorseEntity implements ClientVehicle {
     public CamelEntity(EntitySpawnContext context) {
         super(context);
 
-        dirtyMetadata.put(EntityDataTypes.CONTAINER_TYPE, (byte) ContainerType.HORSE.getId());
+        metadata.put(EntityDataTypes.CONTAINER_TYPE, (byte) ContainerType.HORSE.getId());
 
         // Always tamed, but not indicated in horse flags
         setFlag(EntityFlag.TAMED, true);
@@ -77,7 +77,7 @@ public class CamelEntity extends AbstractHorseEntity implements ClientVehicle {
         horseFlags = (xd & 0x10) == 0x10 && (xd & 0x40) != 0x40 ? horseFlags | 0x20 : horseFlags;
 
         // Set the flags into the horse flags
-        dirtyMetadata.put(EntityDataTypes.HORSE_FLAGS, horseFlags);
+        metadata.put(EntityDataTypes.HORSE_FLAGS, horseFlags);
 
         // Send the eating particles
         // We use the wheat metadata as static particles since Java
@@ -108,8 +108,8 @@ public class CamelEntity extends AbstractHorseEntity implements ClientVehicle {
     @Override
     protected void setDimensionsFromPose(Pose pose) {
         if (pose == Pose.SITTING) {
-            setBoundingBoxHeight(definition.height() - SITTING_HEIGHT_DIFFERENCE);
-            setBoundingBoxWidth(definition.width());
+            setBoundingBoxHeight(javaDefinition.height() - SITTING_HEIGHT_DIFFERENCE);
+            setBoundingBoxWidth(javaDefinition.width());
         } else {
             super.setDimensionsFromPose(pose);
         }

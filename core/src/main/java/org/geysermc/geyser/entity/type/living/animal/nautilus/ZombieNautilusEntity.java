@@ -26,24 +26,24 @@
 package org.geysermc.geyser.entity.type.living.animal.nautilus;
 
 import net.kyori.adventure.key.Key;
+import org.geysermc.geyser.api.util.Identifier;
 import org.geysermc.geyser.entity.properties.type.EnumProperty;
 import org.geysermc.geyser.entity.spawn.EntitySpawnContext;
 import org.geysermc.geyser.entity.type.living.animal.VariantHolder;
-import org.geysermc.geyser.impl.IdentifierImpl;
-import org.geysermc.geyser.session.cache.RegistryCache;
-import org.geysermc.geyser.session.cache.registry.JavaRegistries;
-import org.geysermc.geyser.session.cache.registry.JavaRegistryKey;
+import org.geysermc.geyser.registry.java.reader.KeyDependentJavaRegistryReader;
+import org.geysermc.geyser.registry.java.JavaRegistries;
+import org.geysermc.geyser.registry.java.JavaRegistryKey;
 import org.geysermc.geyser.util.MinecraftKey;
 
 public class ZombieNautilusEntity extends AbstractNautilusEntity implements VariantHolder<ZombieNautilusEntity.BuiltInVariant> {
 
     public static final EnumProperty<BuiltInVariant> VARIANT_ENUM_PROPERTY = new EnumProperty<>(
-        IdentifierImpl.of("variant"),
+        Identifier.of("variant"),
         BuiltInVariant.class,
         BuiltInVariant.DEFAULT
     );
 
-    public static final RegistryCache.RegistryReader<BuiltInVariant> VARIANT_READER = VariantHolder.reader(BuiltInVariant.class, BuiltInVariant.DEFAULT);
+    public static final KeyDependentJavaRegistryReader<BuiltInVariant> VARIANT_READER = VariantHolder.reader(BuiltInVariant.class, BuiltInVariant.DEFAULT);
 
     public ZombieNautilusEntity(EntitySpawnContext context) {
         super(context, 1.1f);

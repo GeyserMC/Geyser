@@ -42,6 +42,7 @@ import lombok.Setter;
 import org.geysermc.floodgate.util.DeviceOs;
 import org.geysermc.floodgate.util.InputMode;
 import org.geysermc.floodgate.util.UiProfile;
+import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
 import java.lang.reflect.Type;
@@ -90,6 +91,8 @@ public final class BedrockClientData {
     private boolean personaSkin;
     @SerializedName(value = "PremiumSkin")
     private boolean premiumSkin;
+    @SerializedName(value = "ProfileHash")
+    private String profileHash;
 
     @SerializedName(value = "DeviceId")
     private String deviceId;
@@ -114,7 +117,8 @@ public final class BedrockClientData {
     @SerializedName(value = "PlatformOfflineId")
     private String platformOfflineId;
     @SerializedName(value = "SelfSignedId")
-    private UUID selfSignedId;
+    @Nullable
+    private String selfSignedId;
     @SerializedName(value = "ClientRandomId")
     private long clientRandomId;
 

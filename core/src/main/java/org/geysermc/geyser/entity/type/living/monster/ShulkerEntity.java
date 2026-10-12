@@ -33,6 +33,8 @@ import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.EntityMetad
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.ByteEntityMetadata;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.object.Direction;
 
+import java.util.EnumMap;
+
 public class ShulkerEntity extends GolemEntity {
 
     public ShulkerEntity(EntitySpawnContext context) {
@@ -51,7 +53,7 @@ public class ShulkerEntity extends GolemEntity {
         super.initializeMetadata();
         // As of 1.19.4, it seems Java no longer sends the shulker color if it's the default color on initial spawn
         // We still need the special case for 16 color in setShulkerColor though as it will send it for an entity metadata update
-        dirtyMetadata.put(EntityDataTypes.VARIANT, 16);
+        metadata.put(EntityDataTypes.VARIANT, 16);
 
         setFlag(EntityFlag.COLLIDABLE, true);
 
@@ -60,24 +62,32 @@ public class ShulkerEntity extends GolemEntity {
         setFlag(EntityFlag.RENDER_WHEN_INVISIBLE, true);
     }
 
+    @Override
+    protected EnumMap<EntityFlag, Boolean> spectateHiddenFlags() {
+        // The shell overlay uses RENDER_WHEN_INVISIBLE, so hide it too while this shulker is being spectated
+        EnumMap<EntityFlag, Boolean> overridden = super.spectateHiddenFlags();
+        overridden.put(EntityFlag.RENDER_WHEN_INVISIBLE, false);
+        return overridden;
+    }
+
     public void setAttachedFace(EntityMetadata<Direction, ?> entityMetadata) {
         Direction direction = entityMetadata.getValue();
-        dirtyMetadata.put(EntityDataTypes.SHULKER_ATTACH_FACE, direction.ordinal());
+        metadata.put(EntityDataTypes.SHULKER_ATTACH_FACE, direction.ordinal());
     }
 
     public void setShulkerHeight(ByteEntityMetadata entityMetadata) {
         int height = entityMetadata.getPrimitiveValue();
-        dirtyMetadata.put(EntityDataTypes.SHULKER_PEEK_AMOUNT, height);
+        metadata.put(EntityDataTypes.SHULKER_PEEK_AMOUNT, height);
     }
 
     public void setShulkerColor(ByteEntityMetadata entityMetadata) {
         byte color = entityMetadata.getPrimitiveValue();
         if (color == 16) {
             // 16 is default on both editions
-            dirtyMetadata.put(EntityDataTypes.VARIANT, 16);
+            metadata.put(EntityDataTypes.VARIANT, 16);
         } else {
             // Every other shulker color is offset 15 in bedrock edition
-            dirtyMetadata.put(EntityDataTypes.VARIANT, Math.abs(color - 15));
+            metadata.put(EntityDataTypes.VARIANT, Math.abs(color - 15));
         }
     }
 

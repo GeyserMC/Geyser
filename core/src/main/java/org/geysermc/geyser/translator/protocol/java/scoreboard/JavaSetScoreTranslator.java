@@ -44,6 +44,10 @@ public class JavaSetScoreTranslator extends PacketTranslator<ClientboundSetScore
 
     @Override
     public void translate(GeyserSession session, ClientboundSetScorePacket packet) {
+        if (logger.isDebug()) {
+            logger.debug("Score packet (" + session.bedrockUsername() + "): " + packet);
+        }
+
         WorldCache worldCache = session.getWorldCache();
         Scoreboard scoreboard = worldCache.getScoreboard();
         int pps = worldCache.increaseAndGetScoreboardPacketsPerSecond();

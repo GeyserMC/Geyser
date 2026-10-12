@@ -60,20 +60,20 @@ public class HappyGhastVehicleComponent extends VehicleComponent<HappyGhastEntit
     public void onMount() {
         super.onMount();
         SessionPlayerEntity playerEntity = vehicle.getSession().getPlayerEntity();
-        playerEntity.getDirtyMetadata().put(EntityDataTypes.SEAT_LOCK_RIDER_ROTATION, false);
-        playerEntity.getDirtyMetadata().put(EntityDataTypes.SEAT_LOCK_RIDER_ROTATION_DEGREES, 181f);
-        playerEntity.getDirtyMetadata().put(EntityDataTypes.SEAT_THIRD_PERSON_CAMERA_RADIUS, cameraDistance);
-        playerEntity.getDirtyMetadata().put(EntityDataTypes.SEAT_CAMERA_RELAX_DISTANCE_SMOOTHING, cameraDistance * 0.75f);
-        playerEntity.getDirtyMetadata().put(EntityDataTypes.CONTROLLING_RIDER_SEAT_INDEX, (byte) 0);
+        playerEntity.getMetadata().put(EntityDataTypes.SEAT_LOCK_RIDER_ROTATION, false);
+        playerEntity.getMetadata().put(EntityDataTypes.SEAT_LOCK_RIDER_ROTATION_DEGREES, 181f);
+        playerEntity.getMetadata().put(EntityDataTypes.SEAT_THIRD_PERSON_CAMERA_RADIUS, cameraDistance);
+        playerEntity.getMetadata().put(EntityDataTypes.SEAT_CAMERA_RELAX_DISTANCE_SMOOTHING, cameraDistance * 0.75f);
+        playerEntity.getMetadata().put(EntityDataTypes.CONTROLLING_RIDER_SEAT_INDEX, (byte) 0);
     }
 
     @Override
     public void onDismount() {
         super.onDismount();
         SessionPlayerEntity playerEntity = vehicle.getSession().getPlayerEntity();
-        playerEntity.getDirtyMetadata().put(EntityDataTypes.SEAT_THIRD_PERSON_CAMERA_RADIUS, (float) AttributeType.Builtin.CAMERA_DISTANCE.getDef());
-        playerEntity.getDirtyMetadata().put(EntityDataTypes.SEAT_CAMERA_RELAX_DISTANCE_SMOOTHING, cameraDistance * 0.75f);
-        playerEntity.getDirtyMetadata().put(EntityDataTypes.CONTROLLING_RIDER_SEAT_INDEX, (byte) 0);
+        playerEntity.getMetadata().put(EntityDataTypes.SEAT_THIRD_PERSON_CAMERA_RADIUS, (float) AttributeType.Builtin.CAMERA_DISTANCE.getDef());
+        playerEntity.getMetadata().put(EntityDataTypes.SEAT_CAMERA_RELAX_DISTANCE_SMOOTHING, cameraDistance * 0.75f);
+        playerEntity.getMetadata().put(EntityDataTypes.CONTROLLING_RIDER_SEAT_INDEX, (byte) 0);
     }
 
     /**

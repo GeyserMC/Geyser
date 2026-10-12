@@ -42,7 +42,7 @@ public class AbstractSkeletonEntity extends MonsterEntity {
         super.setMobFlags(entityMetadata);
         byte xd = entityMetadata.getPrimitiveValue();
         // A bit of a loophole so the hands get raised - set the target ID to its own ID
-        dirtyMetadata.put(EntityDataTypes.TARGET_EID, ((xd & 4) == 4) ? geyserId : 0);
+        metadata.put(EntityDataTypes.TARGET_EID, ((xd & 4) == 4) ? geyserId : 0);
 
         if ((xd & 4) == 4) {
             setFlag(EntityFlag.FACING_TARGET_TO_RANGE_ATTACK, isHolding(Items.BOW));

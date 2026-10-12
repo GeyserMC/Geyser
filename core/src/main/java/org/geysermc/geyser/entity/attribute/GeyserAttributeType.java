@@ -35,13 +35,16 @@ import org.cloudburstmc.protocol.bedrock.data.AttributeData;
 public enum GeyserAttributeType {
 
     // Universal Attributes
-    FOLLOW_RANGE("minecraft:follow_range", "minecraft:follow_range", 0f, 2048f, 32f),
-    KNOCKBACK_RESISTANCE("minecraft:knockback_resistance", "minecraft:knockback_resistance", 0f, 1f, 0f),
+    FOLLOW_RANGE("minecraft:follow_range", 0f, 2048f, 32f),
+    KNOCKBACK_RESISTANCE("minecraft:knockback_resistance", 0f, 1f, 0f),
     MOVEMENT_SPEED("minecraft:movement_speed", "minecraft:movement", 0f, 1024f, 0.1f),
     FLYING_SPEED("minecraft:flying_speed", "minecraft:movement", 0.0f, 1024.0f, 0.4000000059604645f),
-    ATTACK_DAMAGE("minecraft:attack_damage", "minecraft:attack_damage", 0f, 2048f, 1f),
+    ATTACK_DAMAGE("minecraft:attack_damage", 0f, 2048f, 1f),
     HORSE_JUMP_STRENGTH("minecraft:jump_strength", "minecraft:horse.jump_strength", 0.0f, 2.0f, 0.7f),
-    LUCK("minecraft:luck", "minecraft:luck", -1024f, 1024f, 0f),
+    LUCK("minecraft:luck", -1024f, 1024f, 0f),
+    FRICTION_MODIFIER("minecraft:friction_modifier", 0f, 2048f, 1f),
+    BOUNCINESS("minecraft:bounciness", 0f, 2048f, 1f),
+    AIR_DRAG_MODIFIER("minecraft:air_drag_modifier", 0f, 1f, 0f),
 
     // Java Attributes
     ARMOR("minecraft:armor", null, 0f, 30f, 0f),
@@ -70,6 +73,14 @@ public enum GeyserAttributeType {
     private final float minimum;
     private final float maximum;
     private final float defaultValue;
+
+    GeyserAttributeType(String identifier, float minimum, float maxium, float defaultValue) {
+        this.javaIdentifier = identifier;
+        this.bedrockIdentifier = identifier;
+        this.minimum = minimum;
+        this.maximum = maxium;
+        this.defaultValue = defaultValue;
+    }
 
     public AttributeData getAttribute() {
         return getAttribute(defaultValue);

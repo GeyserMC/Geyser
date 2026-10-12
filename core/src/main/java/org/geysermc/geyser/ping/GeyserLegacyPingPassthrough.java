@@ -32,7 +32,7 @@ import io.netty.util.NetUtil;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.nbt.util.VarInts;
 import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.network.GameProtocol;
+import org.geysermc.geyser.network.bedrock.GameProtocol;
 import org.geysermc.geyser.util.JsonUtils;
 
 import java.io.ByteArrayOutputStream;
@@ -60,6 +60,8 @@ public class GeyserLegacyPingPassthrough extends Thread implements IGeyserPingPa
 
     private GeyserPingInfo pingInfo;
 
+    private volatile boolean shutdown;
+
     /**
      * Start legacy ping passthrough thread
      * @param geyser Geyser
@@ -84,9 +86,14 @@ public class GeyserLegacyPingPassthrough extends Thread implements IGeyserPingPa
         return pingInfo;
     }
 
+    public void shutdown() {
+        shutdown = true;
+        this.interrupt();
+    }
+
     @Override
     public void run() {
-        while (!geyser.isShuttingDown() && !geyser.isReloading()) {
+        while (!geyser.isShuttingDown() && !shutdown) {
             try (Socket socket = new Socket()) {
                 String address = geyser.config().java().address();
                 int port = geyser.config().java().port();
