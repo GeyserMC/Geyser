@@ -57,6 +57,24 @@ public class UpstreamSession {
         }
     }
 
+    /**
+     * Sends packets immediately to this session's own sub-client. Going through the peer directly
+     * bypasses {@link BedrockServerSession}, which is what normally addresses a packet to its
+     * sub-client, so the id has to be supplied here - a hardcoded 0 hands a split-screen guest's
+     * packets to the primary player's view instead.
+     */
+    public void sendPacketsImmediately(@NonNull BedrockPacket... packets) {
+        if (isClosed()) {
+            return;
+        }
+        int subClientId = getSubClientId();
+        if (subClientId < 0) {
+            // An evicted guest no longer owns a slot; sending anywhere would reach someone else.
+            return;
+        }
+        session.getPeer().sendPacketsImmediately(subClientId, 0, packets);
+    }
+
     public void disconnect(String reason) {
         this.session.disconnect(reason);
     }
