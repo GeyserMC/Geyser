@@ -33,9 +33,16 @@ import org.jspecify.annotations.Nullable;
 /**
  * Record-like interface grouping a custom item's icons on Bedrock edition. As of right now, this only consists of the item's default icon,
  * and optionally, the item's dyed icon.
+ *
+ * @since 2.12.0
  */
 public interface CustomItemIcons {
 
+    /**
+     * Implementation of {@link CustomItemIcons} that always returns {@code null} for all icons.
+     *
+     * @since 2.12.0
+     */
     CustomItemIcons EMPTY = new CustomItemIcons() {
         @Override
         public @Nullable String defaultIcon() {
@@ -77,6 +84,7 @@ public interface CustomItemIcons {
      *
      * @param bedrockIdentifier the item's Bedrock identifier
      * @return this instance's icons, resolved for the given item's Bedrock identifier
+     * @since 2.12.0
      */
     default Resolved resolve(Identifier bedrockIdentifier) {
         String defaultIcon = defaultIcon() == null ? bedrockIdentifier.toString().replace(":", ".").replace("/", "_") : defaultIcon();
@@ -101,6 +109,8 @@ public interface CustomItemIcons {
     /**
      * Interface extending {@link CustomItemIcons} and marking that the icons are <em>resolved</em> using the item's Bedrock identifier:
      * this indicates that {@link CustomItemIcons#defaultIcon()} and {@link CustomItemIcons#dyedIcon()} will never return null.
+     *
+     * @since 2.12.0
      */
     interface Resolved extends CustomItemIcons {
 
@@ -118,6 +128,7 @@ public interface CustomItemIcons {
 
         /**
          * @throws UnsupportedOperationException always, as you cannot resolve an already resolved {@link CustomItemIcons} instance
+         * @since 2.12.0
          */
         @Override
         default Resolved resolve(Identifier bedrockIdentifier) {
@@ -138,7 +149,7 @@ public interface CustomItemIcons {
     /**
      * Builder for {@link CustomItemIcons}.
      *
-     * @since 2.9.3
+     * @since 2.12.0
      */
     interface Builder {
 
