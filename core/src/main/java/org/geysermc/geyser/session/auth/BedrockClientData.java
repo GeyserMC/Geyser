@@ -53,6 +53,7 @@ import java.util.UUID;
 @Getter
 public final class BedrockClientData {
     @SerializedName(value = "GameVersion")
+    @Setter
     private String gameVersion;
     @SerializedName(value = "ServerAddress")
     @Setter

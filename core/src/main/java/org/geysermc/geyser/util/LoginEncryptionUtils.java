@@ -128,9 +128,13 @@ public class LoginEncryptionUtils {
             data.setOriginalString(jwt);
 
             // A guest has no options screen of its own, so a console leaves these empty and the
-            // player inherits whatever the console is set to.
+            // player inherits whatever the console is set to. GameVersion is missing too, and the
+            // skin managers hand it to the client as the geometry engine version.
             BedrockClientData parentData = parent.getClientData();
             if (parentData != null) {
+                if (data.getGameVersion() == null) {
+                    data.setGameVersion(parentData.getGameVersion());
+                }
                 if (data.getLanguageCode() == null) {
                     data.setLanguageCode(parentData.getLanguageCode());
                 }
