@@ -40,6 +40,7 @@ import java.nio.file.Path;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -84,7 +85,7 @@ class ProviderConfigurationTest {
         assertEquals("yaml-secret", result.clientConfiguration().authorizationToken());
         assertEquals(List.of("1.1.1.1:29133"), settings.advertiseAddresses());
         assertEquals("defined", result.clientConfiguration().connectivityMethod());
-        assertEquals("Geyser", result.label());
+        assertNull(settings.label(), "The provider names the instance after the host");
         assertTrue(result.clientConfiguration().gameOutcomes());
     }
 

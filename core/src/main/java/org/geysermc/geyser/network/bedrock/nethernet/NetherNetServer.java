@@ -413,7 +413,6 @@ public final class NetherNetServer implements EventRegistrar {
         return ProviderRuntimeConfiguration.Settings.builder(nxs.endpoint())
             .token(nxs.token())
             .advertiseAddresses(nxs.advertiseAddresses())
-            .label("Geyser")
             .gameOutcomes(true)
             .build();
     }
