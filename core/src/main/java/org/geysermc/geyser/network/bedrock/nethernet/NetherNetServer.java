@@ -339,7 +339,7 @@ public final class NetherNetServer implements EventRegistrar {
             ProviderTransport initializingTransport = null;
             try {
                 BedrockListener listener = geyser.config().bedrock();
-                ProviderRuntimeConfiguration runtime = ProviderRuntimeConfiguration.resolve(providerSettings(config.nxs()),
+                ProviderRuntimeConfiguration runtime = ProviderRuntimeConfiguration.resolve(providerSettings(config.nxs(), geyser.config().advanced().nxs()),
                     dataFolder, listener.address(), webrtcPort, collectServerStatus().maxPlayers());
                 URI origin = runtime.origin();
                 var statePath = runtime.stateDirectory();
@@ -387,7 +387,7 @@ public final class NetherNetServer implements EventRegistrar {
                     }
                     logger().info(registrationMessage(registration));
                     // Says where logins are vouched for, without putting provider credentials in the log
-                    logger().info("Player logins over NetherNet are verified by the external signaling service at " + origin.getHost() + ".");
+                    logger().debug("Player logins over NetherNet are verified by the external signaling service at " + origin.getHost() + ".");
                     WardenClaimAdapter claim = wardenClaim;
                     if (claim != null)
                         claim.current().thenAccept(action -> action.ifPresent(value -> logger().info(value.message())));
@@ -409,10 +409,22 @@ public final class NetherNetServer implements EventRegistrar {
     /**
      * What the provider runtime is configured with. Geyser reports game outcomes itself.
      */
-    public static ProviderRuntimeConfiguration.Settings providerSettings(GeyserConfig.SignalingConfig.NxsConfig nxs) {
+    public static ProviderRuntimeConfiguration.Settings providerSettings(GeyserConfig.SignalingConfig.NxsConfig nxs,
+                                                                         GeyserConfig.AdvancedNxsConfig advanced) throws IOException {
+        ProviderClient.Location location;
+        try {
+            location = ProviderClient.Location.of(advanced.location());
+        } catch (IllegalArgumentException invalid) {
+            throw new IOException("advanced.nxs.location needs a two-letter country code, a latitude and longitude pair, or both; city is optional");
+        }
         return ProviderRuntimeConfiguration.Settings.builder(nxs.endpoint())
             .token(nxs.token())
             .advertiseAddresses(nxs.advertiseAddresses())
+            .assistedJoins(advanced.assistedJoins())
+            .connectionChecks(advanced.connectionChecks())
+            .stunDiscovery(advanced.stunDiscovery())
+            .deregisterOnShutdown(advanced.deregisterOnShutdown())
+            .location(location)
             .gameOutcomes(true)
             .build();
     }
@@ -460,10 +472,11 @@ public final class NetherNetServer implements EventRegistrar {
     }
 
     private void logDiagnostic(ProviderDiagnostic diagnostic) {
+        String message = "NXS: " + diagnostic.message();
         switch (diagnostic.level()) {
-            case DEBUG -> logger().debug(diagnostic.message());
-            case INFO -> logger().info(diagnostic.message());
-            case WARN -> logger().warning(diagnostic.message());
+            case DEBUG -> logger().debug(message);
+            case INFO -> logger().info(message);
+            case WARN -> logger().warning(message);
         }
     }
 

@@ -46,6 +46,7 @@ import org.spongepowered.configurate.objectmapping.meta.Comment;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @ConfigSerializable
@@ -218,7 +219,7 @@ public interface GeyserConfig {
             @AsteriskSerializer.Secret
             String token();
 
-            @Comment("Address of the external signaling service (NXS). Defaults to warden.")
+            @Comment("Address of the external signaling service (NXS).")
             @DefaultString("https://agent.warden.cloud")
             String endpoint();
         }
@@ -608,6 +609,40 @@ public interface GeyserConfig {
     }
 
     @ConfigSerializable
+    interface AdvancedNxsConfig {
+        @Comment("""
+            Lets the signaling service help players connect when they cannot reach this server directly,
+            for example behind a NAT without port forwarding.""")
+        @DefaultBoolean(false)
+        boolean assistedJoins();
+
+        @Comment("""
+            Lets the signaling service check from several regions that players can reach this server,
+            and stop offering addresses that fail.""")
+        @DefaultBoolean(true)
+        boolean connectionChecks();
+
+        @Comment("""
+            Finds this server's public address through the signaling service's STUN servers when it has none of its own.
+            Not used when "advertise-addresses" is set.""")
+        @DefaultBoolean(true)
+        boolean stunDiscovery();
+
+        @Comment("""
+            Where this server is: "country" (a two-letter code), "city", "latitude" and "longitude".
+            Leave empty to let the signaling service estimate it, which it may also let its operator override.""")
+        default Map<String, String> location() {
+            return Map.of();
+        }
+
+        @Comment("""
+            Removes this server from the signaling service on shutdown. Enable this when the "nethernet" folder
+            does not survive a restart, such as in a container without a volume, or each restart adds a new server.""")
+        @DefaultBoolean(false)
+        boolean deregisterOnShutdown();
+    }
+
+    @ConfigSerializable
     interface AdvancedConfig {
         @Comment("""
             Specify how many days player skin images will be cached to disk to save downloading them from the internet.
@@ -650,5 +685,8 @@ public interface GeyserConfig {
 
         @Comment("Advanced networking options for Geyser's Bedrock listener")
         AdvancedBedrockConfig bedrock();
+
+        @Comment("Advanced options for the external signaling service, used in the \"nxs\" and \"hybrid\" signaling modes")
+        AdvancedNxsConfig nxs();
     }
 }

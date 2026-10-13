@@ -25,6 +25,7 @@
 
 package org.geysermc.geyser.network.bedrock.nethernet.signaling.provider;
 
+import org.cloudburstmc.netty.signaling.ProviderClient;
 import org.cloudburstmc.netty.signaling.provider.ProviderRuntimeConfiguration;
 import org.geysermc.geyser.configuration.GeyserConfig;
 import org.geysermc.geyser.network.bedrock.nethernet.NetherNetServer;
@@ -39,10 +40,7 @@ import java.io.StringReader;
 import java.nio.file.Path;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * What Geyser's configuration binds to and hands the resolver. How the resolver treats those values
@@ -50,16 +48,28 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  */
 class ProviderConfigurationTest {
 
-    private static GeyserConfig.SignalingConfig config(String yaml) throws IOException {
+    private static <T> T load(String yaml, Class<T> type) throws IOException {
         return YamlConfigurationLoader.builder()
             .source(() -> new BufferedReader(new StringReader(yaml)))
             .defaultOptions(InterfaceDefaultOptions::addTo)
-            .build().load().get(GeyserConfig.SignalingConfig.class);
+            .build().load().get(type);
     }
 
-    private static ProviderRuntimeConfiguration resolve(GeyserConfig.SignalingConfig config, Path dir)
-        throws IOException {
-        return ProviderRuntimeConfiguration.resolve(NetherNetServer.providerSettings(config.nxs()), dir, "::", 20000, 40);
+    private static GeyserConfig.SignalingConfig config(String yaml) throws IOException {
+        return load(yaml, GeyserConfig.SignalingConfig.class);
+    }
+
+    private static GeyserConfig.AdvancedNxsConfig advanced(String yaml) throws IOException {
+        return load(yaml, GeyserConfig.AdvancedNxsConfig.class);
+    }
+
+    private static ProviderRuntimeConfiguration resolve(GeyserConfig.SignalingConfig config,
+                                                        GeyserConfig.AdvancedNxsConfig advanced, Path dir) throws IOException {
+        return ProviderRuntimeConfiguration.resolve(NetherNetServer.providerSettings(config.nxs(), advanced), dir, "::", 20000, 40);
+    }
+
+    private static ProviderRuntimeConfiguration resolve(GeyserConfig.SignalingConfig config, Path dir) throws IOException {
+        return resolve(config, advanced("{}"), dir);
     }
 
     @Test
@@ -78,15 +88,50 @@ class ProviderConfigurationTest {
               token: yaml-secret
               advertise-addresses: ['1.1.1.1:29133']
             """);
-        var settings = NetherNetServer.providerSettings(config.nxs());
+        var settings = NetherNetServer.providerSettings(config.nxs(), advanced("{}"));
         var result = resolve(config, dir);
 
         assertEquals("https://signal.example.net", result.origin().toString());
         assertEquals("yaml-secret", result.clientConfiguration().authorizationToken());
         assertEquals(List.of("1.1.1.1:29133"), settings.advertiseAddresses());
         assertEquals("defined", result.clientConfiguration().connectivityMethod());
-        assertNull(settings.label(), "The provider names the instance after the host");
         assertTrue(result.clientConfiguration().gameOutcomes());
+    }
+
+    @Test
+    void defaultsCheckConnectivityWithoutAssistance(@TempDir Path dir) throws Exception {
+        var settings = NetherNetServer.providerSettings(config("{}").nxs(), advanced("{}"));
+        var client = resolve(config("{}"), dir).clientConfiguration();
+
+        assertEquals(ProviderClient.ControlTransport.HTTP, client.controlTransport());
+        assertFalse(client.assistedJoins());
+        assertTrue(client.diagnosticAdmission());
+        assertTrue(settings.stunDiscovery());
+        assertFalse(client.deregisterOnShutdown());
+        assertNull(settings.label(), "The provider names the instance after the host");
+    }
+
+    @Test
+    void assistedJoinsUseTheWebSocket(@TempDir Path dir) throws Exception {
+        var client = resolve(config("{}"), advanced("assisted-joins: true\n"), dir).clientConfiguration();
+
+        assertEquals(ProviderClient.ControlTransport.AUTO, client.controlTransport());
+        assertTrue(client.assistedJoins());
+    }
+
+    @Test
+    void passesTheAdvancedOptOuts(@TempDir Path dir) throws Exception {
+        var advanced = advanced("""
+            connection-checks: false
+            stun-discovery: false
+            deregister-on-shutdown: true
+            """);
+        var settings = NetherNetServer.providerSettings(config("{}").nxs(), advanced);
+        var client = resolve(config("{}"), advanced, dir).clientConfiguration();
+
+        assertFalse(client.diagnosticAdmission());
+        assertFalse(settings.stunDiscovery());
+        assertTrue(client.deregisterOnShutdown());
     }
 
     @Test
@@ -101,5 +146,27 @@ class ProviderConfigurationTest {
         assertEquals("::", result.bindAddress());
         assertEquals(20000, result.udpPort());
         assertEquals("discovered", result.clientConfiguration().connectivityMethod());
+    }
+
+    @Test
+    void passesTheDeclaredHostLocation() throws Exception {
+        var settings = NetherNetServer.providerSettings(config("{}").nxs(),
+            advanced("location: {country: nl, city: Amsterdam, latitude: 52.37, longitude: 4.89}\n"));
+
+        assertEquals(new ProviderClient.Location("NL", "Amsterdam", 52.37, 4.89), settings.location());
+        assertEquals(new ProviderClient.Location("GB", null, null, null),
+            NetherNetServer.providerSettings(config("{}").nxs(), advanced("location: {country: ' gb '}\n")).location());
+        assertNull(NetherNetServer.providerSettings(config("{}").nxs(), advanced("{}")).location(),
+            "Without a location the provider estimates it");
+    }
+
+    @Test
+    void refusesInvalidHostLocation() {
+        for (String location : List.of("{country: ZZZ}", "{country: T1}", "{city: London}", "{latitude: 0}", "{longitude: 0}",
+            "{latitude: 91, longitude: 0}", "{latitude: 0, longitude: 181}", "{latitude: NaN, longitude: 0}",
+            "{country: NL, extra: value}")) {
+            assertThrows(IOException.class, () -> NetherNetServer.providerSettings(config("{}").nxs(),
+                advanced("location: " + location + "\n")), location);
+        }
     }
 }
