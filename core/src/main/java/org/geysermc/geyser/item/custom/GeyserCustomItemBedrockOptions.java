@@ -134,7 +134,7 @@ public record GeyserCustomItemBedrockOptions(@NonNull CustomItemIcons icons, boo
         }
 
         @Override
-        public CustomItemBedrockOptions.Builder tag(@NotNull Identifier tag) {
+        public Builder tag(@NotNull Identifier tag) {
             Objects.requireNonNull(tag, "tag cannot be null");
             this.tags.add(tag);
             return this;
@@ -147,7 +147,7 @@ public record GeyserCustomItemBedrockOptions(@NonNull CustomItemIcons icons, boo
         }
 
         @Override
-        public CustomItemBedrockOptions.@This Builder dyeable(int defaultColor) {
+        public Builder dyeable(int defaultColor) {
             if (defaultColor < 0 || defaultColor > 0xFFFFFF) {
                 throw new IllegalArgumentException("defaultColor must be between 0x000000 and 0xFFFFFF, was: 0x" + Integer.toString(defaultColor, 16).toUpperCase(Locale.ROOT));
             }
