@@ -136,8 +136,8 @@ public class NetherNetCommand extends GeyserCommand {
         }
 
         if (server.providerChannel() instanceof NativeAdmissionServerChannel nativeChannel && nativeChannel.isActive()) {
-            source.sendMessage(GeyserImpl.GSON.toJson(Map.of("nativeCreationAttempts", nativeChannel.creationAttempts(),
-                    "admission", nativeChannel.admissionStats(), "native", nativeChannel.nativeStats(), "bind", nativeChannel.localAddress().toString())));
+            source.sendMessage(GeyserImpl.GSON.toJson(Map.of("native", nativeChannel.stats(),
+                    "bind", nativeChannel.localAddress().toString())));
         }
 
         source.sendMessage(GeyserImpl.GSON.toJson(Map.of("droppedGameOutcomeEvents", server.gameOutcomes().droppedEvents())));

@@ -46,7 +46,6 @@ import org.spongepowered.configurate.objectmapping.meta.Comment;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 
 @ConfigSerializable
@@ -222,13 +221,6 @@ public interface GeyserConfig {
             @Comment("Address of the external signaling service (NXS). Defaults to warden.")
             @DefaultString("https://agent.warden.cloud")
             String endpoint();
-
-            @Comment("""
-                Additional details sent to the signaling service, such as "region" or "pool" to choose where this server is listed. 
-                Other keys are sent as registration tags.""")
-            default Map<String, String> data() {
-                return Map.of();
-            }
         }
     }
 

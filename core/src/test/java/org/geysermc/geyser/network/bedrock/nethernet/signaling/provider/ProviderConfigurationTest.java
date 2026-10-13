@@ -27,6 +27,7 @@ package org.geysermc.geyser.network.bedrock.nethernet.signaling.provider;
 
 import org.cloudburstmc.netty.signaling.provider.ProviderRuntimeConfiguration;
 import org.geysermc.geyser.configuration.GeyserConfig;
+import org.geysermc.geyser.network.bedrock.nethernet.NetherNetServer;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.spongepowered.configurate.interfaces.InterfaceDefaultOptions;
@@ -37,10 +38,10 @@ import java.io.IOException;
 import java.io.StringReader;
 import java.nio.file.Path;
 import java.util.List;
-import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * What Geyser's configuration binds to and hands the resolver. How the resolver treats those values
@@ -57,10 +58,7 @@ class ProviderConfigurationTest {
 
     private static ProviderRuntimeConfiguration resolve(GeyserConfig.SignalingConfig config, Path dir)
         throws IOException {
-        var nxs = config.nxs();
-        return ProviderRuntimeConfiguration.resolve(
-            new ProviderRuntimeConfiguration.Settings(nxs.endpoint(), nxs.token(), nxs.advertiseAddresses(), nxs.data()),
-            dir, "::", 20000, 40, "Geyser");
+        return ProviderRuntimeConfiguration.resolve(NetherNetServer.providerSettings(config.nxs()), dir, "::", 20000, 40);
     }
 
     @Test
@@ -73,21 +71,21 @@ class ProviderConfigurationTest {
 
     @Test
     void bindsEveryConfiguredNxsSetting(@TempDir Path dir) throws Exception {
-        var result = resolve(config("""
+        var config = config("""
             nxs:
               endpoint: https://signal.example.net
               token: yaml-secret
-              data: {region: EU, pool: proxy, location: london}
               advertise-addresses: ['1.1.1.1:29133']
-            """), dir);
+            """);
+        var settings = NetherNetServer.providerSettings(config.nxs());
+        var result = resolve(config, dir);
 
         assertEquals("https://signal.example.net", result.origin().toString());
-        assertEquals("yaml-secret", result.authorizationToken());
-        assertEquals("EU", result.region());
-        assertEquals("proxy", result.pool());
-        assertEquals(Map.of("location", "london"), result.tags());
-        assertEquals(1, result.advertisedEndpoints().size());
+        assertEquals("yaml-secret", result.clientConfiguration().authorizationToken());
+        assertEquals(List.of("1.1.1.1:29133"), settings.advertiseAddresses());
+        assertEquals("defined", result.clientConfiguration().connectivityMethod());
         assertEquals("Geyser", result.label());
+        assertTrue(result.clientConfiguration().gameOutcomes());
     }
 
     @Test
@@ -101,6 +99,6 @@ class ProviderConfigurationTest {
 
         assertEquals("::", result.bindAddress());
         assertEquals(20000, result.udpPort());
-        assertEquals(List.of(), result.advertisedEndpoints());
+        assertEquals("discovered", result.clientConfiguration().connectivityMethod());
     }
 }

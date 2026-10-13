@@ -25,10 +25,9 @@
 
 package org.geysermc.geyser.network.bedrock.nethernet.signaling.provider;
 
-import com.google.gson.JsonObject;
-import org.cloudburstmc.netty.signaling.admission.AdmissionPrincipal;
 import io.netty.channel.embedded.EmbeddedChannel;
-import org.cloudburstmc.netty.signaling.ProviderTransport;
+import org.cloudburstmc.netty.signaling.ProviderClient.GameOutcome;
+import org.cloudburstmc.netty.signaling.admission.AdmissionPrincipal;
 import org.cloudburstmc.protocol.bedrock.netty.BedrockPacketWrapper;
 import org.cloudburstmc.protocol.bedrock.packet.DisconnectPacket;
 import org.cloudburstmc.protocol.bedrock.packet.RequestNetworkSettingsPacket;
@@ -36,22 +35,24 @@ import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionStage;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 class GameOutcomeReporterTest {
-    private static EmbeddedChannel channel(GameOutcomeReporter reporter) {
+    private record Report(String ticketId, GameOutcome outcome, String reason) {
+    }
+
+    private final List<Report> reports = new ArrayList<>();
+    private boolean accepting = true;
+    private final GameOutcomeReporter reporter = new GameOutcomeReporter((ticketId, outcome, reason) -> {
+        reports.add(new Report(ticketId, outcome, reason));
+        return accepting;
+    });
+
+    private EmbeddedChannel channel() {
         EmbeddedChannel channel = new EmbeddedChannel(reporter.observer(protocol -> protocol == 100));
         channel.attr(AdmissionPrincipal.KEY).set(new AdmissionPrincipal("ticket", "network", "private-identity", "K001"));
         return channel;
-    }
-
-    private static List<JsonObject> events(GameOutcomeReporter reporter) {
-        List<JsonObject> events = new ArrayList<>();
-        reporter.drainTo(events, 1000);
-        return events;
     }
 
     private static void settings(EmbeddedChannel channel, int protocol) {
@@ -78,20 +79,14 @@ class GameOutcomeReporterTest {
 
     @Test
     void reportsEarlyUnsupportedVersionWithoutChangingPacketsOrPromiseOwnership() {
-        GameOutcomeReporter reporter = new GameOutcomeReporter();
-        EmbeddedChannel channel = channel(reporter);
+        EmbeddedChannel channel = channel();
         try {
             settings(channel, 101);
             disconnect(channel, 0);
             disconnect(channel, 0);
-            List<JsonObject> events = events(reporter);
-            assertEquals(1, events.size());
-            assertEquals("ticket.game_rejected", events.getFirst().get("stage").getAsString());
-            assertEquals("unsupported_version", events.getFirst().get("reason").getAsString());
-            assertEquals("ticket", events.getFirst().get("ticketId").getAsString());
-            assertEquals(4, events.getFirst().size());
-            assertFalse(events.toString().contains("Private"));
-            assertFalse(events.toString().contains("private-identity"));
+            assertEquals(List.of(new Report("ticket", GameOutcome.REJECTED, "unsupported_version")), reports);
+            assertFalse(reports.toString().contains("Private"));
+            assertFalse(reports.toString().contains("private-identity"));
         } finally {
             channel.finishAndReleaseAll();
         }
@@ -99,29 +94,26 @@ class GameOutcomeReporterTest {
 
     @Test
     void reportsOtherExplicitServerRejectionWithoutInferringItFromClientClose() {
-        GameOutcomeReporter reporter = new GameOutcomeReporter();
-        EmbeddedChannel channel = channel(reporter);
+        EmbeddedChannel channel = channel();
         settings(channel, 100);
         disconnect(channel, 0);
         channel.finishAndReleaseAll();
-        assertEquals("server_rejected", events(reporter).getFirst().get("reason").getAsString());
-        channel = channel(reporter);
+        assertEquals("server_rejected", reports.getFirst().reason());
+        reports.clear();
+        channel = channel();
         settings(channel, 101);
         channel.finishAndReleaseAll();
-        assertTrue(events(reporter).isEmpty());
+        assertTrue(reports.isEmpty());
     }
 
     @Test
     void joinedThenNormalDisconnectIsNotReclassifiedAsRejected() {
-        GameOutcomeReporter reporter = new GameOutcomeReporter();
-        EmbeddedChannel channel = channel(reporter);
+        EmbeddedChannel channel = channel();
         try {
             reporter.joined(channel);
             reporter.joined(channel);
             disconnect(channel, 0);
-            List<JsonObject> events = events(reporter);
-            assertEquals(1, events.size());
-            assertEquals("ticket.game_joined", events.getFirst().get("stage").getAsString());
+            assertEquals(List.of(new Report("ticket", GameOutcome.JOINED, "play_ready")), reports);
         } finally {
             channel.finishAndReleaseAll();
         }
@@ -129,81 +121,31 @@ class GameOutcomeReporterTest {
 
     @Test
     void ignoresNonAdmittedConnectionsAndSplitScreenDisconnects() {
-        GameOutcomeReporter reporter = new GameOutcomeReporter();
-        EmbeddedChannel channel = channel(reporter);
+        EmbeddedChannel channel = channel();
         try {
             disconnect(channel, 1);
-            assertTrue(events(reporter).isEmpty());
+            assertTrue(reports.isEmpty());
             channel.attr(AdmissionPrincipal.KEY).set(null);
             settings(channel, 101);
             disconnect(channel, 0);
             reporter.joined(channel);
-            assertTrue(events(reporter).isEmpty());
+            assertTrue(reports.isEmpty());
         } finally {
             channel.finishAndReleaseAll();
         }
     }
 
     @Test
-    void boundsQueueAndProviderBatchesWithoutLosingAlreadyPolledNativeEvents() {
-        GameOutcomeReporter reporter = new GameOutcomeReporter();
-        for (int i = 0; i < 260; i++) {
-            EmbeddedChannel channel = channel(reporter);
+    void countsDroppedOutcomesOncePerPlayer() {
+        accepting = false;
+        EmbeddedChannel channel = channel();
+        try {
             reporter.joined(channel);
             disconnect(channel, 0);
+            assertEquals(1, reporter.droppedEvents());
+            assertEquals(1, reports.size(), "A dropped join is not later reported as a rejection");
+        } finally {
             channel.finishAndReleaseAll();
-        }
-        assertEquals(4, reporter.droppedEvents());
-        FakeTransport nativeTransport = new FakeTransport();
-        for (int i = 0; i < 99; i++) {
-            nativeTransport.events.add(new JsonObject());
-        }
-        GameOutcomeTransport transport = new GameOutcomeTransport(nativeTransport, reporter);
-        List<JsonObject> first = transport.pollEvents();
-        assertEquals(100, first.size());
-        assertEquals("ticket.game_joined", first.getLast().get("stage").getAsString());
-        assertEquals(100, transport.pollEvents().size());
-        assertEquals(100, transport.pollEvents().size());
-        assertEquals(55, transport.pollEvents().size());
-        assertTrue(transport.pollEvents().isEmpty());
-        EmbeddedChannel channel = channel(reporter);
-        reporter.joined(channel);
-        channel.finishAndReleaseAll();
-        transport.close();
-        assertTrue(transport.pollEvents().isEmpty());
-        assertTrue(nativeTransport.closed);
-    }
-
-    private static final class FakeTransport implements ProviderTransport {
-        final List<JsonObject> events = new ArrayList<>();
-        boolean closed;
-
-        public CompletionStage<JsonObject> hostProfile() {
-            return CompletableFuture.completedFuture(new JsonObject());
-        }
-
-        public CompletionStage<Void> installTicketKeys(List<TicketKey> keys) {
-            return CompletableFuture.completedFuture(null);
-        }
-
-        public List<JsonObject> pollEvents() {
-            return pollEvents(events.size());
-        }
-
-        public List<JsonObject> pollEvents(int maximum) {
-            List<JsonObject> taken = events.subList(0, Math.min(maximum, events.size()));
-            List<JsonObject> result = new ArrayList<>(taken);
-            taken.clear();
-            return result;
-        }
-
-        public CompletionStage<Void> drain() {
-            return CompletableFuture.completedFuture(null);
-        }
-
-        public CompletionStage<Void> close() {
-            closed = true;
-            return CompletableFuture.completedFuture(null);
         }
     }
 }
