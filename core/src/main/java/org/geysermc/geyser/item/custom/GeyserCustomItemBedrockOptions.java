@@ -27,7 +27,9 @@ package org.geysermc.geyser.item.custom;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
+import org.checkerframework.common.returnsreceiver.qual.This;
 import org.geysermc.geyser.api.item.custom.v2.CustomItemBedrockOptions;
+import org.geysermc.geyser.api.item.custom.v2.CustomItemIcons;
 import org.geysermc.geyser.api.util.CreativeCategory;
 import org.geysermc.geyser.api.util.Identifier;
 import org.geysermc.geyser.registry.populator.custom.CustomItemContext;
@@ -39,11 +41,13 @@ import org.geysermc.mcprotocollib.protocol.data.game.item.component.ItemAttribut
 import org.jetbrains.annotations.NotNull;
 
 import java.util.HashSet;
+import java.util.Locale;
 import java.util.Objects;
 import java.util.Set;
 
-public record GeyserCustomItemBedrockOptions(@Nullable String icon, boolean allowOffhand, boolean displayHandheld, int protectionValue,
-                                             @NonNull CreativeCategory creativeCategory, @Nullable String creativeGroup, @NonNull Set<Identifier> tags) implements CustomItemBedrockOptions {
+public record GeyserCustomItemBedrockOptions(@NonNull CustomItemIcons icons, boolean allowOffhand, boolean displayHandheld, int protectionValue,
+                                             @NonNull CreativeCategory creativeCategory, @Nullable String creativeGroup, @NonNull Set<Identifier> tags,
+                                             @Nullable Integer defaultDyeableColor) implements CustomItemBedrockOptions {
 
     @Override
     public int protectionValue() {
@@ -80,17 +84,18 @@ public record GeyserCustomItemBedrockOptions(@Nullable String icon, boolean allo
     }
 
     public static class Builder implements CustomItemBedrockOptions.Builder {
-        private String icon = null;
+        private CustomItemIcons iconData = CustomItemIcons.EMPTY;
         private boolean allowOffhand = true;
         private boolean displayHandheld = false;
         private int protectionValue = -1;
         private CreativeCategory creativeCategory = CreativeCategory.NONE;
         private String creativeGroup = null;
         private Set<Identifier> tags = new HashSet<>();
+        private @Nullable Integer dyeableColor;
 
         @Override
-        public Builder icon(@Nullable String icon) {
-            this.icon = icon;
+        public Builder iconData(CustomItemIcons iconData) {
+            this.iconData = iconData;
             return this;
         }
 
@@ -108,6 +113,9 @@ public record GeyserCustomItemBedrockOptions(@Nullable String icon, boolean allo
 
         @Override
         public Builder protectionValue(int protectionValue) {
+            if (protectionValue < 0) {
+                throw new IllegalArgumentException("protectionValue cannot be negative");
+            }
             this.protectionValue = protectionValue;
             return this;
         }
@@ -126,7 +134,7 @@ public record GeyserCustomItemBedrockOptions(@Nullable String icon, boolean allo
         }
 
         @Override
-        public CustomItemBedrockOptions.Builder tag(@NotNull Identifier tag) {
+        public Builder tag(@NotNull Identifier tag) {
             Objects.requireNonNull(tag, "tag cannot be null");
             this.tags.add(tag);
             return this;
@@ -139,9 +147,21 @@ public record GeyserCustomItemBedrockOptions(@Nullable String icon, boolean allo
         }
 
         @Override
+        public Builder dyeable(int defaultColor) {
+            if (defaultColor < 0 || defaultColor > 0xFFFFFF) {
+                throw new IllegalArgumentException("defaultColor must be between 0x000000 and 0xFFFFFF, was: 0x" + Integer.toString(defaultColor, 16).toUpperCase(Locale.ROOT));
+            }
+            this.dyeableColor = defaultColor;
+            return this;
+        }
+
+        @Override
         public CustomItemBedrockOptions build() {
-            return new GeyserCustomItemBedrockOptions(icon, allowOffhand, displayHandheld, protectionValue,
-                creativeCategory, creativeGroup, Set.copyOf(tags));
+            if (iconData.dyedIcon() != null && dyeableColor == null) {
+                throw new IllegalStateException("Set a dyed icon but item is not marked as dyeable");
+            }
+            return new GeyserCustomItemBedrockOptions(iconData, allowOffhand, displayHandheld, protectionValue,
+                creativeCategory, creativeGroup, Set.copyOf(tags), dyeableColor);
         }
     }
 }

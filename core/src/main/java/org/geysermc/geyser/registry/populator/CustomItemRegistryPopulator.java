@@ -307,6 +307,18 @@ public class CustomItemRegistryPopulator {
                 .build());
         }
 
+        Integer dyeable = context.definition().bedrockOptions().defaultDyeableColor();
+        if (dyeable != null) {
+            // Please note that we are not including this component by default for items that override vanilla dyeable items, like leather armour
+            // This is because on Java, dyeable items are defined through recipes. As such, we don't know at this time whether the vanilla item actually is a
+            // dyeable: it could've been removed from the recipe!
+            // This unfortunately also applies to vanilla items that have been made dyeable through a nice recipe: again, we don't know about this recipe's existance here.
+            // As such, we have to rely on users putting this component in their mappings.
+            componentBuilder.putCompound("minecraft:dyeable", NbtMap.builder()
+                .putIntArray("default_color", new int[]{(dyeable & 0xFF0000) >> 16, (dyeable & 0x00FF00) >> 8, dyeable & 0xFF})
+                .build());
+        }
+
         AttackRange attackRange = context.components().getOrDefault(DataComponentTypes.ATTACK_RANGE, DEFAULT_ATTACK_RANGE);
 
         KineticWeapon kineticWeapon = context.components().get(DataComponentTypes.KINETIC_WEAPON);
@@ -453,12 +465,11 @@ public class CustomItemRegistryPopulator {
         // This makes bedrock use a 3D render of the block this item places as icon
         GeyserBlockPlacer blockPlacer = definition.components().get(GeyserItemDataComponents.BLOCK_PLACER);
         if (blockPlacer == null || !blockPlacer.useBlockIcon()) {
-            NbtMap iconMap = NbtMap.builder()
-                .putCompound("textures", NbtMap.builder()
-                    .putString("default", definition.icon())
-                    .build())
-                .build();
-            itemProperties.putCompound("minecraft:icon", iconMap);
+            NbtMapBuilder textureMap = NbtMap.builder().putString("default", definition.icon());
+            if (definition.bedrockOptions().icons().dyedIcon() != null) {
+                textureMap.putString("dyed", definition.bedrockOptions().icons().dyedIcon());
+            }
+            itemProperties.putCompound("minecraft:icon", NbtMap.builder().putCompound("textures", textureMap.build()).build());
         }
 
         if (options.creativeCategory() != CreativeCategory.NONE) {
