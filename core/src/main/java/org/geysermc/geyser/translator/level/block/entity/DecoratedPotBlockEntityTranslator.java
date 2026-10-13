@@ -26,9 +26,11 @@
 package org.geysermc.geyser.translator.level.block.entity;
 
 import net.kyori.adventure.key.Key;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.nbt.NbtType;
+import org.geysermc.geyser.item.components.resolvable.ResolvableComponentGetter;
 import org.geysermc.geyser.item.type.Item;
 import org.geysermc.geyser.level.block.type.BlockState;
 import org.geysermc.geyser.registry.Registries;
@@ -38,7 +40,9 @@ import org.geysermc.geyser.registry.java.JavaRegistryProvider;
 import org.geysermc.geyser.registry.java.reader.JavaRegistryReader;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.util.MinecraftKey;
+import org.geysermc.mcprotocollib.protocol.data.game.item.ItemStack;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentTypes;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
 import org.geysermc.mcprotocollib.protocol.data.game.level.block.BlockEntityType;
 
 import java.util.Optional;
@@ -82,11 +86,9 @@ public class DecoratedPotBlockEntityTranslator extends BlockEntityTranslator {
             }
             String pattern = components.getString(POTTERY_PATTERN_COMPONENT, null);
             if (pattern != null) {
-                Optional<Key> bedrockItem = JavaRegistries.DECORATED_POT_PATTERN.get(registries, MinecraftKey.key(pattern));
-                if (bedrockItem.isPresent()) {
-                    return bedrockItem.get().toString();
-                }
-                return DEFAULT_BEDROCK_ITEM;
+                return JavaRegistries.DECORATED_POT_PATTERN.get(registries, MinecraftKey.key(pattern))
+                    .map(Key::asString)
+                    .orElse(DEFAULT_BEDROCK_ITEM);
             }
         }
 
@@ -95,16 +97,30 @@ public class DecoratedPotBlockEntityTranslator extends BlockEntityTranslator {
         if (item.isPresent()) {
             Integer patternId = item.get().getComponent(session.getComponentCache(), DataComponentTypes.PROVIDES_POTTERY_PATTERN);
             if (patternId != null) {
-                Optional<Key> bedrockItem = JavaRegistries.DECORATED_POT_PATTERN.get(registries, patternId);
-                if (bedrockItem.isPresent()) {
-                    return bedrockItem.get().toString();
-                }
-                return DEFAULT_BEDROCK_ITEM;
+                return JavaRegistries.DECORATED_POT_PATTERN.get(registries, patternId)
+                    .map(Key::asString)
+                    .orElse(DEFAULT_BEDROCK_ITEM);
             }
         }
 
         // Doubtful, but possible
         return DEFAULT_BEDROCK_ITEM;
+    }
+
+    // TODO - group JavaRegistryProvider, ResolvableComponentGetter, and maybe other stuff under one class
+    public static String convertDecorationItemStackToBedrockItem(JavaRegistryProvider registries, ResolvableComponentGetter componentGetter,
+                                                                 @Nullable ItemStack stack) {
+        if (stack == null) {
+            return DEFAULT_BEDROCK_ITEM;
+        }
+
+        Item item = BuiltInJavaRegistries.ITEM.getOrThrow(stack.getId());
+        DataComponents fullComponents = item.gatherComponents(componentGetter, stack.getDataComponentsPatch());
+
+        int potteryPattern = fullComponents.getOrDefault(DataComponentTypes.PROVIDES_POTTERY_PATTERN, -1);
+        return JavaRegistries.DECORATED_POT_PATTERN.get(registries, potteryPattern)
+            .map(Key::asString)
+            .orElse(DEFAULT_BEDROCK_ITEM);
     }
 
     public static Key readDecoratedPotPattern(JavaRegistryReader.Context context) {
