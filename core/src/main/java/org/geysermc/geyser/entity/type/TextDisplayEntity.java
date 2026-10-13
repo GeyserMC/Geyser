@@ -31,12 +31,16 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.cloudburstmc.math.imaginary.Quaternionf;
+import org.cloudburstmc.math.matrix.Matrix4f;
 import org.cloudburstmc.math.vector.Vector3f;
+import org.cloudburstmc.math.vector.Vector4f;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.protocol.bedrock.data.debugshape.DebugShape;
 import org.cloudburstmc.protocol.bedrock.data.debugshape.DebugText;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.cloudburstmc.protocol.bedrock.packet.DebugDrawerPacket;
+import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.GeyserLogger;
 import org.geysermc.geyser.entity.VanillaEntities;
 import org.geysermc.geyser.entity.spawn.EntitySpawnContext;
 import org.geysermc.geyser.entity.type.living.ArmorStandEntity;
@@ -64,6 +68,8 @@ public class TextDisplayEntity extends DisplayBaseEntity {
      * to match Java Edition's multi-line text centering behavior.
      */
     private static final float LINE_HEIGHT_OFFSET = 0.1414f;
+
+    private static final boolean DEBUG = Boolean.getBoolean("Geyser.Debug.TextDisplay");
 
     /**
      * On Java Edition, armor stands can have a custom name shown additionally to
@@ -252,6 +258,7 @@ public class TextDisplayEntity extends DisplayBaseEntity {
 
     public void updatePrimitiveText() {
         if (!sendUpdates) return;
+        // Find the message and color
         String message;
         Color color = null;
 
@@ -264,9 +271,45 @@ public class TextDisplayEntity extends DisplayBaseEntity {
             message = MessageTranslator.convertMessage(text, session.locale());
         }
 
+        // Calculate a matrix then extract components
+
+        Matrix4f matrix = Matrix4f.IDENTITY.translate(getBaseTranslation())
+            .rotate(getLeftRotation())
+            .scale(Vector4f.from(getBaseScale(), 1))
+            .rotate(getRightRotation());
+
+        Vector3f translation = Vector3f.from(matrix.get(3, 0), matrix.get(3, 1), matrix.get(3, 2));
+
+        float m00, m01, m02, m10, m11, m12, m20, m21, m22;
+        m00 = matrix.get(0, 0);
+        m01 = matrix.get(0, 1);
+        m02 = matrix.get(0, 2);
+        m10 = matrix.get(1, 0);
+        m11 = matrix.get(1, 1);
+        m12 = matrix.get(1, 2);
+        m20 = matrix.get(2, 0);
+        m21 = matrix.get(2, 1);
+        m22 = matrix.get(2, 2);
+
+        float sx = (float) Math.sqrt(m00*m00 + m10*m10 + m20*m20);
+        float sy = (float) Math.sqrt(m01*m01 + m11*m11 + m21*m21);
+        float sz = (float) Math.sqrt(m02*m02 + m12*m12 + m22*m22);
+
+        float r00 = m00 / sx, r10 = m10 / sx, r20 = m20 / sx;
+        float r01 = m01 / sy, r11 = m11 / sy, r21 = m21 / sy;
+        float r02 = m02 / sz, r12 = m12 / sz, r22 = m22 / sz;
+
+        float x = (float) Math.atan2(r21, r22);
+        float y = (float) Math.atan2(-r20, Math.hypot(r00, r10));
+        float z = (float) Math.atan2(r10, r00);
+
+        Vector3f scale = Vector3f.from(sx, sy, sz);
+        // I'm not even gonna pretend I know why x needs to be negative, but it does, and it works
+        Vector3f rotation = Vector3f.from(-Math.toDegrees(x), Math.toDegrees(y), Math.toDegrees(z));
+
         DebugText text = new DebugText();
         text.setId(geyserId);
-        text.setText(message);
+        text.setText(DEBUG ? String.valueOf(geyserId) : message);
         text.setColor(
             color == null ? null :
                 new Color(
@@ -281,35 +324,44 @@ public class TextDisplayEntity extends DisplayBaseEntity {
             0.13 * PlainTextComponentSerializer.plainText()
                 .serialize(this.text).split("\n").length,
             0
-        ).add(0, 0.5, 0).add(getBaseTranslation()));
+        ).add(0, 0.25, 0).add(translation));
         text.setAttachedToEntityId(geyserId);
-        Quaternionf q = this.getLeftRotation();
 
-        Vector3f outputRotation = bedrockRotation().mul(0, 1, 1);
+        GeyserLogger log = GeyserImpl.getInstance().getLogger();
 
-        // Add left rotation
-        outputRotation.add(
-            Math.toDegrees(
-                Math.atan2(
-                    -2*(q.getX()*q.getY() - q.getW()*q.getZ()),
-                    q.getW()*q.getW() + q.getX()*q.getX() - q.getY()*q.getY() - q.getZ()*q.getZ()
-                )
-            ),
-            Math.toDegrees(
-                Math.asin(
-                    2*(q.getX()*q.getZ() + q.getW()*q.getY())
-                )
-            ),
-            Math.toDegrees(
-                Math.atan2(
-                    -2*(q.getY()*q.getZ() - q.getW()*q.getX()),
-                    q.getW()*q.getW() - q.getX()*q.getX() - q.getY()*q.getY() + q.getZ()*q.getZ()
-                )
-            )
+        Vector3f outputRotation = Vector3f.from(
+            0, (-getYaw()) + 180, 0
         );
 
-        // Bedrock needs some... adjustments...
-        //outputRotation = outputRotation.add(0, 180, 0);
+        if (DEBUG) {
+            log.info("Text Display Debug Update (" + geyserId + "):");
+            log.info("- Rotation:");
+            log.info("  - Yaw: " + outputRotation);
+        }
+
+//        Vector3f leftRotation = toVector(this.getLeftRotation());
+//
+//        if (DEBUG) {
+//            log.info("  - Left Rotation: " + leftRotation);
+//        }
+//
+//        // Add left rotation
+//        outputRotation = outputRotation.add(leftRotation);
+//
+//        if (DEBUG) {
+//            log.info("  - Yaw + Left Rotation: " + outputRotation);
+//        }
+
+        if (DEBUG) {
+            log.info("  - Rotation: " + rotation);
+        }
+
+        // Add rotation
+        outputRotation = outputRotation.add(rotation);
+
+        if (DEBUG) {
+            log.info("  - Yaw + Rotation: " + outputRotation);
+        }
 
         text.setRotation(outputRotation);
         text.setUseRotation(!getBillboard().equals(Billboard.CENTER));
@@ -320,7 +372,7 @@ public class TextDisplayEntity extends DisplayBaseEntity {
         //text.setShowBackface();
         //text.setShowTextBackface();
         text.setDimension(session.getBedrockDimension().bedrockId());
-        text.setScale(MathUtils.average(new float[]{ getBaseScale().getX(), getBaseScale().getY(), getBaseScale().getZ() }));
+        text.setScale(MathUtils.average(new float[]{ scale.getX(), scale.getY(), scale.getZ() }));
         DebugDrawerPacket packet = new DebugDrawerPacket();
         packet.getShapes().add(text);
         session.sendUpstreamPacket(packet);
@@ -347,5 +399,28 @@ public class TextDisplayEntity extends DisplayBaseEntity {
         secondEntity.getMetadata().put(EntityDataTypes.WIDTH, 0.0f);
         secondEntity.getMetadata().put(EntityDataTypes.HEIGHT, 0.0f);
         secondEntity.getMetadata().put(EntityDataTypes.HITBOX, NbtMap.EMPTY);
+    }
+
+    private Vector3f toVector(Quaternionf q) {
+        double x, y, z;
+        double angle = 2 * Math.acos(q.getW());
+
+        if (1 - (q.getW() * q.getW()) < 0.000001) {
+            x = q.getX();
+            y = q.getY();
+            z = q.getZ();
+        } else {
+            // http://www.euclideanspace.com/maths/geometry/rotations/conversions/quaternionToAngle/
+            double s = Math.sqrt(1 - (q.getW() * q.getW()));
+            x = q.getX() / s;
+            y = q.getY() / s;
+            z = q.getZ() / s;
+        }
+
+        return Vector3f.from(
+            -Math.toDegrees(x * angle),
+            Math.toDegrees(y * angle),
+            Math.toDegrees(z * angle)
+        );
     }
 }
