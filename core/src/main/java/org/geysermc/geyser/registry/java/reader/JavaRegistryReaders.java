@@ -74,9 +74,9 @@ public final class JavaRegistryReaders {
         register(JavaRegistries.CHAT_TYPE, ChatDecoration::readChatType);
         registerKeyDependent(JavaRegistries.DIMENSION_TYPE, JavaDimension::read);
         registerKeyDependent(JavaRegistries.BIOME, BiomeTranslator::loadServerBiome);
-        registerKeyDependent(JavaRegistries.ENCHANTMENT, Enchantment::read);
+        register(JavaRegistries.ENCHANTMENT, Enchantment::read);
         registerKeyDependent(JavaRegistries.BANNER_PATTERN, context -> BannerPattern.getByJavaIdentifier(context.id()));
-        registerKeyDependent(JavaRegistries.INSTRUMENT, GeyserInstrument::read);
+        register(JavaRegistries.INSTRUMENT, GeyserInstrument::read);
         register(JavaRegistries.JUKEBOX_SONG, JukeboxSong::read);
         registerKeyDependent(JavaRegistries.PAINTING_VARIANT, context -> PaintingType.getByName(context.id()));
         register(JavaRegistries.TRIM_MATERIAL, TrimRecipes::readTrimMaterial);

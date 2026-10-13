@@ -48,7 +48,7 @@ public record ResolvableHolderSetComponent(DataComponentType<HolderSet> type, Op
         Optional<JavaRegistryKey<?>> registry = Optional.ofNullable(object.get("registry"))
             .map(JsonElement::getAsString)
             .map(MinecraftKey::key)
-            .map(JavaRegistries::fromKey);
+            .flatMap(registryKey -> Optional.ofNullable(JavaRegistries.fromKey(registryKey)));
         List<Key> references = Optional.ofNullable(object.get("references"))
             .map(JsonElement::getAsJsonArray)
             .stream()

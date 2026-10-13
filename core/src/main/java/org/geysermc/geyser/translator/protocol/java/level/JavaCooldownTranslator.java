@@ -35,8 +35,6 @@ import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.ClientboundCooldownPacket;
 
-import java.util.Optional;
-
 @Translator(packet = ClientboundCooldownPacket.class)
 public class JavaCooldownTranslator extends PacketTranslator<ClientboundCooldownPacket> {
 
@@ -45,15 +43,15 @@ public class JavaCooldownTranslator extends PacketTranslator<ClientboundCooldown
         // If the cooldown group is a modded item, an item that Bedrock doesn't support custom cooldowns for, or a custom cooldown group,
         // then the cooldown won't be translated correctly. The cooldown won't show up on Bedrock, but they are still unable to use the item.
         Key cooldownGroup = packet.getCooldownGroup();
-        Optional<Item> item = BuiltInJavaRegistries.ITEM.get(cooldownGroup);
+        Item item = BuiltInJavaRegistries.ITEM.get(cooldownGroup).orElse(null);
 
         // Custom items can define an item cooldown using a custom cooldown group, which will be sent to the client if there's not a vanilla cooldown group
         String cooldownCategory = cooldownGroup.asString();
         // Not every vanilla item, as of 1.19, appears to be server-driven. Just these two.
         // Use a map here if it gets too big.
-        if (item.orElse(null) == Items.GOAT_HORN) {
+        if (item == Items.GOAT_HORN) {
             cooldownCategory = "goat_horn";
-        } else if (item.orElse(null) == Items.SHIELD) {
+        } else if (item == Items.SHIELD) {
             cooldownCategory = "shield";
         }
 

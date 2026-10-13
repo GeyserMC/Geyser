@@ -380,18 +380,11 @@ public class MessageTranslator {
     }
 
     /**
-     * Deserialize an NbtMap with a description text component (usually provided from a registry) into a Bedrock-formatted string.
-     */
-    public static String deserializeDescription(GeyserSession session, NbtMap tag) {
-        return convertNbtMessage(session, tag.get("description"));
-    }
-
-    /**
      * Should only be used by {@link JavaRegistryReader}s, as these do not always have a {@link GeyserSession} available.
      */
-    public static @Nullable String convertFromNullableNbtTag(Optional<GeyserSession> session, @Nullable Object nbtTag) {
+    public static String convertFromNullableNbtTag(Optional<GeyserSession> session, @Nullable Object nbtTag) {
         if (nbtTag == null) {
-            return null;
+            return "";
         }
 
         return convertNbtMessage(nbtTag, session.map(GeyserSession::locale).orElseGet(GeyserLocale::getDefaultLocale));

@@ -136,7 +136,7 @@ public interface JavaRegistryReader<T> extends KeyDependentJavaRegistryReader<T>
 
         /**
          * Uses {@link MessageTranslator#convertFromNullableNbtTag(Optional, Object)} to convert the {@code "description"} key from
-         * this registry entry into a bedrock text string. This will return {@code "MISSING GEYSER SESSION"} when {@link Context#session()} is empty.
+         * this registry entry into a bedrock text string.
          *
          * @return the {@code "description"} key from this entry, converted to a bedrock text string
          */

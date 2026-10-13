@@ -86,6 +86,7 @@ public class GeyserSpigotWorldManager extends WorldManager {
         return GameMode.byId(Bukkit.getDefaultGameMode().ordinal());
     }
 
+    @Override
     public void getDecoratedPotData(GeyserSession session, Vector3i pos, Consumer<Map<String, String>> apply) {
         // FIXME 26.3
     }

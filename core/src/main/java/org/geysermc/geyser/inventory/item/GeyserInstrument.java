@@ -28,6 +28,7 @@ package org.geysermc.geyser.inventory.item;
 import net.kyori.adventure.key.Key;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.nbt.NbtMap;
+import org.geysermc.geyser.registry.java.reader.JavaRegistryReader;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.registry.java.JavaRegistries;
 import org.geysermc.geyser.registry.java.JavaRegistry;
@@ -43,11 +44,18 @@ import java.util.Locale;
 
 public interface GeyserInstrument {
 
-    static GeyserInstrument read(RegistryEntryContext context) {
+    static GeyserInstrument read(JavaRegistryReader.Context context) {
         NbtMap data = context.dataAsMap();
-        String soundEvent = SoundUtils.readSoundEvent(data, "instrument " + context.id());
+
+        String parsingContext = "instrument";
+        BedrockInstrument bedrockInstrument = null;
+        if (context instanceof RegistryEntryContext keyedContext) {
+            parsingContext += " " + keyedContext.id();
+            bedrockInstrument = BedrockInstrument.getByJavaIdentifier(keyedContext.id());
+        }
+
+        String soundEvent = SoundUtils.readSoundEvent(data, parsingContext);
         float range = data.getFloat("range");
-        BedrockInstrument bedrockInstrument = BedrockInstrument.getByJavaIdentifier(context.id());
         return new GeyserInstrument.Impl(soundEvent, range, context.deserializeDescription(), bedrockInstrument);
     }
 

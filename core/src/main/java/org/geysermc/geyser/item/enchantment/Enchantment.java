@@ -30,6 +30,7 @@ import org.cloudburstmc.nbt.NbtMap;
 import org.geysermc.geyser.inventory.item.BedrockEnchantment;
 import org.geysermc.geyser.item.type.Item;
 import org.geysermc.geyser.registry.java.JavaRegistries;
+import org.geysermc.geyser.registry.java.reader.JavaRegistryReader;
 import org.geysermc.geyser.registry.java.reader.RegistryEntryContext;
 import org.geysermc.geyser.session.cache.tags.GeyserHolderSet;
 
@@ -49,7 +50,7 @@ public record Enchantment(Set<EnchantmentComponent> effects,
                           GeyserHolderSet<Enchantment> exclusiveSet,
                           @Nullable BedrockEnchantment bedrockEnchantment) {
 
-    public static Enchantment read(RegistryEntryContext context) {
+    public static Enchantment read(JavaRegistryReader.Context context) {
         NbtMap data = context.dataAsMap();
         Set<EnchantmentComponent> effects = readEnchantmentComponents(data.getCompound("effects"));
 
@@ -60,7 +61,10 @@ public record Enchantment(Set<EnchantmentComponent> effects,
 
         GeyserHolderSet<Enchantment> exclusiveSet = GeyserHolderSet.readHolderSet(context.registries(), JavaRegistries.ENCHANTMENT, data.get("exclusive_set"), context.session());
 
-        BedrockEnchantment bedrockEnchantment = BedrockEnchantment.getByJavaIdentifier(context.id().asString());
+        BedrockEnchantment bedrockEnchantment = null;
+        if (context instanceof RegistryEntryContext keyedContext) {
+            bedrockEnchantment = BedrockEnchantment.getByJavaIdentifier(keyedContext.id());
+        }
 
         String description = bedrockEnchantment == null ? context.deserializeDescription() : null;
 
