@@ -75,7 +75,7 @@ public class GeyserCustomItemDefinition implements CustomItemDefinition {
         this.displayName = builder.displayName;
         this.model = builder.model;
 
-        String setIcon = builder.bedrockOptions.iconData().defaultIcon();
+        String setIcon = builder.bedrockOptions.icons().defaultIcon();
         icon = setIcon == null ? bedrockIdentifier().toString().replaceAll(":", ".").replaceAll("/", "_") : setIcon;
 
         this.predicates = List.copyOf(builder.predicates);

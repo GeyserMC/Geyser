@@ -307,7 +307,7 @@ public class CustomItemRegistryPopulator {
                 .build());
         }
 
-        Integer dyeable = context.definition().bedrockOptions().dyeable();
+        Integer dyeable = context.definition().bedrockOptions().defaultDyeableColor();
         if (dyeable != null) {
             // Please note that we are not including this component by default for items that override vanilla dyeable items, like leather armour
             // This is because on Java, dyeable items are defined through recipes. As such, we don't know at this time whether the vanilla item actually is a
@@ -466,8 +466,8 @@ public class CustomItemRegistryPopulator {
         GeyserBlockPlacer blockPlacer = definition.components().get(GeyserItemDataComponents.BLOCK_PLACER);
         if (blockPlacer == null || !blockPlacer.useBlockIcon()) {
             NbtMapBuilder textureMap = NbtMap.builder().putString("default", definition.icon());
-            if (definition.bedrockOptions().iconData().dyedIcon() != null) {
-                textureMap.putString("dyed", definition.bedrockOptions().iconData().dyedIcon());
+            if (definition.bedrockOptions().icons().dyedIcon() != null) {
+                textureMap.putString("dyed", definition.bedrockOptions().icons().dyedIcon());
             }
             itemProperties.putCompound("minecraft:icon", NbtMap.builder().putCompound("textures", textureMap.build()).build());
         }

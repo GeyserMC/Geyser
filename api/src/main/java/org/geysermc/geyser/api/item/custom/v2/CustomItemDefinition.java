@@ -105,7 +105,7 @@ public interface CustomItemDefinition {
      * <p>{@code my_datapack:cool_items/cool_item_1} => {@code my_datapack.cool_items_cool_item_1}</p>
      *
      * @return the icon shown to Bedrock players by default
-     * @see CustomItemBedrockOptions#iconData()
+     * @see CustomItemBedrockOptions#icons()
      * @see CustomItemIcons
      * @since 2.9.3
      */

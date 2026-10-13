@@ -47,12 +47,12 @@ public interface CustomItemBedrockOptions {
      *
      * @return the item's icon
      * @see CustomItemIcons#defaultIcon()
-     * @deprecated since 2.12.0: use {@link CustomItemBedrockOptions#iconData()} and {@link CustomItemIcons#defaultIcon()} instead
+     * @deprecated since 2.12.0: use {@link CustomItemBedrockOptions#icons()} and {@link CustomItemIcons#defaultIcon()} instead
      * @since 2.9.3
      */
     @Deprecated
     default @Nullable String icon() {
-        return iconData().defaultIcon();
+        return icons().defaultIcon();
     }
 
     /**
@@ -62,7 +62,7 @@ public interface CustomItemBedrockOptions {
      * @see CustomItemIcons
      * @since 2.12.0
      */
-    CustomItemIcons iconData();
+    CustomItemIcons icons();
 
     /**
      * If the item is allowed to be put into the offhand. Defaults to true.
@@ -126,7 +126,7 @@ public interface CustomItemBedrockOptions {
      * @return the default color of the item if it is dyeable, and if not, {@code null}
      * @since 2.12.0
      */
-    @Nullable Integer dyeable();
+    @Nullable Integer defaultDyeableColor();
 
     /**
      * Creates a new builder for custom item bedrock options.
@@ -266,7 +266,7 @@ public interface CustomItemBedrockOptions {
          * Marks the item as dyeable, and sets the default color of the item.
          *
          * @param defaultColor the default color of the item
-         * @see CustomItemBedrockOptions#dyeable()
+         * @see CustomItemBedrockOptions#defaultDyeableColor()
          * @return this builder
          * @since 2.12.0
          */
@@ -279,7 +279,7 @@ public interface CustomItemBedrockOptions {
          * @param defaultRed the red component of the default color of the item
          * @param defaultGreen the green component of the default color of the item
          * @param defaultBlue the blue component of the default color of the item
-         * @see CustomItemBedrockOptions#dyeable()
+         * @see CustomItemBedrockOptions#defaultDyeableColor()
          * @return this builder
          * @since 2.12.0
          */

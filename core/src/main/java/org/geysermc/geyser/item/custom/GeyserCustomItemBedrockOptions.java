@@ -45,9 +45,9 @@ import java.util.Locale;
 import java.util.Objects;
 import java.util.Set;
 
-public record GeyserCustomItemBedrockOptions(@NonNull CustomItemIcons iconData, boolean allowOffhand, boolean displayHandheld, int protectionValue,
+public record GeyserCustomItemBedrockOptions(@NonNull CustomItemIcons icons, boolean allowOffhand, boolean displayHandheld, int protectionValue,
                                              @NonNull CreativeCategory creativeCategory, @Nullable String creativeGroup, @NonNull Set<Identifier> tags,
-                                             @Nullable Integer dyeable) implements CustomItemBedrockOptions {
+                                             @Nullable Integer defaultDyeableColor) implements CustomItemBedrockOptions {
 
     @Override
     public int protectionValue() {
