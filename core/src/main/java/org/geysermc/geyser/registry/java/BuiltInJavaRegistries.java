@@ -36,6 +36,7 @@ import org.geysermc.geyser.level.block.type.Block;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.registry.java.reader.JavaRegistryReaders;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.cache.registry.JavaRegistryTagCache;
 import org.geysermc.geyser.session.cache.tags.Tag;
 
 /**
@@ -132,6 +133,7 @@ public final class BuiltInJavaRegistries {
         VanillaEntities.bootstrap();
 
         JavaRegistryReaders.bootstrap();
+        JavaRegistryTagCache.bootstrap();
     }
 
     public static void freeze() {

@@ -108,6 +108,10 @@ final class RegistryCache {
         }
     }
 
+    public static void bootstrap() {
+        // noop to load default network codec
+    }
+
     private <T> void loadRegistry(JavaRegistryKey<T> registryKey, JavaRegistryProvider registryProvider,
                                   Optional<GeyserSession> session, List<RegistryEntry> entries) {
         Optional<KeyDependentJavaRegistryReader<T>> reader = JavaRegistryReaders.getReader(registryKey);

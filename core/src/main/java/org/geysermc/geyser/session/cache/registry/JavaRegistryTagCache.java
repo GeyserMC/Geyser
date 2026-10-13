@@ -75,4 +75,8 @@ public final class JavaRegistryTagCache implements JavaRegistryProvider {
     public void loadTags(Optional<GeyserSession> session, ClientboundUpdateTagsPacket tagsPacket) {
         tagCache.loadPacket(session, tagsPacket);
     }
+
+    public static void bootstrap() {
+        RegistryCache.bootstrap();
+    }
 }
