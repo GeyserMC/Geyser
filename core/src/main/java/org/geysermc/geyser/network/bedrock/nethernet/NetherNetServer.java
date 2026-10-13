@@ -62,7 +62,6 @@ import org.geysermc.geyser.network.bedrock.nethernet.signaling.provider.GeyserSt
 import org.cloudburstmc.netty.signaling.provider.NativeProviderHostFactory;
 import org.cloudburstmc.netty.signaling.provider.ProviderRuntimeConfiguration;
 import org.cloudburstmc.netty.signaling.provider.ProviderShutdown;
-import org.geysermc.geyser.network.bedrock.nethernet.signaling.provider.WardenClaimAdapter;
 import org.geysermc.geyser.session.GeyserSession;
 import tel.schich.libdatachannel.LibDataChannelArchDetect;
 
@@ -110,7 +109,6 @@ public final class NetherNetServer implements EventRegistrar {
     private volatile boolean stopping;
     private volatile ProviderClient providerClient;
     private volatile ProviderShutdown providerShutdown;
-    private volatile WardenClaimAdapter wardenClaim;
     private final GameOutcomeReporter gameOutcomes = new GameOutcomeReporter(this::reportGameOutcome);
     private volatile Supplier<ServerStatus> providerStatusSupplier = this::collectServerStatus;
 
@@ -377,7 +375,6 @@ public final class NetherNetServer implements EventRegistrar {
                         throw failure;
                     }
                     providerClient = client;
-                    wardenClaim = new WardenClaimAdapter(client);
                 }
                 client.start().whenComplete((registration, failure) -> {
                     if (failure != null) {
@@ -388,9 +385,8 @@ public final class NetherNetServer implements EventRegistrar {
                     logger().info(registrationMessage(registration));
                     // Says where logins are vouched for, without putting provider credentials in the log
                     logger().debug("Player logins over NetherNet are verified by the external signaling service at " + origin.getHost() + ".");
-                    WardenClaimAdapter claim = wardenClaim;
-                    if (claim != null)
-                        claim.current().thenAccept(action -> action.ifPresent(value -> logger().info(value.message())));
+                    // The provider may offer the operator a link, such as one to claim this server
+                    client.operatorAction().thenAccept(action -> action.ifPresent(value -> logger().info(operatorActionMessage(value))));
                 });
             } catch (Throwable e) {
                 // Throwable: the WebRTC natives are not available on every platform
@@ -488,8 +484,8 @@ public final class NetherNetServer implements EventRegistrar {
                 + "The addresses players join with are managed by the service.";
     }
 
-    public @Nullable WardenClaimAdapter wardenClaim() {
-        return wardenClaim;
+    public static String operatorActionMessage(ProviderClient.OperatorAction action) {
+        return action.text() + " " + action.url();
     }
 
     public @Nullable Channel providerChannel() {
@@ -536,7 +532,6 @@ public final class NetherNetServer implements EventRegistrar {
                 providerShutdown = null;
             } else closeNetworkResources();
             providerClient = null;
-            wardenClaim = null;
         }
     }
 
