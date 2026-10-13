@@ -27,7 +27,6 @@ package org.geysermc.geyser.api.item.custom.v2;
 
 import org.checkerframework.common.returnsreceiver.qual.This;
 import org.geysermc.geyser.api.GeyserApi;
-import org.geysermc.geyser.api.util.Identifier;
 import org.jspecify.annotations.Nullable;
 
 /**
@@ -56,7 +55,7 @@ public interface CustomItemIcons {
     };
 
     /**
-     * Gets the item's default icon.
+     * Gets the item's default icon, if it was manually set.
      *
      * @return the item's default icon
      * @since 2.12.0
@@ -64,77 +63,12 @@ public interface CustomItemIcons {
     @Nullable String defaultIcon();
 
     /**
-     * Gets the item's dyed icon.
+     * Gets the item's dyed icon, if it was manually set.
      *
      * @return the item's dyed icon
      * @since 2.12.0
      */
     @Nullable String dyedIcon();
-
-    /**
-     * Resolves this instance's icons for the given item's Bedrock identifier.
-     *
-     * <p>If no default icon is set, then the Bedrock identifier is used,
-     * the namespace separator ({@code :}) replaced with {@code .} and the path separators ({@code /}) replaced with {@code _}. For example:</p>
-     *
-     * <p>{@code my_datapack:my_custom_item} => {@code my_datapack.my_custom_item}</p>
-     * <p>{@code my_datapack:cool_items/cool_item_1} => {@code my_datapack.cool_items_cool_item_1}</p>
-     *
-     * <p>If no dyed icon is set, the computed default icon is used.</p>
-     *
-     * @param bedrockIdentifier the item's Bedrock identifier
-     * @return this instance's icons, resolved for the given item's Bedrock identifier
-     * @since 2.12.0
-     */
-    default Resolved resolve(Identifier bedrockIdentifier) {
-        String defaultIcon = defaultIcon() == null ? bedrockIdentifier.toString().replace(":", ".").replace("/", "_") : defaultIcon();
-        String dyedIcon = dyedIcon() == null ? defaultIcon : dyedIcon();
-
-        // For IDEA warnings
-        assert defaultIcon != null;
-        assert dyedIcon != null;
-        return new Resolved() {
-            @Override
-            public String defaultIcon() {
-                return defaultIcon;
-            }
-
-            @Override
-            public String dyedIcon() {
-                return dyedIcon;
-            }
-        };
-    }
-
-    /**
-     * Interface extending {@link CustomItemIcons} and marking that the icons are <em>resolved</em> using the item's Bedrock identifier:
-     * this indicates that {@link CustomItemIcons#defaultIcon()} and {@link CustomItemIcons#dyedIcon()} will never return null.
-     *
-     * @since 2.12.0
-     */
-    interface Resolved extends CustomItemIcons {
-
-        /**
-         * {@inheritDoc}
-         */
-        @Override
-        String defaultIcon();
-
-        /**
-         * {@inheritDoc}
-         */
-        @Override
-        String dyedIcon();
-
-        /**
-         * @throws UnsupportedOperationException always, as you cannot resolve an already resolved {@link CustomItemIcons} instance
-         * @since 2.12.0
-         */
-        @Override
-        default Resolved resolve(Identifier bedrockIdentifier) {
-            throw new UnsupportedOperationException("Cannot resolve an already resolved CustomItemIcons instance");
-        }
-    }
 
     /**
      * Creates a new builder for a {@link CustomItemIcons} instance.

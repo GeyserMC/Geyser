@@ -43,12 +43,11 @@ import org.jetbrains.annotations.NotNull;
 import java.util.HashSet;
 import java.util.Locale;
 import java.util.Objects;
-import java.util.OptionalInt;
 import java.util.Set;
 
 public record GeyserCustomItemBedrockOptions(@NonNull CustomItemIcons iconData, boolean allowOffhand, boolean displayHandheld, int protectionValue,
                                              @NonNull CreativeCategory creativeCategory, @Nullable String creativeGroup, @NonNull Set<Identifier> tags,
-                                             OptionalInt dyeable) implements CustomItemBedrockOptions {
+                                             @Nullable Integer dyeable) implements CustomItemBedrockOptions {
 
     @Override
     public int protectionValue() {
@@ -162,7 +161,7 @@ public record GeyserCustomItemBedrockOptions(@NonNull CustomItemIcons iconData, 
                 throw new IllegalStateException("Set a dyed icon but item is not marked as dyeable");
             }
             return new GeyserCustomItemBedrockOptions(iconData, allowOffhand, displayHandheld, protectionValue,
-                creativeCategory, creativeGroup, Set.copyOf(tags), dyeableColor == null ? OptionalInt.empty() : OptionalInt.of(dyeableColor));
+                creativeCategory, creativeGroup, Set.copyOf(tags), dyeableColor);
         }
     }
 }

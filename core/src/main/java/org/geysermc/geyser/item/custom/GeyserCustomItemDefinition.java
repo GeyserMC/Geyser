@@ -34,7 +34,6 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.api.item.custom.CustomRenderOffsets;
 import org.geysermc.geyser.api.item.custom.v2.CustomItemBedrockOptions;
 import org.geysermc.geyser.api.item.custom.v2.CustomItemDefinition;
-import org.geysermc.geyser.api.item.custom.v2.CustomItemIcons;
 import org.geysermc.geyser.api.item.custom.v2.component.ItemDataComponent;
 import org.geysermc.geyser.api.item.custom.v2.component.ItemDataComponentMap;
 import org.geysermc.geyser.api.predicate.MinecraftPredicate;
@@ -57,7 +56,7 @@ public class GeyserCustomItemDefinition implements CustomItemDefinition {
     private final @NonNull Identifier bedrockIdentifier;
     private final @NonNull String displayName;
     private final @NonNull Identifier model;
-    private final CustomItemIcons.@NonNull Resolved iconData;
+    private final @NonNull String icon;
     private final @NonNull List<MinecraftPredicate<? super ItemPredicateContext>> predicates;
     private final PredicateStrategy predicateStrategy;
     private final int priority;
@@ -75,7 +74,10 @@ public class GeyserCustomItemDefinition implements CustomItemDefinition {
         this.bedrockIdentifier = builder.bedrockIdentifier;
         this.displayName = builder.displayName;
         this.model = builder.model;
-        this.iconData = builder.bedrockOptions.iconData().resolve(this.bedrockIdentifier);
+
+        String setIcon = builder.bedrockOptions.iconData().defaultIcon();
+        icon = setIcon == null ? bedrockIdentifier().toString().replaceAll(":", ".").replaceAll("/", "_") : setIcon;
+
         this.predicates = List.copyOf(builder.predicates);
         this.predicateStrategy = builder.predicateStrategy;
         this.priority = builder.priority;
@@ -103,8 +105,8 @@ public class GeyserCustomItemDefinition implements CustomItemDefinition {
     }
 
     @Override
-    public CustomItemIcons.Resolved iconData() {
-        return iconData;
+    public @NonNull String icon() {
+        return icon;
     }
 
     @Override

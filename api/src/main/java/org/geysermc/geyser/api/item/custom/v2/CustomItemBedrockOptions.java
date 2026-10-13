@@ -34,7 +34,6 @@ import org.geysermc.geyser.api.util.Identifier;
 import org.jspecify.annotations.Nullable;
 
 import java.awt.Color;
-import java.util.OptionalInt;
 import java.util.Set;
 
 /**
@@ -120,14 +119,14 @@ public interface CustomItemBedrockOptions {
     Set<Identifier> tags();
 
     /**
-     * Returns the default color of the item if it is dyeable, and if not, an empty optional.
+     * Returns the default color of the item if it is dyeable, and if not, {@code null}.
      *
      * <p>The client allows dyeing dyeable items using any of the vanilla dyes in a crafting table.</p>
      *
-     * @return the default color of the item if it is dyeable, and if not, an empty optional
+     * @return the default color of the item if it is dyeable, and if not, {@code null}
      * @since 2.12.0
      */
-    OptionalInt dyeable();
+    @Nullable Integer dyeable();
 
     /**
      * Creates a new builder for custom item bedrock options.
