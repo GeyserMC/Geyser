@@ -163,6 +163,7 @@ import org.geysermc.geyser.level.BedrockDimension;
 import org.geysermc.geyser.level.JavaDimension;
 import org.geysermc.geyser.level.gamerule.GameRuleHandler;
 import org.geysermc.geyser.level.physics.CollisionManager;
+import org.geysermc.geyser.network.JoinAddress;
 import org.geysermc.geyser.network.bedrock.GameProtocol;
 import org.geysermc.geyser.network.java.LocalSession;
 import org.geysermc.geyser.registry.Registries;
@@ -1780,16 +1781,18 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
 
     @Override
     public @NonNull String joinAddress() {
-        String combined = Optional.ofNullable(clientData).orElseThrow().getServerAddress();
-        int index = combined.lastIndexOf(":");
-        return combined.substring(0, index);
+        return parsedJoinAddress().host();
     }
 
     @Override
     public @Positive int joinPort() {
+        return parsedJoinAddress().port();
+    }
+
+    private JoinAddress parsedJoinAddress() {
+        // NetherNet clients send the signaling URL they used, e.g. http://example.com:19132
         String combined = Optional.ofNullable(clientData).orElseThrow().getServerAddress();
-        int index = combined.lastIndexOf(":");
-        return Integer.parseInt(combined.substring(index + 1));
+        return JoinAddress.parse(combined, geyser.config().bedrock().port());
     }
 
     @Override

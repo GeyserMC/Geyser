@@ -25,6 +25,7 @@
 
 package org.geysermc.geyser.network;
 
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.protocol.bedrock.BedrockPong;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.command.defaults.ConnectionTestCommand;
@@ -71,9 +72,10 @@ public final class BedrockPingHandler {
     /**
      * @param serverId the server ID to advertise; the RakNet GUID when answering a RakNet ping
      * @param inetSocketAddress the address the query came from
+     * @param hostname the hostname the client queried, such as an HTTP Host header; null if unknown, e.g. for RakNet pings
      * @return the pong to answer the query with
      */
-    public BedrockPong onQuery(long serverId, InetSocketAddress inetSocketAddress) {
+    public BedrockPong onQuery(long serverId, InetSocketAddress inetSocketAddress, @Nullable String hostname) {
         // TODO probably pointless now with nethernet?
         if (geyser.config().debugMode() && PRINT_DEBUG_PINGS) {
             String ip = geyser.config().logPlayerIpAddresses() ? inetSocketAddress.toString() : "<IP address withheld>";
@@ -86,7 +88,9 @@ public final class BedrockPingHandler {
         if (config.motd().passthroughMotd() || config.motd().passthroughPlayerCounts()) {
             IGeyserPingPassthrough pingPassthrough = geyser.getBootstrap().getGeyserPingPassthrough();
             if (pingPassthrough != null) {
-                pingInfo = pingPassthrough.getPingInformation(inetSocketAddress);
+                InetSocketAddress virtualHost = hostname == null || hostname.isBlank() ? null
+                    : JoinAddress.parse(hostname, config.bedrock().port()).toUnresolved();
+                pingInfo = pingPassthrough.getPingInformation(inetSocketAddress, virtualHost);
             }
         }
 

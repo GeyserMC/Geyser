@@ -132,11 +132,6 @@ public final class NetherNetServer implements EventRegistrar {
 
     public void start() {
         GeyserConfig.SignalingConfig.Mode mode = config.mode();
-        if (mode == GeyserConfig.SignalingConfig.Mode.NONE) {
-            logger().warning("Signaling \"mode\" is set to \"none\", so Bedrock players cannot join over NetherNet. " +
-                "Set it to \"builtin\" in the \"signaling\" section of the config to allow them.");
-            return;
-        }
         boolean inbuilt = mode.builtin();
         boolean provider = mode.nxs();
 
@@ -232,10 +227,12 @@ public final class NetherNetServer implements EventRegistrar {
                     .setTokenTrust(geyser.config().advanced().bedrock().validateBedrockLogin()
                             ? TokenTrust.MINECRAFT_AUTH : TokenTrust.ANY)
                     .setMotdProvider((host, remoteAddress, client) -> {
-                        BedrockPong pong = pingResponder.onQuery(GUID, remoteAddress);
+                        // host is the HTTP Host header the client sent, which may be absent
+                        BedrockPong pong = pingResponder.onQuery(GUID, remoteAddress, host);
 
                         return new PongData.Builder()
                                 .setServerName(pong.motd())
+                                .setLevelName(pong.subMotd())
                                 .setProtocol(pong.protocolVersion())
                                 .setVersion(pong.version())
                                 .setPlayerCount(pong.playerCount())
@@ -427,8 +424,8 @@ public final class NetherNetServer implements EventRegistrar {
     }
 
     private ServerStatus collectServerStatus() {
-        BedrockPong pong = pingResponder.onQuery(GUID, new InetSocketAddress("127.0.0.1", 0));
-        return GeyserStatusCollector.snapshot(pong, "", 0);
+        BedrockPong pong = pingResponder.onQuery(GUID, new InetSocketAddress("127.0.0.1", 0), null);
+        return GeyserStatusCollector.snapshot(pong, 0);
     }
 
     /**
