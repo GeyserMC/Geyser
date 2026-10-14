@@ -453,7 +453,7 @@ public class GeyserImpl implements GeyserApi, EventRegistrar {
                 config.bedrock().signaling().mode(mode);
                 logger.info("Signaling mode set from system property: " + mode.name().toLowerCase(Locale.ROOT));
             } catch (IllegalArgumentException e) {
-                logger.error("Invalid signaling mode from system property: " + signalingModeProperty + "! Use \"builtin\", \"hybrid\", \"nxs\" or \"none\". Defaulting to configured signaling mode.");
+                logger.error("Invalid signaling mode from system property: " + signalingModeProperty + "! Use \"builtin\", \"hybrid\" or \"nxs\". Defaulting to configured signaling mode.");
             }
         }
 
