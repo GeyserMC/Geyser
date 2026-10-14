@@ -181,7 +181,7 @@ public interface GeyserConfig {
                 return List.of();
             }
 
-            @Comment("Settings for serving built-in signaling over HTTPS. HTTP will continue working on the same port.")
+            @Comment("Settings for serving built-in signaling over HTTPS. When configured, HTTP will be rejected.")
             HttpsConfig https();
 
             @ConfigSerializable
