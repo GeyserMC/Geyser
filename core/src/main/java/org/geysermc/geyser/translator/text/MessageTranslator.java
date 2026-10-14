@@ -70,6 +70,7 @@ public class MessageTranslator {
     private static final GsonComponentSerializer GSON_SERIALIZER;
 
     private static final LegacyComponentSerializer BEDROCK_SERIALIZER;
+    private static final LegacyComponentSerializer NO_COLOR_SERIALIZER;
     private static final String BEDROCK_COLORS;
     private static final String BEDROCK_DECORATIONS;
 
@@ -156,6 +157,16 @@ public class MessageTranslator {
                 .flattener(flattener)
                 .build();
 
+        NO_COLOR_SERIALIZER = LegacyComponentSerializer.legacySection().toBuilder()
+            .formats(List.of(
+                CharacterAndFormat.OBFUSCATED,
+                CharacterAndFormat.BOLD,
+                CharacterAndFormat.ITALIC,
+                CharacterAndFormat.WHITE
+            ))
+            .flattener(flattener)
+            .build();
+
         // Cache all the legacy character codes and formats
 
         StringBuilder colorBuilder = new StringBuilder();
@@ -176,6 +187,14 @@ public class MessageTranslator {
         if (BEDROCK_COLORS.length() + BEDROCK_DECORATIONS.length() > 32) {
             throw new AssertionError("Cannot exceed 32 characters due to int-limit on formatting flags");
         }
+    }
+
+    public static String convertNoColorMessage(Component message, String locale) {
+        // Translate the component
+        message = RENDERER.render(message, locale);
+
+        // Wait what, color? Yes! LegacyComponentSerializer NSEEs with no colors present, so we add white and remove!
+        return NO_COLOR_SERIALIZER.serialize(message).replace("" + LegacyComponentSerializer.SECTION_CHAR + CharacterAndFormat.WHITE.character(), "");
     }
 
     /**

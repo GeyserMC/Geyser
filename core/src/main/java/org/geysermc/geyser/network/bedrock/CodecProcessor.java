@@ -30,12 +30,14 @@ import org.cloudburstmc.protocol.bedrock.codec.BedrockCodec;
 import org.cloudburstmc.protocol.bedrock.codec.BedrockCodecHelper;
 import org.cloudburstmc.protocol.bedrock.codec.BedrockPacketSerializer;
 import org.cloudburstmc.protocol.bedrock.codec.v1001.serializer.BossEventSerializer_v1001;
+import org.cloudburstmc.protocol.bedrock.codec.v1001.serializer.DebugDrawerSerializer_v1001;
 import org.cloudburstmc.protocol.bedrock.codec.v1001.serializer.InventoryContentSerializer_v1001;
 import org.cloudburstmc.protocol.bedrock.codec.v1001.serializer.MobArmorEquipmentSerializer_v1001;
 import org.cloudburstmc.protocol.bedrock.codec.v2168.Bedrock_v2168;
 import org.cloudburstmc.protocol.bedrock.codec.v2168.serializer.MovePlayerSerializer_v2168;
 import org.cloudburstmc.protocol.bedrock.codec.v2168.serializer.PlayerSkinSerializer_v2168;
 import org.cloudburstmc.protocol.bedrock.codec.v2193.serializer.BossEventSerializer_v2193;
+import org.cloudburstmc.protocol.bedrock.codec.v2193.serializer.DebugDrawerSerializer_v2193;
 import org.cloudburstmc.protocol.bedrock.codec.v291.serializer.MobEquipmentSerializer_v291;
 import org.cloudburstmc.protocol.bedrock.codec.v291.serializer.MoveEntityAbsoluteSerializer_v291;
 import org.cloudburstmc.protocol.bedrock.codec.v291.serializer.PlayerHotbarSerializer_v291;
@@ -50,6 +52,7 @@ import org.cloudburstmc.protocol.bedrock.codec.v748.serializer.InventorySlotSeri
 import org.cloudburstmc.protocol.bedrock.codec.v975.serializer.InventorySlotSerializer_v975;
 import org.cloudburstmc.protocol.bedrock.codec.v975.serializer.MobEquipmentSerializer_v975;
 import org.cloudburstmc.protocol.bedrock.codec.v975.serializer.MoveEntityAbsoluteSerializer_v975;
+import org.cloudburstmc.protocol.bedrock.data.debugshape.DebugShape;
 import org.cloudburstmc.protocol.bedrock.packet.AnvilDamagePacket;
 import org.cloudburstmc.protocol.bedrock.packet.BedrockPacket;
 import org.cloudburstmc.protocol.bedrock.packet.BossEventPacket;
@@ -60,6 +63,7 @@ import org.cloudburstmc.protocol.bedrock.packet.ClientToServerHandshakePacket;
 import org.cloudburstmc.protocol.bedrock.packet.CodeBuilderSourcePacket;
 import org.cloudburstmc.protocol.bedrock.packet.CraftingEventPacket;
 import org.cloudburstmc.protocol.bedrock.packet.CreatePhotoPacket;
+import org.cloudburstmc.protocol.bedrock.packet.DebugDrawerPacket;
 import org.cloudburstmc.protocol.bedrock.packet.DebugInfoPacket;
 import org.cloudburstmc.protocol.bedrock.packet.EditorNetworkPacket;
 import org.cloudburstmc.protocol.bedrock.packet.EmoteListPacket;
@@ -297,6 +301,41 @@ public class CodecProcessor {
         }
     };
 
+    // TODO remove when CB protocol is updated
+    private static final BedrockPacketSerializer<DebugDrawerPacket> DEBUG_DRAWER_SERIALIZER_V1001 = new DebugDrawerSerializer_v1001() {
+        @Override
+        protected void writeCommonShapeData(ByteBuf buffer, BedrockCodecHelper helper, DebugShape shape) {
+            VarInts.writeUnsignedLong(buffer, shape.getId());
+            helper.writeOptionalNull(buffer, shape.getType(), (buf, type) -> buf.writeByte(type.ordinal()));
+            helper.writeOptionalNull(buffer, shape.getPosition(), WRITE_VECTOR3F);
+            helper.writeOptionalNull(buffer, shape.getScale(), ByteBuf::writeFloatLE);
+            helper.writeOptionalNull(buffer, shape.getRotation(), WRITE_VECTOR3F);
+            helper.writeOptionalNull(buffer, shape.getTotalTimeLeft(), ByteBuf::writeFloatLE);
+            helper.writeOptionalNull(buffer, shape.getMaximumRenderDistance(), ByteBuf::writeFloatLE); // new
+            helper.writeOptionalNull(buffer, shape.getColor(), WRITE_COLOR);
+
+            helper.writeOptionalNull(buffer, shape.getDimension(), VarInts::writeInt);
+            helper.writeOptionalNull(buffer, shape.getAttachedToEntityId(), VarInts::writeLong);
+        }
+    };
+
+    private static final BedrockPacketSerializer<DebugDrawerPacket> DEBUG_DRAWER_SERIALIZER_V2193 = new DebugDrawerSerializer_v2193() {
+        @Override
+        protected void writeCommonShapeData(ByteBuf buffer, BedrockCodecHelper helper, DebugShape shape) {
+            VarInts.writeUnsignedLong(buffer, shape.getId());
+            helper.writeOptionalNull(buffer, shape.getType(), (buf, type) -> buf.writeByte(type.ordinal()));
+            helper.writeOptionalNull(buffer, shape.getPosition(), WRITE_VECTOR3F);
+            helper.writeOptionalNull(buffer, shape.getScale(), ByteBuf::writeFloatLE);
+            helper.writeOptionalNull(buffer, shape.getRotation(), WRITE_VECTOR3F);
+            helper.writeOptionalNull(buffer, shape.getTotalTimeLeft(), ByteBuf::writeFloatLE);
+            helper.writeOptionalNull(buffer, shape.getMaximumRenderDistance(), ByteBuf::writeFloatLE); // new
+            helper.writeOptionalNull(buffer, shape.getColor(), WRITE_COLOR);
+
+            helper.writeOptionalNull(buffer, shape.getDimension(), VarInts::writeInt);
+            helper.writeOptionalNull(buffer, shape.getAttachedToEntityId(), VarInts::writeLong);
+        }
+    };
+
     public static void updateCodec(UpstreamSession upstreamSession, String version) {
         // Support all older 1.26.4x builds
         switch (version) {
@@ -386,8 +425,10 @@ public class CodecProcessor {
 
         if (codec.getProtocolVersion() < 2193) { // 26.50
             codecBuilder.updateSerializer(BossEventPacket.class, BOSS_EVENT_SERIALIZER_V1001);
+            codecBuilder.updateSerializer(DebugDrawerPacket.class, DEBUG_DRAWER_SERIALIZER_V1001);
         } else {
             codecBuilder.updateSerializer(BossEventPacket.class, BOSS_EVENT_SERIALIZER_V2193);
+            codecBuilder.updateSerializer(DebugDrawerPacket.class, DEBUG_DRAWER_SERIALIZER_V2193);
         }
 
         return codecBuilder.build();
