@@ -149,7 +149,7 @@ public class SingleDefinitionReader implements ItemDefinitionReader {
             if (legacyIcon != null) {
                 throw new InvalidCustomMappingsFileException("reading icon data", "bedrock options must specify 'icon' or 'icons', not both", context);
             }
-            builder.iconData(readCustomItemIcons(iconData, baseContext));
+            builder.icons(readCustomItemIcons(iconData, baseContext));
         } else {
             MappingsUtil.readIfPresent(bedrockOptions, "icon", builder::icon, NodeReader.NON_EMPTY_STRING, context);
         }

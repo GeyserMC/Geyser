@@ -94,8 +94,8 @@ public record GeyserCustomItemBedrockOptions(@NonNull CustomItemIcons icons, boo
         private @Nullable Integer dyeableColor;
 
         @Override
-        public Builder iconData(CustomItemIcons iconData) {
-            this.iconData = iconData;
+        public Builder icons(CustomItemIcons icons) {
+            this.iconData = icons;
             return this;
         }
 

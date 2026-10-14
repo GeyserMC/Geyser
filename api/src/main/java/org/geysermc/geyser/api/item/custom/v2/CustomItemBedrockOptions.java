@@ -43,20 +43,20 @@ import java.util.Set;
 public interface CustomItemBedrockOptions {
 
     /**
-     * Gets the item's icon, if it was manually set.
+     * Gets the item's icon, if it was manually set. When not present, the item's Bedrock identifier is used.
      *
      * @return the item's icon
      * @see CustomItemIcons#defaultIcon()
      * @deprecated since 2.12.0: use {@link CustomItemBedrockOptions#icons()} and {@link CustomItemIcons#defaultIcon()} instead
      * @since 2.9.3
      */
-    @Deprecated
+    @Deprecated(since = "2.12.0")
     default @Nullable String icon() {
         return icons().defaultIcon();
     }
 
     /**
-     * Gets the item's icon data.
+     * Gets the item's icon data. Defaults to {@link CustomItemIcons#EMPTY} if not manually set using {@link CustomItemBedrockOptions.Builder#icons(CustomItemIcons)}.
      *
      * @return the item's icon data
      * @see CustomItemIcons
@@ -152,17 +152,17 @@ public interface CustomItemBedrockOptions {
          * @param icon the item's default icon
          * @see CustomItemIcons#defaultIcon()
          * @see CustomItemIcons.Builder#defaultIcon(String)
-         * @see Builder#iconData(CustomItemIcons)
+         * @see Builder#icons(CustomItemIcons)
          * @return this builder
          * @since 2.9.3
          */
         @This
         default Builder icon(@Nullable String icon) {
-            return iconData(CustomItemIcons.builder().defaultIcon(icon));
+            return icons(CustomItemIcons.builder().defaultIcon(icon));
         }
 
         /**
-         * Shorthand method for {@link Builder#iconData(CustomItemIcons)}, sets this item's icon data.
+         * Shorthand method for {@link Builder#icons(CustomItemIcons)}, sets this item's icon data.
          *
          * @param builder the {@link CustomItemIcons.Builder} instance
          * @see CustomItemIcons
@@ -170,20 +170,20 @@ public interface CustomItemBedrockOptions {
          * @since 2.12.0
          */
         @This
-        default Builder iconData(CustomItemIcons.Builder builder) {
-            return iconData(builder.build());
+        default Builder icons(CustomItemIcons.Builder builder) {
+            return icons(builder.build());
         }
 
         /**
          * Sets this item's icon data.
          *
-         * @param iconData the {@link CustomItemIcons} instance
+         * @param icons the {@link CustomItemIcons} instance
          * @see CustomItemIcons
          * @return this builder
          * @since 2.12.0
          */
         @This
-        Builder iconData(CustomItemIcons iconData);
+        Builder icons(CustomItemIcons icons);
 
         /**
          * Sets if the item is allowed to be put into the offhand.

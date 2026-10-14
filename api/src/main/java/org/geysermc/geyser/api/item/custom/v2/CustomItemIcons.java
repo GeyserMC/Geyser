@@ -55,7 +55,7 @@ public interface CustomItemIcons {
     };
 
     /**
-     * Gets the item's default icon, if it was manually set.
+     * Gets the item's default icon, if it was manually set. When not present, the item's Bedrock identifier is used.
      *
      * @return the item's default icon
      * @since 2.12.0
@@ -63,7 +63,7 @@ public interface CustomItemIcons {
     @Nullable String defaultIcon();
 
     /**
-     * Gets the item's dyed icon, if it was manually set.
+     * Gets the item's dyed icon, if it was manually set. When not present, the item's default icon is used.
      *
      * @return the item's dyed icon
      * @since 2.12.0
