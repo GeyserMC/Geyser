@@ -5,12 +5,12 @@ import org.geysermc.geyser.text.AsteriskSerializer;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.spongepowered.configurate.CommentedConfigurationNode;
-import org.spongepowered.configurate.ConfigurationOptions;
 import org.spongepowered.configurate.interfaces.InterfaceDefaultOptions;
 import org.spongepowered.configurate.yaml.YamlConfigurationLoader;
 
 import java.io.BufferedReader;
 import java.io.StringReader;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -24,7 +24,9 @@ class DumpSecretsTest {
         mode: nxs
         nxs:
           token: yaml-secret
+          advertise-addresses: ["198.51.100.2:19133"]
         builtin:
+          advertise-addresses: ["198.51.100.1", "192.168.1.5", "::"]
           https:
             certificate: cert.pem
             private-key: key.pem
@@ -43,12 +45,7 @@ class DumpSecretsTest {
             .defaultOptions(InterfaceDefaultOptions::addTo)
             .build().load().get(GeyserConfig.SignalingConfig.class);
 
-        ConfigurationOptions options = InterfaceDefaultOptions.addTo(ConfigurationOptions.defaults(), builder ->
-                builder.addProcessor(AsteriskSerializer.Asterisk.class, String.class, AsteriskSerializer.CONFIGURATE_SERIALIZER)
-                    .addProcessor(AsteriskSerializer.Secret.class, String.class, AsteriskSerializer.CONFIGURATE_SECRET))
-            .shouldCopyDefaults(false);
-
-        CommentedConfigurationNode node = CommentedConfigurationNode.root(options);
+        CommentedConfigurationNode node = CommentedConfigurationNode.root(AsteriskSerializer.dumpOptions());
         node.set(config);
         return node;
     }
@@ -82,5 +79,23 @@ class DumpSecretsTest {
         // Paths are not secret and are worth having when reading a dump for support
         assertEquals("cert.pem", node.node("builtin", "https", "certificate").getString());
         assertEquals("key.pem", node.node("builtin", "https", "private-key").getString());
+    }
+
+    @Test
+    void censorsPublicAdvertisedAddresses() throws Exception {
+        CommentedConfigurationNode node = dumped();
+
+        // Local and wildcard entries stay readable, as with the bind address
+        assertEquals(List.of("***", "192.168.1.5", "::"), node.node("builtin", "advertise-addresses").getList(String.class));
+        assertEquals(List.of("***"), node.node("nxs", "advertise-addresses").getList(String.class));
+    }
+
+    @Test
+    void showsAdvertisedAddressesInAFullDump() throws Exception {
+        AsteriskSerializer.showSensitive = true;
+        CommentedConfigurationNode node = dumped();
+
+        assertEquals(List.of("198.51.100.1", "192.168.1.5", "::"), node.node("builtin", "advertise-addresses").getList(String.class));
+        assertEquals(List.of("198.51.100.2:19133"), node.node("nxs", "advertise-addresses").getList(String.class));
     }
 }
