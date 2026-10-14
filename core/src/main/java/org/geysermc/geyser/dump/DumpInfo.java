@@ -56,8 +56,6 @@ import org.geysermc.geyser.util.FileUtils;
 import org.geysermc.geyser.util.WebUtils;
 import org.spongepowered.configurate.CommentedConfigurationNode;
 import org.spongepowered.configurate.ConfigurationNode;
-import org.spongepowered.configurate.ConfigurationOptions;
-import org.spongepowered.configurate.interfaces.InterfaceDefaultOptions;
 import org.spongepowered.configurate.serialize.SerializationException;
 
 import java.io.File;
@@ -110,12 +108,7 @@ public class DumpInfo {
 
         try {
             // Workaround for JsonAdapter not being allowed on methods
-            ConfigurationOptions options = InterfaceDefaultOptions.addTo(ConfigurationOptions.defaults(), builder ->
-                    builder.addProcessor(AsteriskSerializer.Asterisk.class, String.class, AsteriskSerializer.CONFIGURATE_SERIALIZER)
-                            .addProcessor(AsteriskSerializer.Secret.class, String.class, AsteriskSerializer.CONFIGURATE_SECRET))
-                .shouldCopyDefaults(false);
-
-            ConfigurationNode configNode = CommentedConfigurationNode.root(options);
+            ConfigurationNode configNode = CommentedConfigurationNode.root(AsteriskSerializer.dumpOptions());
             configNode.set(geyser.config());
             this.config = toGson(configNode);
         } catch (SerializationException e) {
