@@ -26,7 +26,7 @@
 package org.geysermc.geyser.item.components.resolvable;
 
 import org.checkerframework.checker.nullness.qual.Nullable;
-import org.geysermc.geyser.session.cache.registry.JavaRegistryProvider;
+import org.geysermc.geyser.registry.java.JavaRegistryProvider;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
 

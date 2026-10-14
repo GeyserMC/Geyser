@@ -27,46 +27,19 @@ package org.geysermc.geyser.util;
 
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.inventory.GeyserItemStack;
-import org.geysermc.geyser.inventory.item.BedrockEnchantment;
 import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.item.enchantment.Enchantment;
 import org.geysermc.geyser.item.enchantment.EnchantmentComponent;
 import org.geysermc.geyser.item.type.FishingRodItem;
 import org.geysermc.geyser.item.type.Item;
-import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.geyser.session.cache.registry.JavaRegistries;
+import org.geysermc.geyser.registry.java.JavaRegistries;
+import org.geysermc.geyser.registry.java.JavaRegistryProvider;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentTypes;
-import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.ItemEnchantments;
-
-import java.util.Map;
 
 public final class ItemUtils {
 
-    /**
-     * Cheap hack. Proper solution is to read the enchantment effects.
-     */
-    @Deprecated
-    public static int getEnchantmentLevel(GeyserSession session, @Nullable DataComponents components, BedrockEnchantment bedrockEnchantment) {
-        if (components == null) {
-            return 0;
-        }
-
-        ItemEnchantments enchantmentData = components.get(DataComponentTypes.ENCHANTMENTS);
-        if (enchantmentData == null) {
-            return 0;
-        }
-
-        for (Map.Entry<Integer, Integer> entry : enchantmentData.getEnchantments().entrySet()) {
-            Enchantment enchantment = session.getRegistryCache().registry(JavaRegistries.ENCHANTMENT).byId(entry.getKey());
-            if (enchantment.bedrockEnchantment() == bedrockEnchantment) {
-                return entry.getValue();
-            }
-        }
-        return 0;
-    }
-
-    public static boolean hasEffect(GeyserSession session, @Nullable GeyserItemStack itemStack, EnchantmentComponent component) {
+    public static boolean hasEffect(JavaRegistryProvider registries, @Nullable GeyserItemStack itemStack, EnchantmentComponent component) {
         if (itemStack == null || itemStack.isEmpty()) {
             return false;
         }
@@ -77,7 +50,7 @@ public final class ItemUtils {
         }
 
         for (Integer id : enchantmentData.getEnchantments().keySet()) {
-            Enchantment enchantment = session.getRegistryCache().registry(JavaRegistries.ENCHANTMENT).byId(id);
+            Enchantment enchantment = JavaRegistries.ENCHANTMENT.getOrThrow(registries, id);
             if (enchantment.effects().contains(component)) {
                 return true;
             }

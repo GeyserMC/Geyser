@@ -39,7 +39,8 @@ public enum ConsumeEffectType implements EnumMapDispatchHasher<ConsumeEffectType
         .accept("effects", RegistryHasher.EFFECT_ID.holderSet(), ConsumeEffect.RemoveEffects::effects)),
     CLEAR_ALL_EFFECTS(ConsumeEffect.ClearAllEffects.class),
     TELEPORT_RANDOMLY(ConsumeEffect.TeleportRandomly.class, builder -> builder
-        .optional("diameter", MinecraftHasher.FLOAT, ConsumeEffect.TeleportRandomly::diameter, 16.0F)),
+        .optional("diameter", MinecraftHasher.FLOAT, ConsumeEffect.TeleportRandomly::diameter, 16.0F)
+        .optional("directional_particles", MinecraftHasher.BOOL, ConsumeEffect.TeleportRandomly::directionalParticles, true)),
     PLAY_SOUND(ConsumeEffect.PlaySound.class, builder -> builder
         .accept("sound", RegistryHasher.SOUND_EVENT, ConsumeEffect.PlaySound::sound));
 

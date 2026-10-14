@@ -40,9 +40,9 @@ import org.geysermc.geyser.inventory.item.Potion;
 import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.item.hashing.data.FireworkExplosionShape;
 import org.geysermc.geyser.item.type.Item;
-import org.geysermc.geyser.registry.Registries;
+import org.geysermc.geyser.registry.java.BuiltInJavaRegistries;
 import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.geyser.session.cache.registry.JavaRegistries;
+import org.geysermc.geyser.registry.java.JavaRegistries;
 import org.geysermc.geyser.translator.item.BedrockItemBuilder;
 import org.geysermc.geyser.translator.item.ItemTranslator;
 import org.geysermc.geyser.translator.level.block.entity.SkullBlockEntityTranslator;
@@ -56,11 +56,13 @@ import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponen
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.Fireworks;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.ItemEnchantments;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.PotDecorations;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.PotionContents;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.Function;
 
 /**
@@ -98,18 +100,18 @@ public final class ItemStackParser {
             return Items.AIR_ID;
         }
 
-        Item item = Registries.JAVA_ITEM_IDENTIFIERS.get(identifier);
-        if (item == null) {
+        Optional<Item> item = BuiltInJavaRegistries.ITEM.get(MinecraftKey.key(identifier));
+        if (item.isEmpty()) {
             GeyserImpl.getInstance().getLogger().warning("Received unknown item ID " + identifier + " whilst parsing NBT item stack!");
             return Items.AIR_ID;
         }
-        return item.javaId();
+        return item.get().javaId();
     }
 
     private static ItemEnchantments parseEnchantments(GeyserSession session, NbtMap map) {
         Int2IntMap enchantments = new Int2IntOpenHashMap(map.size());
         for (Map.Entry<String, Object> entry : map.entrySet()) {
-            enchantments.put(JavaRegistries.ENCHANTMENT.networkId(session, MinecraftKey.key(entry.getKey())), (int) entry.getValue());
+            enchantments.put(JavaRegistries.ENCHANTMENT.getIdOrThrow(session.javaRegistries(), MinecraftKey.key(entry.getKey())), (int) entry.getValue());
         }
         return new ItemEnchantments(enchantments);
     }
@@ -128,7 +130,7 @@ public final class ItemStackParser {
                 Object pattern = layer.get("pattern");
                 Holder<BannerPatternLayer.BannerPattern> patternHolder;
                 if (pattern instanceof String id) {
-                    patternHolder = Holder.ofId(JavaRegistries.BANNER_PATTERN.networkId(session, MinecraftKey.key(id)));
+                    patternHolder = JavaRegistries.BANNER_PATTERN.wrapOrThrow(session, MinecraftKey.key(id));
                 } else {
                     NbtMap inline = (NbtMap) pattern;
                     Key assetId = MinecraftKey.key(inline.getString("asset_id"));
@@ -171,10 +173,13 @@ public final class ItemStackParser {
                 hasTrail, hasTwinkle);
         });
         registerSimple(DataComponentTypes.ITEM_MODEL, String.class, MinecraftKey::key);
-        registerSimple(DataComponentTypes.MAP_COLOR, Integer.class);
-        registerSimple(DataComponentTypes.POT_DECORATIONS, List.class, list -> list.stream()
-            .map(item -> javaItemIdentifierToNetworkId((String) item))
-            .toList());
+        register(DataComponentTypes.POT_DECORATIONS, NbtMap.class, (session, map) -> {
+            ItemStack back = parseItemStack(session, map.getCompound("back", null), null);
+            ItemStack left = parseItemStack(session, map.getCompound("left", null), null);
+            ItemStack right = parseItemStack(session, map.getCompound("right", null), null);
+            ItemStack front = parseItemStack(session, map.getCompound("front", null), null);
+            return new PotDecorations(back, left, right, front);
+        });
         register(DataComponentTypes.POTION_CONTENTS, NbtMap.class, (session, map) -> {
             Potion potion = Potion.getByJavaIdentifier(map.getString("potion"));
             int customColour = map.getInt("custom_color", -1);
@@ -234,9 +239,9 @@ public final class ItemStackParser {
         return patch;
     }
 
-    public static ItemStack parseItemStack(GeyserSession session, @Nullable NbtMap map) {
+    public static @Nullable ItemStack parseItemStack(GeyserSession session, @Nullable NbtMap map, @Nullable ItemStack fallback) {
         if (map == null) {
-            return new ItemStack(Items.AIR_ID);
+            return fallback;
         }
 
         try {
@@ -247,7 +252,11 @@ public final class ItemStackParser {
         } catch (Exception exception) {
             GeyserImpl.getInstance().getLogger().error("Failed to parse item stack from NBT data!", exception);
         }
-        return new ItemStack(Items.AIR_ID);
+        return fallback;
+    }
+
+    public static ItemStack parseItemStack(GeyserSession session, @Nullable NbtMap map) {
+        return parseItemStack(session, map, new ItemStack(Items.AIR_ID));
     }
 
     /**

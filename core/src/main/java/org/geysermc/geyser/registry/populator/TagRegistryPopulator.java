@@ -40,8 +40,10 @@ import org.geysermc.geyser.GeyserBootstrap;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.item.type.Item;
 import org.geysermc.geyser.registry.Registries;
+import org.geysermc.geyser.registry.java.BuiltInJavaRegistries;
 import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.registry.type.ItemMappings;
+import org.geysermc.geyser.util.MinecraftKey;
 
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -49,6 +51,7 @@ import java.lang.reflect.Type;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 public final class TagRegistryPopulator {
     private static final Gson GSON = new GsonBuilder().create(); // temporary
@@ -100,22 +103,22 @@ public final class TagRegistryPopulator {
                 IntList javaNetworkIds = new IntArrayList(value.size());
                 for (int i = 0; i < value.size(); i++) {
                     String bedrockIdentifier = value.get(i);
-                    Item javaItem = Registries.JAVA_ITEM_IDENTIFIERS.get(bedrockIdentifier);
-                    if (javaItem == null) {
+                    Optional<Item> javaItem = BuiltInJavaRegistries.ITEM.get(MinecraftKey.key(bedrockIdentifier));
+                    if (javaItem.isEmpty()) {
                         // Time to search the long way around.
                         for (ItemMapping mapping : mappings.getItems()) {
                             if (mapping.getBedrockIdentifier().equals(bedrockIdentifier)) {
-                                javaItem = mapping.getJavaItem();
+                                javaItem = Optional.of(mapping.getJavaItem());
                                 break;
                             }
                         }
                     }
-                    if (javaItem == null) {
+                    if (javaItem.isEmpty()) {
                         // Triggers for Bedrock-only spawn eggs. We don't care.
                         continue;
                     }
 
-                    javaNetworkIds.add(javaItem.javaId());
+                    javaNetworkIds.add(javaItem.get().javaId());
                 }
 
                 int[] javaNetworkIdArray = javaNetworkIds.toIntArray();
