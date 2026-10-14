@@ -338,7 +338,7 @@ public final class NetherNetServer implements EventRegistrar {
             try {
                 BedrockListener listener = geyser.config().bedrock();
                 ProviderRuntimeConfiguration runtime = ProviderRuntimeConfiguration.resolve(providerSettings(config.nxs(), geyser.config().advanced().nxs()),
-                    dataFolder, listener.address(), webrtcPort, collectServerStatus().maxPlayers());
+                    dataFolder, listener.address(), webrtcPort, collectServerStatus().maxPlayerCount());
                 URI origin = runtime.origin();
                 var statePath = runtime.stateDirectory();
                 ProviderTransport transport;
@@ -427,7 +427,7 @@ public final class NetherNetServer implements EventRegistrar {
 
     private ServerStatus collectServerStatus() {
         BedrockPong pong = pingResponder.onQuery(GUID, new InetSocketAddress("127.0.0.1", 0));
-        return GeyserStatusCollector.snapshot(pong, geyser.getSessionManager().size(), "", 0);
+        return GeyserStatusCollector.snapshot(pong, "", 0);
     }
 
     /**
@@ -457,9 +457,8 @@ public final class NetherNetServer implements EventRegistrar {
     }
 
     private ProviderClient.Health health(int capacity) {
-        int players = geyser.getSessionManager().size();
         return new ProviderClient.Health(true, capacity, new ProviderClient.Software("Geyser", GeyserImpl.VERSION),
-            new ProviderClient.PlayerCount(players, System.currentTimeMillis()));
+            new ProviderClient.ConnectedPlayers(geyser.getSessionManager().size(), System.currentTimeMillis()));
     }
 
     private boolean reportGameOutcome(String ticketId, ProviderClient.GameOutcome outcome, String reason) {
