@@ -132,11 +132,6 @@ public final class NetherNetServer implements EventRegistrar {
 
     public void start() {
         GeyserConfig.SignalingConfig.Mode mode = config.mode();
-        if (mode == GeyserConfig.SignalingConfig.Mode.NONE) {
-            logger().warning("Signaling \"mode\" is set to \"none\", so Bedrock players cannot join over NetherNet. " +
-                "Set it to \"builtin\" in the \"signaling\" section of the config to allow them.");
-            return;
-        }
         boolean inbuilt = mode.builtin();
         boolean provider = mode.nxs();
 
@@ -150,7 +145,7 @@ public final class NetherNetServer implements EventRegistrar {
         }
         if (listener.transport().raknet() && webrtcPort == listener.raknetPort()) {
             logger().error("NetherNet will not start! With the \"both\" transport, RakNet and NetherNet each need their own UDP port, " +
-                "but both are set to " + webrtcPort + ". Set \"webrtc-port\" in the \"bedrock\" section to a different free port.");
+                "but both are set to " + webrtcPort + ". Set \"webrtc-port\" in the \"bedrock\" section to a different available port.");
             return;
         }
 
@@ -232,10 +227,12 @@ public final class NetherNetServer implements EventRegistrar {
                     .setTokenTrust(geyser.config().advanced().bedrock().validateBedrockLogin()
                             ? TokenTrust.MINECRAFT_AUTH : TokenTrust.ANY)
                     .setMotdProvider((host, remoteAddress, client) -> {
-                        BedrockPong pong = pingResponder.onQuery(GUID, remoteAddress);
+                        // host is the HTTP Host header the client sent, which may be absent
+                        BedrockPong pong = pingResponder.onQuery(GUID, remoteAddress, host);
 
                         return new PongData.Builder()
                                 .setServerName(pong.motd())
+                                .setLevelName(pong.subMotd())
                                 .setProtocol(pong.protocolVersion())
                                 .setVersion(pong.version())
                                 .setPlayerCount(pong.playerCount())
@@ -275,11 +272,9 @@ public final class NetherNetServer implements EventRegistrar {
 
             this.inbuiltChannel = b.bind(new InetSocketAddress(listener.address(), signalingPort)).sync().channel();
 
-            // TLS is served on the same port as plaintext, so both schemes reach it when configured
-            String endpoint = https.certificate().isBlank()
-                    ? "http://" + listener.address() + ":" + signalingPort
-                    : "https:// and http:// on " + listener.address() + ":" + signalingPort;
-            logger().info("Built-in signaling started on " + endpoint
+            // With a certificate configured, plain HTTP is rejected
+            String scheme = https.certificate().isBlank() ? "http://" : "https://";
+            logger().info("Built-in signaling started on " + scheme + listener.address() + ":" + signalingPort
                 + (separateIcePort ? ", with NetherNet on UDP port " + webrtcPort : ""));
         } catch (Throwable e) {
             // Throwable: the WebRTC natives are not available on every platform
@@ -427,8 +422,8 @@ public final class NetherNetServer implements EventRegistrar {
     }
 
     private ServerStatus collectServerStatus() {
-        BedrockPong pong = pingResponder.onQuery(GUID, new InetSocketAddress("127.0.0.1", 0));
-        return GeyserStatusCollector.snapshot(pong, "", 0);
+        BedrockPong pong = pingResponder.onQuery(GUID, new InetSocketAddress("127.0.0.1", 0), null);
+        return GeyserStatusCollector.snapshot(pong, 0);
     }
 
     /**
