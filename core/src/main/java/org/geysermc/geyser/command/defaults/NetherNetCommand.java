@@ -34,7 +34,6 @@ import org.geysermc.geyser.api.util.TriState;
 import org.geysermc.geyser.command.GeyserCommand;
 import org.geysermc.geyser.command.GeyserCommandSource;
 import org.geysermc.geyser.network.bedrock.nethernet.NetherNetServer;
-import org.geysermc.geyser.network.bedrock.nethernet.signaling.provider.WardenClaimAdapter;
 import org.incendo.cloud.CommandManager;
 import org.incendo.cloud.context.CommandContext;
 
@@ -61,13 +60,13 @@ public class NetherNetCommand extends GeyserCommand {
             .literal("status")
             .optional(ARGUMENTS, greedyStringParser())
             .handler(this::status));
-        manager.command(baseBuilder(manager).literal("claim").handler(this::claim));
+        manager.command(baseBuilder(manager).literal("action").handler(this::action));
         manager.command(baseBuilder(manager).literal("diagnostics").handler(this::diagnostics));
     }
 
     @Override
     public void execute(CommandContext<GeyserCommandSource> context) {
-        context.sender().sendMessage("Usage: " + rootCommand() + " " + name() + " <status | claim | diagnostics>");
+        context.sender().sendMessage("Usage: " + rootCommand() + " " + name() + " <status | action | diagnostics>");
     }
 
     /**
@@ -100,23 +99,23 @@ public class NetherNetCommand extends GeyserCommand {
     }
 
     /**
-     * Refresh an optional Warden ownership link
+     * Show the provider's current link for the operator, such as one to claim this server
      */
-    private void claim(CommandContext<GeyserCommandSource> context) {
+    private void action(CommandContext<GeyserCommandSource> context) {
         GeyserCommandSource source = context.sender();
         NetherNetServer server = server(source);
         if (server == null) {
             return;
         }
 
-        WardenClaimAdapter claim = server.wardenClaim();
-        if (claim == null) {
+        ProviderClient client = server.providerClient();
+        if (client == null) {
             source.sendMessage("Provider is not running.");
             return;
         }
-        claim.refresh().whenComplete((action, failure) -> source.sendMessage(failure == null
-                ? action.map(WardenClaimAdapter.Action::message).orElse("This provider has no available Warden ownership action.")
-                : "Ownership action unavailable: " + NetherNetServer.providerFailure(failure)));
+        client.operatorAction().whenComplete((action, failure) -> source.sendMessage(failure == null
+                ? action.map(NetherNetServer::operatorActionMessage).orElse("The signaling service has no link for you right now.")
+                : "Could not get a link from the signaling service: " + NetherNetServer.providerFailure(failure)));
     }
 
     /**
@@ -136,8 +135,8 @@ public class NetherNetCommand extends GeyserCommand {
         }
 
         if (server.providerChannel() instanceof NativeAdmissionServerChannel nativeChannel && nativeChannel.isActive()) {
-            source.sendMessage(GeyserImpl.GSON.toJson(Map.of("nativeCreationAttempts", nativeChannel.creationAttempts(),
-                    "admission", nativeChannel.admissionStats(), "native", nativeChannel.nativeStats(), "bind", nativeChannel.localAddress().toString())));
+            source.sendMessage(GeyserImpl.GSON.toJson(Map.of("native", nativeChannel.stats(),
+                    "bind", nativeChannel.localAddress().toString())));
         }
 
         source.sendMessage(GeyserImpl.GSON.toJson(Map.of("droppedGameOutcomeEvents", server.gameOutcomes().droppedEvents())));

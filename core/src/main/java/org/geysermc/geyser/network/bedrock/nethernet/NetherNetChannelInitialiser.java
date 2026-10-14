@@ -26,6 +26,7 @@
 package org.geysermc.geyser.network.bedrock.nethernet;
 
 import io.netty.channel.Channel;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.protocol.bedrock.BedrockPeer;
 import org.cloudburstmc.protocol.bedrock.netty.codec.batch.BedrockBatchEncoder;
 import org.cloudburstmc.protocol.bedrock.netty.codec.compression.CompressionCodec;
@@ -50,13 +51,16 @@ import java.net.InetSocketAddress;
 public class NetherNetChannelInitialiser extends GeyserServerInitializer {
     private static final CompressionStrategy NOOP_STRATEGY = new SimpleCompressionStrategy(new NoopCompression());
 
-    private final GameOutcomeReporter outcomes;
+    private final @Nullable GameOutcomeReporter outcomes;
 
     public NetherNetChannelInitialiser(GeyserImpl geyser) {
-        this(geyser, new GameOutcomeReporter());
+        this(geyser, null);
     }
 
-    public NetherNetChannelInitialiser(GeyserImpl geyser, GameOutcomeReporter outcomes) {
+    /**
+     * @param outcomes Reports game outcomes to the provider, or null when no provider admits players here
+     */
+    public NetherNetChannelInitialiser(GeyserImpl geyser, @Nullable GameOutcomeReporter outcomes) {
         super(geyser, "Geyser NetherNet player thread");
         this.outcomes = outcomes;
     }
@@ -90,8 +94,10 @@ public class NetherNetChannelInitialiser extends GeyserServerInitializer {
         //  be all that's needed. Until that is tested, keep sending one packet per message.
         channel.pipeline().replace(BedrockBatchEncoder.NAME, NetherNetPacketEncoder.NAME, NetherNetPacketEncoder.INSTANCE);
 
-        channel.pipeline().addBefore(BedrockPeer.NAME, GameOutcomeReporter.HANDLER_NAME,
-                outcomes.observer(protocol -> GameProtocol.getBedrockCodec(protocol) != null));
+        if (outcomes != null) {
+            channel.pipeline().addBefore(BedrockPeer.NAME, GameOutcomeReporter.HANDLER_NAME,
+                    outcomes.observer(protocol -> GameProtocol.getBedrockCodec(protocol) != null));
+        }
     }
 
     @Override

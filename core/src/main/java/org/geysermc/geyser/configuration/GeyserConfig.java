@@ -219,16 +219,9 @@ public interface GeyserConfig {
             @AsteriskSerializer.Secret
             String token();
 
-            @Comment("Address of the external signaling service (NXS). Defaults to warden.")
+            @Comment("Address of the external signaling service (NXS).")
             @DefaultString("https://agent.warden.cloud")
             String endpoint();
-
-            @Comment("""
-                Additional details sent to the signaling service, such as "region" or "pool" to choose where this server is listed. 
-                Other keys are sent as registration tags.""")
-            default Map<String, String> data() {
-                return Map.of();
-            }
         }
     }
 
@@ -536,19 +529,32 @@ public interface GeyserConfig {
         @Comment("""
                 Whether to expect HAPROXY protocol for connecting Bedrock clients.
                 This is useful only when you are running a reverse proxy in front of your Geyser instance.
-                This applies to RakNet and to built-in signaling. Signaling connections without a PROXY header are still accepted.
+                RakNet then ignores clients that do not send a PROXY header. Built-in signaling only reads PROXY headers from the proxies in
+                "haproxy-protocol-whitelisted-ips", and still accepts connections without one.
+                NetherNet gameplay traffic (WebRTC) does not support it yet.
                 IF YOU DON'T KNOW WHAT THIS IS, DON'T TOUCH IT!""")
         @DefaultBoolean
         boolean useHaproxyProtocol();
 
         @Comment("""
-                A list of allowed HAPROXY protocol speaking proxy IP addresses/subnets. Only effective when "use-haproxy-protocol" is enabled, and
-                should really only be used when you are not able to use a proper firewall (usually true with shared hosting providers etc.).
-                Built-in signaling also only trusts forwarded player addresses from these proxies.
-                Keeping this list empty means there is no IP address whitelist.
+                A list of allowed HAPROXY protocol speaking proxy IP addresses/subnets. Only effective when "use-haproxy-protocol" is enabled.
+                For RakNet, this should really only be used when you are not able to use a proper firewall (usually true with shared hosting
+                providers etc.), and keeping this list empty means there is no IP address whitelist.
+                Built-in signaling only reads PROXY headers from the proxies listed here, so keeping this list empty means it reads none.
+                It also lifts its per-address connection limit for listed proxies.
                 IP addresses, subnets, and links to plain text files are supported.""")
         @AsteriskSerializer.Asterisk
         default List<String> haproxyProtocolWhitelistedIps() {
+            return Collections.emptyList();
+        }
+
+        @Comment("""
+                Reverse proxies, such as an HTTP load balancer, whose X-Forwarded-For header built-in signaling trusts for the player's address.
+                Built-in signaling also lifts its per-address connection limit for them. This is separate from HAPROXY protocol.
+                Keeping this list empty trusts no proxy.
+                IP addresses, subnets, and links to plain text files are supported.""")
+        @AsteriskSerializer.Asterisk
+        default List<String> signalingTrustedProxies() {
             return Collections.emptyList();
         }
 
@@ -616,6 +622,40 @@ public interface GeyserConfig {
     }
 
     @ConfigSerializable
+    interface AdvancedNxsConfig {
+        @Comment("""
+            Lets the signaling service help players connect when they cannot reach this server directly,
+            for example behind a NAT without port forwarding.""")
+        @DefaultBoolean(false)
+        boolean assistedJoins();
+
+        @Comment("""
+            Lets the signaling service check from several regions that players can reach this server,
+            and stop offering addresses that fail.""")
+        @DefaultBoolean(true)
+        boolean connectionChecks();
+
+        @Comment("""
+            Finds this server's public address through the signaling service's STUN servers when it has none of its own.
+            Not used when "advertise-addresses" is set.""")
+        @DefaultBoolean(true)
+        boolean stunDiscovery();
+
+        @Comment("""
+            Where this server is: "country" (a two-letter code), "city", "latitude" and "longitude".
+            Leave empty to let the signaling service estimate it, which it may also let its operator override.""")
+        default Map<String, String> location() {
+            return Map.of();
+        }
+
+        @Comment("""
+            Removes this server from the signaling service on shutdown. Enable this when the "nethernet" folder
+            does not survive a restart, such as in a container without a volume, or each restart adds a new server.""")
+        @DefaultBoolean(false)
+        boolean deregisterOnShutdown();
+    }
+
+    @ConfigSerializable
     interface AdvancedConfig {
         @Comment("""
             Specify how many days player skin images will be cached to disk to save downloading them from the internet.
@@ -658,5 +698,8 @@ public interface GeyserConfig {
 
         @Comment("Advanced networking options for Geyser's Bedrock listener")
         AdvancedBedrockConfig bedrock();
+
+        @Comment("Advanced options for the external signaling service, used in the \"nxs\" and \"hybrid\" signaling modes")
+        AdvancedNxsConfig nxs();
     }
 }
