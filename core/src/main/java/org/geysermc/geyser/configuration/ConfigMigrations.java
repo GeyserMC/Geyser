@@ -191,6 +191,8 @@ public class ConfigMigrations {
             .addVersion(8, ConfigurationTransformation.empty())
             // Addition of advertise-addresses option
             .addVersion(9, ConfigurationTransformation.empty())
+            // Advanced NXS options and signaling-trusted-proxies
+            .addVersion(10, ConfigurationTransformation.empty())
         .build();
 
     static TransformAction renameAndMove(String... newPath) {

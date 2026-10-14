@@ -529,19 +529,32 @@ public interface GeyserConfig {
         @Comment("""
                 Whether to expect HAPROXY protocol for connecting Bedrock clients.
                 This is useful only when you are running a reverse proxy in front of your Geyser instance.
-                This applies to RakNet and to built-in signaling. Signaling connections without a PROXY header are still accepted.
+                RakNet then ignores clients that do not send a PROXY header. Built-in signaling only reads PROXY headers from the proxies in
+                "haproxy-protocol-whitelisted-ips", and still accepts connections without one.
+                NetherNet gameplay traffic (WebRTC) does not support it yet.
                 IF YOU DON'T KNOW WHAT THIS IS, DON'T TOUCH IT!""")
         @DefaultBoolean
         boolean useHaproxyProtocol();
 
         @Comment("""
-                A list of allowed HAPROXY protocol speaking proxy IP addresses/subnets. Only effective when "use-haproxy-protocol" is enabled, and
-                should really only be used when you are not able to use a proper firewall (usually true with shared hosting providers etc.).
-                Built-in signaling also only trusts forwarded player addresses from these proxies.
-                Keeping this list empty means there is no IP address whitelist.
+                A list of allowed HAPROXY protocol speaking proxy IP addresses/subnets. Only effective when "use-haproxy-protocol" is enabled.
+                For RakNet, this should really only be used when you are not able to use a proper firewall (usually true with shared hosting
+                providers etc.), and keeping this list empty means there is no IP address whitelist.
+                Built-in signaling only reads PROXY headers from the proxies listed here, so keeping this list empty means it reads none.
+                It also lifts its per-address connection limit for listed proxies.
                 IP addresses, subnets, and links to plain text files are supported.""")
         @AsteriskSerializer.Asterisk
         default List<String> haproxyProtocolWhitelistedIps() {
+            return Collections.emptyList();
+        }
+
+        @Comment("""
+                Reverse proxies, such as an HTTP load balancer, whose X-Forwarded-For header built-in signaling trusts for the player's address.
+                Built-in signaling also lifts its per-address connection limit for them. This is separate from HAPROXY protocol.
+                Keeping this list empty trusts no proxy.
+                IP addresses, subnets, and links to plain text files are supported.""")
+        @AsteriskSerializer.Asterisk
+        default List<String> signalingTrustedProxies() {
             return Collections.emptyList();
         }
 

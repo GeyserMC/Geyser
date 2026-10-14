@@ -222,9 +222,10 @@ public final class NetherNetServer implements EventRegistrar {
 
             NetherNetHTTPServerSignaling.Builder signalingBuilder = new NetherNetHTTPServerSignaling.Builder()
                     .setIdentity(identity)
-                    // The same "behind a proxy" settings RakNet uses, applied to the TCP listener
-                    .setTrustedProxies(TrustedProxies.parse(geyser.config().advanced().bedrock().haproxyProtocolWhitelistedIps()))
+                    .setForwardedForProxies(TrustedProxies.parse(geyser.config().advanced().bedrock().signalingTrustedProxies()))
+                    // The same HAProxy settings RakNet uses, applied to the TCP listener
                     .setProxyProtocol(geyser.config().advanced().bedrock().useHaproxyProtocol())
+                    .setProxyProtocolProxies(TrustedProxies.parse(geyser.config().advanced().bedrock().haproxyProtocolWhitelistedIps()))
                     .setAdvertisedAddresses(advertised)
                     // Behind a proxy the peer is the proxy, signing its own assertion. The same
                     // setting already accepts the login chain it forwards
