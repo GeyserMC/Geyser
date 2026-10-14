@@ -187,7 +187,7 @@ public interface GeyserConfig {
             @ConfigSerializable
             interface HttpsConfig {
                 @Comment("""
-                    Path to a TLS certificate, relative to the Geyser folder. This can be a PEM chain (put its key in "private-key"),
+                    Path to a TLS certificate. This can be a PEM chain (put its key in "private-key"),
                     or a PKCS12 file (leave "private-key" empty).
                     Players connecting over HTTPS do not see the "trust on first use" prompt.
                     Leave empty to only use HTTP.""")
