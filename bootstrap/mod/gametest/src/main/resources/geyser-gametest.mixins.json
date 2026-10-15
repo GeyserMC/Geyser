@@ -5,7 +5,8 @@
   "compatibilityLevel": "JAVA_25",
   "mixins": [
     "SynchedEntityDataAccessor",
-    "SynchedEntityDataMixin"
+    "SynchedEntityDataMixin",
+    "SynchronizeRegistriesTaskAccessor"
   ],
   "injectors": {
     "defaultRequire": 1

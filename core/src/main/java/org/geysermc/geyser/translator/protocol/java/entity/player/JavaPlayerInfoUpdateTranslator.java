@@ -81,6 +81,7 @@ public class JavaPlayerInfoUpdateTranslator extends PacketTranslator<Clientbound
         }
 
         if (actions.contains(PlayerListEntryAction.UPDATE_LISTED)) {
+            // TODO This could probably be optimised for 26.40, each entry has the action now, so we can send one packet!
             List<PlayerListPacket.Entry> toAdd = new ArrayList<>();
             List<PlayerListPacket.Entry> toRemove = new ArrayList<>();
 
@@ -94,18 +95,15 @@ public class JavaPlayerInfoUpdateTranslator extends PacketTranslator<Clientbound
                 if (entry.isListed()) {
                     if (!PlayerListUtils.shouldLimitPlayerListEntries(session)) {
                         PlayerListPacket.Entry playerListEntry = SkinManager.buildEntryFromCachedSkin(session, entity);
+                        playerListEntry.setAction(PlayerListPacket.Action.ADD);
                         toAdd.add(playerListEntry);
-                        if (!GeyserWaypoint.uses26_10WaypointPacket(session)) {
-                            session.getWaypointCache().addEntity(entity);
-                        }
                     }
                 } else {
                     // No need to unlist players that were never listed
                     if (entity.isListed()) {
-                        toRemove.add(new PlayerListPacket.Entry(entity.getTabListUuid()));
-                        if (!GeyserWaypoint.uses26_10WaypointPacket(session)) {
-                            session.getWaypointCache().removeEntity(entity);
-                        }
+                        PlayerListPacket.Entry playerListEntry = new PlayerListPacket.Entry(entity.getTabListUuid());
+                        playerListEntry.setAction(PlayerListPacket.Action.REMOVE);
+                        toRemove.add(playerListEntry);
                     }
                 }
                 entity.setListed(entry.isListed());

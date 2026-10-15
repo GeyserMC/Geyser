@@ -26,13 +26,13 @@
 package org.geysermc.geyser.translator.protocol.java.level;
 
 import net.kyori.adventure.key.Key;
-import org.geysermc.geyser.session.cache.registry.JavaRegistries;
-import org.geysermc.geyser.session.cache.registry.JavaRegistry;
-import org.geysermc.mcprotocollib.protocol.data.game.level.ClockNetworkState;
-import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.level.ClientboundSetTimePacket;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.registry.java.JavaRegistries;
+import org.geysermc.geyser.registry.java.JavaRegistry;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
+import org.geysermc.mcprotocollib.protocol.data.game.level.ClockNetworkState;
+import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.level.ClientboundSetTimePacket;
 
 @Translator(packet = ClientboundSetTimePacket.class)
 public class JavaSetTimeTranslator extends PacketTranslator<ClientboundSetTimePacket> {
@@ -53,13 +53,12 @@ public class JavaSetTimeTranslator extends PacketTranslator<ClientboundSetTimePa
     }
 
     private static int defaultClockId(GeyserSession session) {
+        JavaRegistry<?> clockRegistry = session.javaRegistries().registry(JavaRegistries.WORLD_CLOCK);
         Key defaultClock = session.getDimensionType().defaultClock();
         if (defaultClock != null) {
-            return JavaRegistries.WORLD_CLOCK.networkId(session, defaultClock);
-        }
-        JavaRegistry<?> clockRegistry = session.getRegistryCache().registry(JavaRegistries.WORLD_CLOCK);
-        if (clockRegistry.entries().size() == 1) {
-            return clockRegistry.entries().getFirst().id();
+            return clockRegistry.getIdOrThrow(defaultClock);
+        } else if (clockRegistry.size() == 1) {
+            return 0;
         }
         return -1;
     }

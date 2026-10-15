@@ -45,7 +45,7 @@ public class JavaSetPlayerTeamTranslator extends PacketTranslator<ClientboundSet
     @Override
     public void translate(GeyserSession session, ClientboundSetPlayerTeamPacket packet) {
         if (logger.isDebug()) {
-            logger.debug("Team packet " + packet.getTeamName() + " " + packet.getAction() + " " + Arrays.toString(packet.getPlayers()));
+            logger.debug("Team packet (" + session.bedrockUsername() + ") " + packet.getTeamName() + " " + packet.getAction() + " " + Arrays.toString(packet.getPlayers()));
         }
 
         if ((packet.getAction() == TeamAction.ADD_PLAYER || packet.getAction() == TeamAction.REMOVE_PLAYER) && packet.getPlayers().length == 0) {
@@ -60,7 +60,6 @@ public class JavaSetPlayerTeamTranslator extends PacketTranslator<ClientboundSet
             scoreboard.registerNewTeam(
                 packet.getTeamName(),
                 packet.getPlayers(),
-                packet.getDisplayName(),
                 packet.getPlayerPrefix(),
                 packet.getPlayerSuffix(),
                 packet.getNameTagVisibility(),
@@ -80,7 +79,6 @@ public class JavaSetPlayerTeamTranslator extends PacketTranslator<ClientboundSet
             switch (packet.getAction()) {
                 case UPDATE -> {
                     team.updateProperties(
-                        packet.getDisplayName(),
                         packet.getPlayerPrefix(),
                         packet.getPlayerSuffix(),
                         packet.getNameTagVisibility(),

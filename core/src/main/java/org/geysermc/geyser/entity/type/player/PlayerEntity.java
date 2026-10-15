@@ -42,7 +42,6 @@ import org.geysermc.geyser.entity.attribute.GeyserAttributeType;
 import org.geysermc.geyser.entity.spawn.EntitySpawnContext;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.type.living.animal.tameable.ParrotEntity;
-import org.geysermc.geyser.session.cache.waypoint.GeyserWaypoint;
 import org.geysermc.geyser.util.PlayerListUtils;
 import org.geysermc.mcprotocollib.auth.GameProfile;
 import org.geysermc.mcprotocollib.auth.texture.Texture;
@@ -80,7 +79,7 @@ public class PlayerEntity extends AvatarEntity implements GeyserPlayerEntity {
         try {
             this.textures = profile.getTextures(true);
         } catch (Exception e) {
-            GeyserImpl.getInstance().getLogger().debug("Error loading textures for player!" + profile, e);
+            GeyserImpl.getInstance().getLogger().debug("Error loading textures for profile %s! Got: %s", profile, e);
             this.textures = null;
         }
     }
@@ -109,15 +108,11 @@ public class PlayerEntity extends AvatarEntity implements GeyserPlayerEntity {
         // send the player list entry after fetching the skin sent by the Java server.
         if (PlayerListUtils.shouldLimitPlayerListEntries(session)) {
             PlayerListPacket packet = new PlayerListPacket();
-            packet.getEntries().add(new PlayerListPacket.Entry(getTabListUuid()));
+            PlayerListPacket.Entry entry = new PlayerListPacket.Entry(getTabListUuid());
+            entry.setAction(PlayerListPacket.Action.REMOVE);
+            packet.getEntries().add(entry);
             packet.setAction(PlayerListPacket.Action.REMOVE);
             session.sendUpstreamPacket(packet);
-
-            if (!GeyserWaypoint.uses26_10WaypointPacket(session)) {
-                // To ensure waypoints still remain, if any were added while the
-                // player had a valid player list entry
-                session.getWaypointCache().removeEntity(this);
-            }
         }
 
         // Since we re-use player entities: Clear flags, held item, etc
@@ -139,8 +134,10 @@ public class PlayerEntity extends AvatarEntity implements GeyserPlayerEntity {
     }
 
     public void sendPlayer() {
-        if (session.getEntityCache().getPlayerEntity(uuid) == null)
+        if (session.getEntityCache().getPlayerEntity(uuid) == null) {
+            GeyserImpl.getInstance().getLogger().warning("Attempted to spawn player, but player could not be found in entity cache!");
             return;
+        }
 
         session.getEntityCache().spawnEntity(this);
     }

@@ -105,9 +105,7 @@ public class SkinManager {
                 playerEntity.uuid(),
                 playerEntity.getUsername(),
                 playerEntity.geyserId(),
-                getSkin(session, skin.textureUrl(), skin, cape, geometry),
-                // Default to white when waypoint colour is unknown, which is the most visible
-                session.getWaypointCache().getWaypointColor(playerEntity.uuid()).orElse(Color.WHITE)
+                getSkin(session, skin.textureUrl(), skin, cape, geometry)
         );
     }
 
@@ -123,8 +121,7 @@ public class SkinManager {
                 entity.uuid(),
                 entity.getUsername(),
                 entity.geyserId(),
-                getSkin(session, skin.textureUrl(), skin, cape, geometry),
-                session.getWaypointCache().getWaypointColor(entity.uuid()).orElse(Color.WHITE)
+                getSkin(session, skin.textureUrl(), skin, cape, geometry)
             );
 
             // Slight delay ensures skins are actually shown
@@ -154,6 +151,9 @@ public class SkinManager {
             .fullSkinId(skinId)
             .geometryDataEngineVersion(session.getClientData().getGameVersion())
             .overridingPlayerAppearance(true)
+            .color(new Color(0, true))
+            .trusted(true)
+            .profileHash("") // TODO Look into this, the session sends it, so it's probably important for skins to work correctly
             .build();
     }
 

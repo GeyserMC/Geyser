@@ -25,17 +25,25 @@
 
 package org.geysermc.geyser.scoreboard.network;
 
+import java.util.List;
 import net.kyori.adventure.text.Component;
+import org.cloudburstmc.protocol.bedrock.data.ScoreInfo;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.cloudburstmc.protocol.bedrock.packet.AddEntityPacket;
 import org.cloudburstmc.protocol.bedrock.packet.AddPlayerPacket;
 import org.cloudburstmc.protocol.bedrock.packet.MoveEntityAbsolutePacket;
+import org.cloudburstmc.protocol.bedrock.packet.SetDisplayObjectivePacket;
 import org.cloudburstmc.protocol.bedrock.packet.SetEntityDataPacket;
+import org.cloudburstmc.protocol.bedrock.packet.SetScorePacket;
 import org.geysermc.geyser.entity.type.living.monster.EnderDragonPartEntity;
 import org.geysermc.geyser.translator.protocol.java.entity.JavaAddEntityTranslator;
 import org.geysermc.geyser.translator.protocol.java.entity.JavaSetEntityDataTranslator;
 import org.geysermc.geyser.translator.protocol.java.entity.player.JavaPlayerInfoUpdateTranslator;
+import org.geysermc.geyser.translator.protocol.java.scoreboard.JavaResetScorePacket;
+import org.geysermc.geyser.translator.protocol.java.scoreboard.JavaSetDisplayObjectiveTranslator;
+import org.geysermc.geyser.translator.protocol.java.scoreboard.JavaSetObjectiveTranslator;
 import org.geysermc.geyser.translator.protocol.java.scoreboard.JavaSetPlayerTeamTranslator;
+import org.geysermc.geyser.translator.protocol.java.scoreboard.JavaSetScoreTranslator;
 import org.geysermc.mcprotocollib.auth.GameProfile;
 import org.geysermc.mcprotocollib.protocol.data.game.PlayerListEntry;
 import org.geysermc.mcprotocollib.protocol.data.game.PlayerListEntryAction;
@@ -48,12 +56,19 @@ import org.geysermc.mcprotocollib.protocol.data.game.entity.player.GameMode;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.type.EntityType;
 import org.geysermc.mcprotocollib.protocol.data.game.scoreboard.CollisionRule;
 import org.geysermc.mcprotocollib.protocol.data.game.scoreboard.NameTagVisibility;
+import org.geysermc.mcprotocollib.protocol.data.game.scoreboard.ObjectiveAction;
+import org.geysermc.mcprotocollib.protocol.data.game.scoreboard.ScoreType;
+import org.geysermc.mcprotocollib.protocol.data.game.scoreboard.ScoreboardPosition;
 import org.geysermc.mcprotocollib.protocol.data.game.scoreboard.TeamAction;
 import org.geysermc.mcprotocollib.protocol.data.game.scoreboard.TeamColor;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.ClientboundPlayerInfoUpdatePacket;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.entity.ClientboundAddEntityPacket;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.entity.ClientboundSetEntityDataPacket;
+import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.scoreboard.ClientboundResetScorePacket;
+import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.scoreboard.ClientboundSetDisplayObjectivePacket;
+import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.scoreboard.ClientboundSetObjectivePacket;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.scoreboard.ClientboundSetPlayerTeamPacket;
+import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.scoreboard.ClientboundSetScorePacket;
 import org.junit.jupiter.api.Test;
 
 import java.util.EnumSet;
@@ -214,6 +229,66 @@ public class ScoreboardIssueTests {
                 packet.setRuntimeEntityId(4);
                 return packet;
             });
+        });
+    }
+
+    /**
+     * Test for <a href="https://github.com/GeyserMC/Geyser/issues/6609">#6609</a>.
+     *
+     * <p>There used to be an issue where a removed (reset) score got stuck in a cache. So when a score with
+     * an identical name was added back immediately after, the removed score resurfaced and the score was not
+     * send to the Bedrock client because that old score didn't have an update.</p>
+     */
+    @Test
+    void resetThenReaddSameLine() {
+        mockContextScoreboard(context -> {
+            var setObjectiveTranslator = new JavaSetObjectiveTranslator();
+            var setDisplayObjectiveTranslator = new JavaSetDisplayObjectiveTranslator();
+            var setScoreTranslator = new JavaSetScoreTranslator();
+            var resetScoreTranslator = new JavaResetScorePacket();
+
+            context.translate(setObjectiveTranslator, new ClientboundSetObjectivePacket(
+                "objective", ObjectiveAction.ADD, Component.text("objective"), ScoreType.INTEGER, null));
+            context.translate(setDisplayObjectiveTranslator,
+                new ClientboundSetDisplayObjectivePacket(ScoreboardPosition.SIDEBAR, "objective"));
+            assertNextPacket(context, () -> {
+                var packet = new SetDisplayObjectivePacket();
+                packet.setObjectiveId("0");
+                packet.setDisplayName("objective");
+                packet.setCriteria("dummy");
+                packet.setDisplaySlot("sidebar");
+                packet.setSortOrder(1);
+                return packet;
+            });
+
+            context.translate(setScoreTranslator, new ClientboundSetScorePacket("line1", "objective", 1));
+            assertNextPacket(context, () -> {
+                var packet = new SetScorePacket();
+                packet.setAction(SetScorePacket.Action.SET);
+                packet.setInfos(List.of(new ScoreInfo(1, "0", 1, "line1")));
+                return packet;
+            });
+            assertNoNextPacket(context);
+
+            // the plugin clears its board
+            context.translate(resetScoreTranslator, new ClientboundResetScorePacket("line1", "objective"));
+            assertNextPacket(context, () -> {
+                var packet = new SetScorePacket();
+                packet.setAction(SetScorePacket.Action.REMOVE);
+                packet.setInfos(List.of(new ScoreInfo(1, "0", 0)));
+                return packet;
+            });
+            assertNoNextPacket(context);
+
+            // and re-adds the identical line, which must be sent to Bedrock again
+            context.translate(setScoreTranslator, new ClientboundSetScorePacket("line1", "objective", 1));
+            assertNextPacket(context, () -> {
+                var packet = new SetScorePacket();
+                packet.setAction(SetScorePacket.Action.SET);
+                packet.setInfos(List.of(new ScoreInfo(2, "0", 1, "line1")));
+                return packet;
+            });
+            assertNoNextPacket(context);
         });
     }
 }

@@ -69,7 +69,7 @@ public final class Objective {
     public void setScore(String id, int score, Component displayName, NumberFormat numberFormat) {
         ScoreReference stored = scores.get(id);
         if (stored != null) {
-            stored.updateProperties(scoreboard, score, displayName, numberFormat);
+            stored.updateProperties(score, displayName, numberFormat);
             return;
         }
         registerScore(id, score, displayName, numberFormat);
@@ -94,11 +94,9 @@ public final class Objective {
             // update the number format for scores that are following this objective's number format,
             // but only if the objective itself doesn't need to be updated.
             // When the objective itself has to update all scores are updated anyway
-            if (!changed) {
-                for (ScoreReference score : scores.values()) {
-                    if (score.numberFormat() == null) {
-                        score.markChanged();
-                    }
+            for (ScoreReference score : scores.values()) {
+                if (score.numberFormat() == null) {
+                    score.markChanged();
                 }
             }
         }

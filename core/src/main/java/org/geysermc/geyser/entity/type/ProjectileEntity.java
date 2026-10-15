@@ -72,6 +72,8 @@ public class ProjectileEntity extends Entity implements Tickable {
 
         if (teleported) {
             moveEntityDeltaPacket.getFlags().add(MoveEntityDeltaPacket.Flag.TELEPORTING);
+            // Since 26.40 the snap is its own field instead of that flag
+            moveEntityDeltaPacket.setForceMove(true);
         }
 
         Vector3f oldBedrockPos = bedrockPosition();

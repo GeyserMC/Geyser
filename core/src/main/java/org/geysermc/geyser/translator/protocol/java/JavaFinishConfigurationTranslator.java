@@ -28,7 +28,7 @@ package org.geysermc.geyser.translator.protocol.java;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMaps;
 import org.cloudburstmc.protocol.bedrock.packet.CraftingDataPacket;
 import org.cloudburstmc.protocol.bedrock.packet.PlayerListPacket;
-import org.geysermc.geyser.registry.Registries;
+import org.geysermc.geyser.network.bedrock.GameProtocol;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
@@ -49,31 +49,35 @@ public class JavaFinishConfigurationTranslator extends PacketTranslator<Clientbo
         // Clear the player list, as on Java the player list is cleared after transitioning from config to play phase
         List<PlayerListPacket.Entry> entries = new ArrayList<>();
         session.getEntityCache().forEachPlayerEntity(otherPlayer -> {
-            entries.add(new PlayerListPacket.Entry(otherPlayer.getTabListUuid()));
+            PlayerListPacket.Entry entry = new PlayerListPacket.Entry(otherPlayer.getTabListUuid());
+            entry.setAction(PlayerListPacket.Action.REMOVE);
+            entries.add(entry);
         });
         if (!entries.isEmpty()) {
             PlayerListUtils.batchSendPlayerList(session, entries, PlayerListPacket.Action.REMOVE);
         }
         session.getEntityCache().removeAllPlayerEntities();
 
-        // Potion mixes are registered by default, as they are needed to be able to put ingredients into the brewing stand.
+        // Cartography recipes are registered by default, as they are needed to be able to put items into the cartography table.
         // (Also add it here so recipes get cleared on configuration - 1.21.3)
         CraftingDataPacket craftingDataPacket = new CraftingDataPacket();
         craftingDataPacket.setCleanRecipes(true);
-        craftingDataPacket.getCraftingData().addAll(CARTOGRAPHY_RECIPES);
-        craftingDataPacket.getPotionMixData().addAll(Registries.POTION_MIXES.forVersion(session.getUpstream().getProtocolVersion()));
+        if (GameProtocol.is26_40orHigher(session.protocolVersion())) {
+            craftingDataPacket.getMultiData().addAll(CARTOGRAPHY_RECIPES);
+        } else {
+            craftingDataPacket.getCraftingData().addAll(CARTOGRAPHY_RECIPES);
+        }
         if (session.isSentSpawnPacket()) {
             session.getUpstream().sendPacket(craftingDataPacket);
             session.getLastRecipeNetId().set(InventoryUtils.LAST_RECIPE_NET_ID + 1);
             session.getCraftingRecipes().clear();
             session.getJavaToBedrockRecipeIds().clear();
-            session.getSmithingRecipes().clear();
             session.setStonecutterRecipes(Int2ObjectMaps.emptyMap());
         } else {
             session.getUpstream().queuePostStartGamePacket(craftingDataPacket);
         }
 
-        // We can avoid re-sending potion mixes / crafting recipes again in the JavaUpdateRecipesTranslator
+        // We can avoid re-sending crafting recipes again in the JavaUpdateRecipesTranslator
         session.setCleanRecipesRequired(false);
 
         // while ClientboundLoginPacket holds the level, it doesn't hold the scoreboard.

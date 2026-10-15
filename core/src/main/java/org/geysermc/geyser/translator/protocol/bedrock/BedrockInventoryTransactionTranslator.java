@@ -44,7 +44,9 @@ import org.cloudburstmc.protocol.bedrock.packet.InventoryTransactionPacket;
 import org.cloudburstmc.protocol.bedrock.packet.LevelSoundEventPacket;
 import org.cloudburstmc.protocol.bedrock.packet.PlaySoundPacket;
 import org.geysermc.geyser.entity.type.Entity;
+import org.geysermc.geyser.entity.type.FishingHookEntity;
 import org.geysermc.geyser.entity.type.ItemFrameEntity;
+import org.geysermc.geyser.entity.type.player.SessionPlayerEntity;
 import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.inventory.Inventory;
 import org.geysermc.geyser.inventory.PlayerInventory;
@@ -58,6 +60,7 @@ import org.geysermc.geyser.item.type.Item;
 import org.geysermc.geyser.item.type.SpawnEggItem;
 import org.geysermc.geyser.level.block.Blocks;
 import org.geysermc.geyser.level.block.property.Properties;
+import org.geysermc.geyser.level.block.type.BedBlock;
 import org.geysermc.geyser.level.block.type.Block;
 import org.geysermc.geyser.level.block.type.BlockState;
 import org.geysermc.geyser.level.block.type.ButtonBlock;
@@ -65,7 +68,6 @@ import org.geysermc.geyser.level.block.type.CauldronBlock;
 import org.geysermc.geyser.level.block.type.DoorBlock;
 import org.geysermc.geyser.level.block.type.FlowerPotBlock;
 import org.geysermc.geyser.level.physics.Direction;
-import org.geysermc.geyser.network.GameProtocol;
 import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.skin.FakeHeadProvider;
@@ -90,8 +92,8 @@ import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.inventory.S
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.player.ServerboundAttackPacket;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.player.ServerboundInteractPacket;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.player.ServerboundPlayerActionPacket;
+import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.player.ServerboundPunchPacket;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.player.ServerboundSpectatorActionPacket;
-import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.player.ServerboundSwingPacket;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.player.ServerboundUseItemOnPacket;
 
 import java.util.List;
@@ -129,8 +131,8 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
         switch (packet.getTransactionType()) {
             case NORMAL:
                 if (packet.getActions().size() == 2) {
-                    InventoryActionData worldAction = GameProtocol.is26_30orHigher(session.protocolVersion()) ? packet.getActions().get(1) : packet.getActions().get(0);
-                    InventoryActionData containerAction = GameProtocol.is26_30orHigher(session.protocolVersion()) ? packet.getActions().get(0) : packet.getActions().get(1);
+                    InventoryActionData worldAction = packet.getActions().get(1);
+                    InventoryActionData containerAction = packet.getActions().get(0);
                     if (worldAction.getSource().getType() == InventorySource.Type.WORLD_INTERACTION
                             && worldAction.getSource().getFlag() == InventorySource.Flag.DROP_ITEM) {
                         boolean dropAll = worldAction.getToItem().getCount() > 1;
@@ -181,6 +183,13 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
             case INVENTORY_MISMATCH:
                 break;
             case ITEM_USE:
+                // Using a rod on a block or in the air reels the client's own bobber in right away;
+                // see FishingHookEntity#markRetrievedByClient
+                FishingHookEntity fishingHook = session.getFishingHook();
+                if (fishingHook != null && packet.getActionType() <= 1 && packet.getItemInHand() != null
+                        && session.getItemMappings().getMapping(packet.getItemInHand()).getJavaItem() == Items.FISHING_ROD) {
+                    fishingHook.markRetrievedByClient();
+                }
                 switch (packet.getActionType()) {
                     case 0 -> {
                         final Vector3i packetBlockPosition = packet.getBlockPosition();
@@ -274,14 +283,28 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
 
                         BlockState blockState = session.getGeyser().getWorldManager().blockAt(session, packet.getBlockPosition());
 
+                        // Clear any pending bed interactions as we are interacting with a new block now - see the bed check below as well
+                        session.getPlayerEntity().setPendingBedInteraction(null);
+
                         // Buttons on Java Edition cannot be interacted with when they are powered
                         if (blockState.block() instanceof ButtonBlock && blockState.getValue(Properties.POWERED)) {
                             return;
-                        }
-
-                        if (blockState.block() instanceof DoorBlock) {
+                        } else if (blockState.block() instanceof DoorBlock) {
                             // See DoorBlock#updateBlock: ensure server-side lower-half door updates are translated
                             session.setLastLowerDoorPosition(null);
+                        } else if (blockState.block() instanceof BedBlock || blockState.block() == Blocks.STRAW_BED) {
+                            // See the Javadocs over at SessionPlayerEntity#pendingBedInteraction
+
+                            // This is hardcoded by extracting player position packets from Java 26.3.
+                            double yOffset = blockState.block() == Blocks.STRAW_BED ? 0.375 : 0.6875;
+                            String part = blockState.getValue(Properties.BED_PART);
+                            if (!part.equals("head")) {
+                                // Need to offset by 1 to get the head position
+                                Direction facing = blockState.getValue(Properties.HORIZONTAL_FACING);
+                                session.getPlayerEntity().setPendingBedInteraction(new SessionPlayerEntity.PendingBedInteraction(packetBlockPosition.add(facing.getUnitVector()), yOffset));
+                            } else {
+                                session.getPlayerEntity().setPendingBedInteraction(new SessionPlayerEntity.PendingBedInteraction(packetBlockPosition, yOffset));
+                            }
                         }
 
                         if (packet.getItemInHand() != null && session.getItemMappings().getMapping(packet.getItemInHand()).getJavaItem() instanceof SpawnEggItem) {
@@ -462,7 +485,7 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                     case 3 -> {
                         if (session.getPlayerInventory().getItemInHand().getComponent(DataComponentTypes.PIERCING_WEAPON) != null && session.getGameMode() != GameMode.SPECTATOR) {
                             session.sendDownstreamPacket(new ServerboundPlayerActionPacket(PlayerAction.STAB, Vector3i.ZERO, org.geysermc.mcprotocollib.protocol.data.game.entity.object.Direction.DOWN, 0));
-                            session.sendDownstreamPacket(new ServerboundSwingPacket(Hand.MAIN_HAND));
+                            session.sendDownstreamPacket(ServerboundPunchPacket.INSTANCE);
                             CooldownUtils.setCooldownHitTime(session);
                         }
                     }
@@ -517,7 +540,7 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                         // Even though it is true that we already send this in BedrockAnimateTranslator, the behaviour is a bit inconsistent and
                         // beside we want to ensure that this should be sent right away after we send interact packet or else the order will
                         // be weird eg: interact - some packet - swing, which is not vanilla behaviour and might flag some anticheats.
-                        session.sendDownstreamGamePacket(new ServerboundSwingPacket(Hand.MAIN_HAND));
+                        session.sendDownstreamGamePacket(ServerboundPunchPacket.INSTANCE);
 
                         // Since 1.19.10, LevelSoundEventPackets are no longer sent by the client when attacking entities
                         CooldownUtils.setCooldownHitTime(session);
@@ -547,12 +570,9 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                     result = entity.interact(hand);
                 }
 
+                // TODO 26.3: pretty sure the server swings for us now, but:
+                // TODO Note here to look into sending the animation packet back to Bedrock (SwingSource.PREDICTED)
                 if (result.consumesAction()) {
-                    if (result.shouldSwing() && hand == Hand.OFF_HAND) {
-                        // Currently, Bedrock will send us the arm swing packet in most cases. But it won't for offhand.
-                        session.sendDownstreamGamePacket(new ServerboundSwingPacket(hand));
-                        // Note here to look into sending the animation packet back to Bedrock
-                    }
                     return;
                 }
             }

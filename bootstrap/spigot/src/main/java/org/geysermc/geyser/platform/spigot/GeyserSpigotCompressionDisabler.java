@@ -74,16 +74,13 @@ public class GeyserSpigotCompressionDisabler extends ChannelOutboundHandlerAdapt
         Class<?> msgClass = msg.getClass();
         // Don't let any compression packet get through
         if (!COMPRESSION_PACKET_CLASS.isAssignableFrom(msgClass)) {
+            // Paper 26.2 build 104+ (PaperMC/Paper#13929) sets up compression in the same Netty task that writes
+            // the compression packet, rather than in that packet's send listener. Dropping the packet no longer
+            // prevents the compression handlers from being installed, so strip them before anything else is
+            // written through them. ProtocolSupport installs them the same way; this covers both.
+            removeCompressionHandlers(ctx);
+
             if (LOGIN_SUCCESS_PACKET_CLASS.isAssignableFrom(msgClass)) {
-                if (PROTOCOL_SUPPORT_INSTALLED) {
-                    // ProtocolSupport must send the compression packet, so let's remove what it did before it does damage
-                    if (ctx.pipeline().get("compress") != null) {
-                        ctx.pipeline().remove("compress");
-                    }
-                    if (ctx.pipeline().get("decompress") != null) {
-                        ctx.pipeline().remove("decompress");
-                    }
-                }
                 // We're past the point that a compression packet can be sent, so we can safely yeet ourselves away
                 ctx.channel().pipeline().remove(this);
             }
@@ -91,6 +88,15 @@ public class GeyserSpigotCompressionDisabler extends ChannelOutboundHandlerAdapt
         } else if (PROTOCOL_SUPPORT_INSTALLED) {
             // We must indicate it "succeeded" or ProtocolSupport will time us out
             promise.setSuccess();
+        }
+    }
+
+    private static void removeCompressionHandlers(ChannelHandlerContext ctx) {
+        if (ctx.pipeline().get("compress") != null) {
+            ctx.pipeline().remove("compress");
+        }
+        if (ctx.pipeline().get("decompress") != null) {
+            ctx.pipeline().remove("decompress");
         }
     }
 

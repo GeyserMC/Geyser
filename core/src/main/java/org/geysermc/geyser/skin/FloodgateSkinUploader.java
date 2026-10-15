@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2026 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -49,6 +49,7 @@ import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.util.JsonUtils;
 import org.geysermc.geyser.util.PluginMessageUtils;
 import org.java_websocket.client.WebSocketClient;
+import org.java_websocket.framing.CloseFrame;
 import org.java_websocket.handshake.ServerHandshake;
 
 public final class FloodgateSkinUploader {
@@ -70,7 +71,16 @@ public final class FloodgateSkinUploader {
 
     @Getter private int id;
     @Getter private String verifyCode;
-    @Getter private int subscribersCount;
+    /*
+     * Should Geyser forward the ID & verification code to Floodgate so that they can subscribe to skin data too?
+     * Before this was introduced it always forwarded, but there was no real benefit to it compared to letting Geyser send it to the server.
+     * So this now defaults to false unless there's an active connection, with the Global API having an option to turn it off.
+     * Without this option Floodgate would still attempt to connect even if it's not needed, when a skin upload connection is active.
+     */
+    @Getter private boolean allowSubscribers = false;
+    private int subscribersCount;
+
+    private int protocolErrorCount = 0;
 
     public FloodgateSkinUploader(GeyserImpl geyser) {
         this.logger = geyser.getLogger();
@@ -117,6 +127,9 @@ public final class FloodgateSkinUploader {
                         case SUBSCRIBER_CREATED:
                             id = node.get("id").getAsInt();
                             verifyCode = node.get("verify_code").getAsString();
+                            // Should fallback to true when absent, as this used to be the behavior before this introduction
+                            allowSubscribers = !node.has("allow_subscribers") || node.get("allow_subscribers").getAsBoolean();
+                            subscribersCount = 1;
                             break;
                         case SUBSCRIBER_COUNT:
                             subscribersCount = node.get("subscribers_count").getAsInt();
@@ -124,7 +137,7 @@ public final class FloodgateSkinUploader {
                         case SKIN_UPLOADED:
                             // if Geyser is the only subscriber we have send it to the server manually
                             // otherwise it's handled by the Floodgate plugin subscribers
-                            if (subscribersCount != 1) {
+                            if (subscribersCount != 1 && allowSubscribers) {
                                 break;
                             }
 
@@ -144,7 +157,10 @@ public final class FloodgateSkinUploader {
 
                                 byte[] bytes = (value + '\0' + signature)
                                         .getBytes(StandardCharsets.UTF_8);
-                                PluginMessageUtils.sendMessage(session, PluginMessageChannels.SKIN, bytes);
+                                // Wait until the session is actually spawned before sending, otherwise
+                                // the plugin message can land during the proxy's null-connection window
+                                // on initial join and be silently dropped by Velocity.
+                                sendSkinWhenSpawned(geyser, session, bytes, 0);
                             }
                             break;
                         case LOG_MESSAGE:
@@ -166,6 +182,24 @@ public final class FloodgateSkinUploader {
 
             @Override
             public void onClose(int code, String reason, boolean remote) {
+                allowSubscribers = false;
+
+                // If we seem to get protocol errors quite a bit, try our alternative url.
+                // But if that one fails too for a few times, just revert back to our main url.
+                if (code == CloseFrame.PROTOCOL_ERROR) {
+                    boolean shouldSwitch = false;
+                    if (protocolErrorCount < 5) {
+                        shouldSwitch = ++protocolErrorCount == 5;
+                    }
+                    if (protocolErrorCount >= 5 && Constants.GLOBAL_API_WS_URI_ALT != null) {
+                        if (shouldSwitch) {
+                            uri = Constants.GLOBAL_API_WS_URI_ALT;
+                        } else if (++protocolErrorCount == 10) {
+                            uri = Constants.GLOBAL_API_WS_URI;
+                        }
+                    }
+                }
+
                 if (reason != null && !reason.isEmpty()) {
                     try {
                         JsonObject node = JsonUtils.parseJson(reason);
@@ -240,6 +274,19 @@ public final class FloodgateSkinUploader {
                 skinQueue.addLast(jsonString);
             }
         }
+    }
+
+    private void sendSkinWhenSpawned(GeyserImpl geyser, GeyserSession session, byte[] bytes, int attempt) {
+        if (session.isClosed() || attempt >= 10) {
+            return;
+        }
+        if (session.isSpawned()) {
+            PluginMessageUtils.sendMessage(session, PluginMessageChannels.SKIN, bytes);
+            return;
+        }
+        geyser.getScheduledThread().schedule(
+                () -> sendSkinWhenSpawned(geyser, session, bytes, attempt + 1),
+                500, TimeUnit.MILLISECONDS);
     }
 
     private void reconnectLater(GeyserImpl geyser) {

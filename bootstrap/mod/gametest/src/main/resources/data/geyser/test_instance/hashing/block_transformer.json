@@ -1,0 +1,9 @@
+{
+  "type": "geyser:component_hash",
+  "component": "minecraft:block_transformer",
+  "value": [
+    "minecraft:shovel",
+    "minecraft:axe",
+    "minecraft:hoe"
+  ]
+}

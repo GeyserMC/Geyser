@@ -27,6 +27,7 @@ package org.geysermc.geyser.registry.mappings.util;
 
 import com.google.gson.JsonPrimitive;
 import org.geysermc.geyser.Constants;
+import org.geysermc.geyser.api.event.lifecycle.GeyserDefineCustomSkullsEvent;
 import org.geysermc.geyser.api.item.custom.v2.component.java.JavaConsumable;
 import org.geysermc.geyser.api.item.custom.v2.component.java.JavaEquippable;
 import org.geysermc.geyser.api.predicate.PredicateStrategy;
@@ -47,6 +48,8 @@ import java.util.function.Predicate;
 @FunctionalInterface
 public interface NodeReader<T> {
 
+    // Primitive readers
+
     NodeReader<Integer> INT = node -> {
         double i = node.getAsDouble();
         if (i == (int) i) { // Make sure the number is round
@@ -58,6 +61,18 @@ public interface NodeReader<T> {
     NodeReader<Integer> NON_NEGATIVE_INT = INT.validate(i -> i >= 0, "integer must be non-negative");
 
     NodeReader<Integer> POSITIVE_INT = INT.validate(i -> i > 0, "integer must be positive");
+
+    NodeReader<Integer> HEX_INT = node -> {
+        String s = node.getAsString();
+        if (s.startsWith("#")) {
+            s = s.substring(1);
+        }
+        try {
+            return Integer.parseInt(s, 16);
+        } catch (NumberFormatException exception) {
+            throw new InvalidCustomMappingsFileException("failed to parse hexadecimal string: " + s);
+        }
+    };
 
     NodeReader<Double> DOUBLE = JsonPrimitive::getAsDouble;
 
@@ -92,6 +107,8 @@ public interface NodeReader<T> {
 
     NodeReader<String> NON_EMPTY_STRING = STRING.validate(s -> !s.isEmpty(), "string must not be empty");
 
+    // General API readers
+
     NodeReader<Identifier> IDENTIFIER = NON_EMPTY_STRING.andThen(Identifier::of);
 
     NodeReader<Identifier> GEYSER_IDENTIFIER = NON_EMPTY_STRING.validate(s -> !s.startsWith("minecraft:"), "namespace cannot be minecraft")
@@ -110,6 +127,8 @@ public interface NodeReader<T> {
         throw new InvalidCustomMappingsFileException("tag must start with a #");
     }).andThen(Identifier::of);
 
+    // Item readers
+
     NodeReader<CreativeCategory> CREATIVE_CATEGORY = NON_EMPTY_STRING.andThen(CreativeCategory::fromName).validate(Objects::nonNull, "unknown creative category");
 
     NodeReader<ItemDefinitionReaders> ITEM_DEFINITION_READER = ofEnum(ItemDefinitionReaders.class);
@@ -127,6 +146,10 @@ public interface NodeReader<T> {
     NodeReader<JavaConsumable.Animation> CONSUMABLE_ANIMATION = ofEnum(JavaConsumable.Animation.class);
 
     NodeReader<JavaEquippable.EquipmentSlot> EQUIPMENT_SLOT = ofEnum(JavaEquippable.EquipmentSlot.class);
+
+    // Skull readers
+
+    NodeReader<GeyserDefineCustomSkullsEvent.SkullTextureType> SKULL_TEXTURE_TYPE = ofEnum(GeyserDefineCustomSkullsEvent.SkullTextureType.class);
 
     static <E extends Enum<E>> NodeReader<E> ofEnum(Class<E> clazz) {
         return NON_EMPTY_STRING.andThen(String::toUpperCase).andThen(s -> {

@@ -44,7 +44,7 @@ public record GeyserShapedRecipe(int id,
                                  int width,
                                  int height,
                                  List<SlotDisplay> ingredients,
-                                 SlotDisplay result) implements GeyserRecipe {
+                                 SlotDisplay result) implements GeyserRecipe<ShapedRecipeData> {
 
     public GeyserShapedRecipe(int id, int netId, ShapedCraftingRecipeDisplay data) {
         this(id, netId, data.width(), data.height(), data.ingredients(), data.result());
@@ -56,13 +56,13 @@ public record GeyserShapedRecipe(int id,
     }
 
     @Override
-    public List<RecipeData> asRecipeData(GeyserSession session) {
+    public List<ShapedRecipeData> asRecipeData(GeyserSession session) {
         var bedrockRecipes = RecipeUtil.combinations(session, result, ingredients);
         if (bedrockRecipes == null) {
             return List.of();
         }
 
-        List<RecipeData> recipeData = new ArrayList<>();
+        List<ShapedRecipeData> recipeData = new ArrayList<>();
         ItemData output = bedrockRecipes.right();
         List<List<ItemDescriptorWithCount>> left = bedrockRecipes.left();
         int i = 0;
