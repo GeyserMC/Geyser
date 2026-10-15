@@ -326,7 +326,7 @@ public class Item {
         builder.getOrCreateLore().addFirst(ChatColor.RESET + ChatColor.GRAY + enchantmentName + " " + lvlTranslation);
     }
 
-    protected final void translateDyedColor(DataComponents components, BedrockItemBuilder builder) {
+    public static void translateDyedColor(DataComponents components, BedrockItemBuilder builder) {
         Integer dyedItemColor = components.get(DataComponentTypes.DYED_COLOR);
         if (dyedItemColor != null) {
             builder.putInt("customColor", dyedItemColor);

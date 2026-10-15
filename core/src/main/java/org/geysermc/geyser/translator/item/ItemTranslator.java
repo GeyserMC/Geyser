@@ -240,6 +240,8 @@ public final class ItemTranslator {
             nbtMapBuilder.putIfAbsent("ench", NbtList.EMPTY);
         }
 
+        Item.translateDyedColor(components, nbtBuilder);
+
         ItemData.Builder builder = javaItem.translateToBedrock(session, count, components, bedrockItem, session.getItemMappings());
         // Finalize the Bedrock NBT
         builder.tag(nbtBuilder.build());
