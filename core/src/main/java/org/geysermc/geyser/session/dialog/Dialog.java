@@ -73,7 +73,7 @@ public abstract class Dialog {
 
     protected Dialog(String locale, NbtMap map) {
         title = MessageTranslator.convertLenientNbtMessage(map.get("title"), locale);
-        externalTitle = Optional.ofNullable(MessageTranslator.convertLenientNbtMessage(map.get("external_title"), locale));
+        externalTitle = Optional.ofNullable(map.get("external_title")).map(title -> MessageTranslator.convertLenientNbtMessage(title, locale));
         canCloseWithEscape = map.getBoolean("can_close_with_escape", true);
         afterAction = AfterAction.fromString(map.getString("after_action"));
 
