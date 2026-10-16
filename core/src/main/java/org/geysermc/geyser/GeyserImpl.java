@@ -514,7 +514,7 @@ public class GeyserImpl implements GeyserApi, EventRegistrar {
             logger.error("      / \\");
             logger.error("     /   \\      WARNING! NetherNet support is NOT enabled.");
             logger.error("    /  |  \\     Players will not be able to connect to your server,");
-            logger.error("   /   |   \\    starting from Bedrock version 26.60, releasing October 27th.");
+            logger.error("   /   |   \\    starting October 27th, when NetherNet is scheduled to release.");
             logger.error("  /         \\   Please see our blog post over at https://geysermc.org/blog/preparing-for-nethernet");
             logger.error(" /     o     \\  on how to enable NetherNet support.");
             logger.error("/_____________\\");
