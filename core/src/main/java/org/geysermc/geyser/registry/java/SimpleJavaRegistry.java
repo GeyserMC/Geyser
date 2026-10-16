@@ -58,7 +58,7 @@ public class SimpleJavaRegistry<T> implements MutableJavaRegistry<T> {
     }
 
     /**
-     * Allows access the entries of this registry before it is frozen.
+     * Allows accessing the entries of this registry before it is frozen.
      *
      * @deprecated should be used as little as possible, and not at all when writing new code
      */
@@ -70,13 +70,13 @@ public class SimpleJavaRegistry<T> implements MutableJavaRegistry<T> {
     // Overriding these 2 with an additional ensureBound call, which will result in a more descriptive error message when registry is not bound
     @Override
     public Optional<T> get(int networkId) {
-        ensureBound();
+        ensureBound(true);
         return MutableJavaRegistry.super.get(networkId);
     }
 
     @Override
     public Optional<T> get(Key key) {
-        ensureBound();
+        ensureBound(true);
         return MutableJavaRegistry.super.get(key);
     }
 
@@ -95,8 +95,8 @@ public class SimpleJavaRegistry<T> implements MutableJavaRegistry<T> {
     // TODO ideally this lookup wouldn't be supported on RegistryUnit registries
     @Override
     public Optional<RegistryEntryData<T>> getByValue(T object) {
-        // byValue is only populated after registry is bound - as such these lookups are also not supported during registry binding
-        ensureBound();
+        // byValue is only populated after registry is bound, so we absolutely cannot allow unsafe access here
+        ensureBound(false);
         return Optional.ofNullable(byValue.get(object));
     }
 
@@ -200,7 +200,7 @@ public class SimpleJavaRegistry<T> implements MutableJavaRegistry<T> {
     @Override
     public Iterator<T> iterator() {
         // Iterates over registry values - as such needs the registry to be bound, unlike forEachEntry
-        ensureBound();
+        ensureBound(true);
         // Using byId map here (instead of byValue.keySet) to ensure duplicate values are correctly passed multiple items
         ObjectBidirectionalIterator<Int2ObjectMap.Entry<RegistryEntryData<T>>> iterator = byId.int2ObjectEntrySet().iterator();
         return new Iterator<>() {
@@ -227,9 +227,11 @@ public class SimpleJavaRegistry<T> implements MutableJavaRegistry<T> {
         }
     }
 
-    private void ensureBound() {
+    // Parameter is a little annoying, let's get rid of that soon (2026-10-16)
+    private void ensureBound(boolean allowsUnsafeAccess) {
         ensureFrozen();
-        if (!bound) {
+        allowsUnsafeAccess = allowsUnsafeAccess && this.allowsUnsafeAccess;
+        if ((!allowsUnsafeAccess || hasUnboundEntries) && !bound) {
             throw new IllegalStateException("Registry " + this + " has unbound entries");
         }
     }
