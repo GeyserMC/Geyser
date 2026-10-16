@@ -35,6 +35,7 @@ import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtType;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
 import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.api.util.Identifier;
 import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.inventory.item.BedrockEnchantment;
 import org.geysermc.geyser.item.Items;
@@ -104,6 +105,16 @@ public class Item {
         resolvableComponentTypes = resolvableComponents.stream()
             .map(ResolvableComponent::type)
             .toList();
+    }
+
+    /**
+     * This method exists to "unofficially support" extensions getting an item's identifier. They cannot target {@link Item#javaKey()},
+     * as we relocate the {@link Key} class.
+     *
+     * @return the {@link Item#javaKey()} as {@link Identifier}
+     */
+    public Identifier javaIdentifier() {
+        return MinecraftKey.keyToIdentifier(javaIdentifier);
     }
 
     public Key javaKey() {
