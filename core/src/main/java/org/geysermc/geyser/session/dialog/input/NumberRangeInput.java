@@ -30,7 +30,6 @@ import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.geysermc.cumulus.form.CustomForm;
 import org.geysermc.cumulus.response.CustomFormResponse;
-import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.util.MinecraftKey;
 
 import java.util.Optional;
@@ -44,8 +43,8 @@ public class NumberRangeInput extends DialogInput<Float> {
     private final float initial;
     private final float step;
 
-    public NumberRangeInput(Optional<GeyserSession> session, NbtMap map) {
-        super(session, map);
+    public NumberRangeInput(String locale, NbtMap map) {
+        super(locale, map);
         start = map.getFloat("start");
         end = map.getFloat("end");
         initial = map.getFloat("initial", start + (end - start) / 2.0F);
