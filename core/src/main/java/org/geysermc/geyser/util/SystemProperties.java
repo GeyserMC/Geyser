@@ -29,6 +29,8 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 
 import java.util.Locale;
 import java.util.function.Function;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Geyser's system properties, which can also be set as environment variables.
@@ -38,8 +40,14 @@ import java.util.function.Function;
  * {@code GEYSER_UDP_PORT=19132}, {@code GEYSER_SHOW_SCOREBOARD_LOGS=false}. A system property that is set
  * takes priority over the environment variable. This helps on hosts and containers where the start
  * command is fixed but the environment is not.
+ * <p>
+ * A value may refer to other environment variables as {@code ${NAME}}, which are filled in, so a host
+ * that gives each container its public address in the environment can use one start command for all:
+ * {@code -DgeyserAdvertiseAddresses=${NODE_PUBLIC_IP}}. A start command run without a shell expands
+ * nothing on its own. A reference to a variable that is not set is left as it is written.
  */
 public final class SystemProperties {
+    private static final Pattern ENVIRONMENT_REFERENCE = Pattern.compile("\\$\\{([A-Za-z_][A-Za-z0-9_]*)}");
 
     private SystemProperties() {
     }
@@ -86,7 +94,25 @@ public final class SystemProperties {
         if (value == null) {
             value = environment.apply(environmentName(name));
         }
-        return value;
+        return value == null ? null : expand(value, environment);
+    }
+
+    /**
+     * {@code value} with each {@code ${NAME}} replaced by that environment variable; a reference to one
+     * that is not set is kept as written.
+     */
+    static String expand(String value, Function<String, String> environment) {
+        if (value.indexOf("${") < 0) {
+            return value;
+        }
+        Matcher reference = ENVIRONMENT_REFERENCE.matcher(value);
+        StringBuilder expanded = new StringBuilder(value.length());
+        while (reference.find()) {
+            String replacement = environment.apply(reference.group(1));
+            reference.appendReplacement(expanded, Matcher.quoteReplacement(replacement != null ? replacement : reference.group()));
+        }
+        reference.appendTail(expanded);
+        return expanded.toString();
     }
 
     /**

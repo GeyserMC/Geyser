@@ -52,4 +52,14 @@ public class SystemPropertiesTest {
         assertEquals("nethernet", SystemProperties.get("geyserTransport", properties::get, environment::get));
         assertNull(SystemProperties.get("geyserSignalingMode", properties::get, environment::get));
     }
+
+    @Test
+    public void referencesAreFilledFromTheEnvironment() {
+        Map<String, String> environment = Map.of("NODE_IP", "203.0.113.10", "GEYSER_PORT", "41234");
+        Map<String, String> properties = Map.of("geyserAdvertiseAddresses", "${NODE_IP}");
+        assertEquals("203.0.113.10", SystemProperties.get("geyserAdvertiseAddresses", properties::get, environment::get));
+        assertEquals("203.0.113.10:41234", SystemProperties.expand("${NODE_IP}:${GEYSER_PORT}", environment::get));
+        assertEquals("${MISSING}:19132", SystemProperties.expand("${MISSING}:19132", environment::get));
+        assertEquals("198.51.100.1", SystemProperties.expand("198.51.100.1", environment::get));
+    }
 }
