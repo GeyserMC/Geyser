@@ -510,6 +510,14 @@ public class GeyserImpl implements GeyserApi, EventRegistrar {
         if (transport.nethernet()) {
             this.netherNetServer = new NetherNetServer(this);
             this.netherNetServer.start();
+        } else {
+            logger.error("      / \\");
+            logger.error("     /   \\      WARNING! NetherNet support is NOT enabled.");
+            logger.error("    /  |  \\     Players will not be able to connect to your server,");
+            logger.error("   /   |   \\    starting October 27th, when NetherNet is scheduled to release.");
+            logger.error("  /         \\   Please see our blog post over at https://geysermc.org/blog/preparing-for-nethernet");
+            logger.error(" /     o     \\  on how to enable NetherNet support.");
+            logger.error("/_____________\\");
         }
 
         if (config.java().authType() == AuthType.FLOODGATE) {
