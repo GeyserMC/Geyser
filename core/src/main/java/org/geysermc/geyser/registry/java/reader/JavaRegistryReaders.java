@@ -135,6 +135,17 @@ public final class JavaRegistryReaders {
     }
 
     /**
+     * Returns true if Geyser should parse registry data for the given {@link JavaRegistryKey}. This essentially means that
+     * {@link JavaRegistryReaders#getReader(JavaRegistryKey)} will not return null.
+     *
+     * @param key the {@link JavaRegistryKey}
+     * @return true if Geyser should parse registry data for that registry
+     */
+    public static boolean shouldParseRegistry(JavaRegistryKey<?> key) {
+        return READERS.containsKey(key);
+    }
+
+    /**
      * Registers a {@link JavaRegistryReader} for the given {@link JavaRegistryKey}.
      *
      * @param registryKey the registry to register a reader for

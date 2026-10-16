@@ -56,7 +56,7 @@ public final class GameTestJavaRegistryProvider {
             packet -> {
                 Packet mcpl = NetworkUtil.mojangToGeyserPacket(ConfigurationProtocols.CLIENTBOUND, packet);
                 if (mcpl instanceof ClientboundRegistryDataPacket registryDataPacket) {
-                    provider.loadRegistryData(Optional.empty(), registryDataPacket);
+                    provider.loadRegistryData(registryDataPacket);
                 } else if (mcpl instanceof ClientboundUpdateTagsPacket tagsPacket) {
                     provider.loadTags(Optional.empty(), tagsPacket);
                 } else {
@@ -65,6 +65,8 @@ public final class GameTestJavaRegistryProvider {
             },
             Set.of()
         );
+
+        provider.freeze(Optional.empty());
 
         return provider;
     }
