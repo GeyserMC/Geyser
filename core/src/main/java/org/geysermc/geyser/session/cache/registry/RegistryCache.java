@@ -124,8 +124,10 @@ final class RegistryCache {
      */
     public void parseAndFreeze(JavaRegistryProvider registryProvider, String locale) {
         // First, register all the entries (leaving them unbound) with our mutable registries
-        configurationRegistryData.forEach((registryKey, registryEntries) -> {
-            MutableJavaRegistry<?> registry = registries.get(registryKey);
+        // Have to iterate over registries map here, instead of configurationRegistryData,
+        // to ensure registries without data are frozen
+        registries.forEach((registryKey, registry) -> {
+            List<RegistryEntry> registryEntries = configurationRegistryData.get(registryKey);
             if (registryEntries == null) {
                 // Server sent us no packet for this registry, presumably because it is running an older version in which it didn't exist yet.
                 // Vanilla (26.3) leaves the registry empty in that case (instead of loading default data), as far as I can tell.
