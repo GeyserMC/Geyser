@@ -269,6 +269,8 @@ public class Item {
             builder.putByte("Unbreakable", (byte) 1);
         }
 
+        translateDyedColor(components, builder);
+
         // Prevents the client from trying to stack items with untranslated components
         // Relies on correct hash code implementation, and some luck
         // However, we should only set a hash when the components differ from the default ones,
