@@ -258,6 +258,8 @@ public class Item {
             builder.putByte("Unbreakable", (byte) 1);
         }
 
+        translateDyedColor(components, builder);
+
         // Prevents the client from trying to stack items with untranslated components
         // Relies on correct hash code implementation, and some luck
         // However, we should only set a hash when the components differ from the default ones,
@@ -326,7 +328,7 @@ public class Item {
         builder.getOrCreateLore().addFirst(ChatColor.RESET + ChatColor.GRAY + enchantmentName + " " + lvlTranslation);
     }
 
-    public static void translateDyedColor(DataComponents components, BedrockItemBuilder builder) {
+    private final void translateDyedColor(DataComponents components, BedrockItemBuilder builder) {
         Integer dyedItemColor = components.get(DataComponentTypes.DYED_COLOR);
         if (dyedItemColor != null) {
             builder.putInt("customColor", dyedItemColor);
