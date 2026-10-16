@@ -241,6 +241,7 @@ import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.player.Serv
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.player.ServerboundSetCarriedItemPacket;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.player.ServerboundUseItemPacket;
 import org.geysermc.mcprotocollib.protocol.packet.login.serverbound.ServerboundCustomQueryAnswerPacket;
+import org.geysermc.geyser.util.SystemProperties;
 
 import java.net.InetSocketAddress;
 import java.time.Instant;
@@ -1228,7 +1229,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         protocol.setUseDefaultListeners(false);
 
         // MCPL listener comes first to handle protocol state switching before Geyser translates packets
-        downstream.addListener(new ClientListener(HandshakeIntent.LOGIN, Boolean.getBoolean("Geyser.ValidateDecompression")));
+        downstream.addListener(new ClientListener(HandshakeIntent.LOGIN, SystemProperties.getBoolean("Geyser.ValidateDecompression")));
         // Geyser adapter second to ensure translating packets in the correct states
         downstream.addListener(new GeyserSessionAdapter(this));
 

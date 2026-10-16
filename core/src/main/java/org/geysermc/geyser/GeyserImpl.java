@@ -109,6 +109,7 @@ import org.geysermc.geyser.util.NewsHandler;
 import org.geysermc.geyser.util.VersionCheckUtils;
 import org.geysermc.geyser.util.WebUtils;
 import org.geysermc.geyser.util.metrics.MetricsPlatform;
+import org.geysermc.geyser.util.SystemProperties;
 
 import java.io.File;
 import java.io.FileReader;
@@ -343,14 +344,14 @@ public class GeyserImpl implements GeyserApi, EventRegistrar {
             return;
         }
 
-        String geyserUdpPort = System.getProperty("geyserUdpPort", "");
-        String pluginUdpPort = geyserUdpPort.isEmpty() ? System.getProperty("pluginUdpPort", "") : geyserUdpPort;
+        String geyserUdpPort = SystemProperties.get("geyserUdpPort", "");
+        String pluginUdpPort = geyserUdpPort.isEmpty() ? SystemProperties.get("pluginUdpPort", "") : geyserUdpPort;
         if ("-1".equals(pluginUdpPort)) {
             throw new UnsupportedOperationException("This hosting/service provider does not support applications running on the UDP port");
         }
         boolean portPropertyApplied = false;
         boolean udpPortPropertyApplied = false;
-        String pluginUdpAddress = System.getProperty("geyserUdpAddress", System.getProperty("pluginUdpAddress", ""));
+        String pluginUdpAddress = SystemProperties.get("geyserUdpAddress", SystemProperties.get("pluginUdpAddress", ""));
 
         if (platformType() != PlatformType.STANDALONE) {
             int javaPort = bootstrap.getServerPort();
@@ -422,7 +423,7 @@ public class GeyserImpl implements GeyserApi, EventRegistrar {
             }
         }
 
-        String transportProperty = System.getProperty("geyserTransport", "");
+        String transportProperty = SystemProperties.get("geyserTransport", "");
         if (!transportProperty.isEmpty()) {
             try {
                 GeyserConfig.BedrockConfig.Transport transport = GeyserConfig.BedrockConfig.Transport.valueOf(transportProperty.toUpperCase(Locale.ROOT));
@@ -433,7 +434,7 @@ public class GeyserImpl implements GeyserApi, EventRegistrar {
             }
         }
 
-        String signalingModeProperty = System.getProperty("geyserSignalingMode", "");
+        String signalingModeProperty = SystemProperties.get("geyserSignalingMode", "");
         if (!signalingModeProperty.isEmpty()) {
             try {
                 GeyserConfig.SignalingConfig.Mode mode = GeyserConfig.SignalingConfig.Mode.valueOf(signalingModeProperty.toUpperCase(Locale.ROOT));
@@ -608,7 +609,7 @@ public class GeyserImpl implements GeyserApi, EventRegistrar {
      * @return the port, or 0 when the property is unset or does not hold a valid port
      */
     private static int portProperty(String property, String description, GeyserLogger logger) {
-        String value = System.getProperty(property, "");
+        String value = SystemProperties.get(property, "");
         if (value.isEmpty()) {
             return 0;
         }
@@ -626,7 +627,7 @@ public class GeyserImpl implements GeyserApi, EventRegistrar {
     }
 
     private void startRaknet(GeyserConfig config, GeyserLogger logger) {
-        int bedrockThreadCount = Integer.getInteger("Geyser.BedrockNetworkThreads", -1);
+        int bedrockThreadCount = SystemProperties.getInteger("Geyser.BedrockNetworkThreads", -1);
         if (bedrockThreadCount == -1) {
             // Copy the code from Netty's default thread count fallback
             bedrockThreadCount = Math.max(1, SystemPropertyUtil.getInt("io.netty.eventLoopThreads", NettyRuntime.availableProcessors() * 2));

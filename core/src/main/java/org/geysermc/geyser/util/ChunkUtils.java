@@ -52,7 +52,7 @@ import java.util.concurrent.ConcurrentHashMap;
 @UtilityClass
 public class ChunkUtils {
 
-    private static final boolean SHOW_CHUNK_HEIGHT_WARNING_LOGS = Boolean.parseBoolean(System.getProperty("Geyser.ShowChunkHeightWarningLogs", "true"));
+    private static final boolean SHOW_CHUNK_HEIGHT_WARNING_LOGS = Boolean.parseBoolean(SystemProperties.get("Geyser.ShowChunkHeightWarningLogs", "true"));
 
     public static final byte[] EMPTY_BIOME_DATA;
     public static final BlockStorage[] EMPTY_BLOCK_STORAGE;
