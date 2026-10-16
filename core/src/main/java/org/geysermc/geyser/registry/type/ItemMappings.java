@@ -134,7 +134,7 @@ public class ItemMappings implements DefinitionRegistry<ItemDefinition> {
     public ItemMapping getMapping(String javaIdentifier) {
         return this.cachedJavaMappings.computeIfAbsent(javaIdentifier, key -> {
             for (ItemMapping mapping : this.items) {
-                if (mapping.getJavaItem().javaIdentifier().equals(key)) {
+                if (mapping.getJavaItem().javaKey().asString().equals(key)) {
                     return mapping;
                 }
             }

@@ -75,7 +75,6 @@ import org.geysermc.geyser.api.util.PlatformType;
 import org.geysermc.geyser.command.CommandRegistry;
 import org.geysermc.geyser.configuration.GeyserConfig;
 import org.geysermc.geyser.configuration.GeyserPluginConfig;
-import org.geysermc.geyser.entity.VanillaEntities;
 import org.geysermc.geyser.erosion.UnixSocketClientListener;
 import org.geysermc.geyser.event.GeyserEventBus;
 import org.geysermc.geyser.event.type.SessionDisconnectEventImpl;
@@ -87,7 +86,6 @@ import org.geysermc.geyser.network.RaknetServer;
 import org.geysermc.geyser.network.bedrock.GameProtocol;
 import org.geysermc.geyser.network.bedrock.nethernet.NetherNetServer;
 import org.geysermc.geyser.ping.GeyserLegacyPingPassthrough;
-import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.registry.loader.ResourcePackLoader;
 import org.geysermc.geyser.registry.mappings.BuiltInMappings;
@@ -97,7 +95,6 @@ import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.PendingMicrosoftAuthentication;
 import org.geysermc.geyser.session.SessionDisconnectListener;
 import org.geysermc.geyser.session.SessionManager;
-import org.geysermc.geyser.session.cache.RegistryCache;
 import org.geysermc.geyser.skin.FloodgateSkinUploader;
 import org.geysermc.geyser.skin.ProvidedSkins;
 import org.geysermc.geyser.skin.SkinProvider;
@@ -253,19 +250,9 @@ public class GeyserImpl implements GeyserApi, EventRegistrar {
         eventBus.subscribe(this, GeyserDefineCustomBlocksEvent.class, BuiltInMappings::registerBlocks);
         eventBus.subscribe(this, GeyserDefineCustomItemsEvent.class, BuiltInMappings::registerItems);
 
-        /*
-        First load the registries and then populate them.
-        Both the block registries and the common registries depend on each other,
-        so maintaining this order is crucial for Geyser to load.
-         */
         Registries.load();
-        BlockRegistries.populate();
-        Registries.populate();
-
-        RegistryCache.init();
 
         /* Initialize translators */
-        VanillaEntities.init();
         MessageTranslator.init();
 
         // Download the latest asset list and cache it
@@ -453,7 +440,7 @@ public class GeyserImpl implements GeyserApi, EventRegistrar {
                 config.bedrock().signaling().mode(mode);
                 logger.info("Signaling mode set from system property: " + mode.name().toLowerCase(Locale.ROOT));
             } catch (IllegalArgumentException e) {
-                logger.error("Invalid signaling mode from system property: " + signalingModeProperty + "! Use \"builtin\", \"hybrid\", \"nxs\" or \"none\". Defaulting to configured signaling mode.");
+                logger.error("Invalid signaling mode from system property: " + signalingModeProperty + "! Use \"builtin\", \"hybrid\" or \"nxs\". Defaulting to configured signaling mode.");
             }
         }
 
@@ -940,6 +927,28 @@ public class GeyserImpl implements GeyserApi, EventRegistrar {
             metrics.addCustomChart(new SimplePie("version", () -> GeyserImpl.VERSION));
             metrics.addCustomChart(new SimplePie("javaHaProxyProtocol", () -> String.valueOf(config.advanced().java().useHaproxyProtocol())));
             metrics.addCustomChart(new SimplePie("bedrockHaProxyProtocol", () -> String.valueOf(config.advanced().bedrock().useHaproxyProtocol())));
+            metrics.addCustomChart(new SimplePie("bedrockTransport", () -> config.bedrock().transport().toString().toLowerCase(Locale.ROOT)));
+            metrics.addCustomChart(new DrilldownPie("signalingMode", () -> {
+                // Signaling is only used with NetherNet; an empty map skips this chart
+                if (!config.bedrock().transport().nethernet()) {
+                    return Map.of();
+                }
+
+                // builtin => (https, 1)
+                // nxs => (nxs, 1)
+                GeyserConfig.SignalingConfig signaling = config.bedrock().signaling();
+                String builtinType;
+                if (!signaling.mode().builtin()) {
+                    builtinType = "nxs";
+                } else if (!signaling.builtin().https().certificate().isBlank()) {
+                    builtinType = "https";
+                } else if (!config.advanced().bedrock().signalingTrustedProxies().isEmpty()) {
+                    builtinType = "http (reverse proxy)";
+                } else {
+                    builtinType = "http";
+                }
+                return Map.of(signaling.mode().toString().toLowerCase(Locale.ROOT), Map.of(builtinType, 1));
+            }));
             metrics.addCustomChart(new AdvancedPie("playerPlatform", () -> {
                 Map<String, Integer> valueMap = new HashMap<>();
                 for (GeyserSession session : sessionManager.getAllSessions()) {

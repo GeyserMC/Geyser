@@ -25,20 +25,17 @@
 
 package org.geysermc.geyser.network.bedrock.nethernet.signaling.provider;
 
-import com.google.gson.JsonObject;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelDuplexHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelPromise;
 import io.netty.util.AttributeKey;
+import org.cloudburstmc.netty.signaling.ProviderClient;
 import org.cloudburstmc.netty.signaling.admission.AdmissionPrincipal;
 import org.cloudburstmc.protocol.bedrock.netty.BedrockPacketWrapper;
 import org.cloudburstmc.protocol.bedrock.packet.DisconnectPacket;
 import org.cloudburstmc.protocol.bedrock.packet.RequestNetworkSettingsPacket;
 
-import java.time.Instant;
-import java.util.List;
-import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.IntPredicate;
 
@@ -48,9 +45,23 @@ import java.util.function.IntPredicate;
 public final class GameOutcomeReporter {
     public static final String HANDLER_NAME = "nethernet-game-outcome";
     private static final AttributeKey<State> STATE = AttributeKey.valueOf(GameOutcomeReporter.class, "state");
-    private final ArrayBlockingQueue<JsonObject> events = new ArrayBlockingQueue<>(256);
+    private final Sink sink;
     private final AtomicLong dropped = new AtomicLong();
-    private volatile boolean closed;
+
+    /**
+     * Where outcomes go, normally {@link ProviderClient#reportGameOutcome}.
+     */
+    @FunctionalInterface
+    public interface Sink {
+        /**
+         * @return false when the outcome was dropped
+         */
+        boolean report(String ticketId, ProviderClient.GameOutcome outcome, String reason);
+    }
+
+    public GameOutcomeReporter(Sink sink) {
+        this.sink = sink;
+    }
 
     // Owned by the channel: no global session map or references to native resources.
     private static final class State {
@@ -105,32 +116,21 @@ public final class GameOutcomeReporter {
     }
 
     private void report(Channel channel, boolean joined) {
-        if (closed) return;
         State state = state(channel);
         if (state == null) return;
         synchronized (state) {
             if (state.reported) return;
-            state.reported = true; // A full telemetry queue must not turn a later disconnect into rejection.
-            JsonObject event = new JsonObject();
-            event.addProperty("ticketId", channel.attr(AdmissionPrincipal.KEY).get().ticketId());
-            event.addProperty("stage", joined ? "ticket.game_joined" : "ticket.game_rejected");
-            event.addProperty("occurredAt", Instant.now().toString());
-            event.addProperty("reason", joined ? "play_ready" : state.unsupportedVersion ? "unsupported_version" : "server_rejected");
+            state.reported = true; // A dropped outcome must not turn a later disconnect into rejection.
             // Never publish disconnect text, player identity, or game payloads.
-            if (!events.offer(event)) dropped.incrementAndGet();
+            if (!sink.report(channel.attr(AdmissionPrincipal.KEY).get().ticketId(),
+                    joined ? ProviderClient.GameOutcome.JOINED : ProviderClient.GameOutcome.REJECTED,
+                    joined ? "play_ready" : state.unsupportedVersion ? "unsupported_version" : "server_rejected")) {
+                dropped.incrementAndGet();
+            }
         }
-    }
-
-    public void drainTo(List<JsonObject> batch, int maximum) {
-        events.drainTo(batch, maximum);
     }
 
     public long droppedEvents() {
         return dropped.get();
-    }
-
-    public void close() {
-        closed = true;
-        events.clear();
     }
 }
