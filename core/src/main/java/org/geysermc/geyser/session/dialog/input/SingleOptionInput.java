@@ -31,7 +31,6 @@ import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.nbt.NbtType;
 import org.geysermc.cumulus.form.CustomForm;
 import org.geysermc.cumulus.response.CustomFormResponse;
-import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.text.MessageTranslator;
 import org.geysermc.geyser.util.MinecraftKey;
 
@@ -47,15 +46,15 @@ public class SingleOptionInput extends DialogInput<String> {
     private final List<Entry> entries = new ArrayList<>();
     private final int initial;
 
-    public SingleOptionInput(Optional<GeyserSession> session, NbtMap map) {
-        super(session, map);
+    public SingleOptionInput(String locale, NbtMap map) {
+        super(locale, map);
         labelVisible = map.getBoolean("label_visible", true);
         List<NbtMap> entriesTag = map.getList("options", NbtType.COMPOUND);
 
         int temp = 0;
         for (int i = 0; i < entriesTag.size(); i++) {
             NbtMap entry = entriesTag.get(i);
-            entries.add(new Entry(entry.getString("id"), Optional.ofNullable(MessageTranslator.convertFromNullableNbtTag(session, entry.get("display")))));
+            entries.add(new Entry(entry.getString("id"), Optional.ofNullable(MessageTranslator.convertLenientNbtMessage(entry.get("display"), locale))));
             if (entry.getBoolean("initial")) {
                 temp = i;
             }

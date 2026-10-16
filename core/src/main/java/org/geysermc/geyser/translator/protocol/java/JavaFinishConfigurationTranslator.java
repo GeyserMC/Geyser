@@ -39,7 +39,6 @@ import org.geysermc.mcprotocollib.protocol.packet.configuration.clientbound.Clie
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 import static org.geysermc.geyser.inventory.recipe.RecipeUtil.CARTOGRAPHY_RECIPES;
 
@@ -61,7 +60,7 @@ public class JavaFinishConfigurationTranslator extends PacketTranslator<Clientbo
         session.getEntityCache().removeAllPlayerEntities();
 
         // Freeze networked registries, after receiving the new ones from the server
-        ((JavaRegistryTagCache) session.javaRegistries()).freeze(Optional.of(session));
+        ((JavaRegistryTagCache) session.javaRegistries()).freeze(session.locale());
 
         // Cartography recipes are registered by default, as they are needed to be able to put items into the cartography table.
         // (Also add it here so recipes get cleared on configuration - 1.21.3)

@@ -27,7 +27,6 @@ package org.geysermc.geyser.session.dialog;
 
 import net.kyori.adventure.key.Key;
 import org.cloudburstmc.nbt.NbtMap;
-import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.registry.java.JavaRegistries;
 import org.geysermc.geyser.registry.java.JavaRegistryProvider;
 import org.geysermc.geyser.session.cache.tags.GeyserHolderSet;
@@ -43,9 +42,9 @@ public class DialogListDialog extends DialogWithButtons {
 
     private final GeyserHolderSet<Dialog> dialogs;
 
-    public DialogListDialog(JavaRegistryProvider registries, Optional<GeyserSession> session, NbtMap map) {
-        super(session, map, readDefaultExitAction(registries, session, map));
-        dialogs = GeyserHolderSet.readHolderSet(registries, JavaRegistries.DIALOG, map.get("dialogs"), session);
+    public DialogListDialog(JavaRegistryProvider registries, String locale, NbtMap map) {
+        super(locale, map, readDefaultExitAction(registries, locale, map));
+        dialogs = GeyserHolderSet.readHolderSet(registries, JavaRegistries.DIALOG, locale, map.get("dialogs"));
     }
 
     @Override

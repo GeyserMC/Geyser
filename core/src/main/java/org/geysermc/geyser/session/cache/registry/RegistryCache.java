@@ -41,7 +41,6 @@ import org.geysermc.geyser.registry.java.SimpleJavaRegistry;
 import org.geysermc.geyser.registry.java.reader.JavaRegistryReaders;
 import org.geysermc.geyser.registry.java.reader.KeyDependentJavaRegistryReader;
 import org.geysermc.geyser.registry.java.reader.RegistryEntryContext;
-import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.util.MinecraftKey;
 import org.geysermc.mcprotocollib.protocol.MinecraftProtocol;
 import org.geysermc.mcprotocollib.protocol.data.game.RegistryEntry;
@@ -104,7 +103,7 @@ final class RegistryCache {
     }
 
     /**
-     * Loads a {@link ClientboundRegistryDataPacket}. Adds the entries of this packet to the local cache waiting to be parsed by {@link RegistryCache#parseAndFreeze(JavaRegistryProvider, Optional)}.
+     * Loads a {@link ClientboundRegistryDataPacket}. Adds the entries of this packet to the local cache waiting to be parsed by {@link RegistryCache#parseAndFreeze(JavaRegistryProvider, String)}.
      *
      * @param packet the packet with registry data to load
      */
@@ -121,9 +120,9 @@ final class RegistryCache {
      * Parses all loaded registry entries, and then freezes all registries.
      *
      * @param registryProvider the {@link JavaRegistryProvider}
-     * @param session the {@link GeyserSession}, used to provide the locale
+     * @param locale the locale used to translate text components in registry data
      */
-    public void parseAndFreeze(JavaRegistryProvider registryProvider, Optional<GeyserSession> session) {
+    public void parseAndFreeze(JavaRegistryProvider registryProvider, String locale) {
         // First, register all the entries (leaving them unbound) with our mutable registries
         configurationRegistryData.forEach((registryKey, registryEntries) -> {
             MutableJavaRegistry<?> registry = registries.get(registryKey);
@@ -137,7 +136,7 @@ final class RegistryCache {
         });
         // Then, go over all entries again, this time binding them. We do this at this stage to ensure references to other dynamic registries work.
         configurationRegistryData.forEach((registryKey, registryEntries) -> {
-            loadRegistry(registryProvider, registryKey, session, registryEntries);
+            loadRegistry(registryProvider, registryKey, locale, registryEntries);
         });
         // Finally, we can clear the raw registry data
         configurationRegistryData.clear();
@@ -152,12 +151,12 @@ final class RegistryCache {
     }
 
     private <T> void loadRegistry(JavaRegistryProvider registryProvider, JavaRegistryKey<T> registryKey,
-                                  Optional<GeyserSession> session, List<RegistryEntry> entries) {
+                                  String locale, List<RegistryEntry> entries) {
         Optional<KeyDependentJavaRegistryReader<T>> reader = JavaRegistryReaders.getReader(registryKey);
         if (reader.isPresent()) {
             try {
                 // Generics ftw
-                readRegistry(registryProvider, registryKey, (MutableJavaRegistry<T>) registry(registryKey), reader.get(), session, entries);
+                readRegistry(registryProvider, registryKey, (MutableJavaRegistry<T>) registry(registryKey), reader.get(), locale, entries);
             } catch (Exception exception) {
                 GeyserImpl.getInstance().getLogger().error("Failed parsing registry entries for " + registryKey + "!", exception);
             }
@@ -168,7 +167,7 @@ final class RegistryCache {
 
     private static <T> void readRegistry(JavaRegistryProvider registryProvider, JavaRegistryKey<T> registryKey,
                                          MutableJavaRegistry<T> registry, KeyDependentJavaRegistryReader<T> reader,
-                                         Optional<GeyserSession> session, List<RegistryEntry> entries) {
+                                         String locale, List<RegistryEntry> entries) {
 
         Map<Key, NbtMap> localRegistryData = DEFAULTS.get(registryKey);
 
@@ -180,7 +179,7 @@ final class RegistryCache {
                 entry = new RegistryEntry(entry.getId(), localRegistryData.get(entry.getId()));
             }
 
-            return reader.read(new RegistryEntryContext(registryProvider, entry, session));
+            return reader.read(new RegistryEntryContext(registryProvider, entry, locale));
         });
     }
 }

@@ -27,20 +27,17 @@ package org.geysermc.geyser.registry.java.reader;
 
 import net.kyori.adventure.key.Key;
 import org.geysermc.geyser.registry.java.JavaRegistryProvider;
-import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.mcprotocollib.protocol.data.game.RegistryEntry;
 import org.geysermc.mcprotocollib.protocol.packet.configuration.clientbound.ClientboundRegistryDataPacket;
-
-import java.util.Optional;
 
 /**
  * Expands {@link JavaRegistryReader.Context} with a {@link Key}. Used when parsing registry data from a {@link ClientboundRegistryDataPacket}.
  *
  * @param registries the {@link JavaRegistryProvider}
  * @param entry the {@link RegistryEntry}
- * @param session the {@link GeyserSession}
+ * @param locale the locale to use when translating text components
  */
-public record RegistryEntryContext(JavaRegistryProvider registries, RegistryEntry entry, Optional<GeyserSession> session) implements JavaRegistryReader.Context {
+public record RegistryEntryContext(JavaRegistryProvider registries, RegistryEntry entry, String locale) implements JavaRegistryReader.Context {
 
     /**
      * @return the {@link Key} of this registry entry
