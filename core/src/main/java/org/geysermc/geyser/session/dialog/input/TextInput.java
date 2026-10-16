@@ -30,7 +30,6 @@ import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.geysermc.cumulus.form.CustomForm;
 import org.geysermc.cumulus.response.CustomFormResponse;
-import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.util.MinecraftKey;
 
 import java.util.Optional;
@@ -43,8 +42,8 @@ public class TextInput extends DialogInput<String> {
     private final String initial;
     private final int maxLength;
 
-    public TextInput(Optional<GeyserSession> session, NbtMap map) {
-        super(session, map);
+    public TextInput(String locale, NbtMap map) {
+        super(locale, map);
         labelVisible = map.getBoolean("label_visible", true);
         initial = map.getString("initial", "");
         maxLength = map.getInt("max_length", 32);

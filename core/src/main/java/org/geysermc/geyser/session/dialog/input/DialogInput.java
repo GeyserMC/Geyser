@@ -40,9 +40,9 @@ public abstract class DialogInput<T> {
     protected final String key;
     protected final String label;
 
-    protected DialogInput(Optional<GeyserSession> session, NbtMap map) {
+    protected DialogInput(String locale, NbtMap map) {
         this.key = map.getString("key");
-        this.label = MessageTranslator.convertFromNullableNbtTag(session, map.get("label"));
+        this.label = MessageTranslator.convertLenientNbtMessage(map.get("label"), locale);
     }
 
     public void addComponent(CustomForm.Builder builder) {
@@ -59,16 +59,16 @@ public abstract class DialogInput<T> {
 
     public abstract T defaultValue();
 
-    public static DialogInput<?> read(Optional<GeyserSession> session, NbtMap tag) {
+    public static DialogInput<?> read(String locale, NbtMap tag) {
         Key type = MinecraftKey.key(tag.getString("type"));
         if (type.equals(BooleanInput.TYPE)) {
-            return new BooleanInput(session, tag);
+            return new BooleanInput(locale, tag);
         } else if (type.equals(NumberRangeInput.TYPE)) {
-            return new NumberRangeInput(session, tag);
+            return new NumberRangeInput(locale, tag);
         } else if (type.equals(SingleOptionInput.TYPE)) {
-            return new SingleOptionInput(session, tag);
+            return new SingleOptionInput(locale, tag);
         } else if (type.equals(TextInput.TYPE)) {
-            return new TextInput(session, tag);
+            return new TextInput(locale, tag);
         }
 
         throw new UnsupportedOperationException("Unknown dialog input type " + type);

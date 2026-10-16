@@ -68,12 +68,20 @@ public final class JavaRegistryTagCache implements JavaRegistryProvider {
         return tagCache.get(tag);
     }
 
-    public void loadRegistryData(Optional<GeyserSession> session, ClientboundRegistryDataPacket registryData) {
-        registryCache.load(this, session, registryData);
+    public void clear() {
+        registryCache.clear();
+    }
+
+    public void loadRegistryData(ClientboundRegistryDataPacket registryData) {
+        registryCache.load(registryData);
     }
 
     public void loadTags(Optional<GeyserSession> session, ClientboundUpdateTagsPacket tagsPacket) {
         tagCache.loadPacket(session, tagsPacket);
+    }
+
+    public void freeze(String locale) {
+        registryCache.parseAndFreeze(this, locale);
     }
 
     public static void bootstrap() {
