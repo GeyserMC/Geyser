@@ -71,21 +71,21 @@ public abstract class Dialog {
     @Getter
     private final ParsedInputs defaultInputs;
 
-    protected Dialog(Optional<GeyserSession> session, NbtMap map) {
-        title = MessageTranslator.convertFromNullableNbtTag(session, map.get("title"));
-        externalTitle = Optional.ofNullable(MessageTranslator.convertFromNullableNbtTag(session, map.get("external_title")));
+    protected Dialog(String locale, NbtMap map) {
+        title = MessageTranslator.convertLenientNbtMessage(map.get("title"), locale);
+        externalTitle = Optional.ofNullable(map.get("external_title")).map(title -> MessageTranslator.convertLenientNbtMessage(title, locale));
         canCloseWithEscape = map.getBoolean("can_close_with_escape", true);
         afterAction = AfterAction.fromString(map.getString("after_action"));
 
         Object bodyTag = map.get("body");
         switch (bodyTag) {
             case null -> labels = List.of();
-            case NbtMap bodyMap -> labels = readBody(session, bodyMap).map(List::of).orElse(List.of());
+            case NbtMap bodyMap -> labels = readBody(locale, bodyMap).map(List::of).orElse(List.of());
             case List<?> bodyList -> {
                 labels = new ArrayList<>();
                 for (Object tag : bodyList) {
                     if (tag instanceof NbtMap bodyMap) {
-                        readBody(session, bodyMap).ifPresent(labels::add);
+                        readBody(locale, bodyMap).ifPresent(labels::add);
                     } else {
                         throw new IllegalStateException("Found non-NBT map in list of bodies, was: " + tag);
                     }
@@ -96,15 +96,15 @@ public abstract class Dialog {
 
         List<NbtMap> inputTag = map.getList("inputs", NbtType.COMPOUND);
         for (NbtMap input : inputTag) {
-            inputs.add(DialogInput.read(session, input));
+            inputs.add(DialogInput.read(locale, input));
         }
         defaultInputs = inputs.isEmpty() ? ParsedInputs.EMPTY : new ParsedInputs(inputs);
     }
 
-    private static Optional<String> readBody(Optional<GeyserSession> session, NbtMap tag) {
+    private static Optional<String> readBody(String locale, NbtMap tag) {
         Key type = MinecraftKey.key(tag.getString("type"));
         if (type.equals(PLAIN_MESSAGE_BODY)) {
-            return Optional.ofNullable(MessageTranslator.convertFromNullableNbtTag(session, tag.get("contents")));
+            return Optional.ofNullable(MessageTranslator.convertLenientNbtMessage(tag.get("contents"), locale));
         }
         // Other type is item, can't display that in forms
         return Optional.empty();
@@ -159,21 +159,21 @@ public abstract class Dialog {
     }
 
     public static Dialog readDialog(JavaRegistryReader.Context context) {
-        return readDialogFromNbt(context.registries(), context.session(), context.dataAsMap());
+        return readDialogFromNbt(context.registries(), context.locale(), context.dataAsMap());
     }
 
-    public static Dialog readDialogFromNbt(JavaRegistryProvider registries, Optional<GeyserSession> session, NbtMap map) {
+    public static Dialog readDialogFromNbt(JavaRegistryProvider registries, String locale, NbtMap map) {
         Key type = MinecraftKey.key(map.getString("type"));
         if (type.equals(NoticeDialog.TYPE)) {
-            return new NoticeDialog(registries, session, map);
+            return new NoticeDialog(registries, locale, map);
         } else if (type.equals(ServerLinksDialog.TYPE)) {
-            return new ServerLinksDialog(registries, session, map);
+            return new ServerLinksDialog(registries, locale, map);
         } else if (type.equals(DialogListDialog.TYPE)) {
-            return new DialogListDialog(registries, session, map);
+            return new DialogListDialog(registries, locale, map);
         } else if (type.equals(MultiActionDialog.TYPE)) {
-            return new MultiActionDialog(registries, session, map);
+            return new MultiActionDialog(registries, locale, map);
         } else if (type.equals(ConfirmationDialog.TYPE)) {
-            return new ConfirmationDialog(registries, session, map);
+            return new ConfirmationDialog(registries, locale, map);
         }
 
         throw new UnsupportedOperationException("Unable to read unknown dialog type " + type + "!");
@@ -184,7 +184,7 @@ public abstract class Dialog {
         if (holder.isId()) {
             return JavaRegistries.DIALOG.getOrThrow(registries, holder.id());
         } else {
-            return Dialog.readDialogFromNbt(registries, Optional.of(session), holder.custom());
+            return Dialog.readDialogFromNbt(registries, session.locale(), holder.custom());
         }
     }
 

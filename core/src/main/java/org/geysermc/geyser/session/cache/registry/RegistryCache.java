@@ -41,7 +41,6 @@ import org.geysermc.geyser.registry.java.SimpleJavaRegistry;
 import org.geysermc.geyser.registry.java.reader.JavaRegistryReaders;
 import org.geysermc.geyser.registry.java.reader.KeyDependentJavaRegistryReader;
 import org.geysermc.geyser.registry.java.reader.RegistryEntryContext;
-import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.util.MinecraftKey;
 import org.geysermc.mcprotocollib.protocol.MinecraftProtocol;
 import org.geysermc.mcprotocollib.protocol.data.game.RegistryEntry;
@@ -50,7 +49,6 @@ import org.geysermc.mcprotocollib.protocol.packet.configuration.clientbound.Clie
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 /**
  * Stores any information sent via Java registries. May not contain all data in a given registry - we'll strip what's
@@ -81,9 +79,11 @@ final class RegistryCache {
     }
 
     private final Reference2ObjectMap<JavaRegistryKey<?>, MutableJavaRegistry<?>> registries;
+    private final Reference2ObjectMap<JavaRegistryKey<?>, List<RegistryEntry>> configurationRegistryData;
 
     RegistryCache() {
         this.registries = new Reference2ObjectOpenHashMap<>(JavaRegistryReaders.networkRegistries().size());
+        this.configurationRegistryData = new Reference2ObjectOpenHashMap<>(JavaRegistryReaders.networkRegistries().size());
         for (JavaRegistryKey<?> registry : JavaRegistryReaders.networkRegistries()) {
             registries.put(registry, new SimpleJavaRegistry<>(registry));
         }
@@ -95,60 +95,70 @@ final class RegistryCache {
     }
 
     /**
-     * Loads a registry in, if we are tracking it.
+     * Clears all held registry data. Should be called at the start of the configuration phase.
      */
-    // Java generic mess
-    @SuppressWarnings({"rawtypes", "unchecked"})
-    public void load(JavaRegistryProvider registryProvider, Optional<GeyserSession> session, ClientboundRegistryDataPacket packet) {
-        JavaRegistryKey registryKey = JavaRegistries.fromKey(packet.getRegistry());
-        if (registryKey != null) {
-            loadRegistry(registryKey, registryProvider, session, packet.getEntries());
+    public void clear() {
+        registries.values().forEach(MutableJavaRegistry::clear);
+        configurationRegistryData.clear();
+    }
+
+    /**
+     * Loads a {@link ClientboundRegistryDataPacket}. Registers entries of this packet, waiting to be parsed by {@link RegistryCache#parseAndBind(JavaRegistryProvider, String)}.
+     *
+     * @param packet the packet with registry data to load
+     */
+    public void load(ClientboundRegistryDataPacket packet) {
+        JavaRegistryKey<?> registryKey = JavaRegistries.fromKey(packet.getRegistry());
+        if (registryKey != null && JavaRegistryReaders.shouldParseRegistry(registryKey)) {
+            MutableJavaRegistry<?> registry = registries.get(registryKey);
+            // Register all entries, they will be parsed bound at the end of the configuration phase by parseAndBind
+            // We could theoretically already freeze the registry at this stage, but I am not sure if vanilla Java allows receiving
+            // multiple registry data packets for the same registry
+            packet.getEntries().forEach(entry -> registry.register(entry.getId()));
+            this.configurationRegistryData.put(registryKey, packet.getEntries());
         } else {
             GeyserImpl.getInstance().getLogger().debug("Ignoring registry of type " + packet.getRegistry());
         }
     }
 
-    public static void bootstrap() {
-        // noop to load default network codec
+    /**
+     * Freezes all registries, then parses all entries and binds all registries.
+     *
+     * @param registryProvider the {@link JavaRegistryProvider}
+     * @param locale the locale used to translate text components in registry data
+     */
+    public void parseAndBind(JavaRegistryProvider registryProvider, String locale) {
+        // First, freeze all registries
+        registries.values().forEach(MutableJavaRegistry::freeze);
+
+        // Then, go over all received entries, this time binding them. We do this at this stage to ensure references to other dynamic registries work.
+        // Registries for which no entries were received will not be left unbound: a registry automatically considers itself bound if it was empty upon freezing
+        configurationRegistryData.forEach((registryKey, registryEntries) -> loadRegistry(registryProvider, registryKey, locale, registryEntries));
+        // Finally, we can clear the raw registry data
+        configurationRegistryData.clear();
     }
 
-    private <T> void loadRegistry(JavaRegistryKey<T> registryKey, JavaRegistryProvider registryProvider,
-                                  Optional<GeyserSession> session, List<RegistryEntry> entries) {
-        Optional<KeyDependentJavaRegistryReader<T>> reader = JavaRegistryReaders.getReader(registryKey);
-        if (reader.isPresent()) {
-            try {
-                readRegistry(registryKey, registryProvider, (MutableJavaRegistry<T>) registries.get(registryKey), reader.get(), session, entries);
-            } catch (Exception exception) {
-                GeyserImpl.getInstance().getLogger().error("Failed parsing registry entries for " + registryKey + "!", exception);
-            }
-        } else {
-            throw new IllegalStateException("Expected reader for networked registry " + registryKey);
-        }
-    }
+    private <T> void loadRegistry(JavaRegistryProvider registryProvider, JavaRegistryKey<T> registryKey,
+                                  String locale, List<RegistryEntry> entries) {
+        // Generics ftw
+        MutableJavaRegistry<T> registry = (MutableJavaRegistry<T>) registries.get(registryKey);
+        // Must have a reader at this point
+        KeyDependentJavaRegistryReader<T> reader = JavaRegistryReaders.getReader(registryKey).orElseThrow();
+        Map<Key, NbtMap> localRegistryData = DEFAULTS.get(registryKey);
 
-    private static <T> void readRegistry(JavaRegistryKey<T> registryKey, JavaRegistryProvider registryProvider,
-                                         MutableJavaRegistry<T> registry, KeyDependentJavaRegistryReader<T> reader,
-                                         Optional<GeyserSession> session, List<RegistryEntry> entries) {
-        Map<Key, NbtMap> localRegistry = DEFAULTS.get(registryKey);
-
-        // Clear each local cache every time a new registry entry is given to us
-        // (e.g. proxy server switches, reconfiguring)
-        // TODO technically we need to clear all registries at start of configuration,
-        // TODO and only freeze/bind at the end of it
-        registry.clear();
-
-        // First, register all entries in the registry
-        entries.forEach(entry -> registry.register(entry.getId()));
-
-        // Then, bind the registry, parsing all the registries
-        registry.freeze(id -> {
+        // Bind the registry, parsing all the registries
+        registry.bind(id -> {
             RegistryEntry entry = entries.get(id);
             // If the data is null, that's the server telling us we need to use our default values.
             if (entry.getData() == null) {
-                entry = new RegistryEntry(entry.getId(), localRegistry.get(entry.getId()));
+                entry = new RegistryEntry(entry.getId(), localRegistryData.get(entry.getId()));
             }
 
-            return reader.read(new RegistryEntryContext(registryProvider, entry, session));
+            return reader.read(new RegistryEntryContext(registryProvider, entry, locale));
         });
+    }
+
+    public static void bootstrap() {
+        // noop to load default network codec
     }
 }

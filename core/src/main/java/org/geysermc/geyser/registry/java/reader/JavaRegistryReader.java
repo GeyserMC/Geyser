@@ -33,8 +33,6 @@ import org.geysermc.geyser.registry.java.RegistryUnit;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.text.MessageTranslator;
 
-import java.util.Optional;
-
 /**
  * A {@link JavaRegistryReader} is a function that takes a {@link Context}, holding an {@link Object} (the "registry entry", serialised as NBT),
  * and parses it into a {@link T}, possibly using other registries provided by {@link JavaRegistryProvider} or data from a {@link GeyserSession}.
@@ -73,11 +71,11 @@ public interface JavaRegistryReader<T> extends KeyDependentJavaRegistryReader<T>
      * Creates a {@link Context} for parsing a registry entry. Should be used to parse inline entries.
      *
      * @param registries the {@link JavaRegistryProvider}
-     * @param session the {@link GeyserSession}, may be empty
+     * @param locale the locale to use when translating messages
      * @param data the registry entry to parse
      * @return the created {@link Context}
      */
-    static Context createContext(JavaRegistryProvider registries, Optional<GeyserSession> session, Object data) {
+    static Context createContext(JavaRegistryProvider registries, String locale, Object data) {
         return new Context() {
             @Override
             public Object data() {
@@ -85,8 +83,8 @@ public interface JavaRegistryReader<T> extends KeyDependentJavaRegistryReader<T>
             }
 
             @Override
-            public Optional<GeyserSession> session() {
-                return session;
+            public String locale() {
+                return locale;
             }
 
             @Override
@@ -116,13 +114,11 @@ public interface JavaRegistryReader<T> extends KeyDependentJavaRegistryReader<T>
         }
 
         /**
-         * This may be an empty {@link Optional}, and you should generally depend on the presence of this {@link Optional} as little as possible.
+         * The context's locale: may be used to translate text components in registry data ahead of time.
          *
-         * <p>For accessing registry data, use {@link JavaRegistryProvider.Provider#registries()} instead.</p>
-         *
-         * @return the current {@link GeyserSession}, may be empty
+         * @return the context's locale, to be used when translating text components using {@link MessageTranslator}
          */
-        Optional<GeyserSession> session();
+        String locale();
 
         /**
          * Attempts to use {@link Context#dataAsMap()} to get this registry entry as an {@link NbtMap}, and then tries to parse the {@code "description"} key
@@ -135,13 +131,13 @@ public interface JavaRegistryReader<T> extends KeyDependentJavaRegistryReader<T>
         }
 
         /**
-         * Uses {@link MessageTranslator#convertFromNullableNbtTag(Optional, Object)} to convert the {@code "description"} key from
+         * Uses {@link MessageTranslator#convertLenientNbtMessage(Object, String)} to convert the {@code "description"} key from
          * this registry entry into a bedrock text string.
          *
          * @return the {@code "description"} key from this entry, converted to a bedrock text string
          */
         default String deserializeDescription() {
-            return MessageTranslator.convertFromNullableNbtTag(session(), dataAsMap().getOrDefault("description", null));
+            return MessageTranslator.convertLenientNbtMessage(dataAsMap().getOrDefault("description", null), locale());
         }
     }
 }

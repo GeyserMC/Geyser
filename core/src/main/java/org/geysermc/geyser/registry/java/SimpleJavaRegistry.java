@@ -49,6 +49,8 @@ public class SimpleJavaRegistry<T> implements MutableJavaRegistry<T> {
     // Intentionally holding references here for performance and to avoid issues on duplicate values
     private final Reference2ObjectOpenHashMap<T, RegistryEntryData<T>> byValue = new Reference2ObjectOpenHashMap<>();
     private boolean frozen = false;
+    private boolean bound = false;
+    private boolean hasUnboundEntries = false;
     private boolean allowsUnsafeAccess = false;
 
     public SimpleJavaRegistry(JavaRegistryKey<T> registryKey) {
@@ -56,7 +58,7 @@ public class SimpleJavaRegistry<T> implements MutableJavaRegistry<T> {
     }
 
     /**
-     * Allows access the entries of this registry before it is frozen.
+     * Allows accessing the entries of this registry before it is frozen.
      *
      * @deprecated should be used as little as possible, and not at all when writing new code
      */
@@ -65,29 +67,42 @@ public class SimpleJavaRegistry<T> implements MutableJavaRegistry<T> {
         allowsUnsafeAccess = true;
     }
 
+    // Overriding these 2 with an additional ensureBound call, which will result in a more descriptive error message when registry is not bound
+    @Override
+    public Optional<T> get(int networkId) {
+        ensureBound(true);
+        return MutableJavaRegistry.super.get(networkId);
+    }
+
+    @Override
+    public Optional<T> get(Key key) {
+        ensureBound(true);
+        return MutableJavaRegistry.super.get(key);
+    }
+
     @Override
     public Optional<RegistryEntryData<T>> getById(int networkId) {
-        ensureFrozen(true);
+        ensureFrozen();
         return Optional.ofNullable(byId.get(networkId));
     }
 
     @Override
     public Optional<RegistryEntryData<T>> getByKey(Key key) {
-        ensureFrozen(true);
+        ensureFrozen();
         return Optional.ofNullable(byKey.get(key));
     }
 
     // TODO ideally this lookup wouldn't be supported on RegistryUnit registries
     @Override
     public Optional<RegistryEntryData<T>> getByValue(T object) {
-        // We can never allow this access here, as this map is only populated after freezing
-        ensureFrozen(false);
+        // byValue is only populated after registry is bound, so we absolutely cannot allow unsafe access here
+        ensureBound(false);
         return Optional.ofNullable(byValue.get(object));
     }
 
     @Override
     public Collection<Key> keys() {
-        ensureFrozen(true);
+        ensureFrozen();
         return byKey.keySet();
     }
 
@@ -104,6 +119,9 @@ public class SimpleJavaRegistry<T> implements MutableJavaRegistry<T> {
 
         byId.put(entry.id(), entry);
         byKey.put(entry.key(), entry);
+        if (!entry.isBound()) {
+            hasUnboundEntries = true;
+        }
     }
 
     private void checkForDuplicates(RegistryEntryData<T> entry, RegistryEntryData<T> candidate) {
@@ -115,50 +133,74 @@ public class SimpleJavaRegistry<T> implements MutableJavaRegistry<T> {
     @Override
     public void clear() {
         // Don't trim maps here yet - we expect a similarly sized registry at the next population,
-        // and the next freeze call will trim them if necessary
+        // and the next freeze/bind calls will trim them if necessary
         byId.clear();
         byKey.clear();
         byValue.clear();
         frozen = false;
+        bound = false;
+        hasUnboundEntries = false;
     }
 
     @Override
-    public void freeze(IntFunction<T> binder) {
+    public void freeze() {
         if (frozen) {
             return;
         }
         frozen = true;
 
+        // Trim map after freezing - now that the registry is frozen, we don't expect the size to change anymore
+        byKey.trim();
+
+        // Automatically call bind if all entries are bound
+        // This ensures byValue is populated properly
+        if (!hasUnboundEntries) {
+            bind(id -> {
+                throw new AssertionError("Value requested for " + id + " of " + this + ", but expected all entries to be bound");
+            });
+        }
+    }
+
+    @Override
+    public void bind(IntFunction<T> binder) {
+        if (bound) {
+            return;
+        }
+
+        ensureFrozen();
         try {
             byId.forEach((id, entry) -> {
                 if (!entry.isBound()) {
                     entry.bind(binder.apply(id));
                 }
-                // Only populate byValue at this stage, and only once - this ensures that the byValue map is sorted by network ID
+                // Only populate byValue at this stage, and only once - this ensures that the byValue map is sorted by earliest network ID for a given object
                 byValue.putIfAbsent(entry.data(), entry);
             });
         } catch (RuntimeException exception) {
-            GeyserImpl.getInstance().getLogger().error("Failed to freeze " + this + "! This will result in issues. Report this over at our bugtracker!");
+            GeyserImpl.getInstance().getLogger().error("Failed to bind " + this + "! This will result in issues. Report this over at our bugtracker!", exception);
             // Clear the half-populated byValue map, just in case
             byValue.clear();
-            frozen = false;
-            throw exception;
+
+            // Silently consume the exception - errors will occur later, but this allows the code to move on with an unbound registry
+            return;
         }
 
-        // Trim maps at the end of freezing - now that the registry is frozen, we don't expect the size to change anymore
-        byKey.trim();
+        // Trim map after binding - registry is fully bound, we don't expect the size to change anymore
         byValue.trim();
+        bound = true;
+        hasUnboundEntries = false;
     }
 
     @Override
     public void forEachEntry(Consumer<RegistryEntryData<T>> action) {
-        ensureFrozen(true);
+        ensureFrozen();
         byId.forEach((id, entry) -> action.accept(entry));
     }
 
     @Override
     public Iterator<T> iterator() {
-        ensureFrozen(true);
+        // Iterates over registry values - as such needs the registry to be bound, unlike forEachEntry
+        ensureBound(true);
         // Using byId map here (instead of byValue.keySet) to ensure duplicate values are correctly passed multiple items
         ObjectBidirectionalIterator<Int2ObjectMap.Entry<RegistryEntryData<T>>> iterator = byId.int2ObjectEntrySet().iterator();
         return new Iterator<>() {
@@ -179,15 +221,24 @@ public class SimpleJavaRegistry<T> implements MutableJavaRegistry<T> {
         return "Simple " + registryKey;
     }
 
-    private void ensureFrozen(boolean allowUnsafe) {
-        if (!(allowsUnsafeAccess && allowUnsafe) && !frozen) {
-            throw new IllegalStateException("Registry must be frozen to access its entries");
+    private void ensureFrozen() {
+        if (!allowsUnsafeAccess && !frozen) {
+            throw new IllegalStateException("Registry " + this + " must be frozen to access its entries");
+        }
+    }
+
+    // Parameter is a little annoying, let's get rid of that soon (2026-10-16)
+    private void ensureBound(boolean allowsUnsafeAccess) {
+        ensureFrozen();
+        allowsUnsafeAccess = allowsUnsafeAccess && this.allowsUnsafeAccess;
+        if ((!allowsUnsafeAccess || hasUnboundEntries) && !bound) {
+            throw new IllegalStateException("Registry " + this + " has unbound entries");
         }
     }
 
     private void ensureMutable() {
         if (frozen) {
-            throw new IllegalStateException("Registry must not be frozen to register new entries");
+            throw new IllegalStateException("Registry " + this + " must not be frozen to register new entries");
         }
     }
 }

@@ -43,7 +43,6 @@ import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.protocol.bedrock.packet.TextPacket;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.registry.java.JavaRegistries;
-import org.geysermc.geyser.registry.java.reader.JavaRegistryReader;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.text.ChatColor;
 import org.geysermc.geyser.text.ChatDecoration;
@@ -57,7 +56,6 @@ import org.geysermc.mcprotocollib.protocol.data.game.chat.ChatTypeDecoration;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -328,21 +326,21 @@ public class MessageTranslator {
      *     <li>When {@link MessageTranslator#convertNbtMessage(GeyserSession, Object)} throws a {@link RuntimeException}, {@code fallback} is returned.</li>
      * </ul>
      *
-     * <p>Generally, prefer this method over {@link MessageTranslator#convertNbtMessage(GeyserSession, Object)}, as it is safer and handles edge-cases.</p>
+     * <p>Generally, prefer this method over {@link MessageTranslator#convertNbtMessage(Object, String)}, as it is safer and handles edge-cases.</p>
      *
-     * @param session the {@link GeyserSession} (used for determining the locale to use)
      * @param tag the NBT tag to convert
+     * @param locale the locale to use
      * @param fallback the string to return when an error occurs during conversion
      * @return the converted message to be sent to bedrock
      */
-    public static String convertLenientNbtMessage(GeyserSession session, @Nullable Object tag, String fallback) {
+    public static String convertLenientNbtMessage(@Nullable Object tag, String locale, String fallback) {
         return switch (tag) {
             case null -> "";
             case String message when message.isBlank() -> message;
             case NbtList<?> list when list.isEmpty() -> "";
             default -> {
                 try {
-                    yield convertNbtMessage(session, tag);
+                    yield convertNbtMessage(tag, locale);
                 } catch (RuntimeException exception) {
                     GeyserImpl.getInstance().getLogger().debug("Failed to translate NBT message leniently: " + tag, exception);
                     yield fallback;
@@ -352,16 +350,23 @@ public class MessageTranslator {
     }
 
     /**
-     * Shorthand for {@link MessageTranslator#convertLenientNbtMessage(GeyserSession, Object, String)}, uses {@code "Report to Geyser"} as fallback.
+     * Shorthand for {@link MessageTranslator#convertLenientNbtMessage(Object, String, String)}, uses {@code "Report to Geyser"} as fallback.
+     */
+    public static String convertLenientNbtMessage(@Nullable Object tag, String locale) {
+        return convertLenientNbtMessage(tag, locale, ERROR_MESSAGE);
+    }
+
+    /**
+     * Shorthand for {@link MessageTranslator#convertLenientNbtMessage(Object, String, String)}, uses {@code "Report to Geyser"} as fallback and the session's locale.
      */
     public static String convertLenientNbtMessage(GeyserSession session, @Nullable Object tag) {
-        return convertLenientNbtMessage(session, tag, ERROR_MESSAGE);
+        return convertLenientNbtMessage(tag, session.locale());
     }
 
     /**
      * Shorthand method for {@link MessageTranslator#convertNbtMessage(Object, String)}.
      *
-     * <p>Generally, prefer {@link MessageTranslator#convertLenientNbtMessage(GeyserSession, Object, String)} over this method, as it is safer and handles edge-cases.</p>
+     * <p>Generally, prefer {@link MessageTranslator#convertLenientNbtMessage(GeyserSession, Object)} over this method, as it is safer and handles edge-cases.</p>
      */
     public static String convertNbtMessage(GeyserSession session, Object tag) {
         return convertNbtMessage(tag, session.locale());
@@ -371,23 +376,14 @@ public class MessageTranslator {
      * Parses the given NBT tag as a {@link Component} using {@link MessageTranslator#componentFromNbtTag(Object)}, then converts it
      * to a bedrock message using {@link MessageTranslator#convertMessage(Component, String)}.
      *
+     * <p>Generally prefer {@link MessageTranslator#convertLenientNbtMessage(Object, String)}, as it is safer and handles edge-cases.</p>
+     *
      * @param tag the NBT tag to convert
      * @param locale the locale to use
      * @return the converted message to be sent to bedrock
      */
     public static String convertNbtMessage(Object tag, String locale) {
         return convertMessage(componentFromNbtTag(tag), locale);
-    }
-
-    /**
-     * Should only be used by {@link JavaRegistryReader}s, as these do not always have a {@link GeyserSession} available.
-     */
-    public static String convertFromNullableNbtTag(Optional<GeyserSession> session, @Nullable Object nbtTag) {
-        if (nbtTag == null) {
-            return "";
-        }
-
-        return convertNbtMessage(nbtTag, session.map(GeyserSession::locale).orElseGet(GeyserLocale::getDefaultLocale));
     }
 
     /**

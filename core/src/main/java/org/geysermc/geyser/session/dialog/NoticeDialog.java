@@ -29,7 +29,6 @@ import net.kyori.adventure.key.Key;
 import org.cloudburstmc.nbt.NbtMap;
 import org.geysermc.cumulus.form.CustomForm;
 import org.geysermc.cumulus.form.SimpleForm;
-import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.registry.java.JavaRegistryProvider;
 import org.geysermc.geyser.session.dialog.input.ParsedInputs;
 import org.geysermc.geyser.util.MinecraftKey;
@@ -42,9 +41,9 @@ public class NoticeDialog extends Dialog {
 
     private final Optional<DialogButton> button;
 
-    public NoticeDialog(JavaRegistryProvider registries, Optional<GeyserSession> session, NbtMap map) {
-        super(session, map);
-        button = DialogButton.read(registries, session, map.getCompound("action"));
+    public NoticeDialog(JavaRegistryProvider registries, String locale, NbtMap map) {
+        super(locale, map);
+        button = DialogButton.read(registries, locale, map.getCompound("action"));
     }
 
     @Override
