@@ -30,6 +30,7 @@ import org.cloudburstmc.protocol.bedrock.packet.CraftingDataPacket;
 import org.cloudburstmc.protocol.bedrock.packet.PlayerListPacket;
 import org.geysermc.geyser.network.bedrock.GameProtocol;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.cache.registry.JavaRegistryTagCache;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 import org.geysermc.geyser.util.InventoryUtils;
@@ -38,6 +39,7 @@ import org.geysermc.mcprotocollib.protocol.packet.configuration.clientbound.Clie
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import static org.geysermc.geyser.inventory.recipe.RecipeUtil.CARTOGRAPHY_RECIPES;
 
@@ -57,6 +59,9 @@ public class JavaFinishConfigurationTranslator extends PacketTranslator<Clientbo
             PlayerListUtils.batchSendPlayerList(session, entries, PlayerListPacket.Action.REMOVE);
         }
         session.getEntityCache().removeAllPlayerEntities();
+
+        // Freeze networked registries, after receiving the new ones from the server
+        ((JavaRegistryTagCache) session.javaRegistries()).freeze(Optional.of(session));
 
         // Cartography recipes are registered by default, as they are needed to be able to put items into the cartography table.
         // (Also add it here so recipes get cleared on configuration - 1.21.3)
