@@ -166,7 +166,8 @@ import org.geysermc.geyser.network.JoinAddress;
 import org.geysermc.geyser.network.bedrock.GameProtocol;
 import org.geysermc.geyser.network.java.LocalSession;
 import org.geysermc.geyser.registry.Registries;
-import org.geysermc.geyser.registry.java.JavaRegistry;
+import org.geysermc.geyser.registry.java.JavaRegistries;
+import org.geysermc.geyser.registry.java.JavaRegistryProvider;
 import org.geysermc.geyser.registry.type.BlockMappings;
 import org.geysermc.geyser.registry.type.ItemMappings;
 import org.geysermc.geyser.session.auth.AuthData;
@@ -189,8 +190,6 @@ import org.geysermc.geyser.session.cache.StructureBlockCache;
 import org.geysermc.geyser.session.cache.TeleportCache;
 import org.geysermc.geyser.session.cache.WorldBorder;
 import org.geysermc.geyser.session.cache.WorldCache;
-import org.geysermc.geyser.registry.java.JavaRegistries;
-import org.geysermc.geyser.registry.java.JavaRegistryProvider;
 import org.geysermc.geyser.session.cache.registry.JavaRegistryTagCache;
 import org.geysermc.geyser.session.cache.tags.DialogTag;
 import org.geysermc.geyser.session.cache.waypoint.WaypointCache;
@@ -908,7 +907,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         int maxY = BedrockDimension.OVERWORLD.maxY();
 
         // If not in GAME state, then the DIMENSION_TYPE registry will be uninitialised.
-        if (downstream.isState(ProtocolState.GAME)) {
+        if (downstream != null && downstream.isState(ProtocolState.GAME)) {
             for (JavaDimension javaDimension : this.javaRegistries.registry(JavaRegistries.DIMENSION_TYPE)) {
                 if (javaDimension.bedrockId() == BedrockDimension.OVERWORLD_ID) {
                     minY = Math.min(minY, javaDimension.minY());
