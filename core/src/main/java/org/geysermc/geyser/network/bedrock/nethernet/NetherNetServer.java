@@ -73,6 +73,7 @@ import java.net.UnknownHostException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Objects;
 import java.util.Random;
 import java.util.Set;
@@ -91,6 +92,10 @@ import java.util.stream.Stream;
  */
 public final class NetherNetServer implements EventRegistrar {
     private static final long GUID = new Random().nextLong();
+    /**
+     * Asked for this machine's public address unless {@code -DgeyserStunServers} says otherwise.
+     */
+    private static final List<String> DEFAULT_STUN_SERVERS = List.of("stun:stun.cloudflare.com:3478");
 
     private final GeyserImpl geyser;
     private final GeyserConfig.SignalingConfig config;
@@ -190,9 +195,20 @@ public final class NetherNetServer implements EventRegistrar {
 
     private void startInbuilt() {
         GeyserConfig.SignalingConfig.BuiltinConfig builtin = geyser.config().bedrock().signaling().builtin();
-        Set<String> advertised;
+        NetherNetHTTPServerSignaling.Builder signalingBuilder = new NetherNetHTTPServerSignaling.Builder();
         try {
-            advertised = advertisedAddresses(geyser.config().bedrock(), builtin);
+            Set<String> advertised = advertisedAddresses(builtin);
+            // Configured addresses already say what STUN would find, and network refuses both
+            List<String> stunServers = advertised.isEmpty() ? stunServers() : List.of();
+            if (advertised.isEmpty() && stunServers.isEmpty()) {
+                advertised = boundAddress(geyser.config().bedrock());
+            }
+            signalingBuilder.setAdvertisedAddresses(advertised);
+            try {
+                signalingBuilder.setStunServers(stunServers);
+            } catch (IllegalArgumentException e) {
+                throw new IllegalArgumentException("Invalid entry in -DgeyserStunServers: " + e.getMessage(), e);
+            }
         } catch (IllegalArgumentException e) {
             logger().error("Built-in signaling will not start! " + e.getMessage());
             return;
@@ -215,13 +231,12 @@ public final class NetherNetServer implements EventRegistrar {
             // Keep libdatachannel's own logging out of the way
             NetherNetLogging.setNativeLogLevel("WARN");
 
-            NetherNetHTTPServerSignaling.Builder signalingBuilder = new NetherNetHTTPServerSignaling.Builder()
+            signalingBuilder
                     .setIdentity(identity)
                     .setForwardedForProxies(TrustedProxies.parse(geyser.config().advanced().bedrock().signalingTrustedProxies()))
                     // The same HAProxy settings RakNet uses, applied to the TCP listener
                     .setProxyProtocol(geyser.config().advanced().bedrock().useHaproxyProtocol())
                     .setProxyProtocolProxies(TrustedProxies.parse(geyser.config().advanced().bedrock().haproxyProtocolWhitelistedIps()))
-                    .setAdvertisedAddresses(advertised)
                     // Behind a proxy the peer is the proxy, signing its own assertion. The same
                     // setting already accepts the login chain it forwards
                     .setTokenTrust(geyser.config().advanced().bedrock().validateBedrockLogin()
@@ -286,22 +301,42 @@ public final class NetherNetServer implements EventRegistrar {
     }
 
     /**
-     * Which addresses may appear in an answer: those in {@code -DgeyserAdvertiseAddresses}, comma separated,
-     * else those in the config, else the bound address, unless that is a wildcard, in which case everything
-     * ICE gathers. An address this machine does not hold is announced as the public side of a NAT forwarding
-     * the media port here, which is how a container without a public address of its own is reached.
+     * The addresses an answer is limited to: those in {@code -DgeyserAdvertiseAddresses}, comma separated, else those
+     * in the config. An address this machine does not hold is announced as the public side of a NAT forwarding the
+     * media port here, which is how a container without a public address of its own is reached.
      */
-    private Set<String> advertisedAddresses(GeyserConfig.BedrockConfig bedrock, GeyserConfig.SignalingConfig.BuiltinConfig builtin) {
+    private Set<String> advertisedAddresses(GeyserConfig.SignalingConfig.BuiltinConfig builtin) {
         String property = System.getProperty("geyserAdvertiseAddresses", "");
         Set<String> fromProperty = addresses(Arrays.stream(property.split(",")), "-DgeyserAdvertiseAddresses");
         if (!fromProperty.isEmpty()) {
             logger().info("Advertised addresses set from system property: " + String.join(", ", fromProperty));
             return fromProperty;
         }
-        Set<String> fromConfig = addresses(builtin.advertiseAddresses().stream(), "\"advertise-addresses\"");
-        if (!fromConfig.isEmpty()) {
-            return fromConfig;
+        return addresses(builtin.advertiseAddresses().stream(), "\"advertise-addresses\"");
+    }
+
+    /**
+     * The STUN servers asked for this machine's public address: those in {@code -DgeyserStunServers}, comma separated,
+     * else {@link #DEFAULT_STUN_SERVERS}. Set it empty to ask none.
+     */
+    private List<String> stunServers() {
+        String property = System.getProperty("geyserStunServers");
+        if (property == null) {
+            return DEFAULT_STUN_SERVERS;
         }
+        List<String> servers = Arrays.stream(property.split(",")).map(String::trim)
+            .filter(server -> !server.isEmpty())
+            .toList();
+        logger().info("STUN servers set from system property: "
+            + (servers.isEmpty() ? "none" : String.join(", ", servers)));
+        return servers;
+    }
+
+    /**
+     * The bound address unless it is a wildcard, in which case everything ICE gathers. Only used when neither
+     * advertised addresses nor STUN servers say better.
+     */
+    private static Set<String> boundAddress(GeyserConfig.BedrockConfig bedrock) {
         byte[] bound = NetUtil.createByteArrayFromIpAddressString(bedrock.address());
         try {
             if (bound == null || InetAddress.getByAddress(bound).isAnyLocalAddress()) {

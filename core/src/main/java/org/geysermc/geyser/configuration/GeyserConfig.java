@@ -175,7 +175,8 @@ public interface GeyserConfig {
                 If no port is given, the configured NetherNet UDP port is used.
                 You can list an address this machine does not have, such as your public IP, if your router forwards that port
                 to this machine. You need to set up the port forwarding yourself.
-                Leave empty to use the "address" Geyser binds to, or every local address if that is 0.0.0.0.""")
+                Leave empty to use the "address" Geyser binds to (every local address if that is 0.0.0.0), plus the public address
+                Geyser finds through STUN.""")
             @AsteriskSerializer.Asterisk
             default List<String> advertiseAddresses() {
                 return List.of();
