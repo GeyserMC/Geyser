@@ -93,9 +93,11 @@ import java.util.stream.Stream;
 public final class NetherNetServer implements EventRegistrar {
     private static final long GUID = new Random().nextLong();
     /**
-     * Asked for this machine's public address unless {@code -DgeyserStunServers} says otherwise.
+     * Asked for this machine's public address unless {@code -DgeyserStunServers} says otherwise. Two operators, as
+     * either may be blocked where a server runs.
      */
-    private static final List<String> DEFAULT_STUN_SERVERS = List.of("stun:stun.cloudflare.com:3478");
+    private static final List<String> DEFAULT_STUN_SERVERS =
+        List.of("stun:stun.cloudflare.com:3478", "stun:stun.l.google.com:19302");
 
     private final GeyserImpl geyser;
     private final GeyserConfig.SignalingConfig config;
