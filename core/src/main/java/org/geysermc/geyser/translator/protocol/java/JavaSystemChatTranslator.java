@@ -40,6 +40,7 @@ import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 import org.geysermc.geyser.translator.text.MessageTranslator;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.ClientboundSystemChatPacket;
+import org.geysermc.geyser.util.SystemProperties;
 
 @Translator(packet = ClientboundSystemChatPacket.class)
 public class JavaSystemChatTranslator extends PacketTranslator<ClientboundSystemChatPacket> {
@@ -50,7 +51,7 @@ public class JavaSystemChatTranslator extends PacketTranslator<ClientboundSystem
             if (component.key().equals("chat.disabled.missingProfileKey")) {
                 // We likely got this message as a response to a player trying to chat
                 // As there SHOULD be no false flags for this, print every time it shows up in chat.
-                if (Boolean.parseBoolean(System.getProperty("Geyser.PrintSecureChatInformation", "true"))) {
+                if (Boolean.parseBoolean(SystemProperties.get("Geyser.PrintSecureChatInformation", "true"))) {
                     session.sendMessage(GeyserLocale.getPlayerLocaleString("geyser.chat.secure_info_1", session.locale()));
                     session.sendMessage(GeyserLocale.getPlayerLocaleString("geyser.chat.secure_info_2", session.locale(), "https://geysermc.link/secure-chat"));
                 }

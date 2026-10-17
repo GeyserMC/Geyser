@@ -35,10 +35,11 @@ import org.geysermc.geyser.session.cache.WorldCache;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.scoreboard.ClientboundSetScorePacket;
+import org.geysermc.geyser.util.SystemProperties;
 
 @Translator(packet = ClientboundSetScorePacket.class)
 public class JavaSetScoreTranslator extends PacketTranslator<ClientboundSetScorePacket> {
-    private static final boolean SHOW_SCOREBOARD_LOGS = Boolean.parseBoolean(System.getProperty("Geyser.ShowScoreboardLogs", "true"));
+    private static final boolean SHOW_SCOREBOARD_LOGS = Boolean.parseBoolean(SystemProperties.get("Geyser.ShowScoreboardLogs", "true"));
 
     private final GeyserLogger logger = GeyserImpl.getInstance().getLogger();
 

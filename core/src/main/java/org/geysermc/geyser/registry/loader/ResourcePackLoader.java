@@ -47,6 +47,7 @@ import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.util.FileUtils;
 import org.geysermc.geyser.util.WebUtils;
+import org.geysermc.geyser.util.SystemProperties;
 
 import java.io.File;
 import java.io.IOException;
@@ -84,7 +85,7 @@ public class ResourcePackLoader implements RegistryLoader<Path, Map<UUID, Resour
 
     static final PathMatcher PACK_MATCHER = FileSystems.getDefault().getPathMatcher("glob:**.{zip,mcpack}");
 
-    private static final boolean SHOW_RESOURCE_PACK_LENGTH_WARNING = Boolean.parseBoolean(System.getProperty("Geyser.ShowResourcePackLengthWarning", "true"));
+    private static final boolean SHOW_RESOURCE_PACK_LENGTH_WARNING = Boolean.parseBoolean(SystemProperties.get("Geyser.ShowResourcePackLengthWarning", "true"));
 
     /**
      * Loop through the packs directory and locate valid resource pack files

@@ -53,6 +53,7 @@ import org.geysermc.geyser.network.bedrock.raknet.RakPingHandler;
 import org.geysermc.geyser.network.bedrock.raknet.RakServerInitializer;
 import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.mcprotocollib.network.helper.TransportHelper;
+import org.geysermc.geyser.util.SystemProperties;
 
 import java.net.InetSocketAddress;
 import java.util.List;
@@ -95,7 +96,7 @@ public final class RaknetServer {
     public RaknetServer(GeyserImpl geyser, int threadCount) {
         this.geyser = geyser;
         this.trustedProxies = TrustedProxies.parse(geyser.config().advanced().bedrock().haproxyProtocolWhitelistedIps());
-        this.listenCount = Bootstraps.isReusePortAvailable() ?  Integer.getInteger("Geyser.ListenCount", 1) : 1;
+        this.listenCount = Bootstraps.isReusePortAvailable() ?  SystemProperties.getInteger("Geyser.ListenCount", 1) : 1;
         GeyserImpl.getInstance().getLogger().debug("Listen thread count: " + listenCount);
         this.group = TRANSPORT.eventLoopGroupFactory().apply(listenCount, new DefaultThreadFactory("GeyserServer", true));
         this.childGroup = TRANSPORT.eventLoopGroupFactory().apply(threadCount, new DefaultThreadFactory("GeyserServerChild", true));
@@ -180,13 +181,13 @@ public final class RaknetServer {
         int rakGlobalPacketLimit = positivePropOrDefault("Geyser.RakGlobalPacketLimit", DEFAULT_GLOBAL_PACKET_LIMIT);
         this.geyser.getLogger().debug("Setting RakNet global packet limit to " + rakGlobalPacketLimit);
 
-        boolean rakSendCookie = Boolean.parseBoolean(System.getProperty("Geyser.RakSendCookie", "true"));
+        boolean rakSendCookie = Boolean.parseBoolean(SystemProperties.get("Geyser.RakSendCookie", "true"));
         this.geyser.getLogger().debug("Setting RakNet send cookie to " + rakSendCookie);
 
         int maxConnectionsPerAddress =  positivePropOrDefault("Geyser.MaxConnectionsPerAddress", 10);
         this.geyser.getLogger().debug("Setting max connections per address to " + maxConnectionsPerAddress);
 
-        boolean rakRateLimitingDisabled = Boolean.parseBoolean(System.getProperty(
+        boolean rakRateLimitingDisabled = Boolean.parseBoolean(SystemProperties.get(
             "Geyser.RakRateLimitingDisabled",
             Boolean.toString(this.geyser.config().advanced().bedrock().useWaterdogpeForwarding())
         ));
@@ -235,7 +236,7 @@ public final class RaknetServer {
     }
 
     private static int positivePropOrDefault(String property, int defaultValue) {
-        String value = System.getProperty(property);
+        String value = SystemProperties.get(property);
         try {
             int parsed = value != null ? Integer.parseInt(value) : defaultValue;
 

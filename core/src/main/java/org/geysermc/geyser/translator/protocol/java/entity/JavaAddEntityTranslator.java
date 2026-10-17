@@ -48,11 +48,12 @@ import org.geysermc.mcprotocollib.protocol.data.game.entity.object.ProjectileDat
 import org.geysermc.mcprotocollib.protocol.data.game.entity.object.WardenData;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.type.EntityType;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.entity.ClientboundAddEntityPacket;
+import org.geysermc.geyser.util.SystemProperties;
 
 @Translator(packet = ClientboundAddEntityPacket.class)
 public class JavaAddEntityTranslator extends PacketTranslator<ClientboundAddEntityPacket> {
 
-    private static final boolean SHOW_PLAYER_LIST_LOGS = Boolean.parseBoolean(System.getProperty("Geyser.ShowPlayerListLogs", "true"));
+    private static final boolean SHOW_PLAYER_LIST_LOGS = Boolean.parseBoolean(SystemProperties.get("Geyser.ShowPlayerListLogs", "true"));
 
     @Override
     public void translate(GeyserSession session, ClientboundAddEntityPacket packet) {

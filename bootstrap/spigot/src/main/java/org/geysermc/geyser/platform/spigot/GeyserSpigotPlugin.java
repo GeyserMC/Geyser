@@ -67,6 +67,7 @@ import org.geysermc.geyser.platform.spigot.world.manager.GeyserSpigotNativeWorld
 import org.geysermc.geyser.platform.spigot.world.manager.GeyserSpigotWorldManager;
 import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.util.metrics.MetricsPlatform;
+import org.geysermc.geyser.util.SystemProperties;
 import org.incendo.cloud.bukkit.BukkitCommandManager;
 import org.incendo.cloud.execution.ExecutionCoordinator;
 import org.incendo.cloud.paper.LegacyPaperCommandManager;
@@ -263,7 +264,7 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
         this.geyserInjector = new GeyserSpigotInjector(isViaVersion);
         this.geyserInjector.initializeLocalChannel(this);
 
-        if (Boolean.parseBoolean(System.getProperty("Geyser.UseDirectAdapters", "true"))) {
+        if (Boolean.parseBoolean(SystemProperties.get("Geyser.UseDirectAdapters", "true"))) {
             try {
                 boolean isPaper = false;
                 try {

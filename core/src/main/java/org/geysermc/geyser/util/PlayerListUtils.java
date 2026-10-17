@@ -37,7 +37,7 @@ import java.util.List;
 import java.util.UUID;
 
 public class PlayerListUtils {
-    private static final boolean HIDE_PLAYER_LIST_PS = Boolean.getBoolean("Geyser.NoPlayerListPS");
+    private static final boolean HIDE_PLAYER_LIST_PS = SystemProperties.getBoolean("Geyser.NoPlayerListPS");
 
     static final int MAX_PLAYER_LIST_PACKET_ENTRIES = 1000;
 

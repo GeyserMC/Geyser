@@ -36,6 +36,7 @@ import org.geysermc.geyser.ping.GeyserPingInfo;
 import org.geysermc.geyser.ping.IGeyserPingPassthrough;
 import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.translator.text.MessageTranslator;
+import org.geysermc.geyser.util.SystemProperties;
 
 import java.net.InetSocketAddress;
 import java.nio.charset.StandardCharsets;
@@ -44,7 +45,7 @@ import java.nio.charset.StandardCharsets;
  * Handles Bedrock pings (either via raknet, or providing to the signaling server for nethernet).
  */
 public final class BedrockPingHandler {
-    private static final boolean PRINT_DEBUG_PINGS = Boolean.parseBoolean(System.getProperty("Geyser.PrintPingsInDebugMode", "true"));
+    private static final boolean PRINT_DEBUG_PINGS = Boolean.parseBoolean(SystemProperties.get("Geyser.PrintPingsInDebugMode", "true"));
 
     /*
     The following constants are all used to ensure the ping does not reach a length where it is unparsable by the Bedrock client

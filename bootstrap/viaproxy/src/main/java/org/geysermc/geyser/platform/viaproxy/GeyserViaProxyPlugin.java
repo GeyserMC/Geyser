@@ -58,6 +58,7 @@ import org.geysermc.geyser.ping.IGeyserPingPassthrough;
 import org.geysermc.geyser.platform.viaproxy.listener.GeyserServerTransferListener;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.text.GeyserLocale;
+import org.geysermc.geyser.util.SystemProperties;
 import org.spongepowered.configurate.serialize.SerializationException;
 
 import java.io.File;
@@ -124,7 +125,7 @@ public class GeyserViaProxyPlugin extends ViaProxyPlugin implements GeyserBootst
             return;
         }
         // TODO remove
-        if (System.getProperty("geyser.viaproxy.disableIpPassthrough") != null) { // Temporary until Configurate branch is merged
+        if (SystemProperties.get("geyser.viaproxy.disableIpPassthrough") != null) { // Temporary until Configurate branch is merged
             return;
         }
 

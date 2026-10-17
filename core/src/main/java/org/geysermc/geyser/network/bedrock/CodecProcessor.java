@@ -93,6 +93,7 @@ import org.cloudburstmc.protocol.bedrock.packet.SubChunkRequestPacket;
 import org.cloudburstmc.protocol.bedrock.packet.SubClientLoginPacket;
 import org.cloudburstmc.protocol.common.util.VarInts;
 import org.geysermc.geyser.session.UpstreamSession;
+import org.geysermc.geyser.util.SystemProperties;
 
 /**
  * Processes the Bedrock codec to remove or modify unused or unsafe packets and fields.
@@ -347,7 +348,7 @@ public class CodecProcessor {
             .updateSerializer(SetEntityMotionPacket.class, SET_ENTITY_MOTION_SERIALIZER)
             .updateSerializer(SetEntityLinkPacket.class, SET_ENTITY_LINK_SERIALIZER);
 
-        if (!Boolean.getBoolean("Geyser.ReceiptPackets")) {
+        if (!SystemProperties.getBoolean("Geyser.ReceiptPackets")) {
             codecBuilder.updateSerializer(RefreshEntitlementsPacket.class, IGNORED_SERIALIZER);
             codecBuilder.updateSerializer(PurchaseReceiptPacket.class, IGNORED_SERIALIZER);
             // Added in 26.10, doesn't exist on 26.0

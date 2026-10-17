@@ -79,6 +79,7 @@ import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.ByteEn
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.IntEntityMetadata;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.Hand;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.type.EntityType;
+import org.geysermc.geyser.util.SystemProperties;
 
 import java.util.Collections;
 import java.util.EnumMap;
@@ -91,7 +92,7 @@ import java.util.function.Consumer;
 @Getter
 @Setter
 public class Entity implements GeyserEntity {
-    private static final boolean PRINT_ENTITY_SPAWN_DEBUG = Boolean.parseBoolean(System.getProperty("Geyser.PrintEntitySpawnDebug", "false"));
+    private static final boolean PRINT_ENTITY_SPAWN_DEBUG = Boolean.parseBoolean(SystemProperties.get("Geyser.PrintEntitySpawnDebug", "false"));
 
     protected final GeyserSession session;
     @Accessors(fluent = true)

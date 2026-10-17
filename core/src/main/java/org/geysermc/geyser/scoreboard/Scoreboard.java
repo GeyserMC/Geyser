@@ -45,6 +45,7 @@ import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.mcprotocollib.protocol.data.game.scoreboard.NameTagVisibility;
 import org.geysermc.mcprotocollib.protocol.data.game.scoreboard.ScoreboardPosition;
 import org.geysermc.mcprotocollib.protocol.data.game.scoreboard.TeamColor;
+import org.geysermc.geyser.util.SystemProperties;
 import org.jetbrains.annotations.Contract;
 
 import java.util.ArrayList;
@@ -80,9 +81,9 @@ import static org.geysermc.geyser.scoreboard.UpdateType.REMOVE;
  * This fact is the biggest contributor for the class being structured like it is.
  */
 public final class Scoreboard {
-    private static final boolean SHOW_SCOREBOARD_LOGS = Boolean.parseBoolean(System.getProperty("Geyser.ShowScoreboardLogs", "true"));
+    private static final boolean SHOW_SCOREBOARD_LOGS = Boolean.parseBoolean(SystemProperties.get("Geyser.ShowScoreboardLogs", "true"));
     private static final boolean ADD_TEAM_SUGGESTIONS = Boolean.parseBoolean(
-        System.getProperty("Geyser.AddTeamSuggestions", String.valueOf(GeyserImpl.getInstance().config().advanced().addTeamSuggestions()))
+        SystemProperties.get("Geyser.AddTeamSuggestions", String.valueOf(GeyserImpl.getInstance().config().advanced().addTeamSuggestions()))
     );
 
     private final GeyserSession session;

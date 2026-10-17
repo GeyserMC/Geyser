@@ -63,6 +63,7 @@ import org.cloudburstmc.netty.signaling.provider.NativeProviderHostFactory;
 import org.cloudburstmc.netty.signaling.provider.ProviderRuntimeConfiguration;
 import org.cloudburstmc.netty.signaling.provider.ProviderShutdown;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.util.SystemProperties;
 import tel.schich.libdatachannel.LibDataChannelArchDetect;
 
 import java.io.IOException;
@@ -292,7 +293,7 @@ public final class NetherNetServer implements EventRegistrar {
      * the media port here, which is how a container without a public address of its own is reached.
      */
     private Set<String> advertisedAddresses(GeyserConfig.BedrockConfig bedrock, GeyserConfig.SignalingConfig.BuiltinConfig builtin) {
-        String property = System.getProperty("geyserAdvertiseAddresses", "");
+        String property = SystemProperties.get("geyserAdvertiseAddresses", "");
         Set<String> fromProperty = addresses(Arrays.stream(property.split(",")), "-DgeyserAdvertiseAddresses");
         if (!fromProperty.isEmpty()) {
             logger().info("Advertised addresses set from system property: " + String.join(", ", fromProperty));
