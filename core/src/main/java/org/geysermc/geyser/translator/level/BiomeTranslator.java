@@ -29,7 +29,9 @@ import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
 import it.unimi.dsi.fastutil.ints.IntLists;
 import org.checkerframework.checker.nullness.qual.Nullable;
+import org.cloudburstmc.nbt.NbtMap;
 import org.geysermc.geyser.level.BedrockDimension;
+import org.geysermc.geyser.level.JavaBiome;
 import org.geysermc.geyser.level.JavaDimension;
 import org.geysermc.geyser.level.chunk.BlockStorage;
 import org.geysermc.geyser.level.chunk.bitarray.BitArray;
@@ -52,14 +54,16 @@ import java.util.Optional;
 public class BiomeTranslator {
 
     /**
-     * Marks a Java biome with no direct Bedrock equivalent; a dimension-appropriate fallback
-     * is selected in {@link #bedrockBiomeId(GeyserSession, JavaRegistryLookup, int)} instead.
+     * Marks a Java biome with no vanilla Bedrock equivalent. A custom biome the session applied
+     * to it takes its place; otherwise a dimension-appropriate fallback is selected in
+     * {@link #bedrockBiomeId(GeyserSession, JavaRegistryLookup, int)}.
      */
     private static final int UNKNOWN_BIOME = -1;
 
-    public static int loadServerBiome(RegistryEntryContext entry) {
-        String javaIdentifier = entry.id().asString();
-        return Registries.BIOME_IDENTIFIERS.get().getOrDefault(javaIdentifier, UNKNOWN_BIOME);
+    public static JavaBiome loadServerBiome(RegistryEntryContext entry) {
+        NbtMap data = entry.dataAsMap();
+        return new JavaBiome(Registries.BIOME_IDENTIFIERS.get().getOrDefault(entry.id().asString(), UNKNOWN_BIOME),
+            data.getFloat("temperature"), data.getFloat("downfall"), data.getBoolean("has_precipitation"));
     }
 
     /**
@@ -68,12 +72,15 @@ public class BiomeTranslator {
      * vanilla biome fitting the session's current dimension so that sky, fog and weather
      * render sensibly instead of always defaulting to ocean.
      */
-    private static int bedrockBiomeId(GeyserSession session, JavaRegistryLookup<Integer> biomeTranslations, int javaId) {
-        Optional<Integer> bedrockId = javaId < 0 ? Optional.empty() : biomeTranslations.get(javaId);
-        if (bedrockId.isEmpty() || bedrockId.get() == UNKNOWN_BIOME) {
+    private static int bedrockBiomeId(GeyserSession session, JavaRegistryLookup<JavaBiome> biomeTranslations, int javaId) {
+        Optional<JavaBiome> biome = javaId < 0 ? Optional.empty() : biomeTranslations.get(javaId);
+        int bedrockId = biome.isPresent()
+            ? session.getCustomBiomeCache().bedrockBiomeId(javaId, biome.get().bedrockId())
+            : UNKNOWN_BIOME;
+        if (bedrockId == UNKNOWN_BIOME) {
             return fallbackBiomeId(session.getDimensionType());
         }
-        return bedrockId.get();
+        return bedrockId;
     }
 
     private static int fallbackBiomeId(@Nullable JavaDimension dimension) {
@@ -93,7 +100,7 @@ public class BiomeTranslator {
     }
 
     public static BlockStorage toNewBedrockBiome(GeyserSession session, DataPalette biomeData) {
-        JavaRegistryLookup<Integer> biomeTranslations = session.javaRegistries().registry(JavaRegistries.BIOME);
+        JavaRegistryLookup<JavaBiome> biomeTranslations = session.javaRegistries().registry(JavaRegistries.BIOME);
         // As of 1.17.10: the client expects the same format as a chunk but filled with biomes
         // As of 1.18 this is the same as Java Edition
 

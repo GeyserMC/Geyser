@@ -52,5 +52,7 @@ public class JavaStartConfigurationTranslator extends PacketTranslator<Clientbou
 
         // Clear networked registries, pending new data from the server
         ((JavaRegistryTagCache) session.javaRegistries()).clear();
+        // The pending custom biome candidate and the applied custom biome ids refer to the cleared registry
+        session.getCustomBiomeCache().discardRegistryState();
     }
 }
