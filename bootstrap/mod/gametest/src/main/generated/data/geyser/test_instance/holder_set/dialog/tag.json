@@ -1,0 +1,5 @@
+{
+  "type": "geyser:holder_set",
+  "registry": "minecraft:dialog",
+  "set": "#minecraft:quick_actions"
+}

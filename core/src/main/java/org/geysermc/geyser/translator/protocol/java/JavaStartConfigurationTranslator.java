@@ -27,6 +27,7 @@ package org.geysermc.geyser.translator.protocol.java;
 
 import org.geysermc.geyser.erosion.GeyserboundHandshakePacketHandler;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.cache.registry.JavaRegistryTagCache;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 import org.geysermc.geyser.util.ChunkUtils;
@@ -48,5 +49,8 @@ public class JavaStartConfigurationTranslator extends PacketTranslator<Clientbou
         session.hasAcceptedCodeOfConduct(false);
 
         ChunkUtils.sendEmptyChunks(session, session.getPlayerEntity().position().toInt(), session.getServerRenderDistance(), false);
+
+        // Clear networked registries, pending new data from the server
+        ((JavaRegistryTagCache) session.javaRegistries()).clear();
     }
 }

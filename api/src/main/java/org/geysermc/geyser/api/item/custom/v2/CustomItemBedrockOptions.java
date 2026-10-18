@@ -25,12 +25,15 @@
 
 package org.geysermc.geyser.api.item.custom.v2;
 
+import org.checkerframework.checker.index.qual.NonNegative;
 import org.checkerframework.common.returnsreceiver.qual.This;
+import org.checkerframework.common.value.qual.IntRange;
 import org.geysermc.geyser.api.GeyserApi;
 import org.geysermc.geyser.api.util.CreativeCategory;
 import org.geysermc.geyser.api.util.Identifier;
 import org.jspecify.annotations.Nullable;
 
+import java.awt.Color;
 import java.util.Set;
 
 /**
@@ -40,13 +43,26 @@ import java.util.Set;
 public interface CustomItemBedrockOptions {
 
     /**
-     * Gets the item's icon. When not present, the item's Bedrock identifier is used.
+     * Gets the item's icon, if it was manually set. When not present, the item's Bedrock identifier is used.
      *
      * @return the item's icon
-     * @see CustomItemDefinition#icon()
+     * @see CustomItemIcons#defaultIcon()
+     * @deprecated since 2.12.0: use {@link CustomItemBedrockOptions#icons()} and {@link CustomItemIcons#defaultIcon()} instead
      * @since 2.9.3
      */
-    @Nullable String icon();
+    @Deprecated(since = "2.12.0")
+    default @Nullable String icon() {
+        return icons().defaultIcon();
+    }
+
+    /**
+     * Gets the item's icon data. Defaults to {@link CustomItemIcons#EMPTY} if not manually set using {@link CustomItemBedrockOptions.Builder#icons(CustomItemIcons)}.
+     *
+     * @return the item's icon data
+     * @see CustomItemIcons
+     * @since 2.12.0
+     */
+    CustomItemIcons icons();
 
     /**
      * If the item is allowed to be put into the offhand. Defaults to true.
@@ -95,12 +111,22 @@ public interface CustomItemBedrockOptions {
 
     /**
      * Gets the item's set of bedrock tags that can be used in Molang.
-     * Equivalent to "tag:some_tag"
+     * Equivalent to "tag:some_tag".
      *
      * @return the item's set of bedrock tags, can be empty
      * @since 2.9.3
      */
     Set<Identifier> tags();
+
+    /**
+     * Returns the default color of the item if it is dyeable, and if not, {@code null}.
+     *
+     * <p>The client allows dyeing dyeable items using any of the vanilla dyes in a crafting table.</p>
+     *
+     * @return the default color of the item if it is dyeable, and if not, {@code null}
+     * @since 2.12.0
+     */
+    @Nullable Integer defaultDyeableColor();
 
     /**
      * Creates a new builder for custom item bedrock options.
@@ -119,15 +145,45 @@ public interface CustomItemBedrockOptions {
     interface Builder {
 
         /**
-         * Sets the item's icon.
+         * Shorthand method for setting the item's default icon.
          *
-         * @param icon the item's icon
-         * @see CustomItemBedrockOptions#icon()
+         * <p>This will clear the item's dyeable icon, if it was set.</p>
+         *
+         * @param icon the item's default icon
+         * @see CustomItemIcons#defaultIcon()
+         * @see CustomItemIcons.Builder#defaultIcon(String)
+         * @see Builder#icons(CustomItemIcons)
          * @return this builder
          * @since 2.9.3
          */
         @This
-        Builder icon(@Nullable String icon);
+        default Builder icon(@Nullable String icon) {
+            return icons(CustomItemIcons.builder().defaultIcon(icon));
+        }
+
+        /**
+         * Shorthand method for {@link Builder#icons(CustomItemIcons)}, sets this item's icon data.
+         *
+         * @param builder the {@link CustomItemIcons.Builder} instance
+         * @see CustomItemIcons
+         * @return this builder
+         * @since 2.12.0
+         */
+        @This
+        default Builder icons(CustomItemIcons.Builder builder) {
+            return icons(builder.build());
+        }
+
+        /**
+         * Sets this item's icon data.
+         *
+         * @param icons the {@link CustomItemIcons} instance
+         * @see CustomItemIcons
+         * @return this builder
+         * @since 2.12.0
+         */
+        @This
+        Builder icons(CustomItemIcons icons);
 
         /**
          * Sets if the item is allowed to be put into the offhand.
@@ -160,7 +216,7 @@ public interface CustomItemBedrockOptions {
          * @since 2.9.3
          */
         @This
-        Builder protectionValue(int protectionValue);
+        Builder protectionValue(@NonNegative int protectionValue);
 
         /**
          * Sets the item's creative category.
@@ -199,6 +255,7 @@ public interface CustomItemBedrockOptions {
          * Sets the item's set of bedrock tags, for use in Molang. Pass {@code null} to clear all tags.
          *
          * @param tags the tags to be set, or {@code null} to clear all tags
+         * @see CustomItemBedrockOptions#tags()
          * @return this builder
          * @since 2.9.3
          */
@@ -206,9 +263,56 @@ public interface CustomItemBedrockOptions {
         Builder tags(@Nullable Set<Identifier> tags);
 
         /**
+         * Marks the item as dyeable, and sets the default color of the item.
+         *
+         * @param defaultColor the default color of the item
+         * @see CustomItemBedrockOptions#defaultDyeableColor()
+         * @return this builder
+         * @since 2.12.0
+         */
+        @This
+        Builder dyeable(@IntRange(from = 0x000000, to = 0xFFFFFF) int defaultColor);
+
+        /**
+         * Marks the item as dyeable, and sets the default color of the item.
+         *
+         * @param defaultRed the red component of the default color of the item
+         * @param defaultGreen the green component of the default color of the item
+         * @param defaultBlue the blue component of the default color of the item
+         * @see CustomItemBedrockOptions#defaultDyeableColor()
+         * @return this builder
+         * @since 2.12.0
+         */
+        @This
+        default Builder dyeable(@IntRange(from = 0, to = 255) int defaultRed, @IntRange(from = 0, to = 255) int defaultGreen, @IntRange(from = 0, to = 255) int defaultBlue) {
+            if (defaultRed < 0 || defaultRed > 255) {
+                throw new IllegalArgumentException("Red component must be between 0 and 255, was: " + defaultRed);
+            }else if (defaultGreen < 0 || defaultGreen > 255) {
+                throw new IllegalArgumentException("Green component must be between 0 and 255, was: " + defaultGreen);
+            }else if (defaultBlue < 0 || defaultBlue > 255) {
+                throw new IllegalArgumentException("Blue component must be between 0 and 255, was: " + defaultBlue);
+            }
+            return dyeable((defaultRed << 16) | (defaultGreen << 8) | defaultBlue);
+        }
+
+        /**
+         * Marks the item as dyeable, and sets the default color of the item.
+         *
+         * @param defaultColor the default color of the item
+         * @return this builder
+         * @since 2.12.0
+         */
+        @This
+        default Builder dyeable(Color defaultColor) {
+            // Discard alpha value
+            return dyeable(defaultColor.getRGB() & 0xFFFFFF);
+        }
+
+        /**
          * Creates the custom item bedrock options.
          *
          * @return the new instance of bedrock options
+         * @throws IllegalStateException when the set {@link CustomItemIcons} has a dyeable icon, but the item is not marked as dyeable
          * @since 2.9.3
          */
         CustomItemBedrockOptions build();

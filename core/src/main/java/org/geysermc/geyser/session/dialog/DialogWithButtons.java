@@ -29,7 +29,7 @@ import org.cloudburstmc.nbt.NbtMap;
 import org.geysermc.cumulus.component.DropdownComponent;
 import org.geysermc.cumulus.form.CustomForm;
 import org.geysermc.cumulus.form.SimpleForm;
-import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.registry.java.JavaRegistryProvider;
 import org.geysermc.geyser.session.dialog.input.ParsedInputs;
 import org.geysermc.geyser.text.GeyserLocale;
 
@@ -40,8 +40,8 @@ public abstract class DialogWithButtons extends Dialog {
 
     protected final Optional<DialogButton> exitAction;
 
-    protected DialogWithButtons(Optional<GeyserSession> session, NbtMap map, Optional<DialogButton> exitAction) {
-        super(session, map);
+    protected DialogWithButtons(String locale, NbtMap map, Optional<DialogButton> exitAction) {
+        super(locale, map);
         this.exitAction = exitAction;
     }
 
@@ -91,7 +91,7 @@ public abstract class DialogWithButtons extends Dialog {
         return exitAction;
     }
 
-    protected static Optional<DialogButton> readDefaultExitAction(Optional<GeyserSession> session, NbtMap map, IdGetter idGetter) {
-        return DialogButton.read(session, map.get("exit_action"), idGetter);
+    protected static Optional<DialogButton> readDefaultExitAction(JavaRegistryProvider registries, String locale, NbtMap map) {
+        return DialogButton.read(registries, locale, map.get("exit_action"));
     }
 }

@@ -26,22 +26,17 @@
 package org.geysermc.geyser.session.cache.waypoint;
 
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
-import org.cloudburstmc.protocol.bedrock.packet.PlayerListPacket;
-import org.cloudburstmc.protocol.bedrock.packet.PlayerLocationPacket;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.event.connection.SessionDefineCustomWaypointsEvent;
 import org.geysermc.geyser.api.util.Identifier;
 import org.geysermc.geyser.api.waypoint.CustomWaypointStyle;
 import org.geysermc.geyser.api.waypoint.CustomWaypointStyleRegisterException;
 import org.geysermc.geyser.entity.type.Entity;
-import org.geysermc.geyser.entity.type.player.PlayerEntity;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.geyser.skin.SkinManager;
 import org.geysermc.mcprotocollib.protocol.data.game.level.waypoint.TrackedWaypoint;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.level.ClientboundTrackedWaypointPacket;
 
-import java.awt.Color;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Objects;
@@ -105,13 +100,6 @@ public final class WaypointCache {
 
         GeyserWaypoint waypoint = waypoints.get(uuid.toString());
         if (waypoint != null) {
-            // On 26.0 and below:
-            // This will remove the fake player packet previously sent to the client,
-            // and change the waypoint to use the player's entity ID instead.
-            // This is important because sometimes a waypoint is sent before player info telling us to list the player, so a fake player packet is sent to the client
-            // When the player becomes listed the right colour will already be used, this is always put in the colours map, no matter if the
-            // player info existed or not
-            // On 26.10 and above:
             // This will re-initialise the waypoint, adding the entity ID to it and letting the client take authority
             waypoint.setEntity(entity);
         }
@@ -125,12 +113,6 @@ public final class WaypointCache {
 
         GeyserWaypoint waypoint = waypoints.get(uuid.toString());
         if (waypoint != null) {
-            // On 26.0 and below:
-            // This will remove the player packet previously sent to the client,
-            // and change the waypoint to use the player's entity ID instead.
-            // This is important because a player waypoint can still show even when a player becomes unlisted,
-            // so a fake player packet has to be sent to the client now
-            // On 26.10 and above:
             // This will re-initialise the waypoint, removing the entity ID from it and not letting the client take authority
             waypoint.setEntity(null);
         }
@@ -176,36 +158,7 @@ public final class WaypointCache {
             .orElse(waypoint.id());
     }
 
-    private void updatePlayerEntry(PlayerEntity player) {
-        // No need to resend the entry if the player wasn't listed anyway,
-        // it will become listed later with the right colour
-        if (!player.isListed()) {
-            return;
-        }
-
-        PlayerListPacket removePacket = new PlayerListPacket();
-        removePacket.setAction(PlayerListPacket.Action.REMOVE);
-        PlayerListPacket.Entry removeEntry = new PlayerListPacket.Entry(player.uuid());
-        removeEntry.setAction(PlayerListPacket.Action.REMOVE);
-        removePacket.getEntries().add(removeEntry);
-        session.sendUpstreamPacket(removePacket);
-
-        PlayerListPacket addPacket = new PlayerListPacket();
-        addPacket.setAction(PlayerListPacket.Action.ADD);
-        PlayerListPacket.Entry addEntry = SkinManager.buildEntryFromCachedSkin(session, player);
-        addEntry.setAction(PlayerListPacket.Action.ADD);
-        addPacket.getEntries().add(addEntry);
-        session.sendUpstreamPacket(addPacket);
-    }
-
     public void clear() {
         waypoints.clear();
-    }
-
-    private static void sendHidePlayerPacket(GeyserSession session, long playerId) {
-        PlayerLocationPacket locationPacket = new PlayerLocationPacket();
-        locationPacket.setType(PlayerLocationPacket.Type.HIDE);
-        locationPacket.setTargetEntityId(playerId);
-        session.sendUpstreamPacket(locationPacket);
     }
 }

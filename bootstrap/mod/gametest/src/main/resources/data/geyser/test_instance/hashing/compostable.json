@@ -1,0 +1,24 @@
+{
+  "type": "geyser:component_hash",
+  "component": "minecraft:compostable",
+  "value": [
+    {
+      "layers": 5
+    },
+    {
+      "layers": "minecraft:compostable/low"
+    },
+    {
+      "layers": 6
+    },
+    {
+      "layers": "minecraft:compostable/medium_high"
+    },
+    {
+      "layers": 0
+    },
+    {
+      "layers": "minecraft:compostable/always_add_one"
+    }
+  ]
+}

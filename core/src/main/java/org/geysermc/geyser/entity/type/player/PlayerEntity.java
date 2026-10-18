@@ -42,7 +42,6 @@ import org.geysermc.geyser.entity.attribute.GeyserAttributeType;
 import org.geysermc.geyser.entity.spawn.EntitySpawnContext;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.type.living.animal.tameable.ParrotEntity;
-import org.geysermc.geyser.session.cache.waypoint.GeyserWaypoint;
 import org.geysermc.geyser.util.PlayerListUtils;
 import org.geysermc.mcprotocollib.auth.GameProfile;
 import org.geysermc.mcprotocollib.auth.texture.Texture;

@@ -26,7 +26,7 @@
 package org.geysermc.geyser.session.cache.tags;
 
 import org.geysermc.geyser.item.enchantment.Enchantment;
-import org.geysermc.geyser.session.cache.registry.JavaRegistries;
+import org.geysermc.geyser.registry.java.JavaRegistries;
 import org.geysermc.geyser.util.MinecraftKey;
 
 /**

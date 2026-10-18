@@ -38,10 +38,11 @@ import org.geysermc.geyser.inventory.item.BannerPattern;
 import org.geysermc.geyser.inventory.item.DyeColor;
 import org.geysermc.geyser.item.TooltipOptions;
 import org.geysermc.geyser.level.block.type.Block;
+import org.geysermc.geyser.registry.java.JavaRegistryProvider;
 import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.geyser.session.cache.registry.JavaRegistries;
-import org.geysermc.geyser.session.cache.registry.JavaRegistry;
+import org.geysermc.geyser.registry.java.JavaRegistries;
+import org.geysermc.geyser.registry.java.JavaRegistryLookup;
 import org.geysermc.geyser.translator.item.BedrockItemBuilder;
 import org.geysermc.geyser.util.MinecraftKey;
 import org.geysermc.mcprotocollib.protocol.data.game.Holder;
@@ -52,6 +53,8 @@ import org.geysermc.mcprotocollib.protocol.data.game.item.component.TooltipDispl
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
+import java.util.OptionalInt;
 
 public class BannerItem extends BlockItem {
     /**
@@ -77,7 +80,7 @@ public class BannerItem extends BlockItem {
         );
     }
 
-    public static boolean isOminous(GeyserSession session, List<BannerPatternLayer> patternLayers) {
+    public static boolean isOminous(JavaRegistryProvider registries, List<BannerPatternLayer> patternLayers) {
         if (OMINOUS_BANNER_PATTERN.size() != patternLayers.size()) {
             return false;
         }
@@ -88,8 +91,8 @@ public class BannerItem extends BlockItem {
                     !patternLayer.getPattern().isId()) {
                 return false;
             }
-            BannerPattern bannerPattern = session.getRegistryCache().registry(JavaRegistries.BANNER_PATTERN).byId(patternLayer.getPattern().id());
-            if (bannerPattern != pair.left()) {
+            Optional<BannerPattern> bannerPattern = JavaRegistries.BANNER_PATTERN.get(registries, patternLayer.getPattern().id());
+            if (bannerPattern.orElse(null) != pair.left()) {
                 return false;
             }
         }
@@ -139,21 +142,20 @@ public class BannerItem extends BlockItem {
     /**
      * Converts a Java item component for banners into Bedrock item NBT.
      */
-    static void convertBannerPattern(GeyserSession session, List<BannerPatternLayer> patterns, BedrockItemBuilder builder) {
-        if (isOminous(session, patterns)) {
+    static void convertBannerPattern(JavaRegistryProvider registries, List<BannerPatternLayer> patterns, BedrockItemBuilder builder) {
+        if (isOminous(registries, patterns)) {
             // Remove the current patterns and set the ominous banner type
             builder.putInt("Type", 1);
         } else {
             List<NbtMap> patternList = new ArrayList<>(patterns.size());
             for (BannerPatternLayer patternLayer : patterns) {
-                patternLayer.getPattern().ifId(id -> {
-                    BannerPattern bannerPattern = session.getRegistryCache().registry(JavaRegistries.BANNER_PATTERN).byId(id);
+                patternLayer.getPattern().ifId(id -> JavaRegistries.BANNER_PATTERN.get(registries, id).ifPresent(bannerPattern -> {
                     NbtMap tag = NbtMap.builder()
-                            .putString("Pattern", bannerPattern.getBedrockIdentifier())
-                            .putInt("Color", 15 - patternLayer.getColorId())
-                            .build();
+                        .putString("Pattern", bannerPattern.getBedrockIdentifier())
+                        .putInt("Color", 15 - patternLayer.getColorId())
+                        .build();
                     patternList.add(tag);
-                });
+                }));
             }
             builder.putList("Patterns", NbtType.COMPOUND, patternList);
         }
@@ -186,13 +188,13 @@ public class BannerItem extends BlockItem {
      * @return The Java edition format pattern layer
      */
     public static BannerPatternLayer getJavaBannerPattern(GeyserSession session, NbtMap pattern) {
-        JavaRegistry<BannerPattern> registry = session.getRegistryCache().registry(JavaRegistries.BANNER_PATTERN);
+        JavaRegistryLookup<BannerPattern> registry = session.javaRegistries().registry(JavaRegistries.BANNER_PATTERN);
         BannerPattern bannerPattern = BannerPattern.getByBedrockIdentifier(pattern.getString("Pattern"));
         DyeColor dyeColor = DyeColor.getById(15 - pattern.getInt("Color"));
         if (dyeColor != null) {
-            int id = registry.byValue(bannerPattern);
-            if (id != -1) {
-                return new BannerPatternLayer(Holder.ofId(id), dyeColor.ordinal());
+            OptionalInt id = registry.getId(bannerPattern);
+            if (id.isPresent()) {
+                return new BannerPatternLayer(Holder.ofId(id.getAsInt()), dyeColor.ordinal());
             }
         }
         return null;
@@ -208,7 +210,7 @@ public class BannerItem extends BlockItem {
 
         List<BannerPatternLayer> patterns = components.get(DataComponentTypes.BANNER_PATTERNS);
         if (patterns != null) {
-            convertBannerPattern(session, patterns, builder);
+            convertBannerPattern(session.javaRegistries(), patterns, builder);
         }
     }
 
@@ -219,10 +221,9 @@ public class BannerItem extends BlockItem {
         if (bedrockTag.getInt("Type") == 1) {
             // Ominous banner pattern
             List<BannerPatternLayer> patternLayers = new ArrayList<>();
-            for (int i = 0; i < OMINOUS_BANNER_PATTERN.size(); i++) {
-                var pair = OMINOUS_BANNER_PATTERN.get(i);
-                patternLayers.add(new BannerPatternLayer(Holder.ofId(session.getRegistryCache().registry(JavaRegistries.BANNER_PATTERN).byValue(pair.left())),
-                        pair.right().ordinal()));
+            for (Pair<BannerPattern, DyeColor> pair : OMINOUS_BANNER_PATTERN) {
+                patternLayers.add(new BannerPatternLayer(JavaRegistries.BANNER_PATTERN.wrapOrThrow(session, pair.left()),
+                    pair.right().ordinal()));
             }
 
             components.put(DataComponentTypes.BANNER_PATTERNS, patternLayers);

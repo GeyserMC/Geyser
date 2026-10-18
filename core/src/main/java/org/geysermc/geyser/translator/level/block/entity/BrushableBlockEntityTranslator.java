@@ -54,7 +54,7 @@ public class BrushableBlockEntityTranslator extends BlockEntityTranslator implem
         }
 
         String id = itemTag.getString("id");
-        if (Items.AIR.javaIdentifier().equals(id)) {
+        if (Items.AIR.javaKey().asString().equals(id)) {
             return; // server sends air when the block contains nothing
         }
 

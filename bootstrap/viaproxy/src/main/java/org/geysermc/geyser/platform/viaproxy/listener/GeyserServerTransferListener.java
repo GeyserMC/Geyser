@@ -27,12 +27,10 @@ package org.geysermc.geyser.platform.viaproxy.listener;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
-import com.google.common.net.HostAndPort;
 import org.geysermc.event.PostOrder;
 import org.geysermc.event.subscribe.Subscribe;
 import org.geysermc.geyser.api.event.bedrock.SessionLoginEvent;
 import org.geysermc.geyser.api.event.java.ServerTransferEvent;
-import org.geysermc.geyser.session.GeyserSession;
 
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -44,10 +42,9 @@ public class GeyserServerTransferListener {
     @Subscribe(postOrder = PostOrder.FIRST)
     private void onServerTransfer(final ServerTransferEvent event) {
         this.cookieStorages.put(event.connection().xuid(), event.cookies());
-        final GeyserSession geyserSession = (GeyserSession) event.connection();
-        final HostAndPort hostAndPort = HostAndPort.fromString(geyserSession.getClientData().getServerAddress()).withDefaultPort(19132);
-        event.bedrockHost(hostAndPort.getHost());
-        event.bedrockPort(hostAndPort.getPort());
+        // NetherNet clients send a signaling URL as their server address, which the session parses
+        event.bedrockHost(event.connection().joinAddress());
+        event.bedrockPort(event.connection().joinPort());
     }
 
     @Subscribe(postOrder = PostOrder.FIRST)

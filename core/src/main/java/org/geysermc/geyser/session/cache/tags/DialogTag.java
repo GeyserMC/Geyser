@@ -25,7 +25,7 @@
 
 package org.geysermc.geyser.session.cache.tags;
 
-import org.geysermc.geyser.session.cache.registry.JavaRegistries;
+import org.geysermc.geyser.registry.java.JavaRegistries;
 import org.geysermc.geyser.session.dialog.Dialog;
 import org.geysermc.geyser.util.MinecraftKey;
 

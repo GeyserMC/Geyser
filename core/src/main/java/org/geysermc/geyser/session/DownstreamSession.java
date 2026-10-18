@@ -31,6 +31,7 @@ import net.kyori.adventure.text.Component;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.mcprotocollib.network.ClientSession;
 import org.geysermc.mcprotocollib.network.packet.Packet;
+import org.geysermc.mcprotocollib.protocol.data.ProtocolState;
 
 @Getter
 @RequiredArgsConstructor
@@ -51,5 +52,10 @@ public class DownstreamSession {
 
     public boolean isClosed() {
         return !this.session.isConnected();
+    }
+
+    public boolean isState(ProtocolState state) {
+        // Inbound and outbound state should always be the same?
+        return session.getPacketProtocol().getInboundState() == state;
     }
 }

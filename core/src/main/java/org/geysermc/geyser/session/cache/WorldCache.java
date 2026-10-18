@@ -85,7 +85,7 @@ public final class WorldCache {
     @Setter
     private boolean editingSignOnFront;
 
-    private final Object2IntMap<String> activeCooldowns = new Object2IntOpenHashMap<>(2);
+    private final Object2IntMap<Key> activeCooldowns = new Object2IntOpenHashMap<>(2);
 
     public WorldCache(GeyserSession session) {
         this.session = session;
@@ -250,16 +250,16 @@ public final class WorldCache {
             this.activeCooldowns.removeInt(cooldownGroup.asString());
             return;
         }
-        this.activeCooldowns.put(cooldownGroup.asString(), session.getTicks() + ticks);
+        this.activeCooldowns.put(cooldownGroup, session.getTicks() + ticks);
     }
 
     public boolean hasCooldown(GeyserItemStack item) {
         UseCooldown cooldown = item.getComponent(DataComponentTypes.USE_COOLDOWN);
-        String cooldownGroup;
+        Key cooldownGroup;
         if (cooldown != null && cooldown.cooldownGroup() != null) {
-            cooldownGroup = cooldown.cooldownGroup().asString();
+            cooldownGroup = cooldown.cooldownGroup();
         } else {
-            cooldownGroup = item.asItem().javaIdentifier();
+            cooldownGroup = item.asItem().javaKey();
         }
         return this.activeCooldowns.containsKey(cooldownGroup);
     }
@@ -269,9 +269,9 @@ public final class WorldCache {
         // but we don't want the cooldown field to balloon in size from overuse.
         if (!this.activeCooldowns.isEmpty()) {
             int ticks = session.getTicks();
-            Iterator<Object2IntMap.Entry<String>> it = Object2IntMaps.fastIterator(this.activeCooldowns);
+            Iterator<Object2IntMap.Entry<Key>> it = Object2IntMaps.fastIterator(this.activeCooldowns);
             while (it.hasNext()) {
-                Object2IntMap.Entry<String> entry = it.next();
+                Object2IntMap.Entry<Key> entry = it.next();
                 if (entry.getIntValue() <= ticks) {
                     it.remove();
                 }

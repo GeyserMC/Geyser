@@ -51,12 +51,12 @@ import org.geysermc.geyser.api.block.custom.property.CustomBlockProperty;
 import org.geysermc.geyser.api.block.custom.property.PropertyType;
 import org.geysermc.geyser.api.event.lifecycle.GeyserDefineCustomBlocksEvent;
 import org.geysermc.geyser.api.util.CreativeCategory;
-import org.geysermc.geyser.level.block.Blocks;
 import org.geysermc.geyser.level.block.GeyserCustomBlockState;
 import org.geysermc.geyser.level.block.type.Block;
 import org.geysermc.geyser.level.physics.BoundingBox;
 import org.geysermc.geyser.level.physics.PistonBehavior;
 import org.geysermc.geyser.registry.BlockRegistries;
+import org.geysermc.geyser.registry.java.BuiltInJavaRegistries;
 import org.geysermc.geyser.registry.mappings.MappingsConfigReader;
 import org.geysermc.geyser.registry.mappings.MappingsType;
 import org.geysermc.geyser.registry.type.CustomSkull;
@@ -79,7 +79,7 @@ import static org.geysermc.geyser.registry.populator.BlockRegistryPopulator.MIN_
 public class CustomBlockRegistryPopulator {
 
     // Since 1.20.60, custom blocks need a block_id in their nbt tag
-    public static AtomicInteger BLOCK_ID = new AtomicInteger();
+    public static final AtomicInteger BLOCK_ID = new AtomicInteger();
 
     // Custom block id's start at 10000, and count up
     public static final int START_OFFSET = 10000;
@@ -254,15 +254,19 @@ public class CustomBlockRegistryPopulator {
             Block.Builder builder = Block.builder()
                 .javaId(stateRuntimeId)
                 .destroyTime(javaBlockState.blockHardness())
-                .pushReaction(pistonBehavior == null ? PistonBehavior.NORMAL : PistonBehavior.getByName(pistonBehavior));
+                    .pushReaction(pistonBehavior == null ? PistonBehavior.PUSH_PULL : PistonBehavior.getByName(pistonBehavior));
             if (!javaBlockState.canBreakWithHand()) {
                 builder.requiresCorrectToolForDrops();
             }
             String cleanJavaIdentifier = BlockUtils.getCleanIdentifier(javaBlockState.identifier());
-            Block block = new Block(cleanJavaIdentifier, builder);
-            block.setJavaId(javaBlockState.stateGroupId());
 
-            BlockRegistries.JAVA_BLOCKS.registerWithAnyIndex(javaBlockState.stateGroupId(), block, Blocks.AIR);
+            // Only register new block if it's not in the BLOCK registry yet
+            if (BuiltInJavaRegistries.BLOCK.get(javaBlockState.stateGroupId()).isEmpty()) {
+                Block block = new Block(cleanJavaIdentifier, builder);
+                block.setJavaId(javaBlockState.stateGroupId());
+                BuiltInJavaRegistries.BLOCK.register(javaBlockState.stateGroupId(), block.javaIdentifier(), block);
+            }
+
             BlockRegistries.JAVA_BLOCK_STATE_IDENTIFIER_TO_ID.register(javaId, stateRuntimeId);
             BlockRegistries.NON_VANILLA_BLOCK_IDS.register(set -> set.set(stateRuntimeId));
 

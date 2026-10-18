@@ -50,7 +50,7 @@ public class RakPingHandler extends SimpleChannelInboundHandler<RakPing> {
 
         InetSocketAddress address = msg.getSender();
         InetSocketAddress clientAddress = ((RakServerChannel) ctx.channel()).getClientAddress(address);
-        RakPong pong = msg.reply(guid, this.pingResponder.onQuery(guid, clientAddress).toByteBuf());
+        RakPong pong = msg.reply(guid, this.pingResponder.onQuery(guid, clientAddress, null).toByteBuf());
         ctx.writeAndFlush(pong);
     }
 }
