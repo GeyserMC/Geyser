@@ -98,6 +98,10 @@ public final class NetherNetServer implements EventRegistrar {
      */
     private static final List<String> DEFAULT_STUN_SERVERS =
         List.of("stun:stun.cloudflare.com:3478", "stun:stun.l.google.com:19302");
+    /**
+     * Whether "nethernet-debug" raised NetherNet's own logs, so a reload with it off lowers them again.
+     */
+    private static boolean debugLogging;
 
     private final GeyserImpl geyser;
     private final GeyserConfig.SignalingConfig config;
@@ -178,6 +182,9 @@ public final class NetherNetServer implements EventRegistrar {
             return;
         }
 
+        // Before either side starts, so their logs follow it from the first line
+        applyLogLevel();
+
         try {
             Files.createDirectories(dataFolder);
         } catch (IOException e) {
@@ -230,9 +237,6 @@ public final class NetherNetServer implements EventRegistrar {
 
         // Start up NetherNet
         try {
-            // Keep libdatachannel's own logging out of the way
-            NetherNetLogging.setNativeLogLevel("WARN");
-
             signalingBuilder
                     .setIdentity(identity)
                     .setForwardedForProxies(TrustedProxies.parse(geyser.config().advanced().bedrock().signalingTrustedProxies()))
@@ -315,6 +319,32 @@ public final class NetherNetServer implements EventRegistrar {
             return fromProperty;
         }
         return addresses(builtin.advertiseAddresses().stream(), "\"advertise-addresses\"");
+    }
+
+    /**
+     * Sets the log level of libdatachannel and NetherNet's own logs alike: DEBUG with "nethernet-debug", else WARN for
+     * libdatachannel alone, which keeps its own logging out of the way. {@code -DgeyserNetherNetLogLevel} overrides
+     * both with OFF, ERROR, WARN, INFO, DEBUG or TRACE.
+     */
+    private void applyLogLevel() {
+        String property = System.getProperty("geyserNetherNetLogLevel");
+        if (property != null) {
+            if (NetherNetLogging.setLogLevel(property)) {
+                logger().info("NetherNet log level set from system property: " + property.trim());
+                return;
+            }
+            logger().warning("Invalid -DgeyserNetherNetLogLevel \"" + property + "\", expected OFF, ERROR, WARN, INFO, DEBUG or TRACE");
+        }
+        boolean debug = geyser.config().advanced().bedrock().nethernetDebug();
+        if (debug) {
+            NetherNetLogging.setLogLevel("DEBUG");
+        } else {
+            if (debugLogging) {
+                NetherNetLogging.setLogLevel("INFO");
+            }
+            NetherNetLogging.setNativeLogLevel("WARN");
+        }
+        debugLogging = debug;
     }
 
     /**
