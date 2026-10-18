@@ -25,27 +25,31 @@
 
 package org.geysermc.geyser.network.bedrock.nethernet;
 
-import org.cloudburstmc.netty.channel.nethernet.signaling.PongData;
-import org.cloudburstmc.netty.util.nethernet.TrustedProxies;
-import org.cloudburstmc.netty.channel.nethernet.NetherNetChannelFactory;
-import org.cloudburstmc.netty.channel.nethernet.config.NetherChannelOption;
-import org.cloudburstmc.netty.channel.nethernet.signaling.NetherNetHTTPServerSignaling;
-import org.cloudburstmc.netty.util.nethernet.NetherNetLogging;
-import org.cloudburstmc.netty.util.nethernet.SecretValue;
-import org.cloudburstmc.netty.util.nethernet.OperatorIdentity;
-import org.cloudburstmc.netty.util.nethernet.TokenTrust;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.MultiThreadIoEventLoopGroup;
 import io.netty.channel.nio.NioIoHandler;
 import io.netty.util.NetUtil;
+import io.netty.util.concurrent.DefaultThreadFactory;
 import org.checkerframework.checker.nullness.qual.Nullable;
+import org.cloudburstmc.netty.channel.nethernet.NetherNetChannelFactory;
+import org.cloudburstmc.netty.channel.nethernet.config.NetherChannelOption;
+import org.cloudburstmc.netty.channel.nethernet.signaling.NetherNetHTTPServerSignaling;
+import org.cloudburstmc.netty.channel.nethernet.signaling.PongData;
 import org.cloudburstmc.netty.signaling.ProviderClient;
 import org.cloudburstmc.netty.signaling.ProviderDiagnostic;
 import org.cloudburstmc.netty.signaling.ProviderStateStore;
 import org.cloudburstmc.netty.signaling.ProviderTransport;
 import org.cloudburstmc.netty.signaling.ServerStatus;
+import org.cloudburstmc.netty.signaling.provider.NativeProviderHostFactory;
+import org.cloudburstmc.netty.signaling.provider.ProviderRuntimeConfiguration;
+import org.cloudburstmc.netty.signaling.provider.ProviderShutdown;
+import org.cloudburstmc.netty.util.nethernet.NetherNetLogging;
+import org.cloudburstmc.netty.util.nethernet.OperatorIdentity;
+import org.cloudburstmc.netty.util.nethernet.SecretValue;
+import org.cloudburstmc.netty.util.nethernet.TokenTrust;
+import org.cloudburstmc.netty.util.nethernet.TrustedProxies;
 import org.cloudburstmc.protocol.bedrock.BedrockPong;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.GeyserLogger;
@@ -57,10 +61,8 @@ import org.geysermc.geyser.event.type.SessionDisconnectEventImpl;
 import org.geysermc.geyser.network.BedrockPingHandler;
 import org.geysermc.geyser.network.bedrock.nethernet.signaling.provider.GameOutcomeReporter;
 import org.geysermc.geyser.network.bedrock.nethernet.signaling.provider.GeyserStatusCollector;
-import org.cloudburstmc.netty.signaling.provider.NativeProviderHostFactory;
-import org.cloudburstmc.netty.signaling.provider.ProviderRuntimeConfiguration;
-import org.cloudburstmc.netty.signaling.provider.ProviderShutdown;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.mcprotocollib.network.helper.TransportHelper;
 import tel.schich.libdatachannel.LibDataChannelArchDetect;
 
 import java.io.IOException;
@@ -290,7 +292,8 @@ public final class NetherNetServer implements EventRegistrar {
             boolean separateIcePort = webrtcPort != signalingPort;
             this.signaling = signalingBuilder.setIceOnLocalPort(!separateIcePort).build();
 
-            this.inbuiltEventLoopGroup = new MultiThreadIoEventLoopGroup(NioIoHandler.newFactory());
+            this.inbuiltEventLoopGroup = TransportHelper.TRANSPORT_TYPE.eventLoopGroupFactory()
+                .apply(0, new DefaultThreadFactory("NetherNet Built-in Signaling", true));
             this.inbuiltInitialiser = new NetherNetChannelInitialiser(geyser);
 
             ServerBootstrap b = new ServerBootstrap();
