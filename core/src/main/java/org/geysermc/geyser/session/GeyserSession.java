@@ -166,7 +166,8 @@ import org.geysermc.geyser.network.JoinAddress;
 import org.geysermc.geyser.network.bedrock.GameProtocol;
 import org.geysermc.geyser.network.java.LocalSession;
 import org.geysermc.geyser.registry.Registries;
-import org.geysermc.geyser.registry.java.JavaRegistry;
+import org.geysermc.geyser.registry.java.JavaRegistries;
+import org.geysermc.geyser.registry.java.JavaRegistryProvider;
 import org.geysermc.geyser.registry.type.BlockMappings;
 import org.geysermc.geyser.registry.type.ItemMappings;
 import org.geysermc.geyser.session.auth.AuthData;
@@ -189,8 +190,6 @@ import org.geysermc.geyser.session.cache.StructureBlockCache;
 import org.geysermc.geyser.session.cache.TeleportCache;
 import org.geysermc.geyser.session.cache.WorldBorder;
 import org.geysermc.geyser.session.cache.WorldCache;
-import org.geysermc.geyser.registry.java.JavaRegistries;
-import org.geysermc.geyser.registry.java.JavaRegistryProvider;
 import org.geysermc.geyser.session.cache.registry.JavaRegistryTagCache;
 import org.geysermc.geyser.session.cache.tags.DialogTag;
 import org.geysermc.geyser.session.cache.waypoint.WaypointCache;
@@ -904,12 +903,11 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
      * Send all necessary packets to load Bedrock into the server
      */
     public void connect() {
-        // Note: DIMENSION_TYPE registry may be uninitialised here if the player is connecting from online mode,
-        // so we have to check explicitly using isEmpty
         int minY = BedrockDimension.OVERWORLD.minY();
         int maxY = BedrockDimension.OVERWORLD.maxY();
-        JavaRegistry<JavaDimension> dimensions = this.javaRegistries.registry(JavaRegistries.DIMENSION_TYPE);
-        if (!dimensions.isEmpty()) {
+
+        // If not in GAME state, then the DIMENSION_TYPE registry will be uninitialised.
+        if (downstream != null && downstream.isState(ProtocolState.GAME)) {
             for (JavaDimension javaDimension : this.javaRegistries.registry(JavaRegistries.DIMENSION_TYPE)) {
                 if (javaDimension.bedrockId() == BedrockDimension.OVERWORLD_ID) {
                     minY = Math.min(minY, javaDimension.minY());
@@ -1880,7 +1878,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     @Override
     public boolean sendForm(@NonNull Form form) {
         // Check if we're in the config stage, if so, prepare the client for forms
-        if (this.downstream != null && this.downstream.getSession().getPacketProtocol().getInboundState().equals(ProtocolState.CONFIGURATION)) {
+        if (this.downstream != null && this.downstream.isState(ProtocolState.CONFIGURATION)) {
             this.prepareForConfigurationForm();
         }
         // First close any dialogs that are open. This won't execute the dialog's closing action.

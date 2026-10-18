@@ -37,7 +37,7 @@ import java.util.Objects;
 /**
  * An entry in a {@link JavaRegistry}. This class groups a network ID, a {@link Key}, and a {@link T} together.
  *
- * <p>The entry may not be bound when the {@link JavaRegistry} is not frozen. Trying to access unbound entries will result in a {@link IllegalStateException}.</p>
+ * <p>The entry may not be bound when the {@link JavaRegistry} is not bound. Trying to access unbound entries will result in an {@link IllegalStateException}.</p>
  *
  * @param <T> the type of the registry
  * @see JavaRegistryLookup

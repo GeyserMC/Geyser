@@ -54,12 +54,12 @@ public record Enchantment(Set<EnchantmentComponent> effects,
         NbtMap data = context.dataAsMap();
         Set<EnchantmentComponent> effects = readEnchantmentComponents(data.getCompound("effects"));
 
-        GeyserHolderSet<Item> supportedItems = GeyserHolderSet.readHolderSet(context.registries(), JavaRegistries.ITEM, data.get("supported_items"), context.session());
+        GeyserHolderSet<Item> supportedItems = GeyserHolderSet.readHolderSet(context.registries(), JavaRegistries.ITEM, context.locale(), data.get("supported_items"));
 
         int maxLevel = data.getInt("max_level");
         int anvilCost = data.getInt("anvil_cost");
 
-        GeyserHolderSet<Enchantment> exclusiveSet = GeyserHolderSet.readHolderSet(context.registries(), JavaRegistries.ENCHANTMENT, data.get("exclusive_set"), context.session());
+        GeyserHolderSet<Enchantment> exclusiveSet = GeyserHolderSet.readHolderSet(context.registries(), JavaRegistries.ENCHANTMENT, context.locale(), data.get("exclusive_set"));
 
         BedrockEnchantment bedrockEnchantment = null;
         if (context instanceof RegistryEntryContext keyedContext) {

@@ -41,9 +41,9 @@ public class MultiActionDialog extends DialogWithButtons {
 
     private final List<DialogButton> buttons;
 
-    protected MultiActionDialog(JavaRegistryProvider registries, Optional<GeyserSession> session, NbtMap map) {
-        super(session, map, readDefaultExitAction(registries, session, map));
-        buttons = DialogButton.readList(registries, session, map.getList("actions", NbtType.COMPOUND));
+    protected MultiActionDialog(JavaRegistryProvider registries, String locale, NbtMap map) {
+        super(locale, map, readDefaultExitAction(registries, locale, map));
+        buttons = DialogButton.readList(registries, locale, map.getList("actions", NbtType.COMPOUND));
     }
 
     @Override
