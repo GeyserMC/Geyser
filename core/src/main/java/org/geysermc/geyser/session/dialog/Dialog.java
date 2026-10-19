@@ -41,7 +41,6 @@ import org.geysermc.cumulus.response.FormResponse;
 import org.geysermc.geyser.registry.java.JavaRegistries;
 import org.geysermc.geyser.registry.java.JavaRegistryProvider;
 import org.geysermc.geyser.registry.java.reader.JavaRegistryReader;
-import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.dialog.input.DialogInput;
 import org.geysermc.geyser.session.dialog.input.ParsedInputs;
 import org.geysermc.geyser.translator.text.MessageTranslator;
@@ -158,7 +157,7 @@ public abstract class Dialog {
     }
 
     public static Dialog readDialog(JavaRegistryReader.Context context) {
-        return readDialogFromNbt(context.registries(), context.dataAsMap());
+        return readDialogFromNbt(context.javaRegistries(), context.dataAsMap());
     }
 
     public static Dialog readDialogFromNbt(JavaRegistryProvider registries, NbtMap map) {
@@ -178,8 +177,7 @@ public abstract class Dialog {
         throw new UnsupportedOperationException("Unable to read unknown dialog type " + type + "!");
     }
 
-    public static Dialog getDialogFromHolder(GeyserSession session, Holder<NbtMap> holder) {
-        JavaRegistryProvider registries = session.javaRegistries();
+    public static Dialog getDialogFromHolder(JavaRegistryProvider registries, Holder<NbtMap> holder) {
         if (holder.isId()) {
             return JavaRegistries.DIALOG.getOrThrow(registries, holder.id());
         } else {

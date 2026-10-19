@@ -152,11 +152,11 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                                     return;
                                 }
                                 itemStack.sub(1);
-                                changedItem = Int2ObjectMaps.singleton(hotbarSlot, DataComponentHashers.hashStack(session, itemStack.getItemStack()));
+                                changedItem = Int2ObjectMaps.singleton(hotbarSlot, DataComponentHashers.hashStack(session.javaRegistries(), itemStack.getItemStack()));
                             }
                             ServerboundContainerClickPacket dropPacket = new ServerboundContainerClickPacket(
                                     inventory.getJavaId(), inventory.getStateId(), hotbarSlot, clickType.actionType, clickType.action,
-                                    DataComponentHashers.hashStack(session, inventory.getCursor().getItemStack()), changedItem);
+                                    DataComponentHashers.hashStack(session.javaRegistries(), inventory.getCursor().getItemStack()), changedItem);
                             session.sendDownstreamGamePacket(dropPacket);
                             return;
                         }
@@ -431,7 +431,7 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                                         .getItemInHand()
                                         .getComponent(DataComponentTypes.INSTRUMENT);
                                     if (component != null) {
-                                        GeyserInstrument instrument = GeyserInstrument.fromComponent(session, component);
+                                        GeyserInstrument instrument = GeyserInstrument.fromComponent(session.javaRegistries(), component);
                                         if (instrument.bedrockInstrument() != null) {
                                             // BDS uses a LevelSoundEvent2Packet, but that doesn't work here... (as of 1.21.20)
                                             LevelSoundEventPacket soundPacket = new LevelSoundEventPacket();

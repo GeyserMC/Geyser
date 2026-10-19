@@ -162,7 +162,7 @@ public final class ClickPlan {
                 action.slot,
                 action.click.actionType,
                 action.click.action,
-                DataComponentHashers.hashStack(session, clickedItemStack),
+                DataComponentHashers.hashStack(session.javaRegistries(), clickedItemStack),
                 changedHashedItems
             );
 
@@ -260,7 +260,7 @@ public final class ClickPlan {
     private void onSlotItemChange(int slot, GeyserItemStack itemStack) {
         if (changedItems != null) {
             changedItems.put(slot, itemStack.getItemStack());
-            changedHashedItems.put(slot, DataComponentHashers.hashStack(session, itemStack.getItemStack()));
+            changedHashedItems.put(slot, DataComponentHashers.hashStack(session.javaRegistries(), itemStack.getItemStack()));
         }
     }
 

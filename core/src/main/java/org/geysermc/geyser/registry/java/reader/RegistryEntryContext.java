@@ -33,10 +33,10 @@ import org.geysermc.mcprotocollib.protocol.packet.configuration.clientbound.Clie
 /**
  * Expands {@link JavaRegistryReader.Context} with a {@link Key}. Used when parsing registry data from a {@link ClientboundRegistryDataPacket}.
  *
- * @param registries the {@link JavaRegistryProvider}
+ * @param javaRegistries the {@link JavaRegistryProvider}
  * @param entry the {@link RegistryEntry}
  */
-public record RegistryEntryContext(JavaRegistryProvider registries, RegistryEntry entry) implements JavaRegistryReader.Context {
+public record RegistryEntryContext(JavaRegistryProvider javaRegistries, RegistryEntry entry) implements JavaRegistryReader.Context {
 
     /**
      * @return the {@link Key} of this registry entry

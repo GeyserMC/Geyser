@@ -78,7 +78,7 @@ public interface JavaRegistryReader<T> extends KeyDependentJavaRegistryReader<T>
             }
 
             @Override
-            public JavaRegistryProvider registries() {
+            public JavaRegistryProvider javaRegistries() {
                 return registries;
             }
         };
