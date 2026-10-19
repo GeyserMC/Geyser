@@ -252,7 +252,10 @@ public interface GeyserConfig {
 
         void port(int port);
 
-        @Comment("The UDP port used for NetherNet connections. When set to 0, Geyser uses the \"port\" value set above.")
+        @Comment("""
+            The UDP port used for NetherNet connections. When set to 0, Geyser uses the "port" value set above.
+            Players connect to it directly, so forward it when behind a router. With "nxs" signaling and
+            assisted-joins off, they cannot connect otherwise.""")
         @DefaultNumeric(0)
         @NumericRange(from = 0, to = 65535)
         int webrtcPort();
