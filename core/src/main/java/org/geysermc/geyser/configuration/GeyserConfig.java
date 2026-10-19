@@ -166,6 +166,8 @@ public interface GeyserConfig {
         @DefaultBoolean(true)
         boolean stunDiscovery();
 
+        void stunDiscovery(boolean stunDiscovery);
+
         @Comment("Settings for built-in signaling. Only used in the \"builtin\" and \"hybrid\" modes.")
         BuiltinConfig builtin();
 

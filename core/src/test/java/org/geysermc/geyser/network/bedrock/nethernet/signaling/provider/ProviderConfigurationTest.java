@@ -140,6 +140,15 @@ class ProviderConfigurationTest {
     }
 
     @Test
+    void takesTheStunDiscoveryOverride() throws Exception {
+        // As -DgeyserStunDiscovery sets it
+        var config = config("{}");
+        config.stunDiscovery(false);
+
+        assertFalse(settings(config, advanced("{}")).stunDiscovery());
+    }
+
+    @Test
     void refusesAModeItCannotServe() {
         assertThrows(IOException.class, () -> config("mode: invalid\n"));
     }
