@@ -109,6 +109,7 @@ import org.cloudburstmc.protocol.bedrock.packet.UpdateAttributesPacket;
 import org.cloudburstmc.protocol.bedrock.packet.UpdateClientInputLocksPacket;
 import org.cloudburstmc.protocol.bedrock.packet.UpdateSoftEnumPacket;
 import org.cloudburstmc.protocol.bedrock.packet.VoxelShapesPacket;
+import org.cloudburstmc.protocol.bedrock.util.JoinAddress;
 import org.cloudburstmc.protocol.common.util.OptionalBoolean;
 import org.geysermc.api.util.BedrockPlatform;
 import org.geysermc.api.util.InputMode;
@@ -162,7 +163,6 @@ import org.geysermc.geyser.level.BedrockDimension;
 import org.geysermc.geyser.level.JavaDimension;
 import org.geysermc.geyser.level.gamerule.GameRuleHandler;
 import org.geysermc.geyser.level.physics.CollisionManager;
-import org.geysermc.geyser.network.JoinAddress;
 import org.geysermc.geyser.network.bedrock.GameProtocol;
 import org.geysermc.geyser.network.java.LocalSession;
 import org.geysermc.geyser.registry.Registries;
@@ -1781,16 +1781,16 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource, Jav
 
     @Override
     public @NonNull String joinAddress() {
-        return parsedJoinAddress().host();
+        return parsedJoinAddress().getHost();
     }
 
     @Override
     public @Positive int joinPort() {
-        return parsedJoinAddress().port();
+        return parsedJoinAddress().getPort();
     }
 
     private JoinAddress parsedJoinAddress() {
-        // NetherNet clients send the signaling URL they used, e.g. http://example.com:19132
+        // NetherNet clients send the signaling URL they used, e.g. http://example.com:19132:19132
         String combined = Optional.ofNullable(clientData).orElseThrow().getServerAddress();
         return JoinAddress.parse(combined, geyser.config().bedrock().port());
     }
