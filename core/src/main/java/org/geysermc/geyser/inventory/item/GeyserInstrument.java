@@ -26,6 +26,7 @@
 package org.geysermc.geyser.inventory.item;
 
 import net.kyori.adventure.key.Key;
+import net.kyori.adventure.text.Component;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.nbt.NbtMap;
 import org.geysermc.geyser.registry.java.reader.JavaRegistryReader;
@@ -33,7 +34,6 @@ import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.registry.java.JavaRegistries;
 import org.geysermc.geyser.registry.java.JavaRegistry;
 import org.geysermc.geyser.registry.java.reader.RegistryEntryContext;
-import org.geysermc.geyser.translator.text.MessageTranslator;
 import org.geysermc.geyser.util.MinecraftKey;
 import org.geysermc.geyser.util.SoundUtils;
 import org.geysermc.mcprotocollib.protocol.data.game.Holder;
@@ -56,17 +56,14 @@ public interface GeyserInstrument {
 
         String soundEvent = SoundUtils.readSoundEvent(data, parsingContext);
         float range = data.getFloat("range");
-        return new GeyserInstrument.Impl(soundEvent, range, context.deserializeDescription(), bedrockInstrument);
+        return new GeyserInstrument.Impl(soundEvent, range, context.parseDescription(), bedrockInstrument);
     }
 
     String soundEvent();
 
     float range();
 
-    /**
-     * In Bedrock format
-     */
-    String description();
+    Component description();
 
     @Nullable BedrockInstrument bedrockInstrument();
 
@@ -101,14 +98,14 @@ public interface GeyserInstrument {
     // TODO test in 1.21.5
     static GeyserInstrument fromComponent(GeyserSession session, Holder<Instrument> component) {
         if (component.isCustom()) {
-            return new Wrapper(component.custom(), session.locale());
+            return new Wrapper(component.custom());
         } else if (component.isId()) {
             return JavaRegistries.INSTRUMENT.getOrThrow(session.javaRegistries(), component.id());
         }
         throw new IllegalStateException("Instrument must either be custom or have an id");
     }
 
-    record Wrapper(Instrument instrument, String locale) implements GeyserInstrument {
+    record Wrapper(Instrument instrument) implements GeyserInstrument {
         @Override
         public String soundEvent() {
             return instrument.soundEvent().getName();
@@ -120,8 +117,8 @@ public interface GeyserInstrument {
         }
 
         @Override
-        public String description() {
-            return MessageTranslator.convertMessageForTooltip(instrument.description(), locale);
+        public Component description() {
+            return instrument.description();
         }
 
         @Override
@@ -134,7 +131,7 @@ public interface GeyserInstrument {
         }
     }
 
-    record Impl(String soundEvent, float range, String description, @Nullable BedrockInstrument bedrockInstrument) implements GeyserInstrument {
+    record Impl(String soundEvent, float range, Component description, @Nullable BedrockInstrument bedrockInstrument) implements GeyserInstrument {
     }
 
     /**

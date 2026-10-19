@@ -34,6 +34,7 @@ import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.registry.type.ItemMappings;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.item.BedrockItemBuilder;
+import org.geysermc.geyser.translator.text.MessageTranslator;
 import org.geysermc.mcprotocollib.protocol.data.game.Holder;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentTypes;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
@@ -71,7 +72,7 @@ public class GoatHornItem extends Item {
         if (component != null && tooltip.showInTooltip(DataComponentTypes.INSTRUMENT)) {
             GeyserInstrument instrument = GeyserInstrument.fromComponent(session, component);
             if (instrument.bedrockInstrument() == null) {
-                builder.getOrCreateLore().add(instrument.description());
+                builder.getOrCreateLore().add(MessageTranslator.convertMessageForTooltip(instrument.description(), session.locale()));
             }
         }
     }

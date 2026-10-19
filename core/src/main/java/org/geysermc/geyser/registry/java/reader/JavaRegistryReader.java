@@ -71,20 +71,14 @@ public interface JavaRegistryReader<T> extends KeyDependentJavaRegistryReader<T>
      * Creates a {@link Context} for parsing a registry entry. Should be used to parse inline entries.
      *
      * @param registries the {@link JavaRegistryProvider}
-     * @param locale the locale to use when translating messages
      * @param data the registry entry to parse
      * @return the created {@link Context}
      */
-    static Context createContext(JavaRegistryProvider registries, String locale, Object data) {
+    static Context createContext(JavaRegistryProvider registries, Object data) {
         return new Context() {
             @Override
             public Object data() {
                 return data;
-            }
-
-            @Override
-            public String locale() {
-                return locale;
             }
 
             @Override
@@ -114,13 +108,6 @@ public interface JavaRegistryReader<T> extends KeyDependentJavaRegistryReader<T>
         }
 
         /**
-         * The context's locale: may be used to translate text components in registry data ahead of time.
-         *
-         * @return the context's locale, to be used when translating text components using {@link MessageTranslator}
-         */
-        String locale();
-
-        /**
          * Attempts to use {@link Context#dataAsMap()} to get this registry entry as an {@link NbtMap}, and then tries to parse the {@code "description"} key
          * into a {@link Component}, using {@link MessageTranslator#componentFromNbtTag(Object)}. If the key did not exist, an empty component is returned.
          *
@@ -128,16 +115,6 @@ public interface JavaRegistryReader<T> extends KeyDependentJavaRegistryReader<T>
          */
         default Component parseDescription() {
              return MessageTranslator.componentFromNbtTag(dataAsMap().get("description"));
-        }
-
-        /**
-         * Uses {@link MessageTranslator#convertLenientNbtMessage(Object, String)} to convert the {@code "description"} key from
-         * this registry entry into a bedrock text string.
-         *
-         * @return the {@code "description"} key from this entry, converted to a bedrock text string
-         */
-        default String deserializeDescription() {
-            return MessageTranslator.convertLenientNbtMessage(dataAsMap().getOrDefault("description", null), locale());
         }
     }
 }

@@ -40,10 +40,10 @@ public class ConfirmationDialog extends DialogWithButtons {
     private final DialogButton yes;
     private final DialogButton no;
 
-    public ConfirmationDialog(JavaRegistryProvider registries, String locale, NbtMap map) {
-        super(locale, map, Optional.empty());
-        yes = DialogButton.read(registries, locale, map.get("yes")).orElseThrow();
-        no = DialogButton.read(registries, locale, map.get("no")).orElseThrow();
+    public ConfirmationDialog(JavaRegistryProvider registries, NbtMap map) {
+        super(map, Optional.empty());
+        yes = DialogButton.read(registries, map.get("yes")).orElseThrow();
+        no = DialogButton.read(registries, map.get("no")).orElseThrow();
     }
 
     @Override

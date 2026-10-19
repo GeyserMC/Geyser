@@ -468,7 +468,10 @@ public class MessageTranslator {
 
     /* ===== Java (NBT) component deserialisation ===== */
 
-    public static Component componentFromNbtTag(Object nbtTag) {
+    public static Component componentFromNbtTag(@Nullable Object nbtTag) {
+        if (nbtTag == null) {
+            return Component.empty();
+        }
         return DefaultComponentSerializer.nbt().deserialize(nbtTag);
     }
 

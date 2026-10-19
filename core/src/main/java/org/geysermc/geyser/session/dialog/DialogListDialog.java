@@ -42,9 +42,9 @@ public class DialogListDialog extends DialogWithButtons {
 
     private final GeyserHolderSet<Dialog> dialogs;
 
-    public DialogListDialog(JavaRegistryProvider registries, String locale, NbtMap map) {
-        super(locale, map, readDefaultExitAction(registries, locale, map));
-        dialogs = GeyserHolderSet.readHolderSet(registries, JavaRegistries.DIALOG, locale, map.get("dialogs"));
+    public DialogListDialog(JavaRegistryProvider registries, NbtMap map) {
+        super(map, readDefaultExitAction(registries, map));
+        dialogs = GeyserHolderSet.readHolderSet(registries, JavaRegistries.DIALOG, map.get("dialogs"));
     }
 
     @Override

@@ -35,9 +35,8 @@ import org.geysermc.mcprotocollib.protocol.packet.configuration.clientbound.Clie
  *
  * @param registries the {@link JavaRegistryProvider}
  * @param entry the {@link RegistryEntry}
- * @param locale the locale to use when translating text components
  */
-public record RegistryEntryContext(JavaRegistryProvider registries, RegistryEntry entry, String locale) implements JavaRegistryReader.Context {
+public record RegistryEntryContext(JavaRegistryProvider registries, RegistryEntry entry) implements JavaRegistryReader.Context {
 
     /**
      * @return the {@link Key} of this registry entry
