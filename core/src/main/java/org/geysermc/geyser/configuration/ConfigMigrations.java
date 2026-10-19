@@ -32,7 +32,10 @@ import org.spongepowered.configurate.transformation.ConfigurationTransformation;
 import org.spongepowered.configurate.transformation.TransformAction;
 
 import java.util.Arrays;
+import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 import java.util.UUID;
 import java.util.function.BiFunction;
 
@@ -193,6 +196,26 @@ public class ConfigMigrations {
             .addVersion(9, ConfigurationTransformation.empty())
             // Advanced NXS options and signaling-trusted-proxies
             .addVersion(10, ConfigurationTransformation.empty())
+            // One advertise-addresses list and stun-discovery switch for built-in and external signaling
+            .addVersion(11, ConfigurationTransformation.builder()
+                .addAction(path("bedrock", "signaling"), (path, value) -> {
+                    Set<String> addresses = new LinkedHashSet<>();
+                    for (String mode : List.of("builtin", "nxs")) {
+                        ConfigurationNode side = value.node(mode);
+                        side.node("advertise-addresses").getList(String.class, List.of()).stream()
+                            .map(String::trim)
+                            .filter(address -> !address.isEmpty())
+                            .forEach(addresses::add);
+                        side.removeChild("advertise-addresses");
+                    }
+                    if (!addresses.isEmpty()) {
+                        value.node("advertise-addresses").setList(String.class, List.copyOf(addresses));
+                    }
+                    return null;
+                })
+                .addAction(path("advanced", "nxs", "stun-discovery"), (path, value) ->
+                    new Object[]{ "bedrock", "signaling", "stun-discovery" })
+                .build())
         .build();
 
     static TransformAction renameAndMove(String... newPath) {

@@ -148,6 +148,24 @@ public interface GeyserConfig {
 
         void port(int port);
 
+        @Comment("""
+            The addresses sent to connecting players for the NetherNet WebRTC connection, by both built-in and external signaling,
+            e.g. play.example.com, 198.51.100.1 or [2001:db8::1]:19133. If no port is given, the NetherNet UDP port is used.
+            A host name is looked up when signaling starts, and signaling does not start if it does not resolve.
+            You can list an address this machine does not have, such as your public IP, if your router forwards that port
+            to this machine. You need to set up the port forwarding yourself.
+            Leave empty to use this machine's own addresses, plus the public address found with "stun-discovery".""")
+        @AsteriskSerializer.Asterisk
+        default List<String> advertiseAddresses() {
+            return List.of();
+        }
+
+        @Comment("""
+            Finds this server's public address through STUN when "advertise-addresses" is empty.
+            Built-in signaling asks public STUN servers, and the external signaling service asks its own.""")
+        @DefaultBoolean(true)
+        boolean stunDiscovery();
+
         @Comment("Settings for built-in signaling. Only used in the \"builtin\" and \"hybrid\" modes.")
         BuiltinConfig builtin();
 
@@ -170,18 +188,6 @@ public interface GeyserConfig {
 
         @ConfigSerializable
         interface BuiltinConfig {
-            @Comment("""
-                The addresses Geyser's signaling server sends to connecting players for the NetherNet WebRTC connection, e.g. 198.51.100.1 or [2001:db8::1]:19133.
-                If no port is given, the configured NetherNet UDP port is used.
-                You can list an address this machine does not have, such as your public IP, if your router forwards that port
-                to this machine. You need to set up the port forwarding yourself.
-                Leave empty to use the "address" Geyser binds to (every local address if that is 0.0.0.0), plus the public address
-                Geyser finds through STUN.""")
-            @AsteriskSerializer.Asterisk
-            default List<String> advertiseAddresses() {
-                return List.of();
-            }
-
             @Comment("Settings for serving built-in signaling over HTTPS. When configured, HTTP will be rejected.")
             HttpsConfig https();
 
@@ -210,17 +216,6 @@ public interface GeyserConfig {
 
         @ConfigSerializable
         interface NxsConfig {
-            @Comment("""
-                The addresses which the external signaling server sends to connecting players for the NetherNet WebRTC connection, e.g. 198.51.100.1:19133 or [2001:db8::1]:19133.
-                If no port is given, the configured NetherNet UDP port is used.
-                You can list an address this machine does not have, such as your public IP, if your router forwards that port
-                to this machine. You need to set up the port forwarding yourself.
-                Leave empty to use this machine's own addresses, or the ones found with "stun-discovery" in the advanced section.""")
-            @AsteriskSerializer.Asterisk
-            default List<String> advertiseAddresses() {
-                return List.of();
-            }
-
             @Comment("Access token for the signaling service, or file:/path/to/token to read it from a file. Leave empty to register without an account.")
             @DefaultString()
             @AsteriskSerializer.Secret
@@ -647,12 +642,6 @@ public interface GeyserConfig {
             and stop offering addresses that fail.""")
         @DefaultBoolean(true)
         boolean connectionChecks();
-
-        @Comment("""
-            Finds this server's public address through the signaling service's STUN servers when it has none of its own.
-            Not used when "advertise-addresses" is set.""")
-        @DefaultBoolean(true)
-        boolean stunDiscovery();
 
         @Comment("""
             Where this server is: "country" (a two-letter code), "city", "latitude" and "longitude".

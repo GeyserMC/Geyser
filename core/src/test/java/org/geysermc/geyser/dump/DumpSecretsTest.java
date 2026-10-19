@@ -22,11 +22,10 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 class DumpSecretsTest {
     private static final String CONFIG = """
         mode: nxs
+        advertise-addresses: ["198.51.100.1", "192.168.1.5", "::", "198.51.100.2:19133", "test.geysermc.org"]
         nxs:
           token: yaml-secret
-          advertise-addresses: ["198.51.100.2:19133"]
         builtin:
-          advertise-addresses: ["198.51.100.1", "192.168.1.5", "::"]
           https:
             certificate: cert.pem
             private-key: key.pem
@@ -86,8 +85,7 @@ class DumpSecretsTest {
         CommentedConfigurationNode node = dumped();
 
         // Local and wildcard entries stay readable, as with the bind address
-        assertEquals(List.of("***", "192.168.1.5", "::"), node.node("builtin", "advertise-addresses").getList(String.class));
-        assertEquals(List.of("***"), node.node("nxs", "advertise-addresses").getList(String.class));
+        assertEquals(List.of("***", "192.168.1.5", "::", "***", "***"), node.node("advertise-addresses").getList(String.class));
     }
 
     @Test
@@ -95,7 +93,7 @@ class DumpSecretsTest {
         AsteriskSerializer.showSensitive = true;
         CommentedConfigurationNode node = dumped();
 
-        assertEquals(List.of("198.51.100.1", "192.168.1.5", "::"), node.node("builtin", "advertise-addresses").getList(String.class));
-        assertEquals(List.of("198.51.100.2:19133"), node.node("nxs", "advertise-addresses").getList(String.class));
+        assertEquals(List.of("198.51.100.1", "192.168.1.5", "::", "198.51.100.2:19133", "test.geysermc.org"),
+            node.node("advertise-addresses").getList(String.class));
     }
 }

@@ -31,7 +31,6 @@ import org.cloudburstmc.netty.channel.nethernet.NetherNetChannelFactory;
 import org.cloudburstmc.netty.channel.nethernet.config.NetherChannelOption;
 import org.cloudburstmc.netty.channel.nethernet.signaling.NetherNetHTTPServerSignaling;
 import org.cloudburstmc.netty.channel.nethernet.signaling.NetherNetServerSignaling;
-import org.cloudburstmc.netty.util.nethernet.EndpointAddress;
 import org.cloudburstmc.netty.util.nethernet.NetherNetLogging;
 import org.cloudburstmc.netty.util.nethernet.SecretValue;
 import org.cloudburstmc.netty.util.nethernet.OperatorIdentity;
@@ -76,13 +75,11 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.Random;
-import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
@@ -198,17 +195,22 @@ public final class NetherNetServer implements EventRegistrar {
         // TODO TEST hybrid: both use UDP on the WebRTC port. They should share it through libjuice's in-process ICE mux,
         //  where the provider's listener takes unknown requests and inbuilt connections attach as agents; this relies on both
         //  binding the same address (inbuilt ICE leaves a wildcard address unset, the provider passes it explicitly).
-        if (inbuilt) startInbuilt();
-        if (provider) startProvider();
+        List<String> advertised = advertisedAddresses();
+        if (inbuilt) startInbuilt(advertised);
+        if (provider) startProvider(advertised);
     }
 
-    private void startInbuilt() {
-        GeyserConfig.SignalingConfig.BuiltinConfig builtin = geyser.config().bedrock().signaling().builtin();
+    private void startInbuilt(List<String> advertised) {
+        GeyserConfig.SignalingConfig.BuiltinConfig builtin = config.builtin();
         NetherNetHTTPServerSignaling.Builder signalingBuilder = new NetherNetHTTPServerSignaling.Builder();
         try {
-            Set<String> advertised = advertisedAddresses(builtin);
             // Configured addresses already say what STUN would find, and network refuses both
-            List<String> stunServers = advertised.isEmpty() ? stunServers() : List.of();
+            boolean stun = advertised.isEmpty() && config.stunDiscovery();
+            if (!stun && System.getProperty("geyserStunServers") != null) {
+                logger().warning("-DgeyserStunServers is ignored, as "
+                    + (config.stunDiscovery() ? "\"advertise-addresses\" is set" : "\"stun-discovery\" is off"));
+            }
+            List<String> stunServers = stun ? stunServers() : List.of();
             if (advertised.isEmpty() && stunServers.isEmpty()) {
                 advertised = boundAddress(geyser.config().bedrock());
             }
@@ -305,18 +307,18 @@ public final class NetherNetServer implements EventRegistrar {
     }
 
     /**
-     * The addresses an answer is limited to: those in {@code -DgeyserAdvertiseAddresses}, comma separated, else those
-     * in the config. An address this machine does not hold is announced as the public side of a NAT forwarding the
-     * media port here, which is how a container without a public address of its own is reached.
+     * The addresses both signaling modes announce: those in {@code -DgeyserAdvertiseAddresses}, comma separated, else
+     * those in the config. An address this machine does not hold is announced as the public side of a NAT forwarding
+     * the media port here, which is how a container without a public address of its own is reached.
      */
-    private Set<String> advertisedAddresses(GeyserConfig.SignalingConfig.BuiltinConfig builtin) {
+    private List<String> advertisedAddresses() {
         String property = System.getProperty("geyserAdvertiseAddresses", "");
-        Set<String> fromProperty = addresses(Arrays.stream(property.split(",")), "-DgeyserAdvertiseAddresses");
+        List<String> fromProperty = addresses(Arrays.stream(property.split(",")));
         if (!fromProperty.isEmpty()) {
             logger().info("Advertised addresses set from system property: " + String.join(", ", fromProperty));
             return fromProperty;
         }
-        return addresses(builtin.advertiseAddresses().stream(), "\"advertise-addresses\"");
+        return addresses(config.advertiseAddresses().stream());
     }
 
     /**
@@ -366,39 +368,29 @@ public final class NetherNetServer implements EventRegistrar {
      * The bound address unless it is a wildcard, in which case everything ICE gathers. Only used when neither
      * advertised addresses nor STUN servers say better.
      */
-    private static Set<String> boundAddress(GeyserConfig.BedrockConfig bedrock) {
+    private static List<String> boundAddress(GeyserConfig.BedrockConfig bedrock) {
         byte[] bound = NetUtil.createByteArrayFromIpAddressString(bedrock.address());
         try {
             if (bound == null || InetAddress.getByAddress(bound).isAnyLocalAddress()) {
-                return Set.of();
+                return List.of();
             }
         } catch (UnknownHostException e) {
-            return Set.of();
+            return List.of();
         }
-        return Set.of(bedrock.address());
+        return List.of(bedrock.address());
     }
 
-    private static Set<String> addresses(Stream<String> entries, String source) {
-        Set<String> addresses = entries.map(String::trim)
-            .filter(address -> !address.isEmpty())
-            .collect(Collectors.toUnmodifiableSet());
-        for (String address : addresses) {
-            try {
-                EndpointAddress.parseEndpoint(address);
-            } catch (IllegalArgumentException e) {
-                throw new IllegalArgumentException("Invalid address in " + source + ": " + e.getMessage(), e);
-            }
-        }
-        return addresses;
+    private static List<String> addresses(Stream<String> entries) {
+        return entries.map(String::trim).filter(address -> !address.isEmpty()).distinct().toList();
     }
 
-    private void startProvider() {
+    private void startProvider(List<String> advertised) {
         CompletableFuture.runAsync(() -> {
             ProviderStateStore store = null;
             ProviderTransport initializingTransport = null;
             try {
                 BedrockListener listener = geyser.config().bedrock();
-                ProviderRuntimeConfiguration runtime = ProviderRuntimeConfiguration.resolve(providerSettings(config.nxs(), geyser.config().advanced().nxs()),
+                ProviderRuntimeConfiguration runtime = ProviderRuntimeConfiguration.resolve(providerSettings(config, advertised, geyser.config().advanced().nxs()),
                     dataFolder, listener.address(), webrtcPort, collectServerStatus().maxPlayerCount());
                 URI origin = runtime.origin();
                 var statePath = runtime.stateDirectory();
@@ -466,8 +458,10 @@ public final class NetherNetServer implements EventRegistrar {
     /**
      * What the provider runtime is configured with. Geyser reports game outcomes itself.
      */
-    public static ProviderRuntimeConfiguration.Settings providerSettings(GeyserConfig.SignalingConfig.NxsConfig nxs,
+    public static ProviderRuntimeConfiguration.Settings providerSettings(GeyserConfig.SignalingConfig signaling,
+                                                                         List<String> advertised,
                                                                          GeyserConfig.AdvancedNxsConfig advanced) throws IOException {
+        GeyserConfig.SignalingConfig.NxsConfig nxs = signaling.nxs();
         ProviderClient.Location location;
         try {
             location = ProviderClient.Location.of(advanced.location());
@@ -476,10 +470,10 @@ public final class NetherNetServer implements EventRegistrar {
         }
         return ProviderRuntimeConfiguration.Settings.builder(nxs.endpoint())
             .token(nxs.token())
-            .advertiseAddresses(nxs.advertiseAddresses())
+            .advertiseAddresses(advertised)
             .assistedJoins(advanced.assistedJoins())
             .connectionChecks(advanced.connectionChecks())
-            .stunDiscovery(advanced.stunDiscovery())
+            .stunDiscovery(signaling.stunDiscovery())
             .deregisterOnShutdown(advanced.deregisterOnShutdown())
             .location(location)
             .gameOutcomes(true)
