@@ -35,11 +35,8 @@ import org.geysermc.geyser.translator.text.MessageTranslator;
 
 /**
  * A {@link JavaRegistryReader} is a function that takes a {@link Context}, holding an {@link Object} (the "registry entry", serialised as NBT),
- * and parses it into a {@link T}, possibly using other registries provided by {@link JavaRegistryProvider} or data from a {@link GeyserSession}.
+ * and parses it into a {@link T}, possibly using other registries provided by {@link JavaRegistryProvider}.
  * All readers are registered, one for each of Java's networked-registries, in {@link JavaRegistryReaders}.
- *
- * <p>Note however that {@link GeyserSession} may not always be present when parsing registry data - it should generally only be used to pre-compute text component translations
- * (see {@link Context#parseDescription()}).</p>
  *
  * <p>If you don't care about the contents of the registry, and only about the network ID ≪-≫ key mapping, you should use the {@link JavaRegistryReader#UNIT} reader.</p>
  *
