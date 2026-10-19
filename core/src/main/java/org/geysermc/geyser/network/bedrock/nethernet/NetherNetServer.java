@@ -71,9 +71,12 @@ import java.net.URI;
 import java.net.UnknownHostException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.attribute.PosixFilePermissions;
+import java.time.Instant;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Random;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
@@ -95,6 +98,10 @@ public final class NetherNetServer implements EventRegistrar {
      */
     private static final List<String> DEFAULT_STUN_SERVERS =
         List.of("stun:stun.cloudflare.com:3478", "stun:stun.l.google.com:19302");
+    /**
+     * Holds the provider's link for the operator, in the data folder.
+     */
+    private static final String OPERATOR_LINK_FILE = "operator-link.txt";
     /**
      * Whether "nethernet-debug" raised NetherNet's own logs, so a reload with it off lowers them again.
      */
@@ -439,7 +446,7 @@ public final class NetherNetServer implements EventRegistrar {
                     // Says where logins are vouched for, without putting provider credentials in the log
                     logger().debug("Player logins over NetherNet are verified by the external signaling service at " + origin.getHost() + ".");
                     // The provider may offer the operator a link, such as one to claim this server
-                    client.operatorAction().thenAccept(action -> action.ifPresent(value -> logger().info(operatorActionMessage(value))));
+                    client.operatorAction().thenAccept(this::announceOperatorAction);
                 });
             } catch (Throwable e) {
                 // Throwable: the WebRTC natives are not available on every platform
@@ -538,8 +545,42 @@ public final class NetherNetServer implements EventRegistrar {
                 + "The addresses players join with are managed by the service.";
     }
 
-    public static String operatorActionMessage(ProviderClient.OperatorAction action) {
-        return action.text() + " " + action.url();
+    private void announceOperatorAction(Optional<ProviderClient.OperatorAction> action) {
+        try {
+            String message = storeOperatorAction(action);
+            if (message != null) {
+                logger().info(message);
+            }
+        } catch (IOException e) {
+            logger().warning("Could not keep the signaling service's link in " + dataFolder.resolve(OPERATOR_LINK_FILE) + ": " + e.getMessage());
+        }
+    }
+
+    /**
+     * Keeps the provider's link for the operator, such as one to claim this server, in the data folder. See
+     * {@link #storeOperatorAction(Path, Optional)}.
+     */
+    public @Nullable String storeOperatorAction(Optional<ProviderClient.OperatorAction> action) throws IOException {
+        return storeOperatorAction(dataFolder.resolve(OPERATOR_LINK_FILE), action);
+    }
+
+    /**
+     * Writes the provider's link to a file only this user can read, as it grants access to this server and a console
+     * is often logged. With no link the file is removed.
+     *
+     * @return the provider's text and where its link is, or null when there is none
+     */
+    public static @Nullable String storeOperatorAction(Path file, Optional<ProviderClient.OperatorAction> action) throws IOException {
+        Files.deleteIfExists(file);
+        if (action.isEmpty()) {
+            return null;
+        }
+        ProviderClient.OperatorAction value = action.get();
+        if (file.getFileSystem().supportedFileAttributeViews().contains("posix")) {
+            Files.createFile(file, PosixFilePermissions.asFileAttribute(PosixFilePermissions.fromString("rw-------")));
+        }
+        Files.writeString(file, value.text() + "\n" + value.url() + "\nExpires " + Instant.ofEpochMilli(value.expiresAt()) + "\n");
+        return value.text() + " The link is in " + file + ".";
     }
 
     public @Nullable Channel providerChannel() {

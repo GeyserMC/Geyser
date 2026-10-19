@@ -37,8 +37,12 @@ import org.spongepowered.configurate.yaml.YamlConfigurationLoader;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.StringReader;
+import java.net.URI;
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.attribute.PosixFilePermissions;
 import java.util.List;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -180,5 +184,21 @@ class ProviderConfigurationTest {
             "{country: NL, extra: value}")) {
             assertThrows(IOException.class, () -> settings(config("{}"), advanced("location: " + location + "\n")), location);
         }
+    }
+
+    @Test
+    void theOperatorLinkGoesToAFileOnlyThisUserReads(@TempDir Path dir) throws IOException {
+        Path file = dir.resolve("operator-link.txt");
+        var action = new ProviderClient.OperatorAction(URI.create("https://panel.example.net/claim/secret"), "Claim it.",
+            1_800_000_000_000L);
+        String message = NetherNetServer.storeOperatorAction(file, Optional.of(action));
+        assertEquals("Claim it. The link is in " + file + ".", message);
+        assertEquals("Claim it.\nhttps://panel.example.net/claim/secret\nExpires 2027-01-15T08:00:00Z\n", Files.readString(file));
+        if (file.getFileSystem().supportedFileAttributeViews().contains("posix")) {
+            assertEquals(PosixFilePermissions.fromString("rw-------"), Files.getPosixFilePermissions(file));
+        }
+        // Once the service offers none, as after a claim, the old link goes
+        assertNull(NetherNetServer.storeOperatorAction(file, Optional.empty()));
+        assertFalse(Files.exists(file));
     }
 }

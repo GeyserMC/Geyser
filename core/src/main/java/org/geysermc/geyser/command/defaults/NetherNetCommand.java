@@ -37,6 +37,7 @@ import org.geysermc.geyser.network.bedrock.nethernet.NetherNetServer;
 import org.incendo.cloud.CommandManager;
 import org.incendo.cloud.context.CommandContext;
 
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.Map;
@@ -99,7 +100,7 @@ public class NetherNetCommand extends GeyserCommand {
     }
 
     /**
-     * Show the provider's current link for the operator, such as one to claim this server
+     * Fetch the provider's current link for the operator, such as one to claim this server, into its file
      */
     private void action(CommandContext<GeyserCommandSource> context) {
         GeyserCommandSource source = context.sender();
@@ -113,9 +114,18 @@ public class NetherNetCommand extends GeyserCommand {
             source.sendMessage("Provider is not running.");
             return;
         }
-        client.operatorAction().whenComplete((action, failure) -> source.sendMessage(failure == null
-                ? action.map(NetherNetServer::operatorActionMessage).orElse("The signaling service has no link for you right now.")
-                : "Could not get a link from the signaling service: " + NetherNetServer.providerFailure(failure)));
+        client.operatorAction().whenComplete((action, failure) -> {
+            if (failure != null) {
+                source.sendMessage("Could not get a link from the signaling service: " + NetherNetServer.providerFailure(failure));
+                return;
+            }
+            try {
+                String message = server.storeOperatorAction(action);
+                source.sendMessage(message != null ? message : "The signaling service has no link for you right now.");
+            } catch (IOException e) {
+                source.sendMessage("Could not keep the link in a file: " + e.getMessage());
+            }
+        });
     }
 
     /**
