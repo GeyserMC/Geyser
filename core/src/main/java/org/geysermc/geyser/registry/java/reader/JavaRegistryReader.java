@@ -30,7 +30,6 @@ import net.kyori.adventure.text.Component;
 import org.cloudburstmc.nbt.NbtMap;
 import org.geysermc.geyser.registry.java.JavaRegistryProvider;
 import org.geysermc.geyser.registry.java.RegistryUnit;
-import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.text.MessageTranslator;
 
 /**
@@ -86,7 +85,7 @@ public interface JavaRegistryReader<T> extends KeyDependentJavaRegistryReader<T>
     }
 
     /**
-     * Provides context around a registry entry (serialised to NBT), such as a {@link JavaRegistryProvider}, and optionally the {@link GeyserSession}.
+     * Provides a registry entry (serialised to NBT), and a {@link JavaRegistryProvider}.
      */
     interface Context extends JavaRegistryProvider.Provider {
 
