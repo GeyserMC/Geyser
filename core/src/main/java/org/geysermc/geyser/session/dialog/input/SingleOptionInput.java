@@ -26,11 +26,13 @@
 package org.geysermc.geyser.session.dialog.input;
 
 import net.kyori.adventure.key.Key;
+import net.kyori.adventure.text.Component;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.nbt.NbtType;
 import org.geysermc.cumulus.form.CustomForm;
 import org.geysermc.cumulus.response.CustomFormResponse;
+import org.geysermc.geyser.translator.text.TextTranslator;
 import org.geysermc.geyser.translator.text.MessageTranslator;
 import org.geysermc.geyser.util.MinecraftKey;
 
@@ -46,15 +48,15 @@ public class SingleOptionInput extends DialogInput<String> {
     private final List<Entry> entries = new ArrayList<>();
     private final int initial;
 
-    public SingleOptionInput(String locale, NbtMap map) {
-        super(locale, map);
+    public SingleOptionInput(NbtMap map) {
+        super(map);
         labelVisible = map.getBoolean("label_visible", true);
         List<NbtMap> entriesTag = map.getList("options", NbtType.COMPOUND);
 
         int temp = 0;
         for (int i = 0; i < entriesTag.size(); i++) {
             NbtMap entry = entriesTag.get(i);
-            entries.add(new Entry(entry.getString("id"), Optional.ofNullable(MessageTranslator.convertLenientNbtMessage(entry.get("display"), locale))));
+            entries.add(new Entry(entry.getString("id"), Optional.ofNullable(entry.get("display")).map(MessageTranslator::componentFromNbtTag)));
             if (entry.getBoolean("initial")) {
                 temp = i;
             }
@@ -63,7 +65,7 @@ public class SingleOptionInput extends DialogInput<String> {
     }
 
     @Override
-    public void addComponent(CustomForm.Builder builder, Optional<String> restored) {
+    public void addComponent(CustomForm.Builder builder, TextTranslator textTranslator, Optional<String> restored) {
         int defaultOption = initial;
         if (restored.isPresent()) {
             for (int i = 0; i < entries.size(); i++) {
@@ -73,7 +75,7 @@ public class SingleOptionInput extends DialogInput<String> {
                 }
             }
         }
-        builder.dropdown(labelVisible ? label : "", entries.stream().map(Entry::label).toList(), defaultOption);
+        builder.dropdown(labelVisible ? label(textTranslator) : "", entries.stream().map(entry -> entry.label(textTranslator)).toList(), defaultOption);
     }
 
     @Override
@@ -96,10 +98,12 @@ public class SingleOptionInput extends DialogInput<String> {
         return entries.get(initial).id();
     }
 
-    private record Entry(String id, Optional<String> fancyLabel) {
+    private record Entry(String id, Optional<Component> fancyLabel) {
 
-        public String label() {
-            return fancyLabel.orElse(id);
+        public String label(TextTranslator textTranslator) {
+            return fancyLabel
+                .map(textTranslator::convertText)
+                .orElse(id);
         }
     }
 }

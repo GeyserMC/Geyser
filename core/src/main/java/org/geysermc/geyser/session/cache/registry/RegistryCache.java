@@ -103,7 +103,7 @@ final class RegistryCache {
     }
 
     /**
-     * Loads a {@link ClientboundRegistryDataPacket}. Registers entries of this packet, waiting to be parsed by {@link RegistryCache#parseAndBind(JavaRegistryProvider, String)}.
+     * Loads a {@link ClientboundRegistryDataPacket}. Registers entries of this packet, waiting to be parsed by {@link #parseAndBind(JavaRegistryProvider)}.
      *
      * @param packet the packet with registry data to load
      */
@@ -125,21 +125,20 @@ final class RegistryCache {
      * Freezes all registries, then parses all entries and binds all registries.
      *
      * @param registryProvider the {@link JavaRegistryProvider}
-     * @param locale the locale used to translate text components in registry data
      */
-    public void parseAndBind(JavaRegistryProvider registryProvider, String locale) {
+    public void parseAndBind(JavaRegistryProvider registryProvider) {
         // First, freeze all registries
         registries.values().forEach(MutableJavaRegistry::freeze);
 
         // Then, go over all received entries, this time binding them. We do this at this stage to ensure references to other dynamic registries work.
         // Registries for which no entries were received will not be left unbound: a registry automatically considers itself bound if it was empty upon freezing
-        configurationRegistryData.forEach((registryKey, registryEntries) -> loadRegistry(registryProvider, registryKey, locale, registryEntries));
+        configurationRegistryData.forEach((registryKey, registryEntries) -> loadRegistry(registryProvider, registryKey, registryEntries));
         // Finally, we can clear the raw registry data
         configurationRegistryData.clear();
     }
 
     private <T> void loadRegistry(JavaRegistryProvider registryProvider, JavaRegistryKey<T> registryKey,
-                                  String locale, List<RegistryEntry> entries) {
+                                  List<RegistryEntry> entries) {
         // Generics ftw
         MutableJavaRegistry<T> registry = (MutableJavaRegistry<T>) registries.get(registryKey);
         // Must have a reader at this point
@@ -154,7 +153,7 @@ final class RegistryCache {
                 entry = new RegistryEntry(entry.getId(), localRegistryData.get(entry.getId()));
             }
 
-            return reader.read(new RegistryEntryContext(registryProvider, entry, locale));
+            return reader.read(new RegistryEntryContext(registryProvider, entry));
         });
     }
 

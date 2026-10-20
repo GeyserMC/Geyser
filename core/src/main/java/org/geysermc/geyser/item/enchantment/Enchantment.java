@@ -25,6 +25,7 @@
 
 package org.geysermc.geyser.item.enchantment;
 
+import net.kyori.adventure.text.Component;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.nbt.NbtMap;
 import org.geysermc.geyser.inventory.item.BedrockEnchantment;
@@ -45,7 +46,7 @@ import java.util.Set;
 public record Enchantment(Set<EnchantmentComponent> effects,
                           GeyserHolderSet<Item> supportedItems,
                           int maxLevel,
-                          String description,
+                          @Nullable Component description,
                           int anvilCost,
                           GeyserHolderSet<Enchantment> exclusiveSet,
                           @Nullable BedrockEnchantment bedrockEnchantment) {
@@ -54,20 +55,19 @@ public record Enchantment(Set<EnchantmentComponent> effects,
         NbtMap data = context.dataAsMap();
         Set<EnchantmentComponent> effects = readEnchantmentComponents(data.getCompound("effects"));
 
-        GeyserHolderSet<Item> supportedItems = GeyserHolderSet.readHolderSet(context.registries(), JavaRegistries.ITEM, context.locale(), data.get("supported_items"));
+        GeyserHolderSet<Item> supportedItems = GeyserHolderSet.readHolderSet(context.javaRegistries(), JavaRegistries.ITEM, data.get("supported_items"));
 
         int maxLevel = data.getInt("max_level");
         int anvilCost = data.getInt("anvil_cost");
 
-        GeyserHolderSet<Enchantment> exclusiveSet = GeyserHolderSet.readHolderSet(context.registries(), JavaRegistries.ENCHANTMENT, context.locale(), data.get("exclusive_set"));
+        GeyserHolderSet<Enchantment> exclusiveSet = GeyserHolderSet.readHolderSet(context.javaRegistries(), JavaRegistries.ENCHANTMENT, data.get("exclusive_set"));
 
         BedrockEnchantment bedrockEnchantment = null;
         if (context instanceof RegistryEntryContext keyedContext) {
             bedrockEnchantment = BedrockEnchantment.getByJavaIdentifier(keyedContext.id());
         }
 
-        String description = bedrockEnchantment == null ? context.deserializeDescription() : null;
-
+        Component description = bedrockEnchantment == null ? context.parseDescription() : null;
         return new Enchantment(effects, supportedItems, maxLevel, description, anvilCost, exclusiveSet, bedrockEnchantment);
     }
 

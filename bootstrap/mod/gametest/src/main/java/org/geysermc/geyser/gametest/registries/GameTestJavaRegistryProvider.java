@@ -34,7 +34,6 @@ import org.geysermc.geyser.gametest.mixin.SynchronizeRegistriesTaskAccessor;
 import org.geysermc.geyser.gametest.util.NetworkUtil;
 import org.geysermc.geyser.registry.java.JavaRegistryProvider;
 import org.geysermc.geyser.session.cache.registry.JavaRegistryTagCache;
-import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.mcprotocollib.network.packet.Packet;
 import org.geysermc.mcprotocollib.protocol.packet.common.clientbound.ClientboundUpdateTagsPacket;
 import org.geysermc.mcprotocollib.protocol.packet.configuration.clientbound.ClientboundRegistryDataPacket;
@@ -67,7 +66,7 @@ public final class GameTestJavaRegistryProvider {
             Set.of()
         );
 
-        provider.freeze(GeyserLocale.getDefaultLocale());
+        provider.freeze();
 
         return provider;
     }
