@@ -30,7 +30,7 @@ import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.geysermc.cumulus.form.CustomForm;
 import org.geysermc.cumulus.response.CustomFormResponse;
-import org.geysermc.geyser.translator.text.IMessageTranslator;
+import org.geysermc.geyser.translator.text.TextTranslator;
 import org.geysermc.geyser.util.MinecraftKey;
 
 import java.util.Optional;
@@ -51,8 +51,8 @@ public class BooleanInput extends DialogInput<Boolean> {
     }
 
     @Override
-    public void addComponent(CustomForm.Builder builder, IMessageTranslator messageTranslator, Optional<Boolean> restored) {
-        builder.toggle(label(messageTranslator), restored.orElse(initial));
+    public void addComponent(CustomForm.Builder builder, TextTranslator textTranslator, Optional<Boolean> restored) {
+        builder.toggle(label(textTranslator), restored.orElse(initial));
     }
 
     @Override

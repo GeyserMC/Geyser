@@ -32,7 +32,7 @@ import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.nbt.NbtType;
 import org.geysermc.cumulus.form.CustomForm;
 import org.geysermc.cumulus.response.CustomFormResponse;
-import org.geysermc.geyser.translator.text.IMessageTranslator;
+import org.geysermc.geyser.translator.text.TextTranslator;
 import org.geysermc.geyser.translator.text.MessageTranslator;
 import org.geysermc.geyser.util.MinecraftKey;
 
@@ -65,7 +65,7 @@ public class SingleOptionInput extends DialogInput<String> {
     }
 
     @Override
-    public void addComponent(CustomForm.Builder builder, IMessageTranslator messageTranslator, Optional<String> restored) {
+    public void addComponent(CustomForm.Builder builder, TextTranslator textTranslator, Optional<String> restored) {
         int defaultOption = initial;
         if (restored.isPresent()) {
             for (int i = 0; i < entries.size(); i++) {
@@ -75,7 +75,7 @@ public class SingleOptionInput extends DialogInput<String> {
                 }
             }
         }
-        builder.dropdown(labelVisible ? label(messageTranslator) : "", entries.stream().map(entry -> entry.label(messageTranslator)).toList(), defaultOption);
+        builder.dropdown(labelVisible ? label(textTranslator) : "", entries.stream().map(entry -> entry.label(textTranslator)).toList(), defaultOption);
     }
 
     @Override
@@ -100,9 +100,9 @@ public class SingleOptionInput extends DialogInput<String> {
 
     private record Entry(String id, Optional<Component> fancyLabel) {
 
-        public String label(IMessageTranslator messageTranslator) {
+        public String label(TextTranslator textTranslator) {
             return fancyLabel
-                .map(messageTranslator::convertMessage)
+                .map(textTranslator::convertText)
                 .orElse(id);
         }
     }

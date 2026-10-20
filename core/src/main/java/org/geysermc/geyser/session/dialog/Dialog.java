@@ -115,17 +115,17 @@ public abstract class Dialog {
     protected FormBuilder<? extends FormBuilder<?,?,?>, ? extends Form, ? extends FormResponse> createForm(DialogHolder holder, Optional<ParsedInputs> restored) {
         if (inputs.isEmpty()) {
             SimpleForm.Builder builder = SimpleForm.builder()
-                .title(holder.convertMessage(title));
-            builder.content(labels.stream().map(holder::convertMessage).collect(Collectors.joining("\n\n")));
+                .title(holder.convertText(title));
+            builder.content(labels.stream().map(holder::convertText).collect(Collectors.joining("\n\n")));
 
             builder.closedOrInvalidResultHandler(() -> holder.closeDialog(onCancel()));
             addCustomComponents(holder, builder);
             return builder;
         } else {
             CustomForm.Builder builder = CustomForm.builder()
-                .title(holder.convertMessage(title));
+                .title(holder.convertText(title));
             for (Component label : labels) {
-                builder.label(holder.convertMessage(label));
+                builder.label(holder.convertText(label));
             }
 
             restored.ifPresentOrElse(last -> last.restore(holder, builder), () -> inputs.forEach(input -> input.addComponent(builder, holder)));

@@ -30,7 +30,7 @@ import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.geysermc.cumulus.form.CustomForm;
 import org.geysermc.cumulus.response.CustomFormResponse;
-import org.geysermc.geyser.translator.text.IMessageTranslator;
+import org.geysermc.geyser.translator.text.TextTranslator;
 import org.geysermc.geyser.util.MinecraftKey;
 
 import java.util.Optional;
@@ -51,8 +51,8 @@ public class TextInput extends DialogInput<String> {
     }
 
     @Override
-    public void addComponent(CustomForm.Builder builder, IMessageTranslator messageTranslator, Optional<String> restored) {
-        builder.input(labelVisible ? label(messageTranslator) : "", "", restored.orElse(initial));
+    public void addComponent(CustomForm.Builder builder, TextTranslator textTranslator, Optional<String> restored) {
+        builder.input(labelVisible ? label(textTranslator) : "", "", restored.orElse(initial));
     }
 
     @Override

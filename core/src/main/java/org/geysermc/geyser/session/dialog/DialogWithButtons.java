@@ -54,9 +54,9 @@ public abstract class DialogWithButtons extends Dialog {
         DropdownComponent.Builder dropdown = DropdownComponent.builder();
         dropdown.text(GeyserLocale.getPlayerLocaleString("geyser.dialogs.select_action", holder.session().locale()));
         for (DialogButton button : buttons) {
-            dropdown.option(holder.convertMessage(button.label()));
+            dropdown.option(holder.convertText(button.label()));
         }
-        exitAction.ifPresent(button -> dropdown.option(holder.convertMessage(button.label())));
+        exitAction.ifPresent(button -> dropdown.option(holder.convertText(button.label())));
         builder.dropdown(dropdown);
 
         builder.validResultHandler(response -> parseInput(holder, response).ifPresent(inputs -> {
@@ -73,9 +73,9 @@ public abstract class DialogWithButtons extends Dialog {
     protected void addCustomComponents(DialogHolder holder, SimpleForm.Builder builder) {
         List<DialogButton> buttons = buttons(holder);
         for (DialogButton button : buttons) {
-            builder.button(holder.convertMessage(button.label()));
+            builder.button(holder.convertText(button.label()));
         }
-        exitAction.ifPresent(button -> builder.button(holder.convertMessage(button.label())));
+        exitAction.ifPresent(button -> builder.button(holder.convertText(button.label())));
 
         builder.validResultHandler(response -> {
             if (response.clickedButtonId() == buttons.size()) {

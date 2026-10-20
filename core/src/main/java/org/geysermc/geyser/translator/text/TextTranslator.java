@@ -26,9 +26,23 @@
 package org.geysermc.geyser.translator.text;
 
 import net.kyori.adventure.text.Component;
+import org.geysermc.geyser.session.GeyserSession;
 
+/**
+ * Converts a Java {@link Component} to a Bedrock legacy-formatted {@link String}.
+ *
+ * <p>Implementations usually do this using the methods available in {@link MessageTranslator}, possibly using a player's locale.
+ * This interface essentially <a href="https://en.wikipedia.org/wiki/Currying">curries</a> the player's locale (and as such, in many cases, the {@link GeyserSession})
+ * outside of the {@code convertMessage} method, leading to a simpler signature.</p>
+ *
+ * <p>It is planned to expand the usage of this interface in the future, reducing the need to pass a {@link GeyserSession} around.</p>
+ */
 @FunctionalInterface
-public interface IMessageTranslator {
+public interface TextTranslator {
 
-    String convertMessage(Component component);
+    String convertText(Component component);
+
+    static TextTranslator forLocale(String locale) {
+        return component -> MessageTranslator.convertMessage(component, locale);
+    }
 }

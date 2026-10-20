@@ -31,7 +31,7 @@ import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.geysermc.cumulus.form.CustomForm;
 import org.geysermc.cumulus.response.CustomFormResponse;
-import org.geysermc.geyser.translator.text.IMessageTranslator;
+import org.geysermc.geyser.translator.text.TextTranslator;
 import org.geysermc.geyser.translator.text.MessageTranslator;
 import org.geysermc.geyser.util.MinecraftKey;
 
@@ -46,11 +46,11 @@ public abstract class DialogInput<T> {
         this.label = MessageTranslator.componentFromNbtTag(map.get("label"));
     }
 
-    public void addComponent(CustomForm.Builder builder, IMessageTranslator messageTranslator) {
-        addComponent(builder, messageTranslator, Optional.empty());
+    public void addComponent(CustomForm.Builder builder, TextTranslator textTranslator) {
+        addComponent(builder, textTranslator, Optional.empty());
     }
 
-    public abstract void addComponent(CustomForm.Builder builder, IMessageTranslator messageTranslator, Optional<T> restored);
+    public abstract void addComponent(CustomForm.Builder builder, TextTranslator textTranslator, Optional<T> restored);
 
     public abstract T read(CustomFormResponse response) throws DialogInputParseException;
 
@@ -60,8 +60,8 @@ public abstract class DialogInput<T> {
 
     public abstract T defaultValue();
 
-    protected String label(IMessageTranslator messageTranslator) {
-        return messageTranslator.convertMessage(label);
+    protected String label(TextTranslator textTranslator) {
+        return textTranslator.convertText(label);
     }
 
     public static DialogInput<?> read(NbtMap tag) {
