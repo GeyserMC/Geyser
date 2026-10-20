@@ -27,7 +27,6 @@ package org.geysermc.geyser.translator.level.block.entity;
 
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
-import org.cloudburstmc.nbt.NbtType;
 import org.geysermc.geyser.level.block.type.BlockState;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.text.ChatColor;
@@ -84,10 +83,7 @@ public class SignBlockEntityTranslator extends BlockEntityTranslator {
         NbtMapBuilder builder = NbtMap.builder();
 
         StringBuilder signText = new StringBuilder();
-        List<?> rawMessages = javaNbt.getList("messages", NbtType.COMPOUND);
-        if (rawMessages.isEmpty()) {
-            rawMessages = javaNbt.getList("messages", NbtType.STRING);
-        }
+        Object rawMessages = javaNbt.get("messages"); // Should always be a list of components
         List<String> messages = MessageTranslator.signTextFromNbtTag(session, rawMessages);
         if (!messages.isEmpty()) {
             var it = messages.iterator();
