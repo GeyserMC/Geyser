@@ -37,8 +37,12 @@ import org.spongepowered.configurate.yaml.YamlConfigurationLoader;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.StringReader;
+import java.net.URI;
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.attribute.PosixFilePermissions;
 import java.util.List;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -63,9 +67,14 @@ class ProviderConfigurationTest {
         return load(yaml, GeyserConfig.AdvancedNxsConfig.class);
     }
 
+    private static ProviderRuntimeConfiguration.Settings settings(GeyserConfig.SignalingConfig config,
+                                                                  GeyserConfig.AdvancedNxsConfig advanced) throws IOException {
+        return NetherNetServer.providerSettings(config, config.advertiseAddresses(), advanced);
+    }
+
     private static ProviderRuntimeConfiguration resolve(GeyserConfig.SignalingConfig config,
                                                         GeyserConfig.AdvancedNxsConfig advanced, Path dir) throws IOException {
-        return ProviderRuntimeConfiguration.resolve(NetherNetServer.providerSettings(config.nxs(), advanced), dir, "::", 20000, 40);
+        return ProviderRuntimeConfiguration.resolve(settings(config, advanced), dir, "::", 20000, 40);
     }
 
     private static ProviderRuntimeConfiguration resolve(GeyserConfig.SignalingConfig config, Path dir) throws IOException {
@@ -83,12 +92,12 @@ class ProviderConfigurationTest {
     @Test
     void bindsEveryConfiguredNxsSetting(@TempDir Path dir) throws Exception {
         var config = config("""
+            advertise-addresses: ['1.1.1.1:29133']
             nxs:
               endpoint: https://signal.example.net
               token: yaml-secret
-              advertise-addresses: ['1.1.1.1:29133']
             """);
-        var settings = NetherNetServer.providerSettings(config.nxs(), advanced("{}"));
+        var settings = settings(config, advanced("{}"));
         var result = resolve(config, dir);
 
         assertEquals("https://signal.example.net", result.origin().toString());
@@ -100,7 +109,7 @@ class ProviderConfigurationTest {
 
     @Test
     void defaultsCheckConnectivityWithoutAssistance(@TempDir Path dir) throws Exception {
-        var settings = NetherNetServer.providerSettings(config("{}").nxs(), advanced("{}"));
+        var settings = settings(config("{}"), advanced("{}"));
         var client = resolve(config("{}"), dir).clientConfiguration();
 
         assertEquals(ProviderClient.ControlTransport.HTTP, client.controlTransport());
@@ -120,18 +129,27 @@ class ProviderConfigurationTest {
     }
 
     @Test
-    void passesTheAdvancedOptOuts(@TempDir Path dir) throws Exception {
+    void passesTheOptOuts(@TempDir Path dir) throws Exception {
+        var config = config("stun-discovery: false\n");
         var advanced = advanced("""
             connection-checks: false
-            stun-discovery: false
             deregister-on-shutdown: true
             """);
-        var settings = NetherNetServer.providerSettings(config("{}").nxs(), advanced);
-        var client = resolve(config("{}"), advanced, dir).clientConfiguration();
+        var settings = settings(config, advanced);
+        var client = resolve(config, advanced, dir).clientConfiguration();
 
         assertFalse(client.diagnosticAdmission());
         assertFalse(settings.stunDiscovery());
         assertTrue(client.deregisterOnShutdown());
+    }
+
+    @Test
+    void takesTheStunDiscoveryOverride() throws Exception {
+        // As -DgeyserStunDiscovery sets it
+        var config = config("{}");
+        config.stunDiscovery(false);
+
+        assertFalse(settings(config, advanced("{}")).stunDiscovery());
     }
 
     @Test
@@ -150,13 +168,12 @@ class ProviderConfigurationTest {
 
     @Test
     void passesTheDeclaredHostLocation() throws Exception {
-        var settings = NetherNetServer.providerSettings(config("{}").nxs(),
-            advanced("location: {country: nl, city: Amsterdam, latitude: 52.37, longitude: 4.89}\n"));
+        var settings = settings(config("{}"), advanced("location: {country: nl, city: Amsterdam, latitude: 52.37, longitude: 4.89}\n"));
 
         assertEquals(new ProviderClient.Location("NL", "Amsterdam", 52.37, 4.89), settings.location());
         assertEquals(new ProviderClient.Location("GB", null, null, null),
-            NetherNetServer.providerSettings(config("{}").nxs(), advanced("location: {country: ' gb '}\n")).location());
-        assertNull(NetherNetServer.providerSettings(config("{}").nxs(), advanced("{}")).location(),
+            settings(config("{}"), advanced("location: {country: ' gb '}\n")).location());
+        assertNull(settings(config("{}"), advanced("{}")).location(),
             "Without a location the provider estimates it");
     }
 
@@ -165,8 +182,23 @@ class ProviderConfigurationTest {
         for (String location : List.of("{country: ZZZ}", "{country: T1}", "{city: London}", "{latitude: 0}", "{longitude: 0}",
             "{latitude: 91, longitude: 0}", "{latitude: 0, longitude: 181}", "{latitude: NaN, longitude: 0}",
             "{country: NL, extra: value}")) {
-            assertThrows(IOException.class, () -> NetherNetServer.providerSettings(config("{}").nxs(),
-                advanced("location: " + location + "\n")), location);
+            assertThrows(IOException.class, () -> settings(config("{}"), advanced("location: " + location + "\n")), location);
         }
+    }
+
+    @Test
+    void theOperatorLinkGoesToAFileOnlyThisUserReads(@TempDir Path dir) throws IOException {
+        Path file = dir.resolve("operator-link.txt");
+        var action = new ProviderClient.OperatorAction(URI.create("https://panel.example.net/claim/secret"), "Claim it.",
+            1_800_000_000_000L);
+        String message = NetherNetServer.storeOperatorAction(file, Optional.of(action));
+        assertEquals("Claim it. The link is in " + file + ".", message);
+        assertEquals("Claim it.\nhttps://panel.example.net/claim/secret\nExpires 2027-01-15T08:00:00Z\n", Files.readString(file));
+        if (file.getFileSystem().supportedFileAttributeViews().contains("posix")) {
+            assertEquals(PosixFilePermissions.fromString("rw-------"), Files.getPosixFilePermissions(file));
+        }
+        // Once the service offers none, as after a claim, the old link goes
+        assertNull(NetherNetServer.storeOperatorAction(file, Optional.empty()));
+        assertFalse(Files.exists(file));
     }
 }
