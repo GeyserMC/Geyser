@@ -30,7 +30,6 @@ import org.cloudburstmc.netty.util.nethernet.TrustedProxies;
 import org.cloudburstmc.netty.channel.nethernet.NetherNetChannelFactory;
 import org.cloudburstmc.netty.channel.nethernet.config.NetherChannelOption;
 import org.cloudburstmc.netty.channel.nethernet.signaling.NetherNetHTTPServerSignaling;
-import org.cloudburstmc.netty.channel.nethernet.signaling.NetherNetServerSignaling;
 import org.cloudburstmc.netty.util.nethernet.NetherNetLogging;
 import org.cloudburstmc.netty.util.nethernet.SecretValue;
 import org.cloudburstmc.netty.util.nethernet.OperatorIdentity;
@@ -130,9 +129,10 @@ public final class NetherNetServer implements EventRegistrar {
     private EventLoopGroup eventLoopGroup;
     private Channel netherNetChannel;
     private NetherNetChannelInitialiser providerInitialiser;
-    private NetherNetServerSignaling signaling;
+    private volatile NetherNetHTTPServerSignaling signaling;
+    private volatile boolean builtinStun;
     private EventLoopGroup inbuiltEventLoopGroup;
-    private Channel inbuiltChannel;
+    private volatile Channel inbuiltChannel;
     private NetherNetChannelInitialiser inbuiltInitialiser;
 
     public NetherNetServer(GeyserImpl geyser) {
@@ -227,6 +227,7 @@ public final class NetherNetServer implements EventRegistrar {
             } catch (IllegalArgumentException e) {
                 throw new IllegalArgumentException("Invalid entry in -DgeyserStunServers: " + e.getMessage(), e);
             }
+            builtinStun = !stunServers.isEmpty();
         } catch (IllegalArgumentException e) {
             logger().error("Built-in signaling will not start! " + e.getMessage());
             return;
@@ -516,6 +517,28 @@ public final class NetherNetServer implements EventRegistrar {
 
     public @Nullable ProviderClient providerClient() {
         return providerClient;
+    }
+
+    /**
+     * @return built-in signaling while it is running, else null
+     */
+    public @Nullable NetherNetHTTPServerSignaling builtinSignaling() {
+        Channel channel = inbuiltChannel;
+        return channel != null && channel.isActive() ? signaling : null;
+    }
+
+    /**
+     * @return the UDP port NetherNet connections use
+     */
+    public int webrtcPort() {
+        return webrtcPort;
+    }
+
+    /**
+     * @return whether built-in signaling asks STUN servers for this machine's public address
+     */
+    public boolean builtinStunDiscovery() {
+        return builtinStun;
     }
 
     private ProviderClient.Health health(int capacity) {

@@ -25,6 +25,8 @@
 
 package org.geysermc.geyser.command.defaults;
 
+import io.netty.util.NetUtil;
+import org.cloudburstmc.netty.channel.nethernet.signaling.NetherNetHTTPServerSignaling;
 import org.cloudburstmc.netty.signaling.admission.NativeAdmissionServerChannel;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.netty.signaling.ProviderClient;
@@ -33,14 +35,18 @@ import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.util.TriState;
 import org.geysermc.geyser.command.GeyserCommand;
 import org.geysermc.geyser.command.GeyserCommandSource;
+import org.geysermc.geyser.configuration.GeyserConfig;
 import org.geysermc.geyser.network.bedrock.nethernet.NetherNetServer;
 import org.incendo.cloud.CommandManager;
 import org.incendo.cloud.context.CommandContext;
 
 import java.io.IOException;
+import java.net.InetSocketAddress;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import static org.incendo.cloud.parser.standard.StringParser.greedyStringParser;
 
@@ -63,11 +69,12 @@ public class NetherNetCommand extends GeyserCommand {
             .handler(this::status));
         manager.command(baseBuilder(manager).literal("action").handler(this::action));
         manager.command(baseBuilder(manager).literal("diagnostics").handler(this::diagnostics));
+        manager.command(baseBuilder(manager).literal("advertised").handler(this::advertised));
     }
 
     @Override
     public void execute(CommandContext<GeyserCommandSource> context) {
-        context.sender().sendMessage("Usage: " + rootCommand() + " " + name() + " <status | action | diagnostics>");
+        context.sender().sendMessage("Usage: " + rootCommand() + " " + name() + " <status | action | diagnostics | advertised>");
     }
 
     /**
@@ -153,6 +160,67 @@ public class NetherNetCommand extends GeyserCommand {
         client.readiness().whenComplete((ready, failure) -> {
             source.sendMessage(failure == null ? ready.toString() : NetherNetServer.providerFailure(failure));
         });
+    }
+
+    /**
+     * Print the addresses each signaling mode sends to joining players
+     */
+    private void advertised(CommandContext<GeyserCommandSource> context) {
+        GeyserCommandSource source = context.sender();
+        NetherNetServer server = server(source);
+        if (server == null) {
+            return;
+        }
+
+        GeyserConfig.SignalingConfig.Mode mode = geyser.config().bedrock().signaling().mode();
+        NetherNetHTTPServerSignaling builtin = server.builtinSignaling();
+        if (builtin != null) {
+            source.sendMessage(builtinAdvertised(builtin.advertisedAddresses(), builtin.discoveredEndpoints(),
+                server.builtinStunDiscovery(), server.webrtcPort()));
+        } else if (mode.builtin()) {
+            source.sendMessage("Built-in signaling is not running.");
+        }
+
+        ProviderClient client = server.providerClient();
+        if (client != null) {
+            source.sendMessage(client.publishedEndpoints().map(NetherNetCommand::nxsPublished)
+                .orElse("External signaling has no addresses confirmed by the service right now."));
+        } else if (mode.nxs()) {
+            source.sendMessage("External signaling is not running.");
+        }
+    }
+
+    /**
+     * @param port the WebRTC port, which an entry without a port stands for with port 0
+     */
+    static String builtinAdvertised(List<InetSocketAddress> configured, List<InetSocketAddress> discovered, boolean stun, int port) {
+        if (!configured.isEmpty()) {
+            return "Built-in signaling advertises " + join(configured.stream()
+                .map(address -> address.getPort() == 0 ? new InetSocketAddress(address.getAddress(), port) : address)
+                .toList()) + ".";
+        }
+        String own = "Built-in signaling advertises this machine's own addresses";
+        if (!stun) {
+            return own + ". STUN discovery is off.";
+        }
+        return discovered.isEmpty()
+            ? own + ". STUN discovery has not found a public address yet."
+            : own + ", and " + join(discovered) + " found with STUN.";
+    }
+
+    static String nxsPublished(ProviderClient.PublishedEndpoints published) {
+        String message = published.endpoints().isEmpty()
+            ? "External signaling publishes no addresses."
+            : "External signaling publishes " + join(published.endpoints()) + ".";
+        if (published.assistedFamilies().isEmpty()) {
+            return message;
+        }
+        return message + " Assisted joins are offered over "
+            + published.assistedFamilies().stream().sorted().map(family -> "IPv" + family).collect(Collectors.joining(" and ")) + ".";
+    }
+
+    private static String join(List<InetSocketAddress> addresses) {
+        return addresses.stream().map(NetUtil::toSocketAddressString).collect(Collectors.joining(", "));
     }
 
     /**
