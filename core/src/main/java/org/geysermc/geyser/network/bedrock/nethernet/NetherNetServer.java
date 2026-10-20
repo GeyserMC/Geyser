@@ -439,7 +439,7 @@ public final class NetherNetServer implements EventRegistrar {
                 }
                 client.start().whenComplete((registration, failure) -> {
                     if (failure != null) {
-                        logger().error("Could not register with the external signaling service: " + providerFailure(failure));
+                        logProviderFailure("Could not register with the external signaling service", failure);
                         stopProvider();
                         return;
                     }
@@ -452,7 +452,12 @@ public final class NetherNetServer implements EventRegistrar {
             } catch (Throwable e) {
                 // Throwable: the WebRTC natives are not available on every platform
                 if (initializingTransport != null) initializingTransport.close();
-                logger().error("Could not start the external signaling service: " + (e instanceof IOException ? e.getMessage() : providerFailure(e)));
+                if (e instanceof IOException && e.getMessage() != null) {
+                    // Says what in the settings is wrong
+                    logger().error("Could not start the external signaling service: " + e.getMessage());
+                } else {
+                    logProviderFailure("Could not start the external signaling service", e);
+                }
                 closeNetworkResources();
             } finally {
                 if (store != null) try {
@@ -629,10 +634,36 @@ public final class NetherNetServer implements EventRegistrar {
         return gameOutcomes;
     }
 
+    /**
+     * @return why a request to the external signaling service failed: the service's own explanation when it gave one,
+     * else the exception's type and message
+     */
     public static String providerFailure(Throwable failure) {
+        failure = unwrapped(failure);
+        if (failure instanceof ProviderClient.ProviderException) {
+            return failure.getMessage();
+        }
+        String type = failure.getClass().getSimpleName();
+        return failure.getMessage() == null ? type : type + ": " + failure.getMessage();
+    }
+
+    /**
+     * Logs why the external signaling service failed: the service's own explanation when it gave one, else the
+     * exception, whose causes say what is in the way, such as a firewall or a proxy.
+     */
+    private void logProviderFailure(String what, Throwable failure) {
+        Throwable cause = unwrapped(failure);
+        if (cause instanceof ProviderClient.ProviderException) {
+            logger().error(what + ": " + cause.getMessage());
+        } else {
+            logger().error(what, cause);
+        }
+    }
+
+    private static Throwable unwrapped(Throwable failure) {
         while (failure.getCause() != null && (failure instanceof CompletionException || failure instanceof ExecutionException))
             failure = failure.getCause();
-        return failure instanceof ProviderClient.ProviderException ? failure.getMessage() : failure.getClass().getSimpleName();
+        return failure;
     }
 
     private void refreshProviderStatus() {
