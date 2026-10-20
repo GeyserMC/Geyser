@@ -26,6 +26,7 @@
 package org.geysermc.geyser.command.defaults;
 
 import org.cloudburstmc.netty.signaling.ProviderClient;
+import org.geysermc.geyser.network.bedrock.nethernet.NetherNetServer.Advertised.Builtin;
 import org.junit.jupiter.api.Test;
 
 import java.net.InetSocketAddress;
@@ -40,18 +41,18 @@ class NetherNetCommandTest {
 
     @Test
     void builtinListsTheConfiguredAddresses() {
-        assertEquals("Built-in signaling advertises 198.51.100.1:19132, [2001:db8::1]:19133, 198.51.100.2:19134.",
-            NetherNetCommand.builtinAdvertised(List.of(IPV4, IPV6, new InetSocketAddress("198.51.100.2", 0)), List.of(), false, 19134));
+        assertEquals("Built-in signaling advertises 198.51.100.1:19132, [2001:db8::1]:19133.",
+            NetherNetCommand.builtinAdvertised(new Builtin(List.of(IPV4, IPV6), false, List.of())));
     }
 
     @Test
     void builtinWithoutConfiguredAddressesSaysWhatStunFound() {
         assertEquals("Built-in signaling advertises this machine's own addresses, and 198.51.100.1:19132 found with STUN.",
-            NetherNetCommand.builtinAdvertised(List.of(), List.of(IPV4), true, 19134));
+            NetherNetCommand.builtinAdvertised(new Builtin(List.of(), true, List.of(IPV4))));
         assertEquals("Built-in signaling advertises this machine's own addresses. STUN discovery has not found a public address yet.",
-            NetherNetCommand.builtinAdvertised(List.of(), List.of(), true, 19134));
+            NetherNetCommand.builtinAdvertised(new Builtin(List.of(), true, List.of())));
         assertEquals("Built-in signaling advertises this machine's own addresses. STUN discovery is off.",
-            NetherNetCommand.builtinAdvertised(List.of(), List.of(), false, 19134));
+            NetherNetCommand.builtinAdvertised(new Builtin(List.of(), false, List.of())));
     }
 
     @Test
@@ -62,5 +63,7 @@ class NetherNetCommandTest {
             NetherNetCommand.nxsPublished(new ProviderClient.PublishedEndpoints(List.of(IPV4), Set.of())));
         assertEquals("External signaling publishes no addresses.",
             NetherNetCommand.nxsPublished(new ProviderClient.PublishedEndpoints(List.of(), Set.of())));
+        assertEquals("External signaling has no addresses confirmed by the service right now.",
+            NetherNetCommand.nxsPublished(null));
     }
 }

@@ -26,7 +26,6 @@
 package org.geysermc.geyser.command.defaults;
 
 import io.netty.util.NetUtil;
-import org.cloudburstmc.netty.channel.nethernet.signaling.NetherNetHTTPServerSignaling;
 import org.cloudburstmc.netty.signaling.admission.NativeAdmissionServerChannel;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.netty.signaling.ProviderClient;
@@ -173,42 +172,37 @@ public class NetherNetCommand extends GeyserCommand {
         }
 
         GeyserConfig.SignalingConfig.Mode mode = geyser.config().bedrock().signaling().mode();
-        NetherNetHTTPServerSignaling builtin = server.builtinSignaling();
-        if (builtin != null) {
-            source.sendMessage(builtinAdvertised(builtin.advertisedAddresses(), builtin.discoveredEndpoints(),
-                server.builtinStunDiscovery(), server.webrtcPort()));
+        NetherNetServer.Advertised advertised = server.advertised();
+        if (advertised.builtin() != null) {
+            source.sendMessage(builtinAdvertised(advertised.builtin()));
         } else if (mode.builtin()) {
             source.sendMessage("Built-in signaling is not running.");
         }
 
-        ProviderClient client = server.providerClient();
-        if (client != null) {
-            source.sendMessage(client.publishedEndpoints().map(NetherNetCommand::nxsPublished)
-                .orElse("External signaling has no addresses confirmed by the service right now."));
+        if (advertised.nxs() != null) {
+            source.sendMessage(nxsPublished(advertised.nxs().published()));
         } else if (mode.nxs()) {
             source.sendMessage("External signaling is not running.");
         }
     }
 
-    /**
-     * @param port the WebRTC port, which an entry without a port stands for with port 0
-     */
-    static String builtinAdvertised(List<InetSocketAddress> configured, List<InetSocketAddress> discovered, boolean stun, int port) {
-        if (!configured.isEmpty()) {
-            return "Built-in signaling advertises " + join(configured.stream()
-                .map(address -> address.getPort() == 0 ? new InetSocketAddress(address.getAddress(), port) : address)
-                .toList()) + ".";
+    static String builtinAdvertised(NetherNetServer.Advertised.Builtin builtin) {
+        if (!builtin.configured().isEmpty()) {
+            return "Built-in signaling advertises " + join(builtin.configured()) + ".";
         }
         String own = "Built-in signaling advertises this machine's own addresses";
-        if (!stun) {
+        if (!builtin.stun()) {
             return own + ". STUN discovery is off.";
         }
-        return discovered.isEmpty()
+        return builtin.discovered().isEmpty()
             ? own + ". STUN discovery has not found a public address yet."
-            : own + ", and " + join(discovered) + " found with STUN.";
+            : own + ", and " + join(builtin.discovered()) + " found with STUN.";
     }
 
-    static String nxsPublished(ProviderClient.PublishedEndpoints published) {
+    static String nxsPublished(ProviderClient.@Nullable PublishedEndpoints published) {
+        if (published == null) {
+            return "External signaling has no addresses confirmed by the service right now.";
+        }
         String message = published.endpoints().isEmpty()
             ? "External signaling publishes no addresses."
             : "External signaling publishes " + join(published.endpoints()) + ".";

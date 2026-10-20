@@ -520,25 +520,40 @@ public final class NetherNetServer implements EventRegistrar {
     }
 
     /**
-     * @return built-in signaling while it is running, else null
+     * @return what each running signaling mode currently sends to joining players
      */
-    public @Nullable NetherNetHTTPServerSignaling builtinSignaling() {
+    public Advertised advertised() {
         Channel channel = inbuiltChannel;
-        return channel != null && channel.isActive() ? signaling : null;
+        NetherNetHTTPServerSignaling builtin = channel != null && channel.isActive() ? signaling : null;
+        ProviderClient client = providerClient;
+        return new Advertised(
+            builtin == null ? null : new Advertised.Builtin(builtin.advertisedAddresses().stream()
+                // An entry without a port is on the WebRTC port
+                .map(address -> address.getPort() == 0 ? new InetSocketAddress(address.getAddress(), webrtcPort) : address)
+                .toList(), builtinStun, builtin.discoveredEndpoints()),
+            client == null ? null : new Advertised.Nxs(client.publishedEndpoints().orElse(null)));
     }
 
     /**
-     * @return the UDP port NetherNet connections use
+     * What each signaling mode sends to joining players.
+     *
+     * @param builtin null when built-in signaling is not running
+     * @param nxs null when the external signaling service is not running
      */
-    public int webrtcPort() {
-        return webrtcPort;
-    }
+    public record Advertised(@Nullable Builtin builtin, @Nullable Nxs nxs) {
+        /**
+         * @param configured the configured addresses. When empty, this machine's own addresses and {@code discovered}
+         * @param stun whether STUN discovery is on
+         * @param discovered the public addresses STUN discovery currently finds
+         */
+        public record Builtin(List<InetSocketAddress> configured, boolean stun, List<InetSocketAddress> discovered) {
+        }
 
-    /**
-     * @return whether built-in signaling asks STUN servers for this machine's public address
-     */
-    public boolean builtinStunDiscovery() {
-        return builtinStun;
+        /**
+         * @param published what the service last confirmed, or null while it has confirmed nothing
+         */
+        public record Nxs(ProviderClient.@Nullable PublishedEndpoints published) {
+        }
     }
 
     private ProviderClient.Health health(int capacity) {
