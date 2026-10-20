@@ -28,8 +28,6 @@ package org.geysermc.geyser.network.bedrock.nethernet;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.EventLoopGroup;
-import io.netty.channel.MultiThreadIoEventLoopGroup;
-import io.netty.channel.nio.NioIoHandler;
 import io.netty.util.NetUtil;
 import io.netty.util.concurrent.DefaultThreadFactory;
 import org.checkerframework.checker.nullness.qual.Nullable;
@@ -409,7 +407,8 @@ public final class NetherNetServer implements EventRegistrar {
                 if (stopping) return;
                 // Lock the durable instance before identity initialization or opening its endpoint.
                 store = new ProviderStateStore(statePath);
-                eventLoopGroup = new MultiThreadIoEventLoopGroup(NioIoHandler.newFactory());
+                eventLoopGroup = TransportHelper.TRANSPORT_TYPE.eventLoopGroupFactory()
+                    .apply(0, new DefaultThreadFactory("NetherNet Provider", true));
                 providerInitialiser = new NetherNetChannelInitialiser(geyser, gameOutcomes);
                 ServerBootstrap bootstrap = new ServerBootstrap().group(eventLoopGroup).childHandler(providerInitialiser);
                 NativeProviderHostFactory.Host host = NativeProviderHostFactory.open(bootstrap, runtime)
