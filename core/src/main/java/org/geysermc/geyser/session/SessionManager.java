@@ -73,9 +73,8 @@ public final class SessionManager {
         if (uuid == null || sessions.remove(uuid) == null) {
             // Connection was likely pending
             pendingSessions.remove(session);
-        } else {
-            SessionSharedCaches.releaseAll(uuid);
         }
+        SessionSharedCaches.releaseAll(session.sharedCacheUuid());
     }
 
     public boolean isXuidAlreadyPending(String xuid) {
