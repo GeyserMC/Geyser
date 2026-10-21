@@ -36,7 +36,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class WildernessBoundConverter extends ConversionHelper {
+public class WildernessBoundConverter extends ICanHasStates {
+    public static final WildernessBoundConverter INSTANCE = new WildernessBoundConverter();
+
     private static final Map<String, String> BLOCK_MAPPINGS = new HashMap<>();
     private static final List<String> CLEAR_BLOCK_STATES = new ArrayList<>();
     private static final Map<Item, Item> ITEM_MAPPINGS = new HashMap<>();
@@ -225,16 +227,16 @@ public class WildernessBoundConverter extends ConversionHelper {
         addItem(Items.BLACK_CUSHION, Items.BLACK_CARPET);
     }
 
-    public static NbtMap convertBlock(NbtMap tag) {
+    public NbtMap remapBlock(NbtMap tag) {
         String replacement = BLOCK_MAPPINGS.get(tag.getString("name"));
         if (replacement != null) {
             if (CLEAR_BLOCK_STATES.contains(tag.getString("name"))) {
-                tag = withoutStates(replacement);
+                tag = ConversionHelper.withoutStates(replacement);
             } else {
-                tag = withId(tag, replacement);
+                tag = ConversionHelper.withId(tag, replacement);
             }
         }
-        return ICanHasStates.convertBlock(tag);
+        return super.remapBlock(tag);
     }
 
     public static Map<Item, Item> itemMappings() {

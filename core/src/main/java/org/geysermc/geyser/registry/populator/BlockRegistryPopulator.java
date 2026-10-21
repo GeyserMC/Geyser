@@ -47,6 +47,7 @@ import org.cloudburstmc.nbt.NbtUtils;
 import org.cloudburstmc.protocol.bedrock.codec.v1001.Bedrock_v1001;
 import org.cloudburstmc.protocol.bedrock.codec.v2168.Bedrock_v2168;
 import org.cloudburstmc.protocol.bedrock.codec.v2193.Bedrock_v2193;
+import org.cloudburstmc.protocol.bedrock.codec.v2225.Bedrock_v2225;
 import org.cloudburstmc.protocol.bedrock.data.BlockPropertyData;
 import org.cloudburstmc.protocol.bedrock.data.definitions.BlockDefinition;
 import org.geysermc.geyser.GeyserImpl;
@@ -60,7 +61,8 @@ import org.geysermc.geyser.level.block.type.BlockState;
 import org.geysermc.geyser.level.block.type.FlowerPotBlock;
 import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.registry.java.BuiltInJavaRegistries;
-import org.geysermc.geyser.registry.populator.conversion.WildernessBoundConverter;
+import org.geysermc.geyser.registry.populator.conversion.BlockRemapper;
+import org.geysermc.geyser.registry.populator.conversion.ICanHasMoreStates;
 import org.geysermc.geyser.registry.type.BlockMappings;
 import org.geysermc.geyser.registry.type.GeyserBedrockBlock;
 import org.geysermc.geyser.util.JsonUtils;
@@ -72,6 +74,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.BitSet;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
@@ -95,12 +98,6 @@ public final class BlockRegistryPopulator {
         POST_INIT
     }
 
-    @FunctionalInterface
-    interface Remapper {
-
-        NbtMap remap(NbtMap tag);
-    }
-
     public static void populate(Stage stage) {
         switch (stage) {
             case PRE_INIT, POST_INIT -> nullifyBlocksNbt();
@@ -109,6 +106,9 @@ public final class BlockRegistryPopulator {
             default -> throw new IllegalArgumentException("Unknown stage: " + stage);
         }
     }
+
+    private static final boolean ALLOW_MALFORMED_PALETTES = Boolean.getBoolean("Geyser.Debug.AllowMalformedPalettes");
+    private static final Set<String> ERRORED_IDS = new HashSet<>();
 
     /**
      * Stores the raw blocks NBT until it is no longer needed.
@@ -122,10 +122,11 @@ public final class BlockRegistryPopulator {
     }
 
     private static void registerBedrockBlocks() {
-        var blockMappers = ImmutableMap.<ObjectIntPair<String>, Remapper>builder()
-                .put(ObjectIntPair.of("26_30", Bedrock_v1001.CODEC.getProtocolVersion()), WildernessBoundConverter::convertBlock)
-                .put(ObjectIntPair.of("26_40", Bedrock_v2168.CODEC.getProtocolVersion()), WildernessBoundConverter::convertBlock)
-                .put(ObjectIntPair.of("26_50", Bedrock_v2193.CODEC.getProtocolVersion()), tag -> tag)
+        ImmutableMap<ObjectIntPair<String>, BlockRemapper> blockMappers = ImmutableMap.<ObjectIntPair<String>, BlockRemapper>builder()
+                .put(ObjectIntPair.of("26_30", Bedrock_v1001.CODEC.getProtocolVersion()), ICanHasMoreStates.Old.INSTANCE)
+                .put(ObjectIntPair.of("26_40", Bedrock_v2168.CODEC.getProtocolVersion()), ICanHasMoreStates.Old.INSTANCE)
+                .put(ObjectIntPair.of("26_50", Bedrock_v2193.CODEC.getProtocolVersion()), ICanHasMoreStates.INSTANCE)
+                .put(ObjectIntPair.of("26_60", Bedrock_v2225.CODEC.getProtocolVersion()), tag -> tag)
             .build();
 
         // We can keep this strong as nothing should be garbage collected
@@ -232,7 +233,7 @@ public final class BlockRegistryPopulator {
             BlockDefinition movingBlockDefinition = null;
             Iterator<NbtMap> blocksIterator = BLOCKS_NBT.iterator();
 
-            Remapper stateMapper = blockMappers.get(palette);
+            BlockRemapper stateMapper = blockMappers.get(palette);
 
             GeyserBedrockBlock[] javaToBedrockBlocks = new GeyserBedrockBlock[JAVA_BLOCKS_SIZE];
             GeyserBedrockBlock[] javaToVanillaBedrockBlocks = new GeyserBedrockBlock[JAVA_BLOCKS_SIZE];
@@ -264,7 +265,7 @@ public final class BlockRegistryPopulator {
                 String javaId = blockState.toString();
 
                 NbtMap originalBedrockTag = buildBedrockState(blockState, entry);
-                NbtMap bedrockTag = stateMapper.remap(originalBedrockTag);
+                NbtMap bedrockTag = stateMapper.remapBlock(originalBedrockTag);
 
                 GeyserBedrockBlock vanillaBedrockDefinition = blockStateOrderedMap.get(bedrockTag);
 
@@ -273,11 +274,26 @@ public final class BlockRegistryPopulator {
                 if (blockStateOverride == null) {
                     bedrockDefinition = vanillaBedrockDefinition;
                     if (bedrockDefinition == null) {
-                        throw new RuntimeException("""
-                            Unable to find %s Bedrock runtime ID for %s! Original block tag:
-                            %s
-                            Updated block tag:
-                            %s""".formatted(javaId, palette.key(), originalBedrockTag, bedrockTag));
+                        if (ALLOW_MALFORMED_PALETTES) {
+                            String javaIdReplacement = javaId.substring(0, javaId.indexOf('['));
+                            if (!ERRORED_IDS.contains(javaIdReplacement)) {
+                                GeyserImpl.getInstance().getLogger().error("""
+                                    Unable to find %s Bedrock runtime ID for %s! This will be replaced with an update block. Original block tag:
+                                    %s
+                                    Updated block tag:
+                                    %s""".formatted(javaId, palette.key(), originalBedrockTag, bedrockTag));
+                                ERRORED_IDS.add(javaIdReplacement);
+                            }
+                            bedrockDefinition = new GeyserBedrockBlock(-1, NbtMap.fromMap(Map.of(
+                                "name", javaIdReplacement
+                            )));
+                        } else {
+                            throw new RuntimeException("""
+                                Unable to find %s Bedrock runtime ID for %s! Original block tag:
+                                %s
+                                Updated block tag:
+                                %s""".formatted(javaId, palette.key(), originalBedrockTag, bedrockTag));
+                        }
                     }
                 } else {
                     bedrockDefinition = customBlockStateDefinitions.get(blockStateOverride);

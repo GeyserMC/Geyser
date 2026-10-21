@@ -57,6 +57,7 @@ import org.cloudburstmc.protocol.bedrock.packet.ClientCacheBlobStatusPacket;
 import org.cloudburstmc.protocol.bedrock.packet.ClientCacheStatusPacket;
 import org.cloudburstmc.protocol.bedrock.packet.ClientCheatAbilityPacket;
 import org.cloudburstmc.protocol.bedrock.packet.ClientToServerHandshakePacket;
+import org.cloudburstmc.protocol.bedrock.packet.ClientboundMatchmakingStatePacket;
 import org.cloudburstmc.protocol.bedrock.packet.CodeBuilderSourcePacket;
 import org.cloudburstmc.protocol.bedrock.packet.CraftingEventPacket;
 import org.cloudburstmc.protocol.bedrock.packet.CreatePhotoPacket;
@@ -84,6 +85,7 @@ import org.cloudburstmc.protocol.bedrock.packet.PlayerSkinPacket;
 import org.cloudburstmc.protocol.bedrock.packet.PurchaseReceiptPacket;
 import org.cloudburstmc.protocol.bedrock.packet.RefreshEntitlementsPacket;
 import org.cloudburstmc.protocol.bedrock.packet.ScriptMessagePacket;
+import org.cloudburstmc.protocol.bedrock.packet.ServerboundMatchmakingCancelPacket;
 import org.cloudburstmc.protocol.bedrock.packet.SetEntityDataPacket;
 import org.cloudburstmc.protocol.bedrock.packet.SetEntityLinkPacket;
 import org.cloudburstmc.protocol.bedrock.packet.SetEntityMotionPacket;
@@ -92,6 +94,7 @@ import org.cloudburstmc.protocol.bedrock.packet.SimpleEventPacket;
 import org.cloudburstmc.protocol.bedrock.packet.SubChunkRequestPacket;
 import org.cloudburstmc.protocol.bedrock.packet.SubClientLoginPacket;
 import org.cloudburstmc.protocol.common.util.VarInts;
+import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.session.UpstreamSession;
 
 /**
@@ -347,12 +350,23 @@ public class CodecProcessor {
             .updateSerializer(SetEntityMotionPacket.class, SET_ENTITY_MOTION_SERIALIZER)
             .updateSerializer(SetEntityLinkPacket.class, SET_ENTITY_LINK_SERIALIZER);
 
-        if (!Boolean.getBoolean("Geyser.ReceiptPackets")) {
+        boolean legacyReceiptPackets = Boolean.getBoolean("Geyser.ReceiptPackets");
+        if (legacyReceiptPackets) {
+            GeyserImpl.getInstance().getLogger().warning("You're using `-DGeyser.ReceiptPackets=true`," +
+                " this is now deprecated. Please switch to using `-DGeyser.PartneredServerPackets=true`.");
+        }
+
+        if (!legacyReceiptPackets && !Boolean.getBoolean("Geyser.PartneredServerPackets")) {
             codecBuilder.updateSerializer(RefreshEntitlementsPacket.class, IGNORED_SERIALIZER);
             codecBuilder.updateSerializer(PurchaseReceiptPacket.class, IGNORED_SERIALIZER);
-            // Added in 26.10, doesn't exist on 26.0
-            if (codec.getProtocolVersion() >= 944) {
-                codecBuilder.updateSerializer(PartyChangedPacket.class, IGNORED_SERIALIZER);
+
+            // Added in 26.10
+            codecBuilder.updateSerializer(PartyChangedPacket.class, IGNORED_SERIALIZER);
+
+            // Added in 26.60
+            if (codec.getProtocolVersion() >= 2225) {
+                codecBuilder.updateSerializer(ClientboundMatchmakingStatePacket.class, IGNORED_SERIALIZER);
+                codecBuilder.updateSerializer(ServerboundMatchmakingCancelPacket.class, IGNORED_SERIALIZER);
             }
         }
 
