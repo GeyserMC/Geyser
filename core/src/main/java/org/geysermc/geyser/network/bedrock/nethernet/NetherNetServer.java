@@ -79,8 +79,10 @@ import java.util.Optional;
 import java.util.Random;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
+import java.util.concurrent.CompletionStage;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
@@ -101,6 +103,10 @@ public final class NetherNetServer implements EventRegistrar {
      * Holds the provider's link for the operator, in the data folder.
      */
     private static final String OPERATOR_LINK_FILE = "operator-link.txt";
+    /**
+     * How long {@link #awaitShutdown()} waits, the window ProviderShutdown keeps the JVM alive for the same stop.
+     */
+    private static final long SHUTDOWN_WAIT_SECONDS = 20;
     /**
      * Whether "nethernet-debug" raised NetherNet's own logs, so a reload with it off lowers them again.
      */
@@ -123,6 +129,14 @@ public final class NetherNetServer implements EventRegistrar {
     private volatile boolean stopping;
     private volatile ProviderClient providerClient;
     private volatile ProviderShutdown providerShutdown;
+    /**
+     * The provider's start, which stops what it opened itself if shut down midway.
+     */
+    private volatile CompletableFuture<Void> providerStart = CompletableFuture.completedFuture(null);
+    /**
+     * The last provider stop, done once its state directory and UDP port are free.
+     */
+    private volatile CompletionStage<Void> providerStopped = CompletableFuture.completedFuture(null);
     private final GameOutcomeReporter gameOutcomes = new GameOutcomeReporter(this::reportGameOutcome);
     private volatile Supplier<ServerStatus> providerStatusSupplier = this::collectServerStatus;
 
@@ -394,7 +408,7 @@ public final class NetherNetServer implements EventRegistrar {
     }
 
     private void startProvider(List<String> advertised) {
-        CompletableFuture.runAsync(() -> {
+        providerStart = CompletableFuture.runAsync(() -> {
             ProviderStateStore store = null;
             ProviderTransport initializingTransport = null;
             try {
@@ -417,7 +431,7 @@ public final class NetherNetServer implements EventRegistrar {
                 transport = host.transport();
                 host.warnings().forEach(message -> logger().warning(message));
                 if (stopping) {
-                    transport.close();
+                    providerStopped = transport.close();
                     closeNetworkResources();
                     return;
                 }
@@ -428,7 +442,7 @@ public final class NetherNetServer implements EventRegistrar {
                 initializingTransport = null;
                 synchronized (providerLifecycle) {
                     if (stopping) {
-                        client.close();
+                        providerStopped = client.stop();
                         return;
                     }
                     try {
@@ -453,7 +467,7 @@ public final class NetherNetServer implements EventRegistrar {
                 });
             } catch (Throwable e) {
                 // Throwable: the WebRTC natives are not available on every platform
-                if (initializingTransport != null) initializingTransport.close();
+                if (initializingTransport != null) providerStopped = initializingTransport.close();
                 if (e instanceof IOException && e.getMessage() != null) {
                     // Says what in the settings is wrong
                     logger().error("Could not start the external signaling service: " + e.getMessage());
@@ -691,11 +705,30 @@ public final class NetherNetServer implements EventRegistrar {
         }
     }
 
+    /**
+     * Waits for {@link #shutdown()} to stop the provider, which holds its state directory and UDP port until then.
+     * Another instance cannot start the provider while they are held.
+     */
+    public void awaitShutdown() {
+        try {
+            providerStart.thenCompose(ignored -> providerStopped).get(SHUTDOWN_WAIT_SECONDS, TimeUnit.SECONDS);
+        } catch (TimeoutException e) {
+            logger().warning("The external signaling service has not stopped after " + SHUTDOWN_WAIT_SECONDS
+                + " seconds, so it may not start again.");
+        } catch (ExecutionException ignored) {
+            // A close that failed is still over
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
+    }
+
     private void stopProvider() {
         synchronized (providerLifecycle) {
             if (providerShutdown != null) {
                 providerShutdown.close();
                 providerShutdown = null;
+                // The same stop close() began
+                providerStopped = providerClient.stop();
             } else closeNetworkResources();
             providerClient = null;
         }
