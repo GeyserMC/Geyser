@@ -28,6 +28,7 @@ package org.geysermc.geyser.session.shared;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.function.Supplier;
@@ -40,7 +41,7 @@ public abstract class SessionSharedCache<K, V> {
 
     SessionSharedCache() {}
 
-    public V getOrCompute(UUID session, K key, Supplier<V> computer) {
+    protected V getOrCompute(UUID session, K key, Supplier<V> computer) {
         Value<V> value = values.get(key);
         if (value != null) {
             trackKey(session, key);
@@ -54,7 +55,15 @@ public abstract class SessionSharedCache<K, V> {
         return value.value;
     }
 
-    public void release(UUID session, K key) {
+    protected Map<K, V> getForSession(UUID session, Map<K, V> base) {
+        Set<K> keys = sessionHolders.get(session);
+        if (keys != null) {
+            keys.forEach(key -> base.put(key, values.get(key).value));
+        }
+        return base;
+    }
+
+    protected void release(UUID session, K key) {
         Value<V> value = values.get(key);
         // if release returns true, we can remove this value and let it collected by GC
         if (value != null && value.release(session)) {
