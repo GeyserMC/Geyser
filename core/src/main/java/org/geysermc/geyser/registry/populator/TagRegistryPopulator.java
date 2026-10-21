@@ -36,6 +36,7 @@ import it.unimi.dsi.fastutil.objects.ObjectIntPair;
 import org.cloudburstmc.protocol.bedrock.codec.v1001.Bedrock_v1001;
 import org.cloudburstmc.protocol.bedrock.codec.v2168.Bedrock_v2168;
 import org.cloudburstmc.protocol.bedrock.codec.v2193.Bedrock_v2193;
+import org.cloudburstmc.protocol.bedrock.codec.v2225.Bedrock_v2225;
 import org.geysermc.geyser.GeyserBootstrap;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.item.type.Item;
@@ -73,7 +74,8 @@ public final class TagRegistryPopulator {
         List<ObjectIntPair<String>> paletteVersions = List.of(
             ObjectIntPair.of("26_30", Bedrock_v1001.CODEC.getProtocolVersion()),
             ObjectIntPair.of("26_30", Bedrock_v2168.CODEC.getProtocolVersion()),
-            ObjectIntPair.of("26_30", Bedrock_v2193.CODEC.getProtocolVersion())
+            ObjectIntPair.of("26_30", Bedrock_v2193.CODEC.getProtocolVersion()),
+            ObjectIntPair.of("26_30", Bedrock_v2225.CODEC.getProtocolVersion())
         );
         Type type = new TypeToken<Map<String, List<String>>>() {}.getType();
 
