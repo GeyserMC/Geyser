@@ -2,6 +2,7 @@ import org.eclipse.jgit.api.Git
 import org.eclipse.jgit.revwalk.RevWalk
 import net.kyori.indra.git.RepositoryValueSource
 
+import java.net.URI
 import java.util.Properties
 
 plugins {
@@ -194,7 +195,29 @@ val generateGitProperties = tasks.register("generateGitProperties") {
     }
 }
 
+val downloadIntegratedPack = tasks.register("downloadIntegratedPack") {
+    val packFile = file("src/main/resources/GeyserIntegratedPack.mcpack")
+    val source = "https://github.com/hasankayra04/GeyserIntegratedPack/releases/latest/download/GeyserIntegratedPack.mcpack"
+    onlyIf { !packFile.exists() }
+    doLast {
+        println("cannot find core/src/main/resources/GeyserIntegratedPack.mcpack, trying to download from $source, and writing it to core/src/main/resources/GeyserIntegratedPack.mcpack")
+        packFile.parentFile.mkdirs()
+        val tmp = File(packFile.parentFile, packFile.name + ".tmp")
+        try {
+            URI(source).toURL().openStream().use { input ->
+                tmp.outputStream().use { input.copyTo(it) }
+            }
+            if (!tmp.renameTo(packFile)) {
+                throw GradleException("Failed to install downloaded integrated pack at $packFile")
+            }
+        } finally {
+            tmp.delete()
+        }
+    }
+}
+
 tasks.processResources {
+    dependsOn(downloadIntegratedPack)
     from(generateGitProperties) {
         into(".")
     }
