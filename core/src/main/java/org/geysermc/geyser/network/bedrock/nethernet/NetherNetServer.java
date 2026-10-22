@@ -57,6 +57,7 @@ import org.geysermc.geyser.api.network.BedrockListener;
 import org.geysermc.geyser.configuration.GeyserConfig;
 import org.geysermc.geyser.event.type.SessionDisconnectEventImpl;
 import org.geysermc.geyser.network.BedrockPingHandler;
+import org.geysermc.geyser.network.bedrock.GameProtocol;
 import org.geysermc.geyser.network.bedrock.nethernet.signaling.provider.GameOutcomeReporter;
 import org.geysermc.geyser.network.bedrock.nethernet.signaling.provider.GeyserStatusCollector;
 import org.geysermc.geyser.session.GeyserSession;
@@ -505,8 +506,17 @@ public final class NetherNetServer implements EventRegistrar {
             .stunDiscovery(signaling.stunDiscovery())
             .deregisterOnShutdown(advanced.deregisterOnShutdown())
             .location(location)
+            .bedrockProtocols(bedrockProtocols())
             .gameOutcomes(true)
             .build();
+    }
+
+    /**
+     * Every protocol a login is accepted with, one per supported codec.
+     */
+    static ProviderClient.BedrockProtocols bedrockProtocols() {
+        List<Integer> accepted = GameProtocol.SUPPORTED_BEDROCK_PROTOCOLS.intStream().distinct().sorted().boxed().toList();
+        return new ProviderClient.BedrockProtocols(accepted, GameProtocol.DEFAULT_BEDROCK_VERSION);
     }
 
     private ServerStatus collectServerStatus() {
