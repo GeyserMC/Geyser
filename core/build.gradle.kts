@@ -197,7 +197,7 @@ val generateGitProperties = tasks.register("generateGitProperties") {
 
 val downloadIntegratedPack = tasks.register("downloadIntegratedPack") {
     val packFile = file("src/main/resources/GeyserIntegratedPack.mcpack")
-    val source = "https://github.com/GeyserMC/GeyserIntegratedPack/releases/latest/download/GeyserIntegratedPack.mcpack"
+    val source = "https://download.geysermc.org/v2/projects/geyserintegratedpack/versions/latest/builds/latest/downloads/geyserintegratedpack"
     onlyIf { !packFile.exists() }
     doLast {
         println("cannot find core/src/main/resources/GeyserIntegratedPack.mcpack, trying to download from $source, and writing it to core/src/main/resources/GeyserIntegratedPack.mcpack")
