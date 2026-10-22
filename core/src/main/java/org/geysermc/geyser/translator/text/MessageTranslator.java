@@ -41,6 +41,7 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.nbt.NbtList;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.protocol.bedrock.packet.TextPacket;
+import org.geysermc.adventure.text.serializer.nbt.HeterogeneousNbtList;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.registry.java.JavaRegistries;
 import org.geysermc.geyser.session.GeyserSession;
@@ -468,25 +469,29 @@ public class MessageTranslator {
 
     /* ===== Java (NBT) component deserialisation ===== */
 
-    public static Component componentFromNbtTag(Object nbtTag) {
+    public static Component componentFromNbtTag(@Nullable Object nbtTag) {
+        if (nbtTag == null) {
+            return Component.empty();
+        }
         return DefaultComponentSerializer.nbt().deserialize(nbtTag);
     }
 
-    public static List<String> signTextFromNbtTag(GeyserSession session, List<?> nbtTag) {
+    public static List<String> signTextFromNbtTag(GeyserSession session, Object nbtTag) {
         // Try to parse the entire list as a component, which should work because the serializer allows deserializing a list of components,
         // then convert each child component separately
-        // We have to convert signt text this way because the list can be a combination of e.g. compound tags and string tags wrapped in a compound (a heterogeneous NBT list)
+        // We have to convert sign text this way because the list can be a combination of e.g. compound tags and string tags wrapped in a compound (a heterogeneous NBT list)
+
+        if (!(nbtTag instanceof NbtList<?> list)) {
+            GeyserImpl.getInstance().getLogger().debug("Failed to translate sign text from NBT tag: " + nbtTag + " (was not a list of components)");
+            return List.of(ERROR_MESSAGE);
+        }
+
+        List<Object> components = HeterogeneousNbtList.tryUnwrap(list);
 
         try {
-            Component fullText = componentFromNbtTag(nbtTag);
-            if (fullText.children().isEmpty()) {
-                return List.of(convertMessageRaw(fullText, session.locale()));
-            }
-
-            List<String> messages = new ArrayList<>(fullText.children().size() + 1);
-            messages.add(convertMessageRaw(fullText.children(List.of()), session.locale()));
-            for (Component child : fullText.children()) {
-                messages.add(convertMessageRaw(child, session.locale()));
+            List<String> messages = new ArrayList<>(components.size());
+            for (Object component : components) {
+                messages.add(convertMessageRaw(componentFromNbtTag(component), session.locale()));
             }
             return Collections.unmodifiableList(messages);
         } catch (RuntimeException exception) {

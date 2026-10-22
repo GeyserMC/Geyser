@@ -30,6 +30,7 @@ import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.geysermc.cumulus.form.CustomForm;
 import org.geysermc.cumulus.response.CustomFormResponse;
+import org.geysermc.geyser.translator.text.TextTranslator;
 import org.geysermc.geyser.util.MinecraftKey;
 
 import java.util.Optional;
@@ -43,8 +44,8 @@ public class NumberRangeInput extends DialogInput<Float> {
     private final float initial;
     private final float step;
 
-    public NumberRangeInput(String locale, NbtMap map) {
-        super(locale, map);
+    public NumberRangeInput(NbtMap map) {
+        super(map);
         start = map.getFloat("start");
         end = map.getFloat("end");
         initial = map.getFloat("initial", start + (end - start) / 2.0F);
@@ -52,9 +53,9 @@ public class NumberRangeInput extends DialogInput<Float> {
     }
 
     @Override
-    public void addComponent(CustomForm.Builder builder, Optional<Float> restored) {
+    public void addComponent(CustomForm.Builder builder, TextTranslator textTranslator, Optional<Float> restored) {
         // Note: Java uses live labels which change as you change the slider, showing the value. This is what the "label_format" key is for. This is not supported on bedrock.
-        builder.slider(label, start, end, step, restored.orElse(initial));
+        builder.slider(label(textTranslator), start, end, step, restored.orElse(initial));
     }
 
     @Override

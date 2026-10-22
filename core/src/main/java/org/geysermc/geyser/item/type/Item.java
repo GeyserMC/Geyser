@@ -50,7 +50,6 @@ import org.geysermc.geyser.registry.type.ItemMappings;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.registry.java.JavaRegistries;
 import org.geysermc.geyser.session.cache.tags.Tag;
-import org.geysermc.geyser.text.ChatColor;
 import org.geysermc.geyser.text.MinecraftLocale;
 import org.geysermc.geyser.translator.item.BedrockItemBuilder;
 import org.geysermc.geyser.translator.text.MessageTranslator;
@@ -321,7 +320,7 @@ public class Item {
 
         BedrockEnchantment bedrockEnchantment = enchantment.get().bedrockEnchantment();
         if (bedrockEnchantment == null) {
-            String enchantmentTranslation = MinecraftLocale.getLocaleString(enchantment.get().description(), session.locale());
+            String enchantmentTranslation = MessageTranslator.convertMessageForTooltip(enchantment.get().description(), session.locale());
             addJavaOnlyEnchantment(session, builder, enchantmentTranslation, level);
             builder.addEnchantmentGlint();
             return null;
@@ -336,7 +335,7 @@ public class Item {
     private void addJavaOnlyEnchantment(GeyserSession session, BedrockItemBuilder builder, String enchantmentName, int level) {
         String lvlTranslation = MinecraftLocale.getLocaleString("enchantment.level." + level, session.locale());
 
-        builder.getOrCreateLore().addFirst(ChatColor.RESET + ChatColor.GRAY + enchantmentName + " " + lvlTranslation);
+        builder.getOrCreateLore().addFirst(enchantmentName + " " + lvlTranslation);
     }
 
     protected final void translateDyedColor(DataComponents components, BedrockItemBuilder builder) {

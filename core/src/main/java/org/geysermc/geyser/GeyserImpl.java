@@ -444,6 +444,17 @@ public class GeyserImpl implements GeyserApi, EventRegistrar {
             }
         }
 
+        String stunDiscoveryProperty = System.getProperty("geyserStunDiscovery", "");
+        if (!stunDiscoveryProperty.isEmpty()) {
+            if (stunDiscoveryProperty.equalsIgnoreCase("true") || stunDiscoveryProperty.equalsIgnoreCase("false")) {
+                boolean stunDiscovery = Boolean.parseBoolean(stunDiscoveryProperty);
+                config.bedrock().signaling().stunDiscovery(stunDiscovery);
+                logger.info("STUN discovery set from system property: " + stunDiscovery);
+            } else {
+                logger.error("Invalid STUN discovery from system property: " + stunDiscoveryProperty + "! Use \"true\" or \"false\". Defaulting to configured STUN discovery.");
+            }
+        }
+
         // The explicit WebRTC port property always wins. Without it, and with only NetherNet, WebRTC is the only
         // UDP service, so it follows the UDP port property; with "both", RakNet keeps that port.
         int webrtcPort = portProperty("geyserWebrtcPort", "NetherNet (WebRTC)", logger);

@@ -253,30 +253,13 @@ public final class GeyserHolderSet<T> {
      * Reads a HolderSet from a NBT object. When the HolderSet contains inline elements, and a suitable reader exists in {@link JavaRegistryReaders},
      * that reader will be used to parse the inline element.
      *
-     * @param session the {@link GeyserSession}
-     * @param registry the registry the HolderSet contains elements from
-     * @param holderSet the HolderSet as an NBT object
-     * @param <T> the type of the registry/HolderSet
-     */
-    public static <T> GeyserHolderSet<T> readHolderSet(GeyserSession session, JavaRegistryKey<T> registry, @Nullable Object holderSet) {
-        return readHolderSet(session.javaRegistries(), registry, session.locale(), holderSet);
-    }
-
-    /**
-     * Reads a HolderSet from a NBT object. When the HolderSet contains inline elements, and a suitable reader exists in {@link JavaRegistryReaders},
-     * that reader will be used to parse the inline element.
-     *
-     * <p>This method should generally only be used in a {@link JavaRegistryReader}, where {@link GeyserSession}s may not always be present. Outside of registry readers,
-     * you should generally use {@link GeyserHolderSet#readHolderSet(GeyserSession, JavaRegistryKey, Object)}.</p>
-     *
      * @param registries the {@link JavaRegistryProvider}
      * @param registry the registry the HolderSet contains elements from
-     * @param locale the locale to use when translating messages
      * @param holderSet the HolderSet as an NBT object
      * @param <T> the type of the registry/HolderSet
      */
     public static <T> GeyserHolderSet<T> readHolderSet(JavaRegistryProvider registries, JavaRegistryKey<T> registry,
-                                                       String locale, @Nullable Object holderSet) {
+                                                       @Nullable Object holderSet) {
         Optional<JavaRegistryReader<T>> reader = JavaRegistryReaders.getInlineSuitableReader(registry);
         boolean canReadInline = reader.isPresent();
 
@@ -311,7 +294,7 @@ public final class GeyserHolderSet<T> {
                         }
                         // Try to read the inline tag, if we fail just return an empty set
                         if (canReadInline) {
-                            holders.add(Holder.ofCustom(reader.get().read(JavaRegistryReader.createContext(registries, locale, tag))));
+                            holders.add(Holder.ofCustom(reader.get().read(JavaRegistryReader.createContext(registries, tag))));
                         } else {
                             GeyserImpl.getInstance().getLogger().warning("Failed parsing HolderSet for registry " + registry + ", don't know how to parse inline element!");
                             yield GeyserHolderSet.empty(registry);
@@ -323,7 +306,7 @@ public final class GeyserHolderSet<T> {
             }
             case Object singleInlineElement -> {
                 if (canReadInline) {
-                    yield GeyserHolderSet.of(registry, reader.get().read(JavaRegistryReader.createContext(registries, locale, singleInlineElement)));
+                    yield GeyserHolderSet.of(registry, reader.get().read(JavaRegistryReader.createContext(registries, singleInlineElement)));
                 } else {
                     GeyserImpl.getInstance().getLogger().warning("Failed parsing HolderSet for registry " + registry + ", don't know how to parse inline element!");
                     yield GeyserHolderSet.empty(registry);

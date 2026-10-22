@@ -47,7 +47,6 @@ import org.geysermc.geyser.registry.java.JavaRegistryKey;
 import org.geysermc.geyser.registry.java.JavaRegistryProvider;
 import org.geysermc.geyser.session.cache.tags.GeyserHolderSet;
 import org.geysermc.geyser.session.cache.tags.Tag;
-import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.mcprotocollib.protocol.data.game.Holder;
 
 import java.util.List;
@@ -78,7 +77,7 @@ public class GeyserHolderSetTestInstance extends GeyserTestInstance {
         DynamicOps<Object> ops = mojangRegistries.createSerializationContext(CloudburstNbtOps.INSTANCE);
 
         JavaRegistryKey<?> geyserRegistry = GeyserGameTestsUtil.mojangKeyToGeyserKey(set.registry);
-        GeyserHolderSet<?> geyserSet = GeyserHolderSet.readHolderSet(geyserRegistries, geyserRegistry, GeyserLocale.getDefaultLocale(), set.encode(ops).getOrThrow());
+        GeyserHolderSet<?> geyserSet = GeyserHolderSet.readHolderSet(geyserRegistries, geyserRegistry, set.encode(ops).getOrThrow());
 
         // First, verify Geyser correctly identified tag holder sets
         // Named sets are tags

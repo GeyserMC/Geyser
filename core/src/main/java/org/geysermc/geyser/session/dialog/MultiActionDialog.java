@@ -28,12 +28,10 @@ package org.geysermc.geyser.session.dialog;
 import net.kyori.adventure.key.Key;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtType;
-import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.registry.java.JavaRegistryProvider;
 import org.geysermc.geyser.util.MinecraftKey;
 
 import java.util.List;
-import java.util.Optional;
 
 public class MultiActionDialog extends DialogWithButtons {
 
@@ -41,9 +39,9 @@ public class MultiActionDialog extends DialogWithButtons {
 
     private final List<DialogButton> buttons;
 
-    protected MultiActionDialog(JavaRegistryProvider registries, String locale, NbtMap map) {
-        super(locale, map, readDefaultExitAction(registries, locale, map));
-        buttons = DialogButton.readList(registries, locale, map.getList("actions", NbtType.COMPOUND));
+    protected MultiActionDialog(JavaRegistryProvider registries, NbtMap map) {
+        super(map, readDefaultExitAction(registries, map));
+        buttons = DialogButton.readList(registries, map.getList("actions", NbtType.COMPOUND));
     }
 
     @Override

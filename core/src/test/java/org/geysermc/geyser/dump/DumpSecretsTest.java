@@ -1,6 +1,9 @@
 package org.geysermc.geyser.dump;
 
+import com.google.gson.Gson;
+import org.cloudburstmc.netty.signaling.ProviderClient;
 import org.geysermc.geyser.configuration.GeyserConfig;
+import org.geysermc.geyser.network.bedrock.nethernet.NetherNetServer.Advertised;
 import org.geysermc.geyser.text.AsteriskSerializer;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
@@ -10,7 +13,9 @@ import org.spongepowered.configurate.yaml.YamlConfigurationLoader;
 
 import java.io.BufferedReader;
 import java.io.StringReader;
+import java.net.InetSocketAddress;
 import java.util.List;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -22,11 +27,10 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 class DumpSecretsTest {
     private static final String CONFIG = """
         mode: nxs
+        advertise-addresses: ["198.51.100.1", "192.168.1.5", "::", "198.51.100.2:19133", "test.geysermc.org"]
         nxs:
           token: yaml-secret
-          advertise-addresses: ["198.51.100.2:19133"]
         builtin:
-          advertise-addresses: ["198.51.100.1", "192.168.1.5", "::"]
           https:
             certificate: cert.pem
             private-key: key.pem
@@ -86,8 +90,7 @@ class DumpSecretsTest {
         CommentedConfigurationNode node = dumped();
 
         // Local and wildcard entries stay readable, as with the bind address
-        assertEquals(List.of("***", "192.168.1.5", "::"), node.node("builtin", "advertise-addresses").getList(String.class));
-        assertEquals(List.of("***"), node.node("nxs", "advertise-addresses").getList(String.class));
+        assertEquals(List.of("***", "192.168.1.5", "::", "***", "***"), node.node("advertise-addresses").getList(String.class));
     }
 
     @Test
@@ -95,7 +98,37 @@ class DumpSecretsTest {
         AsteriskSerializer.showSensitive = true;
         CommentedConfigurationNode node = dumped();
 
-        assertEquals(List.of("198.51.100.1", "192.168.1.5", "::"), node.node("builtin", "advertise-addresses").getList(String.class));
-        assertEquals(List.of("198.51.100.2:19133"), node.node("nxs", "advertise-addresses").getList(String.class));
+        assertEquals(List.of("198.51.100.1", "192.168.1.5", "::", "198.51.100.2:19133", "test.geysermc.org"),
+            node.node("advertise-addresses").getList(String.class));
+    }
+
+    /** A public address found with STUN, and NXS confirming a public IPv4, a public IPv6 and a LAN address. */
+    private static final Advertised ADVERTISED = new Advertised(
+        new Advertised.Builtin(List.of(), true, List.of(new InetSocketAddress("198.51.100.1", 40404))),
+        new Advertised.Nxs(new ProviderClient.PublishedEndpoints(List.of(new InetSocketAddress("198.51.100.1", 19132),
+            new InetSocketAddress("2001:db8::1", 19133), new InetSocketAddress("192.168.1.5", 19132)), Set.of(6, 4))));
+
+    @Test
+    void censorsPublicAddressesNetherNetAdvertisesButKeepsTheirPorts() {
+        assertEquals("{\"builtin\":{\"advertised\":[],\"stunDiscovery\":true,\"discovered\":[\"***:40404\"]},"
+                + "\"nxs\":{\"confirmed\":true,\"addresses\":[\"***:19132\",\"[***]:19133\",\"192.168.1.5:19132\"],"
+                + "\"assistedFamilies\":[4,6]}}",
+            new Gson().toJson(DumpInfo.NetherNetInfo.of(ADVERTISED)));
+    }
+
+    @Test
+    void showsAddressesNetherNetAdvertisesInAFullDump() {
+        AsteriskSerializer.showSensitive = true;
+        DumpInfo.NetherNetInfo info = DumpInfo.NetherNetInfo.of(ADVERTISED);
+
+        assertEquals(List.of("198.51.100.1:40404"), info.builtin().discovered());
+        assertEquals(List.of("198.51.100.1:19132", "[2001:db8::1]:19133", "192.168.1.5:19132"), info.nxs().addresses());
+    }
+
+    @Test
+    void tellsNxsRunningWithoutConfirmedAddressesFromNotRunning() {
+        assertEquals("{\"nxs\":{\"confirmed\":false,\"addresses\":[],\"assistedFamilies\":[]}}",
+            new Gson().toJson(DumpInfo.NetherNetInfo.of(new Advertised(null, new Advertised.Nxs(null)))));
+        assertEquals("{}", new Gson().toJson(DumpInfo.NetherNetInfo.of(new Advertised(null, null))));
     }
 }

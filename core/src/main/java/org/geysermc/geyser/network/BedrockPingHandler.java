@@ -27,6 +27,7 @@ package org.geysermc.geyser.network;
 
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.protocol.bedrock.BedrockPong;
+import org.cloudburstmc.protocol.bedrock.util.JoinAddress;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.command.defaults.ConnectionTestCommand;
 import org.geysermc.geyser.configuration.GeyserConfig;

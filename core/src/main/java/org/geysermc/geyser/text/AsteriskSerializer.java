@@ -29,6 +29,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonPrimitive;
 import com.google.gson.JsonSerializationContext;
 import com.google.gson.JsonSerializer;
+import io.netty.util.NetUtil;
 import org.spongepowered.configurate.ConfigurationNode;
 import org.spongepowered.configurate.ConfigurationOptions;
 import org.spongepowered.configurate.interfaces.InterfaceDefaultOptions;
@@ -40,7 +41,9 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 import java.lang.reflect.Type;
+import java.net.Inet6Address;
 import java.net.InetAddress;
+import java.net.InetSocketAddress;
 
 public class AsteriskSerializer implements JsonSerializer<String> {
     public static final String[] NON_SENSITIVE_ADDRESSES = {"", "0.0.0.0", "localhost", "127.0.0.1", "auto", "unknown"};
@@ -64,15 +67,25 @@ public class AsteriskSerializer implements JsonSerializer<String> {
         }
 
         try {
-            InetAddress address = InetAddress.getByName(ip);
-            if (address.isAnyLocalAddress() || address.isSiteLocalAddress() || address.isLoopbackAddress()) {
-                return false;
-            }
+            return isSensitiveIp(InetAddress.getByName(ip));
         } catch (Exception e) {
-            // Ignore
+            return true;
         }
+    }
 
-        return true;
+    private static boolean isSensitiveIp(InetAddress address) {
+        return !address.isAnyLocalAddress() && !address.isSiteLocalAddress() && !address.isLoopbackAddress();
+    }
+
+    /**
+     * An address and port for a dump, the address censored the same way as an {@link Asterisk} value.
+     */
+    public static String censor(InetSocketAddress endpoint) {
+        InetAddress address = endpoint.getAddress();
+        if (address != null && (showSensitive || !isSensitiveIp(address))) {
+            return NetUtil.toSocketAddressString(endpoint);
+        }
+        return (address instanceof Inet6Address ? "[***]:" : "***:") + endpoint.getPort();
     }
 
     /**

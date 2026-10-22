@@ -34,6 +34,7 @@ import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.registry.type.ItemMappings;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.item.BedrockItemBuilder;
+import org.geysermc.geyser.translator.text.MessageTranslator;
 import org.geysermc.mcprotocollib.protocol.data.game.Holder;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentTypes;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
@@ -53,7 +54,7 @@ public class GoatHornItem extends Item {
 
         Holder<Instrument> instrumentComponent = components.get(DataComponentTypes.INSTRUMENT);
         if (instrumentComponent != null) {
-            GeyserInstrument instrument = GeyserInstrument.fromComponent(session, instrumentComponent);
+            GeyserInstrument instrument = GeyserInstrument.fromComponent(session.javaRegistries(), instrumentComponent);
             int bedrockId = instrument.bedrockId();
             if (bedrockId >= 0) {
                 builder.damage(bedrockId);
@@ -69,9 +70,9 @@ public class GoatHornItem extends Item {
 
         Holder<Instrument> component = components.get(DataComponentTypes.INSTRUMENT);
         if (component != null && tooltip.showInTooltip(DataComponentTypes.INSTRUMENT)) {
-            GeyserInstrument instrument = GeyserInstrument.fromComponent(session, component);
+            GeyserInstrument instrument = GeyserInstrument.fromComponent(session.javaRegistries(), component);
             if (instrument.bedrockInstrument() == null) {
-                builder.getOrCreateLore().add(instrument.description());
+                builder.getOrCreateLore().add(MessageTranslator.convertMessageForTooltip(instrument.description(), session.locale()));
             }
         }
     }
@@ -82,7 +83,7 @@ public class GoatHornItem extends Item {
 
         int damage = itemData.getDamage();
         // This could cause an issue since -1 is returned for non-vanilla goat horns
-        itemStack.getOrCreateComponents().put(DataComponentTypes.INSTRUMENT, Holder.ofId(GeyserInstrument.bedrockIdToJava(session, damage)));
+        itemStack.getOrCreateComponents().put(DataComponentTypes.INSTRUMENT, Holder.ofId(GeyserInstrument.bedrockIdToJava(session.javaRegistries(), damage)));
 
         return itemStack;
     }
