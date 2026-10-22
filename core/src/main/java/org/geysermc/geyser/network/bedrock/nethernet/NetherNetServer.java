@@ -283,6 +283,8 @@ public final class NetherNetServer implements EventRegistrar {
                                 .setVersion(pong.version())
                                 .setPlayerCount(pong.playerCount())
                                 .setMaxPlayerCount(pong.maximumPlayerCount())
+                                // As BDS sets it from online-mode, telling clients signed in to no Xbox account whether they may join
+                                .setSelfSignedAuth(!geyser.config().advanced().bedrock().validateBedrockLogin())
                                 .build();
                     });
 
