@@ -66,8 +66,9 @@ tasks.withType<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar> {
     dependencies {
         exclude(dependency("com.google.*:.*"))
 
-        // Needed because older Spigot builds do not provide the haproxy module
-        exclude("io.netty", libs.netty.codec.haproxy)
+        // Netty is provided by the server, except for the haproxy module (missing on older Spigot builds)
+        // and the http codec (needed for built-in signaling)
+        exclude("io.netty", libs.netty.codec.haproxy, libs.netty.codec.http)
 
         // Commodore includes Brigadier
         exclude(dependency("com.mojang:.*"))
