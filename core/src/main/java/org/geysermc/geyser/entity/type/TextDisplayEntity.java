@@ -69,7 +69,9 @@ public class TextDisplayEntity extends DisplayBaseEntity {
      */
     private static final float LINE_HEIGHT_OFFSET = 0.1414f;
 
-    private static final float LINE_HEIGHT = 0.266071429f;
+    private static final float JAVA_LINE_HEIGHT = 0.225f;
+    private static final float BEDROCK_LINE_HEIGHT = 0.266071429f; // measured at scale 1
+    private static final float BEDROCK_SCALE_FACTOR = JAVA_LINE_HEIGHT / BEDROCK_LINE_HEIGHT;
 
     private static final boolean DEBUG = Boolean.getBoolean("Geyser.Debug.TextDisplay");
 
@@ -305,19 +307,13 @@ public class TextDisplayEntity extends DisplayBaseEntity {
         float y = (float) Math.atan2(-r20, Math.hypot(r00, r10));
         float z = (float) Math.atan2(r10, r00);
 
-        float scale = MathUtils.average(new float[]{ sx, sy, sz });
+        float scale = MathUtils.average(new float[]{ sx, sy }) * BEDROCK_SCALE_FACTOR; // sz doesn't affect the java scale, so don't use it
 
         // Bedrock scales from mid-center, java scales from mid-bottom
         if (scale != 1) {
-            float newHeight = LINE_HEIGHT * scale;
+            float newHeight = BEDROCK_LINE_HEIGHT * scale;
 
-            if (scale > 1) {
-                float extra = newHeight - LINE_HEIGHT;
-                translation = translation.add(0, extra / 2, 0);
-            } else {
-                float missing = LINE_HEIGHT - newHeight;
-                translation = translation.min(0, missing / 2, 0);
-            }
+            translation = translation.add(0, (newHeight - BEDROCK_LINE_HEIGHT) / 2, 0);
         }
 
         // I'm not even gonna pretend I know why x needs to be negative, but it does, and it works
@@ -415,28 +411,5 @@ public class TextDisplayEntity extends DisplayBaseEntity {
         secondEntity.getMetadata().put(EntityDataTypes.WIDTH, 0.0f);
         secondEntity.getMetadata().put(EntityDataTypes.HEIGHT, 0.0f);
         secondEntity.getMetadata().put(EntityDataTypes.HITBOX, NbtMap.EMPTY);
-    }
-
-    private Vector3f toVector(Quaternionf q) {
-        double x, y, z;
-        double angle = 2 * Math.acos(q.getW());
-
-        if (1 - (q.getW() * q.getW()) < 0.000001) {
-            x = q.getX();
-            y = q.getY();
-            z = q.getZ();
-        } else {
-            // http://www.euclideanspace.com/maths/geometry/rotations/conversions/quaternionToAngle/
-            double s = Math.sqrt(1 - (q.getW() * q.getW()));
-            x = q.getX() / s;
-            y = q.getY() / s;
-            z = q.getZ() / s;
-        }
-
-        return Vector3f.from(
-            -Math.toDegrees(x * angle),
-            Math.toDegrees(y * angle),
-            Math.toDegrees(z * angle)
-        );
     }
 }
