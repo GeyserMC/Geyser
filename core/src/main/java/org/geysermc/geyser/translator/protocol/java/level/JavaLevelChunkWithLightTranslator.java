@@ -396,7 +396,14 @@ public class JavaLevelChunkWithLightTranslator extends PacketTranslator<Clientbo
             if ((position.getX() >> 4) == packet.getX() && (position.getZ() >> 4) == packet.getZ()) {
                 // Update this item frame so it doesn't get lost in the abyss
                 //TODO optimize
-                entry.getValue().updateBlock(true);
+                int sectionY = (position.getY() >> 4) - yOffset;
+                if (sectionY < 0 || sectionY >= javaChunks.length) {
+                    // An entity can sit outside the dimension's height, unlike a block entity
+                    continue;
+                }
+                DataPalette section = javaChunks[sectionY];
+                BlockState blockState = BlockState.of(section.get(position.getX() & 0xF, position.getY() & 0xF, position.getZ() & 0xF));
+                entry.getValue().updateBlock(blockState, true);
             }
         }
     }

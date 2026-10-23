@@ -27,6 +27,7 @@ package org.geysermc.geyser.level.block.type;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
+import org.geysermc.geyser.level.block.Blocks;
 import org.geysermc.geyser.level.block.property.Property;
 import org.geysermc.geyser.registry.BlockRegistries;
 
@@ -159,6 +160,15 @@ public final class BlockState {
 
     public boolean is(Block block) {
         return this.block == block;
+    }
+
+    /**
+     * Whether this state is one of the three blocks Java treats as empty space. The air block tag
+     * lists the same three, but it is server data that can be reloaded or never sent at all, so it
+     * cannot stand in for a block's physical presence.
+     */
+    public boolean isAir() {
+        return this.block == Blocks.AIR || this.block == Blocks.CAVE_AIR || this.block == Blocks.VOID_AIR;
     }
 
     @Override
