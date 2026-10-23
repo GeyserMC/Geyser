@@ -200,7 +200,7 @@ val downloadIntegratedPack = tasks.register("downloadIntegratedPack") {
     val source = "https://download.geysermc.org/v2/projects/geyserintegratedpack/versions/latest/builds/latest/downloads/geyserintegratedpack"
     onlyIf { !packFile.exists() }
     doLast {
-        println("cannot find core/src/main/resources/GeyserIntegratedPack.mcpack, trying to download from $source, and writing it to core/src/main/resources/GeyserIntegratedPack.mcpack")
+        println("Cannot find GeyserIntegratedPack.mcpack, trying to download from $source, and writing it to core/src/main/resources/GeyserIntegratedPack.mcpack")
         packFile.parentFile.mkdirs()
         val tmp = File(packFile.parentFile, packFile.name + ".tmp")
         try {
