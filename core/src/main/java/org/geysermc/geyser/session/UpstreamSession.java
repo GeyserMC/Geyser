@@ -57,8 +57,51 @@ public class UpstreamSession {
         }
     }
 
+    /**
+     * Sends packets immediately to this session's own sub-client. Going through the peer directly
+     * bypasses {@link BedrockServerSession}, which is what normally addresses a packet to its
+     * sub-client, so the id has to be supplied here - a hardcoded 0 hands a split-screen guest's
+     * packets to the primary player's view instead.
+     */
+    public void sendPacketsImmediately(@NonNull BedrockPacket... packets) {
+        if (isClosed()) {
+            return;
+        }
+        int subClientId = getSubClientId();
+        if (subClientId < 0) {
+            // An evicted guest no longer owns a slot; sending anywhere would reach someone else.
+            return;
+        }
+        session.getPeer().sendPacketsImmediately(subClientId, 0, packets);
+    }
+
     public void disconnect(String reason) {
         this.session.disconnect(reason);
+    }
+
+    /**
+     * @return this session's sub-client id: 0 for the primary, 1-3 for a split-screen guest.
+     */
+    public int getSubClientId() {
+        if (session.getPeer() instanceof GeyserBedrockPeer peer) {
+            return peer.subClientIdOf(session);
+        }
+        return session.isSubClient() ? -1 : 0;
+    }
+
+    /**
+     * Removes a split-screen sub-client's session from the console's shared peer, leaving the peer
+     * itself - and therefore every other local player on that console - untouched.
+     *
+     * @throws IllegalStateException if called for a primary session
+     */
+    public void evictSubClientSession() {
+        if (!session.isSubClient()) {
+            throw new IllegalStateException("evictSubClientSession called on a primary session");
+        }
+        if (session.getPeer() instanceof GeyserBedrockPeer peer) {
+            peer.removeSubClientSession(session);
+        }
     }
 
     /**
