@@ -26,10 +26,10 @@
 package org.geysermc.geyser.session.dialog;
 
 import net.kyori.adventure.key.Key;
+import net.kyori.adventure.text.Component;
 import org.cloudburstmc.nbt.NbtMap;
 import org.geysermc.geyser.registry.java.JavaRegistryProvider;
 import org.geysermc.geyser.session.dialog.action.DialogAction;
-import org.geysermc.geyser.translator.text.MessageTranslator;
 import org.geysermc.geyser.util.MinecraftKey;
 import org.geysermc.mcprotocollib.protocol.data.game.ServerLink;
 import org.geysermc.mcprotocollib.protocol.data.game.ServerLinkType;
@@ -42,22 +42,22 @@ public class ServerLinksDialog extends DialogWithButtons {
 
     public static final Key TYPE = MinecraftKey.key("server_links");
 
-    protected ServerLinksDialog(JavaRegistryProvider registries, String locale, NbtMap map) {
-        super(locale, map, readDefaultExitAction(registries, locale, map));
+    protected ServerLinksDialog(JavaRegistryProvider registries, NbtMap map) {
+        super(map, readDefaultExitAction(registries, map));
     }
 
     @Override
     protected List<DialogButton> buttons(DialogHolder holder) {
         return holder.session().getServerLinks().stream()
-            .map(link -> new DialogButton(linkDisplayName(holder, link), Optional.of(new DialogAction.OpenUrl(link.link()))))
+            .map(link -> new DialogButton(linkDisplayName(link), Optional.of(new DialogAction.OpenUrl(link.link()))))
             .toList();
     }
 
-    private static String linkDisplayName(DialogHolder holder, ServerLink link) {
+    private static Component linkDisplayName(ServerLink link) {
         if (link.knownType() != null) {
             String linkName = link.knownType() == ServerLinkType.BUG_REPORT ? "report_bug" : link.knownType().name().toLowerCase(Locale.ROOT);
-            return "known_server_link." + linkName;
+            return Component.translatable("known_server_link." + linkName);
         }
-        return MessageTranslator.convertMessage(holder.session(), link.unknownType());
+        return link.unknownType();
     }
 }

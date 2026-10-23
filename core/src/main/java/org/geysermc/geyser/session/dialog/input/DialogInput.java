@@ -26,11 +26,12 @@
 package org.geysermc.geyser.session.dialog.input;
 
 import net.kyori.adventure.key.Key;
+import net.kyori.adventure.text.Component;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.geysermc.cumulus.form.CustomForm;
 import org.geysermc.cumulus.response.CustomFormResponse;
-import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.translator.text.TextTranslator;
 import org.geysermc.geyser.translator.text.MessageTranslator;
 import org.geysermc.geyser.util.MinecraftKey;
 
@@ -38,18 +39,18 @@ import java.util.Optional;
 
 public abstract class DialogInput<T> {
     protected final String key;
-    protected final String label;
+    protected final Component label;
 
-    protected DialogInput(String locale, NbtMap map) {
+    protected DialogInput(NbtMap map) {
         this.key = map.getString("key");
-        this.label = MessageTranslator.convertLenientNbtMessage(map.get("label"), locale);
+        this.label = MessageTranslator.componentFromNbtTag(map.get("label"));
     }
 
-    public void addComponent(CustomForm.Builder builder) {
-        addComponent(builder, Optional.empty());
+    public void addComponent(CustomForm.Builder builder, TextTranslator textTranslator) {
+        addComponent(builder, textTranslator, Optional.empty());
     }
 
-    public abstract void addComponent(CustomForm.Builder builder, Optional<T> restored);
+    public abstract void addComponent(CustomForm.Builder builder, TextTranslator textTranslator, Optional<T> restored);
 
     public abstract T read(CustomFormResponse response) throws DialogInputParseException;
 
@@ -59,16 +60,20 @@ public abstract class DialogInput<T> {
 
     public abstract T defaultValue();
 
-    public static DialogInput<?> read(String locale, NbtMap tag) {
+    protected String label(TextTranslator textTranslator) {
+        return textTranslator.convertText(label);
+    }
+
+    public static DialogInput<?> read(NbtMap tag) {
         Key type = MinecraftKey.key(tag.getString("type"));
         if (type.equals(BooleanInput.TYPE)) {
-            return new BooleanInput(locale, tag);
+            return new BooleanInput(tag);
         } else if (type.equals(NumberRangeInput.TYPE)) {
-            return new NumberRangeInput(locale, tag);
+            return new NumberRangeInput(tag);
         } else if (type.equals(SingleOptionInput.TYPE)) {
-            return new SingleOptionInput(locale, tag);
+            return new SingleOptionInput(tag);
         } else if (type.equals(TextInput.TYPE)) {
-            return new TextInput(locale, tag);
+            return new TextInput(tag);
         }
 
         throw new UnsupportedOperationException("Unknown dialog input type " + type);

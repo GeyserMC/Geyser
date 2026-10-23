@@ -60,7 +60,7 @@ public class JavaFinishConfigurationTranslator extends PacketTranslator<Clientbo
         session.getEntityCache().removeAllPlayerEntities();
 
         // Freeze networked registries, after receiving the new ones from the server
-        ((JavaRegistryTagCache) session.javaRegistries()).freeze(session.locale());
+        ((JavaRegistryTagCache) session.javaRegistries()).freeze();
 
         // Cartography recipes are registered by default, as they are needed to be able to put items into the cartography table.
         // (Also add it here so recipes get cleared on configuration - 1.21.3)

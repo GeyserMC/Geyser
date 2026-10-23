@@ -187,8 +187,8 @@ public class BannerItem extends BlockItem {
      * @param pattern Bedrock edition pattern nbt
      * @return The Java edition format pattern layer
      */
-    public static BannerPatternLayer getJavaBannerPattern(GeyserSession session, NbtMap pattern) {
-        JavaRegistryLookup<BannerPattern> registry = session.javaRegistries().registry(JavaRegistries.BANNER_PATTERN);
+    public static BannerPatternLayer getJavaBannerPattern(JavaRegistryProvider registries, NbtMap pattern) {
+        JavaRegistryLookup<BannerPattern> registry = registries.registry(JavaRegistries.BANNER_PATTERN);
         BannerPattern bannerPattern = BannerPattern.getByBedrockIdentifier(pattern.getString("Pattern"));
         DyeColor dyeColor = DyeColor.getById(15 - pattern.getInt("Color"));
         if (dyeColor != null) {

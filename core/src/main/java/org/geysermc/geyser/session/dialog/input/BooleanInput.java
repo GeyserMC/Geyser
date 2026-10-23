@@ -30,6 +30,7 @@ import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.geysermc.cumulus.form.CustomForm;
 import org.geysermc.cumulus.response.CustomFormResponse;
+import org.geysermc.geyser.translator.text.TextTranslator;
 import org.geysermc.geyser.util.MinecraftKey;
 
 import java.util.Optional;
@@ -42,16 +43,16 @@ public class BooleanInput extends DialogInput<Boolean> {
     private final String onTrue;
     private final String onFalse;
 
-    public BooleanInput(String locale, NbtMap map) {
-        super(locale, map);
+    public BooleanInput(NbtMap map) {
+        super(map);
         initial = map.getBoolean("initial", false);
         onTrue = map.getString("on_true", "true");
         onFalse = map.getString("on_false", "false");
     }
 
     @Override
-    public void addComponent(CustomForm.Builder builder, Optional<Boolean> restored) {
-        builder.toggle(label, restored.orElse(initial));
+    public void addComponent(CustomForm.Builder builder, TextTranslator textTranslator, Optional<Boolean> restored) {
+        builder.toggle(label(textTranslator), restored.orElse(initial));
     }
 
     @Override

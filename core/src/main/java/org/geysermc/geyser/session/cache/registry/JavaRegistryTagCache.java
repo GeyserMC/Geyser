@@ -80,8 +80,8 @@ public final class JavaRegistryTagCache implements JavaRegistryProvider {
         tagCache.loadPacket(session, tagsPacket);
     }
 
-    public void freeze(String locale) {
-        registryCache.parseAndBind(this, locale);
+    public void freeze() {
+        registryCache.parseAndBind(this);
     }
 
     public static void bootstrap() {

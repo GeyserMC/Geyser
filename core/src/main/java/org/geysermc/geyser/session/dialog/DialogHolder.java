@@ -37,6 +37,7 @@ import org.geysermc.geyser.session.dialog.action.DialogAction;
 import org.geysermc.geyser.session.dialog.input.ParsedInputs;
 import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.text.MinecraftLocale;
+import org.geysermc.geyser.translator.text.TextTranslator;
 import org.geysermc.geyser.translator.text.MessageTranslator;
 
 import java.util.Optional;
@@ -87,7 +88,7 @@ import java.util.Optional;
  * <p>Final note: when reading through this code, a dialog is "valid" when it is still considered open.</p>
  */
 @Accessors(fluent = true)
-public class DialogHolder {
+public final class DialogHolder implements TextTranslator {
     @Getter
     private final GeyserSession session;
     private final DialogManager manager;
@@ -111,6 +112,11 @@ public class DialogHolder {
         this.session = session;
         this.manager = manager;
         this.dialog = dialog;
+    }
+
+    @Override
+    public String convertText(Component component) {
+        return MessageTranslator.convertMessage(component, session.locale());
     }
 
     /**

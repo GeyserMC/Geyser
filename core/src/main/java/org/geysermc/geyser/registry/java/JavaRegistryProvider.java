@@ -138,7 +138,7 @@ public interface JavaRegistryProvider {
     @FunctionalInterface
     interface Provider {
 
-        JavaRegistryProvider registries();
+        JavaRegistryProvider javaRegistries();
     }
 
     private static <T> List<T> mapRawArray(JavaRegistryProvider registries, JavaRegistryKey<T> registry, IntList array) {

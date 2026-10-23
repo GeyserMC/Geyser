@@ -50,7 +50,7 @@ public class DialogManager {
     }
 
     public void openDialog(Holder<NbtMap> dialog) {
-        openDialog(Dialog.getDialogFromHolder(session, dialog));
+        openDialog(Dialog.getDialogFromHolder(session.javaRegistries(), dialog));
     }
 
     /**

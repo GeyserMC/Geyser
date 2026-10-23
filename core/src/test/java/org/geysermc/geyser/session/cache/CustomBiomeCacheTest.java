@@ -97,7 +97,7 @@ public class CustomBiomeCacheTest {
             .putFloat("downfall", 0.15F)
             .putBoolean("has_precipitation", false)
             .build());
-        JavaBiome biome = BiomeTranslator.loadServerBiome(new RegistryEntryContext(mock(JavaRegistryProvider.class), modded, "en_us"));
+        JavaBiome biome = BiomeTranslator.loadServerBiome(new RegistryEntryContext(mock(JavaRegistryProvider.class), modded));
         assertEquals(UNKNOWN_BIOME, biome.bedrockId());
         assertEquals(1.9F, biome.temperature());
         assertEquals(0.15F, biome.downfall());
@@ -105,7 +105,7 @@ public class CustomBiomeCacheTest {
 
         RegistryEntry vanilla = new RegistryEntry(MinecraftKey.key("minecraft:plains"), NbtMap.EMPTY);
         assertNotEquals(UNKNOWN_BIOME, BiomeTranslator.loadServerBiome(
-            new RegistryEntryContext(mock(JavaRegistryProvider.class), vanilla, "en_us")).bedrockId());
+            new RegistryEntryContext(mock(JavaRegistryProvider.class), vanilla)).bedrockId());
     }
 
     @Test

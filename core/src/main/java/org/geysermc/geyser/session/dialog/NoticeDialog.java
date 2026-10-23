@@ -26,6 +26,7 @@
 package org.geysermc.geyser.session.dialog;
 
 import net.kyori.adventure.key.Key;
+import net.kyori.adventure.text.Component;
 import org.cloudburstmc.nbt.NbtMap;
 import org.geysermc.cumulus.form.CustomForm;
 import org.geysermc.cumulus.form.SimpleForm;
@@ -41,9 +42,9 @@ public class NoticeDialog extends Dialog {
 
     private final Optional<DialogButton> button;
 
-    public NoticeDialog(JavaRegistryProvider registries, String locale, NbtMap map) {
-        super(locale, map);
-        button = DialogButton.read(registries, locale, map.getCompound("action"));
+    public NoticeDialog(JavaRegistryProvider registries, NbtMap map) {
+        super(map);
+        button = DialogButton.read(registries, map.get("action"));
     }
 
     @Override
@@ -58,7 +59,7 @@ public class NoticeDialog extends Dialog {
 
     @Override
     protected void addCustomComponents(DialogHolder holder, SimpleForm.Builder builder) {
-        builder.button(button.map(DialogButton::label).orElse("gui.ok"))
+        builder.button(holder.convertText(button.map(DialogButton::label).orElseGet(() -> Component.translatable("gui.ok"))))
             .validResultHandler(response -> holder.runButton(button, ParsedInputs.EMPTY));
     }
 }
