@@ -224,13 +224,24 @@ public class SessionLoadResourcePacksEventImpl extends SessionLoadResourcePacksE
             }
             GeyserResourcePack pack = holder.pack();
             ResourcePackManifest.Header header = pack.manifest().header();
+            // A pack carrying a "data" or "script" module is an addon, and the client uses
+            // these flags to decide it must be downloaded for gameplay logic. They were
+            // hardcoded false, so such a pack was announced as a plain resource pack.
+            boolean scripting = hasModule(pack, "script");
+            boolean addonPack = scripting || hasModule(pack, "data");
+
             entries.add(new ResourcePacksInfoPacket.Entry(
                 header.uuid(), header.version().toString(), pack.codec().size(), pack.contentKey(),
-                subpackName(pack), header.uuid().toString(), false, false, false, cdnUrl(pack))
+                subpackName(pack), header.uuid().toString(), scripting, false, addonPack, cdnUrl(pack))
             );
         }
 
         return entries;
+    }
+
+    private static boolean hasModule(GeyserResourcePack pack, String type) {
+        return pack.manifest().modules().stream()
+            .anyMatch(module -> type.equalsIgnoreCase(module.type()));
     }
 
     // Helper methods to get the options for a ResourcePack
