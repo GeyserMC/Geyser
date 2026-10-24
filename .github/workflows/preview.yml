@@ -4,7 +4,7 @@ on:
   pull_request_target:
 
 jobs:
-  build:
+  build-preview:
     if: >-
       contains(github.event.pull_request.labels.*.name, 'PR: Needs Testing')
     # Forbid access to secrets nor GH Token perms while building the PR
@@ -14,8 +14,8 @@ jobs:
     with:
       repository: ${{ github.event.pull_request.head.repo.full_name }}
       ref: ${{ github.event.pull_request.head.sha }}
-  preview:
-    needs: [build]
+  publish-preview:
+    needs: [build-preview]
     if: >-
       contains(github.event.pull_request.labels.*.name, 'PR: Needs Testing')
     # Allow access to secrets if we are uploading a preview
