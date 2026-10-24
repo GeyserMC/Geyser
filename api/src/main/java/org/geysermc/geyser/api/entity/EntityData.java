@@ -42,10 +42,12 @@ import java.util.concurrent.CompletableFuture;
 public interface EntityData {
 
     /**
-     * @deprecated use {@link #byJavaId(int)}
+     * This method is deprecated for removal and will be removed in Geyser 2.13.0.
+     *
+     * @deprecated since 2.11.0: use {@link #byJavaId(int)}
      * @since 2.3.0
      */
-    @Deprecated(since = "2.11.0")
+    @Deprecated(since = "2.11.0", forRemoval = true)
     CompletableFuture<@Nullable GeyserEntity> entityByJavaId(@NonNegative int javaId);
 
     /**
@@ -100,20 +102,26 @@ public interface EntityData {
     boolean isMovementLocked();
 
     /**
+     * This method is deprecated for removal and will be removed in Geyser 2.13.0.
+     *
      * @deprecated use {@link GeyserConnection#requestOffhandSwap()} instead
      */
-    @Deprecated(since = "2.9.3")
+    @Deprecated(since = "2.9.3", forRemoval = true)
     void switchHands();
 
     /**
+     * This method is deprecated for removal and will be removed in Geyser 2.13.0.
+     *
      * @deprecated Use {@link GeyserConnection#showEmote(GeyserPlayerEntity, String)} instead.
      */
-    @Deprecated(since = "2.9.3")
+    @Deprecated(since = "2.9.3", forRemoval = true)
     void showEmote(GeyserPlayerEntity emoter, String emoteId);
 
     /**
+     * This method is deprecated for removal and will be removed in Geyser 2.13.0.
+     *
      * @deprecated Use {@link GeyserConnection#playerEntity()} instead.
      */
-    @Deprecated(since = "2.9.3")
+    @Deprecated(since = "2.9.3", forRemoval = true)
     GeyserPlayerEntity playerEntity();
 }
