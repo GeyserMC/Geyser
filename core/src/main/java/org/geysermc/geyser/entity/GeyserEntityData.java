@@ -84,12 +84,6 @@ public class GeyserEntityData implements EntityData {
         return session.getEntityCache().getEntityByGeyserId(geyserId);
     }
 
-    @Override
-    public void showEmote(@NonNull GeyserPlayerEntity emoter, @NonNull String emoteId) {
-        showEmote(emoter, emoteId, false);
-    }
-
-    @Override
     public void showEmote(@NonNull GeyserAvatarEntity emoter, @NonNull String emoteId, boolean silent) {
         Objects.requireNonNull(emoter, "emoter must not be null!");
         Entity entity = (Entity) emoter;
