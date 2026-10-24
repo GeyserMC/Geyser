@@ -176,21 +176,25 @@ public interface GeyserConnection extends Connection, CommandSource {
      * If the existing shake type is different and the new intensity/duration are not positive, the existing shake only
      * switches to the new type. Otherwise, the existing shake is completely overridden.
      *
+     * <p>This method is deprecated for removal and will be removed in Geyser 2.13.0.</p>
+     *
      * @param intensity the intensity of the shake. The client has a maximum total intensity of 4.
      * @param duration the time in seconds that the shake will occur for
      * @param type the type of shake
      *
-     * @deprecated Use {@link CameraData#shakeCamera(float, float, CameraShake)} instead.
+     * @deprecated since 2.2.2: use {@link CameraData#shakeCamera(float, float, CameraShake)} instead.
      */
-    @Deprecated
+    @Deprecated(since = "2.2.2", forRemoval = true)
     void shakeCamera(float intensity, float duration, CameraShake type);
 
     /**
      * Stops all camera shake of any type.
      *
+     * <p>This method is deprecated for removal and will be removed in Geyser 2.13.0.</p>
+     *
      * @deprecated Use {@link CameraData#stopCameraShake()} instead.
      */
-    @Deprecated
+    @Deprecated(since = "2.2.2", forRemoval = true)
     void stopCameraShake();
 
     /**
@@ -198,27 +202,33 @@ public interface GeyserConnection extends Connection, CommandSource {
      * <p>
      * Fog IDs can be found <a href="https://wiki.bedrock.dev/documentation/fog-ids.html">here</a>
      *
+     * <p>This method is deprecated for removal and will be removed in Geyser 2.13.0.</p>
+     *
      * @param fogNameSpaces the fog IDs to add. If empty, the existing cached IDs will still be sent.
-     * @deprecated Use {@link CameraData#sendFog(String...)} instead.
+     * @deprecated since 2.2.2: use {@link CameraData#sendFog(String...)} instead.
      */
-    @Deprecated
+    @Deprecated(since = "2.2.2", forRemoval = true)
     void sendFog(String... fogNameSpaces);
 
     /**
      * Removes the given fog IDs from the fog cache, then sends all fog IDs in the cache to the client.
      *
+     * <p>This method is deprecated for removal and will be removed in Geyser 2.13.0.</p>
+     *
      * @param fogNameSpaces the fog IDs to remove. If empty, all fog IDs will be removed.
-     * @deprecated Use {@link CameraData#removeFog(String...)} instead.
+     * @deprecated since 2.2.2: use {@link CameraData#removeFog(String...)} instead.
      */
-    @Deprecated
+    @Deprecated(since = "2.2.2", forRemoval = true)
     void removeFog(String... fogNameSpaces);
 
     /**
      * Returns an immutable copy of all fog affects currently applied to this client.
      *
-     * @deprecated Use {@link CameraData#fogEffects()} instead.
+     * <p>This method is deprecated for removal and will be removed in Geyser 2.13.0.</p>
+     *
+     * @deprecated since 2.2.2: use {@link CameraData#fogEffects()} instead.
      */
-    @Deprecated
+    @Deprecated(since = "2.2.2", forRemoval = true)
     Set<String> fogEffects();
 
     /**

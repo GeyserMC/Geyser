@@ -33,9 +33,11 @@ import java.util.Set;
 
 
 /**
+ * This class is deprecated for removal and will be removed in Geyser 2.13.0.
+ *
  * @deprecated please use {@link org.geysermc.geyser.api.event.java.ServerDefineCommandsEvent}.
  */
-@Deprecated(forRemoval = true)
+@Deprecated(since = "2.1.0", forRemoval = true)
 public class ServerDefineCommandsEvent extends ConnectionEvent implements Cancellable {
     private final Set<? extends CommandInfo> commands;
     private boolean cancelled;
@@ -65,7 +67,10 @@ public class ServerDefineCommandsEvent extends ConnectionEvent implements Cancel
         this.cancelled = cancelled;
     }
 
-    @Deprecated(forRemoval = true)
+    /**
+     * This method is deprecated for removal and will be removed in Geyser 2.13.0.
+     */
+    @Deprecated(since = "2.1.0", forRemoval = true)
     public interface CommandInfo {
         /**
          * Gets the name of the command.
