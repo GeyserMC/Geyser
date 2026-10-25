@@ -157,7 +157,7 @@ public final class Registries {
     /**
      * A mapped registry holding {@link ResourcePackHolder}'s with the pack uuid as keys.
      */
-    public static final SimpleMappedDeferredRegistry<UUID, ResourcePackHolder> RESOURCE_PACKS = SimpleMappedDeferredRegistry.create(GeyserImpl.getInstance().packDirectory(), RegistryLoaders.RESOURCE_PACKS);
+    public static final SimpleMappedDeferredRegistry<UUID, ResourcePackHolder> RESOURCE_PACKS = SimpleMappedDeferredRegistry.createFromLazyInput(() -> GeyserImpl.getInstance().packDirectory(), RegistryLoaders.RESOURCE_PACKS);
 
     /**
      * A versioned registry holding most Bedrock tags, with the Java item list (sorted) being the key, and the tag name as the value.
@@ -218,7 +218,7 @@ public final class Registries {
         // (by using the Items or Blocks class, which loads all the blocks)
 
         // Bootstrap registries holding hardcoded (built-in) Java Edition content
-        DataComponentRegistryPopulator.load();
+        DataComponentRegistryPopulator.load(GeyserImpl.getInstance().getBootstrap());
         BuiltInJavaRegistries.bootstrap();
 
         BEDROCK_ENTITY_IDENTIFIERS.load();
