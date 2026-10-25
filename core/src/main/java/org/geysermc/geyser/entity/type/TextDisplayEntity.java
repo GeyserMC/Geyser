@@ -72,6 +72,9 @@ public class TextDisplayEntity extends DisplayBaseEntity {
     /** Java displays render text at 40 pixels per block, with 10-pixel line spacing. */
     private static final float JAVA_TEXT_PIXEL_SCALE = 1.0f / 40.0f;
 
+    /** Additional baseline compensation for Bedrock DebugText's different font metrics. */
+    private static final float BEDROCK_TEXT_ANCHOR_CORRECTION = 0.25f;
+
     private static final boolean DEBUG = Boolean.getBoolean("Geyser.Debug.TextDisplay");
 
     /**
@@ -274,6 +277,9 @@ public class TextDisplayEntity extends DisplayBaseEntity {
             message = MessageTranslator.convertMessage(text, session.locale());
         }
 
+        // Retain empty lines which Bedrock's debug-text layout may collapse.
+        message = preserveBlankLines(message);
+
         // Calculate a matrix then extract components
 
         // The attached Bedrock entity is already positioned at baseTranslation by
@@ -328,7 +334,8 @@ public class TextDisplayEntity extends DisplayBaseEntity {
         int lineCount = PlainTextComponentSerializer.plainText()
                 .serialize(this.text).split("\\n", -1).length;
         float textHeight = (lineCount * 10.0f - 1.0f) * JAVA_TEXT_PIXEL_SCALE;
-        text.setPosition(Vector3f.from(0, textHeight * scale / 2.0f, 0));
+        text.setPosition(Vector3f.from(
+                0, textHeight * scale / 2.0f + BEDROCK_TEXT_ANCHOR_CORRECTION, 0));
         text.setAttachedToEntityId(geyserId);
 
         GeyserLogger log = GeyserImpl.getInstance().getLogger();
@@ -380,6 +387,22 @@ public class TextDisplayEntity extends DisplayBaseEntity {
         DebugDrawerPacket packet = new DebugDrawerPacket();
         packet.getShapes().add(text);
         session.sendUpstreamPacket(packet);
+    }
+
+    /**
+     * Keep explicit empty lines visible in the Bedrock DebugText layout.
+     * A non-breaking space occupies the line without adding visible lettering.
+     */
+    private static String preserveBlankLines(String message) {
+        String[] lines = message.replace("\r\n", "\n").split("\n", -1);
+        StringBuilder result = new StringBuilder(message.length());
+        for (int i = 0; i < lines.length; i++) {
+            if (i > 0) {
+                result.append('\n');
+            }
+            result.append(lines[i].isEmpty() ? "\u00a0" : lines[i]);
+        }
+        return result.toString();
     }
 
     public void updateNameTag() {
