@@ -26,6 +26,7 @@
 package org.geysermc.geyser.entity.type;
 
 import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.checkerframework.checker.nullness.qual.NonNull;
@@ -53,6 +54,7 @@ import java.util.Optional;
 import java.util.Set;
 
 // Note: 1.19.4 requires that the billboard is set to something in order to show, on Java Edition
+@Slf4j
 @Getter
 public class TextDisplayEntity extends DisplayBaseEntity {
 
@@ -139,15 +141,15 @@ public class TextDisplayEntity extends DisplayBaseEntity {
     }
 
     @Override
-    public void setLeftRotation(@NonNull Quaternionf leftRotation) {
-        super.setLeftRotation(leftRotation);
+    public void setLeftRotation(EntityMetadata<Quaternionf, ?> metadata) {
+        super.setLeftRotation(metadata);
 
         updatePrimitiveText();
     }
 
     @Override
-    public void setRightRotation(@NonNull Quaternionf rightRotation) {
-        super.setRightRotation(rightRotation);
+    public void setRightRotation(EntityMetadata<Quaternionf, ?> metadata) {
+        super.setRightRotation(metadata);
 
         updatePrimitiveText();
     }
@@ -279,9 +281,37 @@ public class TextDisplayEntity extends DisplayBaseEntity {
             0.13 * PlainTextComponentSerializer.plainText()
                 .serialize(this.text).split("\n").length,
             0
-        ).add(getBaseTranslation()));
+        ).add(0, 0.5, 0).add(getBaseTranslation()));
         text.setAttachedToEntityId(geyserId);
-        //text.setRotation(bedrockRotation());
+        Quaternionf q = this.getLeftRotation();
+
+        Vector3f outputRotation = bedrockRotation().mul(0, 1, 1);
+
+        // Add left rotation
+        outputRotation.add(
+            Math.toDegrees(
+                Math.atan2(
+                    -2*(q.getX()*q.getY() - q.getW()*q.getZ()),
+                    q.getW()*q.getW() + q.getX()*q.getX() - q.getY()*q.getY() - q.getZ()*q.getZ()
+                )
+            ),
+            Math.toDegrees(
+                Math.asin(
+                    2*(q.getX()*q.getZ() + q.getW()*q.getY())
+                )
+            ),
+            Math.toDegrees(
+                Math.atan2(
+                    -2*(q.getY()*q.getZ() - q.getW()*q.getX()),
+                    q.getW()*q.getW() - q.getX()*q.getX() - q.getY()*q.getY() + q.getZ()*q.getZ()
+                )
+            )
+        );
+
+        // Bedrock needs some... adjustments...
+        //outputRotation = outputRotation.add(0, 180, 0);
+
+        text.setRotation(outputRotation);
         text.setUseRotation(!getBillboard().equals(Billboard.CENTER));
         text.setMaximumRenderDistance(getViewDistance());
         text.setBackgroundColor(backgroundColor);

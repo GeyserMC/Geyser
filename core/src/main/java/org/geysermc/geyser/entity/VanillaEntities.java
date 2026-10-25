@@ -451,8 +451,8 @@ public final class VanillaEntities {
                     .addTranslator(null) // Position/Rotation interpolation duration
                     .addTranslator(MetadataTypes.VECTOR3, DisplayBaseEntity::setTranslation) // Translation
                     .addTranslator(MetadataTypes.VECTOR3, DisplayBaseEntity::setScale) // Scale
-                    .addTranslator(null) // Left rotation
-                    .addTranslator(null) // Right rotation
+                    .addTranslator(MetadataTypes.QUATERNION, DisplayBaseEntity::setLeftRotation) // Left rotation
+                    .addTranslator(MetadataTypes.QUATERNION, DisplayBaseEntity::setRightRotation) // Right rotation
                     .addTranslator(MetadataTypes.BYTE, DisplayBaseEntity::setBillboard) // Billboard render constraints
                     .addTranslator(null) // Brightness override
                     .addTranslator(MetadataTypes.FLOAT, DisplayBaseEntity::setViewDistance) // View range
