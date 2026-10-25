@@ -69,7 +69,8 @@ public class TextDisplayEntity extends DisplayBaseEntity {
      */
     private static final float LINE_HEIGHT_OFFSET = 0.1414f;
 
-    private static final float LINE_HEIGHT = 0.266071429f;
+    /** Java displays render text at 40 pixels per block, with 10-pixel line spacing. */
+    private static final float JAVA_TEXT_PIXEL_SCALE = 1.0f / 40.0f;
 
     private static final boolean DEBUG = Boolean.getBoolean("Geyser.Debug.TextDisplay");
 
@@ -275,12 +276,12 @@ public class TextDisplayEntity extends DisplayBaseEntity {
 
         // Calculate a matrix then extract components
 
-        Matrix4f matrix = Matrix4f.IDENTITY.translate(getBaseTranslation())
+        // The attached Bedrock entity is already positioned at baseTranslation by
+        // DisplayBaseEntity.bedrockPosition(). Adding it again here doubles the offset.
+        Matrix4f matrix = Matrix4f.IDENTITY
             .rotate(getLeftRotation())
             .scale(Vector4f.from(getBaseScale(), 1))
             .rotate(getRightRotation());
-
-        Vector3f translation = Vector3f.from(matrix.get(3, 0), matrix.get(3, 1), matrix.get(3, 2));
 
         float m00, m01, m02, m10, m11, m12, m20, m21, m22;
         m00 = matrix.get(0, 0);
@@ -307,19 +308,6 @@ public class TextDisplayEntity extends DisplayBaseEntity {
 
         float scale = MathUtils.average(new float[]{ sx, sy, sz });
 
-        // Bedrock scales from mid-center, java scales from mid-bottom
-        if (scale != 1) {
-            float newHeight = LINE_HEIGHT * scale;
-
-            if (scale > 1) {
-                float extra = newHeight - LINE_HEIGHT;
-                translation = translation.add(0, extra / 2, 0);
-            } else {
-                float missing = LINE_HEIGHT - newHeight;
-                translation = translation.min(0, missing / 2, 0);
-            }
-        }
-
         // I'm not even gonna pretend I know why x needs to be negative, but it does, and it works
         Vector3f rotation = Vector3f.from(-Math.toDegrees(x), Math.toDegrees(y), Math.toDegrees(z));
 
@@ -335,12 +323,12 @@ public class TextDisplayEntity extends DisplayBaseEntity {
                     textOpacity < 0 ? (textOpacity + 256) : textOpacity
                 )
         );
-        text.setPosition(Vector3f.from(
-            0,
-            0.13 * PlainTextComponentSerializer.plainText()
-                .serialize(this.text).split("\n").length,
-            0
-        ).add(0, 0.1, 0).add(translation));
+        // Java renders upward from its bottom-center pivot, while Bedrock DebugText
+        // is center-anchored. Java uses a 9-pixel glyph height and 1-pixel line gap.
+        int lineCount = PlainTextComponentSerializer.plainText()
+                .serialize(this.text).split("\\n", -1).length;
+        float textHeight = (lineCount * 10.0f - 1.0f) * JAVA_TEXT_PIXEL_SCALE;
+        text.setPosition(Vector3f.from(0, textHeight * scale / 2.0f, 0));
         text.setAttachedToEntityId(geyserId);
 
         GeyserLogger log = GeyserImpl.getInstance().getLogger();
