@@ -26,8 +26,8 @@
 package org.geysermc.geyser.entity.type;
 
 import lombok.Getter;
-import lombok.Setter;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.cloudburstmc.math.imaginary.Quaternionf;
 import org.cloudburstmc.math.vector.Vector3f;
@@ -35,10 +35,7 @@ import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.protocol.bedrock.data.debugshape.DebugShape;
 import org.cloudburstmc.protocol.bedrock.data.debugshape.DebugText;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
-import org.cloudburstmc.protocol.bedrock.data.entity.EntityEventType;
 import org.cloudburstmc.protocol.bedrock.packet.DebugDrawerPacket;
-import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.api.entity.property.BatchPropertyUpdater;
 import org.geysermc.geyser.entity.VanillaEntities;
 import org.geysermc.geyser.entity.spawn.EntitySpawnContext;
 import org.geysermc.geyser.entity.type.living.ArmorStandEntity;
@@ -47,12 +44,13 @@ import org.geysermc.geyser.util.ColorUtils;
 import org.geysermc.geyser.util.MathUtils;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.EntityMetadata;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.BooleanEntityMetadata;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.ByteEntityMetadata;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.IntEntityMetadata;
 import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
 import java.util.Optional;
 import java.util.Set;
-import java.util.function.Consumer;
 
 // Note: 1.19.4 requires that the billboard is set to something in order to show, on Java Edition
 @Getter
@@ -73,8 +71,23 @@ public class TextDisplayEntity extends DisplayBaseEntity {
     private boolean isInvisible = false;
     private boolean sendUpdates = false;
 
-    @Getter @Setter
+    @Getter
     private @NonNull Component text = Component.empty();
+
+    @Getter
+    private @NonNull Color backgroundColor = new Color(0, 0, 0, 40);
+
+    @Getter
+    private byte textOpacity = -1;
+
+    @Getter
+    private boolean defaultBackground = false;
+
+    @Getter
+    private boolean shadow = false;
+
+    @Getter
+    private boolean seeThrough = false;
 
     public TextDisplayEntity(EntitySpawnContext context) {
         super(context);
@@ -82,7 +95,10 @@ public class TextDisplayEntity extends DisplayBaseEntity {
 
     @Override
     protected void initializeMetadata() {
-
+        super.initializeMetadata();
+        // Remove armor stand body / hitbox
+        this.metadata.put(EntityDataTypes.HITBOX, NbtMap.EMPTY);
+        this.metadata.put(EntityDataTypes.SCALE, 0f);
     }
 
     @Override
@@ -137,34 +153,52 @@ public class TextDisplayEntity extends DisplayBaseEntity {
     }
 
     public void setTextMetadata(EntityMetadata<Component, ?> metadata) {
-        setText(metadata.getValue());
+        this.text = metadata.getValue();
+
+        updatePrimitiveText();
     }
 
-    @Override
-    public void spawnEntity() {
-        sendUpdates = true;
-        valid = true;
+    public void setBackgroundColor(IntEntityMetadata metadata) {
+        int value = metadata.getPrimitiveValue();
+
+        int a = (value >> 24) & 0xFF;
+        int r = (value >> 16) & 0xFF;
+        int g = (value >> 8) & 0xFF;
+        int b = value & 0xFF;
+
+        this.backgroundColor = new Color(r, g, b, a);
+
+        updatePrimitiveText();
+    }
+
+    public void setTextOpacity(ByteEntityMetadata metadata) {
+        this.textOpacity = metadata.getPrimitiveValue();
+
+        updatePrimitiveText();
+    }
+
+    public void setStyleFlags(ByteEntityMetadata metadata) {
+        byte flags = metadata.getPrimitiveValue();
+
+        this.defaultBackground = (flags & 0x01) == 1;
+        this.shadow = ((flags >> 1) & 0x01) == 1;
+        this.seeThrough = ((flags >> 2) & 0x01) == 1;
+
         updatePrimitiveText();
     }
 
     @Override
-    public void updateBedrockEntityProperties() {
-        // No-op
-    }
+    public void spawnEntity() {
+        super.spawnEntity();
 
-    @Override
-    public void playEntityEvent(EntityEventType type, int data) {
-        // TODO either spawn a temp entity, or have a forever entity, not sure.
+        sendUpdates = true;
+        updatePrimitiveText();
     }
 
     @Override
     public void sendSpectateInvisible(boolean hidden) {
-        // TODO handle this
-    }
-
-    @Override
-    public void updatePropertiesBatched(@NonNull Consumer<BatchPropertyUpdater> consumer, boolean immediate) {
-        // No-op
+        super.sendSpectateInvisible(hidden);
+        // TODO handle this, we probably just wanna hide the primitive text?
     }
 
     @Override
@@ -175,8 +209,6 @@ public class TextDisplayEntity extends DisplayBaseEntity {
         }
         super.despawnEntity();
 
-        GeyserImpl.getInstance().getLogger().info("logging this despawn YOOOO");
-
         DebugDrawerPacket packet = new DebugDrawerPacket();
         packet.getShapes().add(new DebugShape(geyserId));
         session.sendUpstreamPacket(packet);
@@ -184,10 +216,7 @@ public class TextDisplayEntity extends DisplayBaseEntity {
 
     @Override
     public void moveRelativeRaw(double relX, double relY, double relZ, float yaw, float pitch, float headYaw, boolean isOnGround) {
-        boolean previousValid = isValid();
-        setValid(false);
         super.moveRelativeRaw(relX, relY, relZ, yaw, pitch, headYaw, isOnGround);
-        setValid(previousValid);
 
         if (secondEntity != null) {
             secondEntity.moveRelativeRaw(relX, relY, relZ, yaw, pitch, headYaw, isOnGround);
@@ -197,10 +226,7 @@ public class TextDisplayEntity extends DisplayBaseEntity {
 
     @Override
     public void moveAbsoluteRaw(Vector3f position, float yaw, float pitch, float headYaw, boolean isOnGround, boolean teleported) {
-        boolean previousValid = isValid();
-        setValid(false);
         super.moveAbsoluteRaw(position, yaw, pitch, headYaw, isOnGround, teleported);
-        setValid(previousValid);
 
         if (secondEntity != null) {
             secondEntity.moveAbsoluteRaw(position.down(LINE_HEIGHT_OFFSET), yaw, pitch, headYaw, isOnGround, teleported);
@@ -210,6 +236,8 @@ public class TextDisplayEntity extends DisplayBaseEntity {
 
     @Override
     public void updateBedrockMetadata() {
+        super.updateBedrockMetadata();
+
         // Bundle metadata updates to ensure they aren't ignored
         if (secondEntity != null) {
             if (!secondEntity.valid) { // Spawn the entity once
@@ -237,10 +265,30 @@ public class TextDisplayEntity extends DisplayBaseEntity {
         DebugText text = new DebugText();
         text.setId(geyserId);
         text.setText(message);
-        text.setColor(color);
-        text.setPosition(bedrockPosition().add(getBaseTranslation()));
-        text.setRotation(bedrockRotation());
+        text.setColor(
+            color == null ? null :
+                new Color(
+                    color.getRed(),
+                    color.getGreen(),
+                    color.getBlue(),
+                    textOpacity < 0 ? (textOpacity + 256) : textOpacity
+                )
+        );
+        text.setPosition(Vector3f.from(
+            0,
+            0.13 * PlainTextComponentSerializer.plainText()
+                .serialize(this.text).split("\n").length,
+            0
+        ).add(getBaseTranslation()));
+        text.setAttachedToEntityId(geyserId);
+        //text.setRotation(bedrockRotation());
         text.setUseRotation(!getBillboard().equals(Billboard.CENTER));
+        text.setMaximumRenderDistance(getViewDistance());
+        text.setBackgroundColor(backgroundColor);
+        text.setDepthTest(!seeThrough);
+        //text.setLineGapHeight();
+        //text.setShowBackface();
+        //text.setShowTextBackface();
         text.setDimension(session.getBedrockDimension().bedrockId());
         text.setScale(MathUtils.average(new float[]{ getBaseScale().getX(), getBaseScale().getY(), getBaseScale().getZ() }));
         DebugDrawerPacket packet = new DebugDrawerPacket();

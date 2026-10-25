@@ -35,6 +35,7 @@ import org.geysermc.geyser.entity.spawn.EntitySpawnContext;
 import org.geysermc.geyser.util.EntityUtils;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.EntityMetadata;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.ByteEntityMetadata;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.FloatEntityMetadata;
 
 import java.util.Objects;
 
@@ -54,6 +55,9 @@ public class DisplayBaseEntity extends Entity {
 
     @Getter
     private @NonNull Billboard billboard = Billboard.FIXED;
+
+    @Getter
+    private float viewDistance = -1;
 
     public DisplayBaseEntity(EntitySpawnContext context) {
         super(context);
@@ -83,6 +87,10 @@ public class DisplayBaseEntity extends Entity {
 
     public void setBillboard(ByteEntityMetadata metadata) {
         this.billboard = Billboard.values()[metadata.getPrimitiveValue()];
+    }
+
+    public void setViewDistance(FloatEntityMetadata metadata) {
+        this.viewDistance = metadata.getPrimitiveValue();
     }
 
     @Override
