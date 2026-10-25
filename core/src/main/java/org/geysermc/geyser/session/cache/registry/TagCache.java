@@ -40,6 +40,7 @@ import org.geysermc.geyser.util.MinecraftKey;
 import org.geysermc.mcprotocollib.protocol.packet.common.clientbound.ClientboundUpdateTagsPacket;
 
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Map;
 import java.util.Optional;
 
@@ -109,5 +110,9 @@ public final class TagCache {
      */
     public @NonNull IntList get(@NonNull Tag<?> tag) {
         return this.tags.getOrDefault(tag, IntLists.emptyList());
+    }
+
+    public Collection<Tag<?>> tags() {
+        return tags.keySet();
     }
 }

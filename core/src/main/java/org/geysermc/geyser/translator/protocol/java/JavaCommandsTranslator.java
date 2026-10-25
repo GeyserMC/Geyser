@@ -32,11 +32,11 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import it.unimi.dsi.fastutil.ints.IntSet;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenCustomHashMap;
+import it.unimi.dsi.fastutil.objects.Reference2ObjectOpenHashMap;
 import lombok.Getter;
 import lombok.ToString;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.format.NamedTextColor;
-import org.checkerframework.checker.nullness.qual.MonotonicNonNull;
 import org.cloudburstmc.protocol.bedrock.data.command.CommandData;
 import org.cloudburstmc.protocol.bedrock.data.command.CommandEnumConstraint;
 import org.cloudburstmc.protocol.bedrock.data.command.CommandEnumData;
@@ -50,8 +50,12 @@ import org.geysermc.geyser.api.event.java.ServerDefineCommandsEvent;
 import org.geysermc.geyser.api.util.PlatformType;
 import org.geysermc.geyser.command.CommandRegistry;
 import org.geysermc.geyser.registry.java.BuiltInJavaRegistries;
-import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.registry.java.JavaRegistries;
+import org.geysermc.geyser.registry.java.JavaRegistryKey;
+import org.geysermc.geyser.registry.java.JavaRegistryProvider;
+import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.cache.WorldCache;
+import org.geysermc.geyser.session.cache.tags.Tag;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 import org.geysermc.geyser.util.EntityUtils;
@@ -72,6 +76,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Supplier;
+import java.util.stream.Stream;
 
 @SuppressWarnings("removal") // We know. This is our doing.
 @Translator(packet = ClientboundCommandsPacket.class)
@@ -286,7 +291,7 @@ public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommands
         if (commandNode.getChildIndices().length >= 1) {
             // Create the root param node and build all the children
             ParamInfo rootParam = new ParamInfo(commandNode, null);
-            rootParam.buildChildren(new CommandBuilderContext(session), allNodes);
+            rootParam.buildChildren(new CommandBuilderContext(session.javaRegistries(), session.getWorldCache(), session.getLevels()), allNodes);
 
             List<CommandOverloadData> treeData = rootParam.getTree();
 
@@ -321,24 +326,28 @@ public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommands
             case BOOL -> ENUM_BOOLEAN;
             case OPERATION -> CommandParam.OPERATOR; // ">=", "==", etc
             case BLOCK_STATE -> ALL_BLOCK_NAMES.get();
-            case ITEM_STACK -> context.getItemNames();
+            case ITEM_STACK -> context.getRegistryElements(JavaRegistries.ITEM);
             case TEAM_COLOR -> VALID_COLORS;
             case SCOREBOARD_SLOT -> VALID_SCOREBOARD_SLOTS;
             case RESOURCE -> handleResource(context, ((ResourceProperties) node.getProperties()).getRegistryKey(), false);
             case RESOURCE_OR_TAG -> handleResource(context, ((ResourceProperties) node.getProperties()).getRegistryKey(), true);
-            case DIMENSION -> context.session.getLevels();
+            case DIMENSION -> context.levels;
             case TEAM -> context.getTeams(); // Note: as of Java 1.19.3, objectives are currently parsed from the server
             default -> CommandParam.STRING;
         };
     }
 
-    private static Object handleResource(CommandBuilderContext context, Key resource, boolean tags) {
-        return switch (resource.asString()) {
+    private static Object handleResource(CommandBuilderContext context, Key registryKey, boolean tags) {
+        // If the registry is tracked by us, this will be an easy case
+        JavaRegistryKey<?> registry = JavaRegistries.fromKey(registryKey);
+        if (registry != null) {
+            return tags ? context.getRegistryElementsAndTags(registry) : context.getRegistryElements(registry);
+        }
+
+        // Else, go through some hardcoded registries:
+        return switch (registryKey.asString()) {
             case "minecraft:attribute" -> ATTRIBUTES;
-            case "minecraft:enchantment" -> context.getEnchantments();
-            case "minecraft:entity_type" -> context.getEntityTypes();
             case "minecraft:mob_effect" -> ALL_EFFECT_IDENTIFIERS;
-            case "minecraft:worldgen/biome" -> tags ? context.getBiomesWithTags() : context.getBiomes();
             default -> CommandParam.STRING;
         };
     }
@@ -353,64 +362,39 @@ public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommands
      */
     private record BedrockCommandInfo(String name, String description, CommandOverloadData[] paramData) implements
             org.geysermc.geyser.api.event.downstream.ServerDefineCommandsEvent.CommandInfo,
-            ServerDefineCommandsEvent.CommandInfo
-    {
+            ServerDefineCommandsEvent.CommandInfo {
     }
 
     /**
      * Stores command completions so we don't have to rebuild the same values multiple times.
      */
-    @MonotonicNonNull
     private static class CommandBuilderContext {
-        private final GeyserSession session;
-        private Object biomesWithTags;
-        private Object biomesNoTags;
-        private String[] enchantments;
-        private String[] entityTypes;
-        private String[] itemNames;
+        private final JavaRegistryProvider javaRegistries;
+        private final WorldCache worldCache;
+        private final String[] levels;
+        private final Map<JavaRegistryKey<?>, String[]> registryElements = new Reference2ObjectOpenHashMap<>();
+        private final Map<JavaRegistryKey<?>, String[]> registryElementsAndTags = new Reference2ObjectOpenHashMap<>();
         private CommandEnumData teams;
 
-        CommandBuilderContext(GeyserSession session) {
-            this.session = session;
+        private CommandBuilderContext(JavaRegistryProvider javaRegistries, WorldCache worldCache, String[] levels) {
+            this.javaRegistries = javaRegistries;
+            this.worldCache = worldCache;
+            this.levels = levels;
         }
 
-        private Object getBiomes() {
-            if (biomesNoTags != null) {
-                return biomesNoTags;
-            }
-
-            String[] identifiers = session.getGeyser().getWorldManager().getBiomeIdentifiers(false);
-            return (biomesNoTags = identifiers != null ? identifiers : CommandParam.STRING);
+        public String[] getRegistryElements(JavaRegistryKey<?> registry) {
+            return registryElements.computeIfAbsent(registry, $ -> javaRegistries.registry(registry).keys().stream()
+                .map(Key::asString)
+                .toArray(String[]::new));
         }
 
-        private Object getBiomesWithTags() {
-            if (biomesWithTags != null) {
-                return biomesWithTags;
-            }
-
-            String[] identifiers = session.getGeyser().getWorldManager().getBiomeIdentifiers(true);
-            return (biomesWithTags = identifiers != null ? identifiers : CommandParam.STRING);
-        }
-
-        private String[] getEnchantments() {
-            if (enchantments != null) {
-                return enchantments;
-            }
-            return (enchantments = session.javaRegistries().registry(JavaRegistries.ENCHANTMENT).keys().stream().map(Key::asString).toArray(String[]::new));
-        }
-
-        private String[] getEntityTypes() {
-            if (entityTypes != null) {
-                return entityTypes;
-            }
-            return (entityTypes = BuiltInJavaRegistries.ENTITY_TYPE.keys().stream().map(Key::asString).toArray(String[]::new));
-        }
-
-        public String[] getItemNames() {
-            if (itemNames != null) {
-                return itemNames;
-            }
-            return (itemNames = BuiltInJavaRegistries.ITEM.keys().stream().map(Key::asString).toArray(String[]::new));
+        public String[] getRegistryElementsAndTags(JavaRegistryKey<?> registry) {
+            return registryElementsAndTags.computeIfAbsent(registry, $ -> Stream.concat(javaRegistries.tags(registry)
+                    .map(Tag::tag)
+                    .map(Key::asString)
+                    // Prefix tags with a '#'
+                    .map(string -> "#" + string), Arrays.stream(getRegistryElements(registry)))
+                .toArray(String[]::new));
         }
 
         private CommandEnumData getTeams() {
@@ -418,7 +402,7 @@ public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommands
                 return teams;
             }
             return (teams = new CommandEnumData("Geyser_Teams",
-                    session.getWorldCache().getScoreboard().getTeamNames(), true
+                    worldCache.getScoreboard().getTeamNames(), true
             ));
         }
     }

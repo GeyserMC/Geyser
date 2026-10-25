@@ -35,6 +35,7 @@ import org.geysermc.geyser.session.cache.tags.Tag;
 import org.geysermc.mcprotocollib.protocol.packet.common.clientbound.ClientboundUpdateTagsPacket;
 import org.geysermc.mcprotocollib.protocol.packet.configuration.clientbound.ClientboundRegistryDataPacket;
 
+import java.util.Collection;
 import java.util.Optional;
 
 /**
@@ -66,6 +67,11 @@ public final class JavaRegistryTagCache implements JavaRegistryProvider {
     @Override
     public IntList rawTag(Tag<?> tag) {
         return tagCache.get(tag);
+    }
+
+    @Override
+    public Collection<Tag<?>> tags() {
+        return tagCache.tags();
     }
 
     public void clear() {
