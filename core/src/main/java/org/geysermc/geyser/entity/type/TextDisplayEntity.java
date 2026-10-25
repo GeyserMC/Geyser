@@ -69,6 +69,8 @@ public class TextDisplayEntity extends DisplayBaseEntity {
      */
     private static final float LINE_HEIGHT_OFFSET = 0.1414f;
 
+    private static final float LINE_HEIGHT = 0.266071429f;
+
     private static final boolean DEBUG = Boolean.getBoolean("Geyser.Debug.TextDisplay");
 
     /**
@@ -303,7 +305,21 @@ public class TextDisplayEntity extends DisplayBaseEntity {
         float y = (float) Math.atan2(-r20, Math.hypot(r00, r10));
         float z = (float) Math.atan2(r10, r00);
 
-        Vector3f scale = Vector3f.from(sx, sy, sz);
+        float scale = MathUtils.average(new float[]{ sx, sy, sz });
+
+        // Bedrock scales from mid-center, java scales from mid-bottom
+        if (scale != 1) {
+            float newHeight = LINE_HEIGHT * scale;
+
+            if (scale > 1) {
+                float extra = newHeight - LINE_HEIGHT;
+                translation = translation.add(0, extra / 2, 0);
+            } else {
+                float missing = LINE_HEIGHT - newHeight;
+                translation = translation.min(0, missing / 2, 0);
+            }
+        }
+
         // I'm not even gonna pretend I know why x needs to be negative, but it does, and it works
         Vector3f rotation = Vector3f.from(-Math.toDegrees(x), Math.toDegrees(y), Math.toDegrees(z));
 
@@ -324,7 +340,7 @@ public class TextDisplayEntity extends DisplayBaseEntity {
             0.13 * PlainTextComponentSerializer.plainText()
                 .serialize(this.text).split("\n").length,
             0
-        ).add(0, 0.25, 0).add(translation));
+        ).add(0, 0.1, 0).add(translation));
         text.setAttachedToEntityId(geyserId);
 
         GeyserLogger log = GeyserImpl.getInstance().getLogger();
@@ -372,7 +388,7 @@ public class TextDisplayEntity extends DisplayBaseEntity {
         //text.setShowBackface();
         //text.setShowTextBackface();
         text.setDimension(session.getBedrockDimension().bedrockId());
-        text.setScale(MathUtils.average(new float[]{ scale.getX(), scale.getY(), scale.getZ() }));
+        text.setScale(scale);
         DebugDrawerPacket packet = new DebugDrawerPacket();
         packet.getShapes().add(text);
         session.sendUpstreamPacket(packet);
