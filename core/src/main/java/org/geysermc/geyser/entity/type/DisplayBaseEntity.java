@@ -34,14 +34,16 @@ import org.cloudburstmc.math.vector.Vector3i;
 import org.geysermc.geyser.entity.spawn.EntitySpawnContext;
 import org.geysermc.geyser.util.EntityUtils;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.EntityMetadata;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.ByteEntityMetadata;
 
 import java.util.Objects;
 
 public class DisplayBaseEntity extends Entity {
 
+    @Getter
     private @NonNull Vector3f baseTranslation = Vector3f.ZERO;
 
-    @Getter @Setter
+    @Getter
     private @NonNull Vector3f baseScale = Vector3f.ONE;
 
     @Getter @Setter
@@ -49,6 +51,9 @@ public class DisplayBaseEntity extends Entity {
 
     @Getter @Setter
     private @NonNull Quaternionf rightRotation = Quaternionf.ZERO;
+
+    @Getter
+    private @NonNull Billboard billboard = Billboard.FIXED;
 
     public DisplayBaseEntity(EntitySpawnContext context) {
         super(context);
@@ -72,12 +77,23 @@ public class DisplayBaseEntity extends Entity {
         }
     }
 
-    public Vector3f getTranslation() {
-        return baseTranslation;
+    public void setScale(EntityMetadata<Vector3f, ?> translationMeta) {
+        this.baseScale = translationMeta.getValue();
+    }
+
+    public void setBillboard(ByteEntityMetadata metadata) {
+        this.billboard = Billboard.values()[metadata.getPrimitiveValue()];
     }
 
     @Override
     public Vector3f bedrockPosition() {
         return super.bedrockPosition().add(baseTranslation);
+    }
+
+    public enum Billboard {
+        FIXED,
+        VERTICAL,
+        HORIZONTAL,
+        CENTER;
     }
 }

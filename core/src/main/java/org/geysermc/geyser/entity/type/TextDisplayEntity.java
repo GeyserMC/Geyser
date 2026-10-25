@@ -39,6 +39,7 @@ import org.cloudburstmc.protocol.bedrock.data.debugshape.DebugText;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityEventType;
 import org.cloudburstmc.protocol.bedrock.packet.DebugDrawerPacket;
+import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.entity.property.BatchPropertyUpdater;
 import org.geysermc.geyser.entity.VanillaEntities;
 import org.geysermc.geyser.entity.spawn.EntitySpawnContext;
@@ -114,8 +115,8 @@ public class TextDisplayEntity extends DisplayBaseEntity {
     }
 
     @Override
-    public void setBaseScale(@NonNull Vector3f baseScale) {
-        super.setBaseScale(baseScale);
+    public void setScale(EntityMetadata<Vector3f, ?> translationMeta) {
+        super.setScale(translationMeta);
 
         updatePrimitiveText();
     }
@@ -132,6 +133,10 @@ public class TextDisplayEntity extends DisplayBaseEntity {
         super.setRightRotation(rightRotation);
 
         updatePrimitiveText();
+    }
+
+    public void setTextMetadata(EntityMetadata<Component, ?> metadata) {
+        setText(metadata.getValue());
     }
 
     @Override
@@ -230,8 +235,10 @@ public class TextDisplayEntity extends DisplayBaseEntity {
         DebugText text = new DebugText();
         text.setId(geyserId);
         text.setText(convertedMessage);
-        text.setPosition(position.add(getTranslation()));
-        text.setRotation(Vector3f.from(pitch, yaw, headYaw));
+        text.setPosition(bedrockPosition().add(getBaseTranslation()));
+        text.setRotation(bedrockRotation());
+        text.setUseRotation(!getBillboard().equals(Billboard.CENTER));
+        text.setDimension(session.getBedrockDimension().bedrockId());
         text.setScale(MathUtils.average(new float[]{ getBaseScale().getX(), getBaseScale().getY(), getBaseScale().getZ() }));
         DebugDrawerPacket packet = new DebugDrawerPacket();
         packet.getShapes().add(text);

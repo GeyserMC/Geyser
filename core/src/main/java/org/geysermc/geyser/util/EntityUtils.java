@@ -45,7 +45,6 @@ import org.geysermc.geyser.api.event.lifecycle.GeyserDefineEntityPropertiesEvent
 import org.geysermc.geyser.api.util.Identifier;
 import org.geysermc.geyser.entity.BedrockEntityDefinition;
 import org.geysermc.geyser.entity.CustomBedrockEntityDefinition;
-import org.geysermc.geyser.entity.EntityTypeDefinition;
 import org.geysermc.geyser.entity.GeyserEntityType;
 import org.geysermc.geyser.entity.VanillaEntities;
 import org.geysermc.geyser.entity.properties.type.BooleanProperty;
@@ -65,9 +64,8 @@ import org.geysermc.geyser.entity.type.living.animal.horse.CamelEntity;
 import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.registry.Registries;
-import org.geysermc.geyser.registry.java.JavaRegistryProvider;
 import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.geyser.registry.java.JavaRegistries;
+import org.geysermc.geyser.session.cache.registry.JavaRegistries;
 import org.geysermc.geyser.session.cache.tags.GeyserHolderSet;
 import org.geysermc.geyser.text.MinecraftLocale;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.Effect;
@@ -212,10 +210,7 @@ public final class EntityUtils {
                 case TRADER_LLAMA, LLAMA -> zOffset = -0.3f;
                 case TEXT_DISPLAY -> {
                     if (passenger instanceof TextDisplayEntity textDisplay) {
-                        Vector3f displayTranslation = textDisplay.getTranslation();
-                        if (displayTranslation == null) {
-                            return;
-                        }
+                        Vector3f displayTranslation = textDisplay.getBaseTranslation();
 
                         xOffset = displayTranslation.getX();
                         yOffset = displayTranslation.getY() + 0.2f;
@@ -224,9 +219,9 @@ public final class EntityUtils {
                 }
                 case PLAYER -> {
                     if (passenger instanceof TextDisplayEntity textDisplay) {
-                        Vector3f displayTranslation = textDisplay.getTranslation();
+                        Vector3f displayTranslation = textDisplay.getBaseTranslation();
                         int lines = textDisplay.getLineCount();
-                        if (displayTranslation != null && lines != 0) {
+                        if (lines != 0) {
                             float multiplier = .1414f;
                             xOffset = displayTranslation.getX();
                             yOffset += displayTranslation.getY() + multiplier * lines;
@@ -360,13 +355,13 @@ public final class EntityUtils {
         return translatedEntityName(typeName.namespace(), typeName.path(), session);
     }
 
-    public static boolean equipmentUsableByEntity(JavaRegistryProvider registries, Equippable equippable, EntityTypeDefinition<?> entity) {
+    public static boolean equipmentUsableByEntity(GeyserSession session, Equippable equippable, GeyserEntityType entity) {
         if (equippable.allowedEntities() == null) {
             return true;
         }
 
-        GeyserHolderSet<EntityTypeDefinition<?>> holderSet = GeyserHolderSet.fromMCPL(JavaRegistries.ENTITY_TYPE, equippable.allowedEntities());
-        return holderSet.contains(registries, entity);
+        GeyserHolderSet<GeyserEntityType> holderSet = GeyserHolderSet.fromHolderSet(JavaRegistries.ENTITY_TYPE, equippable.allowedEntities());
+        return holderSet.contains(session, entity);
     }
 
     // From ViaVersion! thank u!!
