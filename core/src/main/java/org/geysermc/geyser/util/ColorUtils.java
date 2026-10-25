@@ -25,11 +25,16 @@
 
 package org.geysermc.geyser.util;
 
+import net.kyori.adventure.text.Component;
 import net.kyori.adventure.util.HSVLike;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.inventory.item.DyeColor;
 
+import java.awt.*;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public final class ColorUtils {
 
@@ -126,5 +131,19 @@ public final class ColorUtils {
         green = (int) (green * averageIntensity / resultIntensity);
         blue = (int) (blue * averageIntensity / resultIntensity);
         return argbColor(0, red, green, blue);
+    }
+
+    public static Set<Color> extractAllColors(Component component) {
+        Set<Color> colors = new HashSet<>();
+
+        if (component.color() != null) {
+            colors.add(new Color(component.color().value()));
+        }
+
+        for (Component child : component.children()) {
+            colors.addAll(extractAllColors(child));
+        }
+
+        return Collections.unmodifiableSet(colors);
     }
 }
