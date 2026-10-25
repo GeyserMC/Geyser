@@ -215,4 +215,18 @@ public class MathUtils {
     public static long chunkPositionToLong(int x, int z) {
         return ((x & 0xFFFFFFFFL) << 32L) | (z & 0xFFFFFFFFL);
     }
+
+    /**
+     * Gets an average of all the items
+     *
+     * @param items numbers
+     * @return rounded result
+     */
+    public static float average(float[] items) {
+        float added = 0;
+        for (float item : items) {
+            added += item;
+        }
+        return added / items.length;
+    }
 }

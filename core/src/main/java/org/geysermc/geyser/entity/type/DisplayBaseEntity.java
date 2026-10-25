@@ -25,8 +25,12 @@
 
 package org.geysermc.geyser.entity.type;
 
+import lombok.Getter;
+import lombok.Setter;
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.cloudburstmc.math.imaginary.Quaternionf;
 import org.cloudburstmc.math.vector.Vector3f;
+import org.cloudburstmc.math.vector.Vector3i;
 import org.geysermc.geyser.entity.spawn.EntitySpawnContext;
 import org.geysermc.geyser.util.EntityUtils;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.EntityMetadata;
@@ -36,6 +40,15 @@ import java.util.Objects;
 public class DisplayBaseEntity extends Entity {
 
     private @NonNull Vector3f baseTranslation = Vector3f.ZERO;
+
+    @Getter @Setter
+    private @NonNull Vector3f baseScale = Vector3f.ONE;
+
+    @Getter @Setter
+    private @NonNull Quaternionf leftRotation = Quaternionf.ZERO;
+
+    @Getter @Setter
+    private @NonNull Quaternionf rightRotation = Quaternionf.ZERO;
 
     public DisplayBaseEntity(EntitySpawnContext context) {
         super(context);
