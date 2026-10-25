@@ -25,7 +25,6 @@
 
 package org.geysermc.geyser.scoreboard.network;
 
-import java.util.List;
 import net.kyori.adventure.text.Component;
 import org.cloudburstmc.protocol.bedrock.data.ScoreInfo;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
@@ -35,7 +34,10 @@ import org.cloudburstmc.protocol.bedrock.packet.MoveEntityAbsolutePacket;
 import org.cloudburstmc.protocol.bedrock.packet.SetDisplayObjectivePacket;
 import org.cloudburstmc.protocol.bedrock.packet.SetEntityDataPacket;
 import org.cloudburstmc.protocol.bedrock.packet.SetScorePacket;
+import org.geysermc.geyser.GeyserResources;
 import org.geysermc.geyser.entity.type.living.monster.EnderDragonPartEntity;
+import org.geysermc.geyser.registry.java.BuiltInJavaRegistries;
+import org.geysermc.geyser.registry.populator.DataComponentRegistryPopulator;
 import org.geysermc.geyser.translator.protocol.java.entity.JavaAddEntityTranslator;
 import org.geysermc.geyser.translator.protocol.java.entity.JavaSetEntityDataTranslator;
 import org.geysermc.geyser.translator.protocol.java.entity.player.JavaPlayerInfoUpdateTranslator;
@@ -69,9 +71,11 @@ import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.scoreboard.
 import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.scoreboard.ClientboundSetObjectivePacket;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.scoreboard.ClientboundSetPlayerTeamPacket;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.scoreboard.ClientboundSetScorePacket;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import java.util.EnumSet;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -87,6 +91,16 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
  * Tests for issues reported on GitHub.
  */
 public class ScoreboardIssueTests {
+
+    @BeforeAll
+    static void bootstrapJavaRegistries() {
+        // Needed because some tests here require a proper ENTITY_TYPE registry.
+        // This is a temp fix: ideally we wouldn't have a single globally initialised registry for all tests
+        // (because some future tests may want to test registering to a registry).
+        DataComponentRegistryPopulator.load(GeyserResources.DEFAULT);
+        BuiltInJavaRegistries.bootstrap();
+        BuiltInJavaRegistries.freeze();
+    }
 
     /**
      * Test for <a href="https://github.com/GeyserMC/Geyser/issues/5078">#5078</a>
