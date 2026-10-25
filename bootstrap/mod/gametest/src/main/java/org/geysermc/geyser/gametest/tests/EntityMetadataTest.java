@@ -47,7 +47,7 @@ import org.geysermc.geyser.entity.EntityTypeDefinition;
 import org.geysermc.geyser.entity.GeyserEntityType;
 import org.geysermc.geyser.gametest.mixin.SynchedEntityDataAccessor;
 import org.geysermc.geyser.gametest.util.SynchedEntityDataDebugger;
-import org.geysermc.geyser.registry.Registries;
+import org.geysermc.geyser.registry.java.BuiltInJavaRegistries;
 import org.geysermc.geyser.translator.entity.EntityMetadataTranslator;
 
 public class EntityMetadataTest extends GeyserTestInstance {
@@ -65,8 +65,7 @@ public class EntityMetadataTest extends GeyserTestInstance {
 
     @Override
     public void run(GameTestHelper helper) {
-        GeyserEntityType geyserEntityType = GeyserEntityType.of(BuiltInRegistries.ENTITY_TYPE.getId(entityType));
-        EntityTypeDefinition<?> definition = Registries.JAVA_ENTITY_TYPES.get(geyserEntityType);
+        EntityTypeDefinition<?> definition = BuiltInJavaRegistries.ENTITY_TYPE.getOrThrow(BuiltInRegistries.ENTITY_TYPE.getIdOrThrow(entityType));
 
         if (definition == null) {
             helper.fail("No entity definition found for type " + entityType);

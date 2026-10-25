@@ -34,7 +34,6 @@ import org.geysermc.geyser.entity.type.FallingBlockEntity;
 import org.geysermc.geyser.entity.type.FishingHookEntity;
 import org.geysermc.geyser.entity.type.HangingEntity;
 import org.geysermc.geyser.entity.type.player.PlayerEntity;
-import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.skin.SkinManager;
 import org.geysermc.geyser.text.GeyserLocale;
@@ -62,11 +61,7 @@ public class JavaAddEntityTranslator extends PacketTranslator<ClientboundAddEnti
             return;
         }
 
-        EntityTypeDefinition<?> definition = Registries.JAVA_ENTITY_TYPES.get(type);
-        if (definition == null) {
-            session.getGeyser().getLogger().debug("Could not find an entity definition for add entity packet " + packet);
-            return;
-        }
+        EntityTypeDefinition<?> definition = type.definition();
 
         Integer removedPlayerVehicleId = session.getPlayerEntity().getRemovedPlayerVehicleId();
         if (removedPlayerVehicleId != null && removedPlayerVehicleId == packet.getEntityId()) {
