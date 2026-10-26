@@ -37,6 +37,25 @@ class TextDisplayLayoutTest {
     }
 
     @Test
+    void standaloneCustomFontGlyphUsesBedrockFontCorrection() {
+        // VoxelFurniture's Help Box has a 1.5x text-display transform. Its
+        // bitmap glyph needs a separate Bedrock font correction, not another
+        // world-space translation or an adjustment to the whole text renderer.
+        assertEquals(1.20f, TextDisplayEntity.adjustedGlyphScale("\uE200", 1.5f, 0.80f), 0.00001f);
+        assertEquals(0.80f, TextDisplayEntity.adjustedGlyphScale("\uE200", 1.0f, 0.80f), 0.00001f);
+    }
+
+    @Test
+    void standardAndMixedTextNeverReceivesCustomGlyphCorrection() {
+        assertEquals(1.5f, TextDisplayEntity.adjustedGlyphScale("SURVIVAL PORTAL", 1.5f, 0.80f), 0.00001f);
+        assertEquals(1.5f, TextDisplayEntity.adjustedGlyphScale("Text \uE200", 1.5f, 0.80f), 0.00001f);
+        assertEquals(1.5f, TextDisplayEntity.adjustedGlyphScale("\uE200\uE201", 1.5f, 0.80f), 0.00001f);
+        assertEquals(1.5f, TextDisplayEntity.adjustedGlyphScale("?", 1.5f, 0.80f), 0.00001f);
+        assertEquals(1.5f, TextDisplayEntity.adjustedGlyphScale("", 1.5f, 0.80f), 0.00001f);
+        assertEquals(1.5f, TextDisplayEntity.adjustedGlyphScale(null, 1.5f, 0.80f), 0.00001f);
+    }
+
+    @Test
     void emptyParagraphsAndTrailingNewlinesRemainRepresented() {
         assertEquals("heading\n\u00a0\nbody\n\u00a0",
                 TextDisplayEntity.preserveBlankLines("heading\n\nbody\n"));
