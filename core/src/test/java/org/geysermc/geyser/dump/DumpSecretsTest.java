@@ -106,12 +106,13 @@ class DumpSecretsTest {
     private static final Advertised ADVERTISED = new Advertised(
         new Advertised.Builtin(List.of(), true, List.of(new InetSocketAddress("198.51.100.1", 40404))),
         new Advertised.Nxs(new ProviderClient.PublishedEndpoints(List.of(new InetSocketAddress("198.51.100.1", 19132),
-            new InetSocketAddress("2001:db8::1", 19133), new InetSocketAddress("192.168.1.5", 19132)), Set.of(6, 4))));
+            new InetSocketAddress("2001:db8::1", 19133), new InetSocketAddress("192.168.1.5", 19132)), Set.of(6, 4)),
+            "srv_01HZX"));
 
     @Test
     void censorsPublicAddressesNetherNetAdvertisesButKeepsTheirPorts() {
         assertEquals("{\"builtin\":{\"advertised\":[],\"stunDiscovery\":true,\"discovered\":[\"***:40404\"]},"
-                + "\"nxs\":{\"confirmed\":true,\"addresses\":[\"***:19132\",\"[***]:19133\",\"192.168.1.5:19132\"],"
+                + "\"nxs\":{\"confirmed\":true,\"instanceId\":\"srv_01HZX\",\"addresses\":[\"***:19132\",\"[***]:19133\",\"192.168.1.5:19132\"],"
                 + "\"assistedFamilies\":[4,6]}}",
             new Gson().toJson(DumpInfo.NetherNetInfo.of(ADVERTISED)));
     }
@@ -126,9 +127,15 @@ class DumpSecretsTest {
     }
 
     @Test
+    void keepsTheNxsInstanceIdReadableWithoutAFullDump() {
+        // Support looks the server up by it, and registration already logs it
+        assertEquals("srv_01HZX", DumpInfo.NetherNetInfo.of(ADVERTISED).nxs().instanceId());
+    }
+
+    @Test
     void tellsNxsRunningWithoutConfirmedAddressesFromNotRunning() {
         assertEquals("{\"nxs\":{\"confirmed\":false,\"addresses\":[],\"assistedFamilies\":[]}}",
-            new Gson().toJson(DumpInfo.NetherNetInfo.of(new Advertised(null, new Advertised.Nxs(null)))));
+            new Gson().toJson(DumpInfo.NetherNetInfo.of(new Advertised(null, new Advertised.Nxs(null, null)))));
         assertEquals("{}", new Gson().toJson(DumpInfo.NetherNetInfo.of(new Advertised(null, null))));
     }
 }

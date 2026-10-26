@@ -347,7 +347,7 @@ public class DumpInfo {
 
     /**
      * What each running signaling mode sends to joining players, see {@link NetherNetServer#advertised()}. Public
-     * addresses are censored unless the dump is full.
+     * addresses are censored unless the dump is full. The NXS instance id is not secret and stays readable.
      *
      * @param builtin null when built-in signaling is not running
      * @param nxs null when the external signaling service is not running
@@ -358,7 +358,7 @@ public class DumpInfo {
             ProviderClient.PublishedEndpoints published = advertised.nxs() == null ? null : advertised.nxs().published();
             return new NetherNetInfo(
                 builtin == null ? null : new Builtin(censor(builtin.configured()), builtin.stun(), censor(builtin.discovered())),
-                advertised.nxs() == null ? null : new Nxs(published != null,
+                advertised.nxs() == null ? null : new Nxs(published != null, advertised.nxs().instanceId(),
                     published == null ? List.of() : censor(published.endpoints()),
                     published == null ? List.of() : published.assistedFamilies().stream().sorted().toList()));
         }
@@ -375,8 +375,9 @@ public class DumpInfo {
 
         /**
          * @param confirmed whether the service has confirmed {@code addresses}
+         * @param instanceId the id the service knows this server by, null until registered
          */
-        public record Nxs(boolean confirmed, List<String> addresses, List<Integer> assistedFamilies) {
+        public record Nxs(boolean confirmed, @Nullable String instanceId, List<String> addresses, List<Integer> assistedFamilies) {
         }
     }
 }

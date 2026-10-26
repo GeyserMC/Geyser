@@ -130,6 +130,8 @@ public final class NetherNetServer implements EventRegistrar {
     private final Object providerLifecycle = new Object();
     private volatile boolean stopping;
     private volatile ProviderClient providerClient;
+    /** The id the external signaling service knows this server by, null until registered. */
+    private volatile @Nullable String providerInstanceId;
     private volatile ProviderShutdown providerShutdown;
     /**
      * The provider's start, which stops what it opened itself if shut down midway.
@@ -464,6 +466,7 @@ public final class NetherNetServer implements EventRegistrar {
                         stopProvider();
                         return;
                     }
+                    providerInstanceId = registration.instanceId();
                     logger().info(registrationMessage(registration));
                     // Says where logins are vouched for, without putting provider credentials in the log
                     logger().debug("Player logins over NetherNet are verified by the external signaling service at " + origin.getHost() + ".");
@@ -566,7 +569,7 @@ public final class NetherNetServer implements EventRegistrar {
                 // An entry without a port is on the WebRTC port
                 .map(address -> address.getPort() == 0 ? new InetSocketAddress(address.getAddress(), webrtcPort) : address)
                 .toList(), builtinStun, builtin.discoveredEndpoints()),
-            client == null ? null : new Advertised.Nxs(client.publishedEndpoints().orElse(null)));
+            client == null ? null : new Advertised.Nxs(client.publishedEndpoints().orElse(null), providerInstanceId));
     }
 
     /**
@@ -586,8 +589,9 @@ public final class NetherNetServer implements EventRegistrar {
 
         /**
          * @param published what the service last confirmed, or null while it has confirmed nothing
+         * @param instanceId the id the service knows this server by, or null until it has registered
          */
-        public record Nxs(ProviderClient.@Nullable PublishedEndpoints published) {
+        public record Nxs(ProviderClient.@Nullable PublishedEndpoints published, @Nullable String instanceId) {
         }
     }
 
@@ -745,6 +749,7 @@ public final class NetherNetServer implements EventRegistrar {
                 providerStopped = providerClient.stop();
             } else closeNetworkResources();
             providerClient = null;
+            providerInstanceId = null;
         }
     }
 
