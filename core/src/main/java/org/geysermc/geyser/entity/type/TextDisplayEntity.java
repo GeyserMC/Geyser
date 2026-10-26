@@ -74,21 +74,23 @@ public class TextDisplayEntity extends DisplayBaseEntity {
     /**
      * Bedrock DebugText draws below the equivalent Java text-display anchor.
      * The default is calibrated against Java/Bedrock screenshots of the same
-     * multiline text display. Units are blocks at scale 1; keep this scaled
-     * with the display transformation so smaller text does not overcompensate.
+     * multiline text display. This baseline compensates for Bedrock's text
+     * attachment origin in world units and must NOT be multiplied by font
+     * scale: that made large headings and furniture glyphs float too high.
+     * Only the text block height scales.
      *
-     * Override with {@code -Dgeyser.textDisplay.verticalAnchorCorrection=0.70}
+     * Override with {@code -Dgeyser.textDisplay.verticalAnchorCorrection=0.66}
      * when calibrating different Bedrock builds without recompiling.
      */
     private static final float BEDROCK_TEXT_ANCHOR_CORRECTION = readVerticalAnchorCorrection();
 
     private static float readVerticalAnchorCorrection() {
-        String property = System.getProperty("geyser.textDisplay.verticalAnchorCorrection", "0.70");
+        String property = System.getProperty("geyser.textDisplay.verticalAnchorCorrection", "0.66");
         try {
             float correction = Float.parseFloat(property);
-            return Float.isFinite(correction) ? correction : 0.70f;
+            return Float.isFinite(correction) ? correction : 0.66f;
         } catch (NumberFormatException exception) {
-            return 0.70f;
+            return 0.66f;
         }
     }
 
@@ -410,15 +412,16 @@ public class TextDisplayEntity extends DisplayBaseEntity {
     /**
      * Align the vertical centre of Bedrock's DebugText with Java's bottom
      * text-display pivot. Java uses 9-pixel glyphs plus 1-pixel line spacing
-     * and 40 pixels per world block. The remaining font-anchor difference is
-     * calibrated separately and scales with the entity transform.
+     * and 40 pixels per world block. Only Java's text height scales with
+     * the display; Bedrock's attached-entity baseline correction is in
+     * world units and must remain constant across font scales.
      */
     static float calculateBedrockVerticalOffset(int lineCount, float scale) {
         if (lineCount <= 0) {
             return 0.0f;
         }
         float javaTextHeight = (lineCount * 10.0f - 1.0f) * JAVA_TEXT_PIXEL_SCALE;
-        return (javaTextHeight / 2.0f + BEDROCK_TEXT_ANCHOR_CORRECTION) * scale;
+        return javaTextHeight * scale / 2.0f + BEDROCK_TEXT_ANCHOR_CORRECTION;
     }
 
     /**
