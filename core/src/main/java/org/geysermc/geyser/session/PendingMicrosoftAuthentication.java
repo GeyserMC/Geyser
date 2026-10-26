@@ -28,6 +28,7 @@ package org.geysermc.geyser.session;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
+import io.netty.util.concurrent.DefaultThreadFactory;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.SneakyThrows;
@@ -40,13 +41,17 @@ import net.raphimc.minecraftauth.msa.model.MsaDeviceCode;
 import net.raphimc.minecraftauth.msa.model.MsaToken;
 import net.raphimc.minecraftauth.msa.service.impl.DeviceCodeMsaAuthService;
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.GeyserLogger;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
@@ -55,6 +60,21 @@ import java.util.function.Consumer;
  * It permits user to exit the server while they authorize Geyser to access their Microsoft account.
  */
 public class PendingMicrosoftAuthentication {
+    /**
+     * Flows wait for the player to enter their code for up to the timeout, so they get threads of their own
+     * instead of the common pool, and can be interrupted when replaced. {@code Geyser.MicrosoftLoginThreads} sets
+     * how many run at once; further flows wait for a free thread.
+     */
+    private static final ExecutorService FLOW_EXECUTOR;
+
+    static {
+        int threads = Math.max(1, Integer.getInteger("Geyser.MicrosoftLoginThreads", 16));
+        ThreadPoolExecutor executor = new ThreadPoolExecutor(threads, threads, 60, TimeUnit.SECONDS, new LinkedBlockingQueue<>(),
+            new DefaultThreadFactory("Geyser Microsoft Login", true));
+        executor.allowCoreThreadTimeOut(true);
+        FLOW_EXECUTOR = executor;
+    }
+
     public static final HttpClient AUTH_CLIENT = MinecraftAuth.createHttpClient();
     /**
      * For GeyserConnect usage.
@@ -88,12 +108,11 @@ public class PendingMicrosoftAuthentication {
     }
 
     public class AuthenticationTask {
-        private static final Executor DELAYED_BY_ONE_SECOND = CompletableFuture.delayedExecutor(1, TimeUnit.SECONDS);
-
         private final String userKey;
         private final int timeoutSec;
         @Getter
         private CompletableFuture<JavaAuthManager> authentication;
+        private @Nullable Future<?> runningFlow;
 
         private AuthenticationTask(String userKey, int timeoutSec) {
             this.userKey = userKey;
@@ -105,8 +124,11 @@ public class PendingMicrosoftAuthentication {
                 return;
             }
 
-            // Interrupt the current flow
+            // Interrupt the current flow; cancelling the CompletableFuture alone leaves its thread polling
             this.authentication.cancel(true);
+            if (runningFlow != null) {
+                runningFlow.cancel(true);
+            }
         }
 
         public void cleanup() {
@@ -120,17 +142,20 @@ public class PendingMicrosoftAuthentication {
         public CompletableFuture<JavaAuthManager> performLoginAttempt(boolean offlineAccess, Consumer<MsaDeviceCode> deviceCodeConsumer) {
             MsaApplicationConfig applicationConfig = GeyserImpl.OAUTH_CONFIG.withScope(offlineAccess ? MsaConstants.SCOPE_OFFLINE_ACCESS : MsaConstants.SCOPE_NO_OFFLINE_ACCESS);
             DeviceCodeMsaAuthService authService = new DeviceCodeMsaAuthService(AUTH_CLIENT, applicationConfig, deviceCodeConsumer, timeoutSec * 1000);
-            return authentication = CompletableFuture.supplyAsync(() -> {
+            CompletableFuture<JavaAuthManager> result = new CompletableFuture<>();
+            runningFlow = FLOW_EXECUTOR.submit(() -> {
                 try {
+                    Thread.sleep(1000);
                     MsaToken msaToken = authService.acquireToken();
                     JavaAuthManager authManager = JavaAuthManager.create(AUTH_CLIENT).msaApplicationConfig(applicationConfig).login(msaToken);
                     authManager.getMinecraftToken().refresh(); // Preload the Minecraft token
                     authManager.getMinecraftProfile().refresh(); // Preload the Minecraft profile
-                    return authManager;
-                } catch (Exception e) {
-                    throw new CompletionException(e);
+                    result.complete(authManager);
+                } catch (Throwable t) {
+                    result.completeExceptionally(new CompletionException(t));
                 }
-            }, DELAYED_BY_ONE_SECOND).whenComplete((r, ex) -> {
+            });
+            return authentication = result.whenComplete((r, ex) -> {
                 // avoid memory leak, in case player doesn't connect again
                 CompletableFuture.delayedExecutor(timeoutSec, TimeUnit.SECONDS).execute(this::cleanup);
             });

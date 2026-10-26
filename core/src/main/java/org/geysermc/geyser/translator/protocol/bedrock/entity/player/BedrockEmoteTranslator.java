@@ -29,17 +29,31 @@ import org.cloudburstmc.protocol.bedrock.data.EmoteFlag;
 import org.cloudburstmc.protocol.bedrock.packet.EmotePacket;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.event.bedrock.ClientEmoteEvent;
-import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.type.player.PlayerEntity;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 
+import java.util.UUID;
+
 @Translator(packet = EmotePacket.class)
 public class BedrockEmoteTranslator extends PacketTranslator<EmotePacket> {
+    /**
+     * Shortest interval between relayed emotes of one player
+     */
+    private static final long EMOTE_COOLDOWN_MILLIS = 500;
 
     @Override
     public void translate(GeyserSession session, EmotePacket packet) {
+        if (!session.isSpawned() || !isUuid(packet.getEmoteId())) {
+            return;
+        }
+        long now = System.currentTimeMillis();
+        if (now - session.getLastEmoteTime() < EMOTE_COOLDOWN_MILLIS) {
+            return;
+        }
+        session.setLastEmoteTime(now);
+
         // For the future: could have a method that exposes which players will see the emote
         ClientEmoteEvent event = new ClientEmoteEvent(session, packet.getEmoteId());
         if (!GeyserImpl.getInstance().config().gameplay().emotesEnabled()) {
@@ -51,15 +65,25 @@ public class BedrockEmoteTranslator extends PacketTranslator<EmotePacket> {
             return;
         }
 
-        int javaId = session.getPlayerEntity().getEntityId();
+        // Java entity ids are per server, and behind a proxy other sessions may be on another one
+        UUID uuid = session.getPlayerEntity().uuid();
         String xuid = session.getAuthData().xuid();
         String emote = packet.getEmoteId();
         for (GeyserSession otherSession : session.getGeyser().getSessionManager().getSessions().values()) {
             if (otherSession != session) {
                 if (otherSession.isClosed()) continue;
 
-                otherSession.ensureInEventLoop(() -> playEmote(otherSession, javaId, xuid, emote, event.silent()));
+                otherSession.ensureInEventLoop(() -> playEmote(otherSession, uuid, xuid, emote, event.silent()));
             }
+        }
+    }
+
+    private static boolean isUuid(String emoteId) {
+        try {
+            UUID.fromString(emoteId);
+            return true;
+        } catch (IllegalArgumentException e) {
+            return false;
         }
     }
 
@@ -68,14 +92,14 @@ public class BedrockEmoteTranslator extends PacketTranslator<EmotePacket> {
      * This method must be called within the session's event loop.
      *
      * @param session the session to show the emote to
-     * @param emoterJavaId the java id of the emoter
+     * @param emoterUuid the uuid of the emoter
      * @param emoterXuid the xuid of the emoter
      * @param emoteId the emote to play
      * @param silent whether to suppress the emote chat announcement
      */
-    private static void playEmote(GeyserSession session, int emoterJavaId, String emoterXuid, String emoteId, boolean silent) {
-        Entity emoter = session.getEntityCache().getEntityByJavaId(emoterJavaId); // Must be ran on same thread
-        if (emoter instanceof PlayerEntity) {
+    private static void playEmote(GeyserSession session, UUID emoterUuid, String emoterXuid, String emoteId, boolean silent) {
+        PlayerEntity emoter = session.getEntityCache().getPlayerEntity(emoterUuid);
+        if (emoter != null && emoter.isValid()) {
             EmotePacket packet = new EmotePacket();
             packet.setRuntimeEntityId(emoter.geyserId());
             packet.setXuid(emoterXuid);
