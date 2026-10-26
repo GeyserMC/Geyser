@@ -29,7 +29,6 @@ import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.protocol.bedrock.codec.BedrockCodec;
-import org.cloudburstmc.protocol.bedrock.codec.v2168.Bedrock_v2168;
 import org.cloudburstmc.protocol.bedrock.codec.v2168.Bedrock_v2168_hotfix4;
 import org.cloudburstmc.protocol.bedrock.codec.v2169.Bedrock_v2169;
 import org.cloudburstmc.protocol.bedrock.codec.v2193.Bedrock_v2193;
@@ -138,12 +137,12 @@ public final class GameProtocol {
 
     /* Bedrock convenience methods to gatekeep features and easily remove the check on version removal */
 
-    public static boolean is26_40orHigher(int protocolVersion) {
-        return protocolVersion >= Bedrock_v2168.CODEC.getProtocolVersion();
-    }
-
     public static boolean is26_50orHigher(int protocolVersion) {
         return protocolVersion >= Bedrock_v2193.CODEC.getProtocolVersion();
+    }
+
+    public static boolean is26_60orHigher(int protocolVersion) {
+        return protocolVersion >= Bedrock_v2225.CODEC.getProtocolVersion();
     }
 
     /**
