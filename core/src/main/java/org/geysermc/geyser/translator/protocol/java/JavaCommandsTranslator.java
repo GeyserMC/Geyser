@@ -63,6 +63,10 @@ import org.geysermc.mcprotocollib.protocol.data.game.command.CommandNode;
 import org.geysermc.mcprotocollib.protocol.data.game.command.CommandParser;
 import org.geysermc.mcprotocollib.protocol.data.game.command.properties.ResourceProperties;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.attribute.AttributeType;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.player.GameMode;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.SwingAnimation;
+import org.geysermc.mcprotocollib.protocol.data.game.level.HeightmapTypes;
+import org.geysermc.mcprotocollib.protocol.data.game.level.particle.ParticleType;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.ClientboundCommandsPacket;
 
 import java.util.ArrayList;
@@ -87,7 +91,14 @@ public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommands
      */
     private static final Supplier<String[]> ALL_BLOCK_NAMES = Suppliers.memoize(() -> BuiltInJavaRegistries.BLOCK.keys().stream().map(Key::asString).toArray(String[]::new));
     private static final String[] ALL_EFFECT_IDENTIFIERS = EntityUtils.getAllEffectIdentifiers();
-    private static final String[] ATTRIBUTES = AttributeType.Builtin.BUILTIN.values().stream().map(type -> type.getIdentifier().asString()).toList().toArray(new String[0]);
+    private static final String[] ATTRIBUTES = AttributeType.Builtin.BUILTIN.values().stream().map(type -> type.getIdentifier().asString()).toList().toArray(String[]::new);
+    private static final String[] PARTICLES = Arrays.stream(ParticleType.values()).map(type -> "minecraft:" + type.name().toLowerCase(Locale.ROOT)).toArray(String[]::new);
+    private static final String[] GAMEMODES = Arrays.stream(GameMode.values()).map(mode -> mode.name().toLowerCase(Locale.ROOT)).toArray(String[]::new);
+    private static final String[] ANCHORS = {"eyes", "feet"};
+    private static final String[] MIRROR_MODES = {"none", "left_right", "front_back"};
+    private static final String[] ROTATION_MODES = {"none", "clockwise_90", "180", "counterclockwise_90"};
+    private static final String[] HEIGHTMAPS = Arrays.stream(HeightmapTypes.values()).map(type -> type.name().toLowerCase(Locale.ROOT)).toArray(String[]::new);
+    private static final String[] SWING_ANIMATIONS = Arrays.stream(SwingAnimation.Type.values()).map(type -> type.name().toLowerCase(Locale.ROOT)).toArray(String[]::new);
     private static final String[] ENUM_BOOLEAN = {"true", "false"};
     private static final String[] VALID_COLORS;
     private static final String[] VALID_SCOREBOARD_SLOTS;
@@ -151,6 +162,7 @@ public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommands
         }
 
         CommandRegistry registry = session.getGeyser().commandRegistry();
+        CommandBuilderContext builderContext = new CommandBuilderContext(session.javaRegistries(), session.getWorldCache(), session.getLevels());
         CommandNode[] nodes = packet.getNodes();
         List<CommandData> commandData = new ArrayList<>();
         IntSet commandNodes = new IntOpenHashSet();
@@ -178,7 +190,7 @@ public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommands
             }
 
             // Get and parse all params
-            CommandOverloadData[] params = getParams(session, nodes[nodeIndex], nodes);
+            CommandOverloadData[] params = getParams(builderContext, nodes[nodeIndex], nodes);
 
             // Insert the alias name into the command list
             String name = node.getName().toLowerCase(Locale.ROOT);
@@ -275,12 +287,12 @@ public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommands
     /**
      * Build the command parameter array for the given command
      *
-     * @param session the session
+     * @param context the {@link CommandBuilderContext}
      * @param commandNode The command to build the parameters for
      * @param allNodes    Every command node
      * @return An array of parameter option arrays
      */
-    private static CommandOverloadData[] getParams(GeyserSession session, CommandNode commandNode, CommandNode[] allNodes) {
+    private static CommandOverloadData[] getParams(CommandBuilderContext context, CommandNode commandNode, CommandNode[] allNodes) {
         // Check if the command is an alias and redirect it
         if (commandNode.getRedirectIndex().isPresent()) {
             int redirectIndex = commandNode.getRedirectIndex().getAsInt();
@@ -291,7 +303,7 @@ public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommands
         if (commandNode.getChildIndices().length >= 1) {
             // Create the root param node and build all the children
             ParamInfo rootParam = new ParamInfo(commandNode, null);
-            rootParam.buildChildren(new CommandBuilderContext(session.javaRegistries(), session.getWorldCache(), session.getLevels()), allNodes);
+            rootParam.buildChildren(context, allNodes);
 
             List<CommandOverloadData> treeData = rootParam.getTree();
 
@@ -315,24 +327,39 @@ public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommands
         }
 
         return switch (parser) {
-            case FLOAT, ROTATION, DOUBLE -> CommandParam.FLOAT;
+            case BOOL -> ENUM_BOOLEAN;
+            case FLOAT, DOUBLE, ROTATION -> CommandParam.FLOAT;
             case INTEGER, LONG -> CommandParam.INT;
-            case ENTITY, GAME_PROFILE -> CommandParam.TARGET;
+            case ENTITY, GAME_PROFILE, SCORE_HOLDER -> CommandParam.TARGET;
             case BLOCK_POS -> CommandParam.BLOCK_POSITION;
             case COLUMN_POS, VEC3 -> CommandParam.POSITION;
-            case MESSAGE -> CommandParam.MESSAGE;
-            case NBT_COMPOUND_TAG, NBT_TAG, NBT_PATH -> CommandParam.JSON; //TODO NBT was removed
-            case RESOURCE_LOCATION, FUNCTION -> CommandParam.FILE_PATH;
-            case BOOL -> ENUM_BOOLEAN;
-            case OPERATION -> CommandParam.OPERATOR; // ">=", "==", etc
             case BLOCK_STATE -> ALL_BLOCK_NAMES.get();
             case ITEM_STACK -> context.getRegistryElements(JavaRegistries.ITEM);
             case TEAM_COLOR -> VALID_COLORS;
+            case COMPONENT -> CommandParam.TEXT;
+            case MESSAGE -> CommandParam.MESSAGE;
+            case NBT_COMPOUND_TAG, NBT_TAG, NBT_PATH -> CommandParam.JSON; //TODO NBT was removed
+            case OPERATION -> CommandParam.OPERATOR; // ">=", "==", etc
+            case PARTICLE -> PARTICLES;
             case SCOREBOARD_SLOT -> VALID_SCOREBOARD_SLOTS;
-            case RESOURCE -> handleResource(context, ((ResourceProperties) node.getProperties()).getRegistryKey(), false);
-            case RESOURCE_OR_TAG -> handleResource(context, ((ResourceProperties) node.getProperties()).getRegistryKey(), true);
-            case DIMENSION -> context.levels;
             case TEAM -> context.getTeams(); // Note: as of Java 1.19.3, objectives are currently parsed from the server
+            case ITEM_SLOT, ITEM_SLOTS, SLOT_SOURCE -> CommandParam.EQUIPMENT_SLOTS;
+            case RESOURCE_LOCATION, FUNCTION -> CommandParam.FILE_PATH; // TODO FIXME
+            case ENTITY_ANCHOR -> ANCHORS;
+            case INT_RANGE -> CommandParam.INT_RANGE_FULL;
+            case FLOAT_RANGE -> CommandParam.RATIONAL_RANGE_FULL;
+            case DIMENSION -> context.levels;
+            case GAMEMODE -> GAMEMODES;
+            case RESOURCE_OR_TAG, RESOURCE_OR_TAG_KEY -> handleResource(context, ((ResourceProperties) node.getProperties()).getRegistryKey(), true);
+            case RESOURCE, RESOURCE_KEY -> handleResource(context, ((ResourceProperties) node.getProperties()).getRegistryKey(), false);
+            case TEMPLATE_MIRROR -> MIRROR_MODES;
+            case TEMPLATE_ROTATION -> ROTATION_MODES;
+            case HEIGHTMAP -> HEIGHTMAPS;
+            // These are reloadable registries and as such can never be loaded by Geyser
+            case LOOT_TABLE, LOOT_PREDICATE, LOOT_MODIFIER, FEATURE,
+                 CONTEXT_FLOAT_PROVIDER, CONTEXT_INT_PROVIDER -> CommandParam.FILE_PATH;
+            case DIALOG -> context.getRegistryElements(JavaRegistries.DIALOG);
+            case SWING_ANIMATION -> SWING_ANIMATIONS;
             default -> CommandParam.STRING;
         };
     }
@@ -341,7 +368,9 @@ public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommands
         // If the registry is tracked by us, this will be an easy case
         JavaRegistryKey<?> registry = JavaRegistries.fromKey(registryKey);
         if (registry != null) {
-            return tags ? context.getRegistryElementsAndTags(registry) : context.getRegistryElements(registry);
+            String[] a = tags ? context.getRegistryElementsAndTags(registry) : context.getRegistryElements(registry);
+            System.out.println(registryKey + " " + tags + " : " + Arrays.toString(a));
+            return a;
         }
 
         // Else, go through some hardcoded registries:
