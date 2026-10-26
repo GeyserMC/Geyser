@@ -28,6 +28,7 @@ package org.geysermc.geyser.api.entity;
 import org.checkerframework.checker.index.qual.NonNegative;
 import org.geysermc.geyser.api.connection.GeyserConnection;
 import org.geysermc.geyser.api.entity.type.GeyserEntity;
+import org.geysermc.geyser.api.entity.type.player.GeyserAvatarEntity;
 import org.geysermc.geyser.api.entity.type.player.GeyserPlayerEntity;
 import org.jetbrains.annotations.ApiStatus;
 import org.jspecify.annotations.Nullable;
@@ -104,18 +105,23 @@ public interface EntityData {
     /**
      * This method is deprecated for removal and will be removed in Geyser 2.13.0.
      *
-     * @deprecated use {@link GeyserConnection#requestOffhandSwap()} instead
+     * @deprecated since 2.9.3: use {@link GeyserConnection#requestOffhandSwap()} instead
      */
     @Deprecated(since = "2.9.3", forRemoval = true)
     void switchHands();
 
     /**
-     * This method is deprecated for removal and will be removed in Geyser 2.13.0.
+     * This is the equivalent of {@link GeyserAvatarEntity#showEmote(String, boolean)},
+     * with the emote chat announcement silencing set to false.
      *
-     * @deprecated Use {@link GeyserConnection#showEmote(GeyserPlayerEntity, String)} instead.
+     * <p>This method is deprecated for removal and will be removed in Geyser 2.13.0.</p>
+     *
+     * @deprecated since 2.9.3: use {@link GeyserConnection#showEmote(GeyserPlayerEntity, String)} instead
      */
     @Deprecated(since = "2.9.3", forRemoval = true)
-    void showEmote(GeyserPlayerEntity emoter, String emoteId);
+    default void showEmote(GeyserPlayerEntity emoter, String emoteId) {
+        emoter.showEmote(emoteId);
+    }
 
     /**
      * This method is deprecated for removal and will be removed in Geyser 2.13.0.

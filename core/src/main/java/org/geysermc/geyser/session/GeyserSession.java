@@ -154,6 +154,7 @@ import org.geysermc.geyser.inventory.Inventory;
 import org.geysermc.geyser.inventory.InventoryHolder;
 import org.geysermc.geyser.inventory.LecternContainer;
 import org.geysermc.geyser.inventory.PlayerInventory;
+import org.geysermc.geyser.inventory.click.ClickPlan;
 import org.geysermc.geyser.inventory.recipe.GeyserRecipe;
 import org.geysermc.geyser.inventory.recipe.GeyserStonecutterData;
 import org.geysermc.geyser.inventory.recipe.TrimRecipes;
@@ -163,7 +164,6 @@ import org.geysermc.geyser.level.BedrockDimension;
 import org.geysermc.geyser.level.JavaDimension;
 import org.geysermc.geyser.level.gamerule.GameRuleHandler;
 import org.geysermc.geyser.level.physics.CollisionManager;
-import org.geysermc.geyser.network.bedrock.GameProtocol;
 import org.geysermc.geyser.network.java.LocalSession;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.registry.java.JavaRegistries;
@@ -197,6 +197,7 @@ import org.geysermc.geyser.session.dialog.BuiltInDialog;
 import org.geysermc.geyser.session.dialog.Dialog;
 import org.geysermc.geyser.session.dialog.DialogManager;
 import org.geysermc.geyser.skin.SkinManager;
+import org.geysermc.geyser.skin.SkinProvider;
 import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.translator.inventory.InventoryTranslator;
 import org.geysermc.geyser.translator.text.MessageTranslator;
@@ -752,6 +753,22 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource, Jav
     private ScheduledFuture<?> tickThread = null;
 
     /**
+     * Inventory clicks left to send to the Java server this tick.
+     */
+    private int inventoryClicksLeft = ClickPlan.MAX_CLICKS_PER_TICK;
+
+    /**
+     * When an emote of this player was last relayed to other sessions, in milliseconds.
+     */
+    @Setter
+    private long lastEmoteTime;
+
+    /**
+     * How many packet translations of this session have thrown.
+     */
+    private int translatorFailures;
+
+    /**
      * The number of ticks that have elapsed since the start of this session
      */
     private int ticks;
@@ -1128,7 +1145,8 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource, Jav
      * If successful, also begins connecting to the Java server.
      */
     public boolean onMicrosoftLoginComplete(PendingMicrosoftAuthentication.AuthenticationTask task) {
-        if (closed) {
+        // A cancelled flow was replaced by a newer attempt, which completes the login instead
+        if (closed || task.getAuthentication().isCancelled()) {
             return false;
         }
         task.cleanup(); // player is online -> remove pending authentication immediately
@@ -1268,6 +1286,9 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource, Jav
 
             // Remove from session manager
             geyser.getSessionManager().removeSession(this);
+            if (playerEntity.uuid() != null) {
+                SkinProvider.removeBedrockSkin(playerEntity.uuid());
+            }
             // Don't cancel any pending Microsoft auth here - the whole point of PendingMicrosoftAuthentication
             // is to let mobile users disconnect to finish auth in the browser. Task cleans up on timeout.
         }
@@ -1344,11 +1365,29 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource, Jav
         }
     }
 
+    public int incrementTranslatorFailures() {
+        return ++translatorFailures;
+    }
+
+    /**
+     * Takes one inventory click from this tick's budget.
+     *
+     * @return false if the budget is spent
+     */
+    public boolean takeInventoryClick() {
+        if (inventoryClicksLeft <= 0) {
+            return false;
+        }
+        inventoryClicksLeft--;
+        return true;
+    }
+
     /**
      * Called every Minecraft tick.
      */
     protected void tick() {
         try {
+            inventoryClicksLeft = ClickPlan.MAX_CLICKS_PER_TICK;
             pistonCache.tick();
 
             worldBorder.tick();
@@ -2012,7 +2051,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource, Jav
         startGamePacket.setUniqueEntityId(playerEntity.geyserId());
         startGamePacket.setRuntimeEntityId(playerEntity.geyserId());
         GameType gameType = EntityUtils.toBedrockGamemode(gameMode);
-        if (gameType == GameType.SURVIVAL_VIEWER && GameProtocol.is26_40orHigher(this.protocolVersion())) {
+        if (gameType == GameType.SURVIVAL_VIEWER) {
             gameType = GameType.SURVIVAL;
             pendingSpectator = true;
         }
@@ -2622,11 +2661,6 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource, Jav
         transferPacket.setPort(port);
         sendUpstreamPacket(transferPacket);
         return true;
-    }
-
-    @Override
-    public void showEmote(@NonNull GeyserPlayerEntity emoter, @NonNull String emoteId) {
-        entities().showEmote(emoter, emoteId);
     }
 
     @Override

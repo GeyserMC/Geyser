@@ -28,6 +28,7 @@ package org.geysermc.geyser.network.bedrock.nethernet.signaling.provider;
 import org.cloudburstmc.netty.signaling.ProviderClient;
 import org.cloudburstmc.netty.signaling.provider.ProviderRuntimeConfiguration;
 import org.geysermc.geyser.configuration.GeyserConfig;
+import org.geysermc.geyser.network.bedrock.GameProtocol;
 import org.geysermc.geyser.network.bedrock.nethernet.NetherNetServer;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -175,6 +176,21 @@ class ProviderConfigurationTest {
             settings(config("{}"), advanced("location: {country: ' gb '}\n")).location());
         assertNull(settings(config("{}"), advanced("{}")).location(),
             "Without a location the provider estimates it");
+    }
+
+    @Test
+    void reportsExactlyTheProtocolsALoginIsAcceptedWith() throws Exception {
+        var protocols = settings(config("{}"), advanced("{}")).bedrockProtocols();
+        List<Integer> accepted = protocols.accepted();
+        for (int i = 1; i < accepted.size(); i++) {
+            assertTrue(accepted.get(i - 1) < accepted.get(i), "ascending and unique");
+        }
+        for (int protocol : GameProtocol.SUPPORTED_BEDROCK_PROTOCOLS) {
+            assertTrue(accepted.contains(protocol), String.valueOf(protocol));
+        }
+        accepted.forEach(protocol -> assertNotNull(GameProtocol.getBedrockCodec(protocol), "accepted at login"));
+        assertEquals(GameProtocol.DEFAULT_BEDROCK_PROTOCOL, accepted.get(accepted.size() - 1));
+        assertEquals(GameProtocol.DEFAULT_BEDROCK_VERSION, protocols.version());
     }
 
     @Test
