@@ -116,6 +116,27 @@ public class TextDisplayEntity extends DisplayBaseEntity {
         }
     }
 
+    /**
+     * A single custom bitmap glyph can have a different vertical origin in
+     * Bedrock's glyph sheet than Java's bitmap font. Correct that origin
+     * independently of the text's visual scale and the general line-height
+     * anchor. This is measured in world blocks per 1x Java text display scale:
+     * negative values move the glyph down.
+     *
+     * Override with {@code -Dgeyser.textDisplay.singleGlyphVerticalOffset=-0.40}.
+     */
+    private static final float BEDROCK_SINGLE_GLYPH_VERTICAL_OFFSET = readSingleGlyphVerticalOffset();
+
+    private static float readSingleGlyphVerticalOffset() {
+        String property = System.getProperty("geyser.textDisplay.singleGlyphVerticalOffset", "-0.40");
+        try {
+            float offset = Float.parseFloat(property);
+            return Float.isFinite(offset) ? offset : -0.40f;
+        } catch (NumberFormatException exception) {
+            return -0.40f;
+        }
+    }
+
     private static final boolean DEBUG = Boolean.getBoolean("Geyser.Debug.TextDisplay");
 
     /**
@@ -375,7 +396,9 @@ public class TextDisplayEntity extends DisplayBaseEntity {
         // Count the translated message that we actually submit to Bedrock, not
         // the raw component; translation and trailing empty lines can alter it.
         int lineCount = message.split("\\n", -1).length;
-        float verticalOffset = calculateBedrockVerticalOffset(lineCount, scale);
+        String rawText = PlainTextComponentSerializer.plainText().serialize(this.text);
+        float verticalOffset = calculateBedrockVerticalOffset(lineCount, scale)
+                + singleGlyphVerticalOffset(rawText, scale, BEDROCK_SINGLE_GLYPH_VERTICAL_OFFSET);
         text.setPosition(Vector3f.from(0, verticalOffset, 0));
         text.setAttachedToEntityId(geyserId);
 
@@ -428,7 +451,6 @@ public class TextDisplayEntity extends DisplayBaseEntity {
         // Apply a separate correction only to a text display containing one
         // private-use font icon. Keep the Java-scale pivot correction above:
         // changing the glyph's pixel size must not move its attachment anchor.
-        String rawText = PlainTextComponentSerializer.plainText().serialize(this.text);
         float bedrockScale = adjustedGlyphScale(rawText, scale, BEDROCK_SINGLE_GLYPH_SCALE);
         text.setScale(bedrockScale);
         if (DEBUG && bedrockScale != scale) {
@@ -461,11 +483,24 @@ public class TextDisplayEntity extends DisplayBaseEntity {
      * without modifying the source entity's transform or other text displays.
      */
     static float adjustedGlyphScale(String plainText, float javaScale, float correction) {
-        if (plainText == null || plainText.codePointCount(0, plainText.length()) != 1) {
-            return javaScale;
+        return isSinglePrivateUseGlyph(plainText) ? javaScale * correction : javaScale;
+    }
+
+    /**
+     * Apply a custom-font-specific baseline offset on top of the standard Java
+     * line-height anchor. The delta follows the original Java transform scale
+     * (not the additionally corrected Bedrock font scale) so a glyph at 1.5x
+     * moves 1.5 times as far as the same font at 1x.
+     */
+    static float singleGlyphVerticalOffset(String plainText, float javaScale, float offsetPerScale) {
+        return isSinglePrivateUseGlyph(plainText) ? javaScale * offsetPerScale : 0.0f;
+    }
+
+    private static boolean isSinglePrivateUseGlyph(String plainText) {
+        if (plainText == null || plainText.isEmpty() || plainText.codePointCount(0, plainText.length()) != 1) {
+            return false;
         }
-        int codePoint = plainText.codePointAt(0);
-        return Character.getType(codePoint) == Character.PRIVATE_USE ? javaScale * correction : javaScale;
+        return Character.getType(plainText.codePointAt(0)) == Character.PRIVATE_USE;
     }
 
     /**
