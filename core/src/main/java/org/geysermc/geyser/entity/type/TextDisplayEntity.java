@@ -77,11 +77,20 @@ public class TextDisplayEntity extends DisplayBaseEntity {
      * multiline text display. Units are blocks at scale 1; keep this scaled
      * with the display transformation so smaller text does not overcompensate.
      *
-     * Override with -Dgeyser.textDisplay.verticalAnchorCorrection=<blocks>
+     * Override with {@code -Dgeyser.textDisplay.verticalAnchorCorrection=0.70}
      * when calibrating different Bedrock builds without recompiling.
      */
-    private static final float BEDROCK_TEXT_ANCHOR_CORRECTION =
-            Float.getFloat("geyser.textDisplay.verticalAnchorCorrection", 0.70f);
+    private static final float BEDROCK_TEXT_ANCHOR_CORRECTION = readVerticalAnchorCorrection();
+
+    private static float readVerticalAnchorCorrection() {
+        String property = System.getProperty("geyser.textDisplay.verticalAnchorCorrection", "0.70");
+        try {
+            float correction = Float.parseFloat(property);
+            return Float.isFinite(correction) ? correction : 0.70f;
+        } catch (NumberFormatException exception) {
+            return 0.70f;
+        }
+    }
 
     private static final boolean DEBUG = Boolean.getBoolean("Geyser.Debug.TextDisplay");
 
