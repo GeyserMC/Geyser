@@ -69,6 +69,10 @@ import java.net.Socket;
 import java.net.UnknownHostException;
 import java.nio.charset.Charset;
 import java.nio.file.Paths;
+import java.time.OffsetDateTime;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -85,6 +89,8 @@ public class DumpInfo {
     private final String cpuName;
     private final Locale systemLocale;
     private final String systemEncoding;
+    private final String systemTime;
+    private final String systemTimeZone;
     private final GitInfo gitInfo;
     private Object config;
     private final Object2IntMap<DeviceOs> userPlatforms;
@@ -106,6 +112,8 @@ public class DumpInfo {
         this.cpuName = CpuUtils.tryGetProcessorName();
         this.systemLocale = Locale.getDefault();
         this.systemEncoding = Charset.defaultCharset().displayName();
+        this.systemTime = DateTimeFormatter.ISO_OFFSET_DATE_TIME.format(OffsetDateTime.now().truncatedTo(ChronoUnit.SECONDS));
+        this.systemTimeZone = ZoneId.systemDefault().getId();
 
         this.gitInfo = new GitInfo(GeyserImpl.BUILD_NUMBER, GeyserImpl.COMMIT.substring(0, 7), GeyserImpl.COMMIT, GeyserImpl.BRANCH, GeyserImpl.REPOSITORY);
 
@@ -359,6 +367,7 @@ public class DumpInfo {
             return new NetherNetInfo(
                 builtin == null ? null : new Builtin(censor(builtin.configured()), builtin.stun(), censor(builtin.discovered())),
                 advertised.nxs() == null ? null : new Nxs(published != null, advertised.nxs().instanceId(),
+                    advertised.nxs().clockOffsetMillis(),
                     published == null ? List.of() : censor(published.endpoints()),
                     published == null ? List.of() : published.assistedFamilies().stream().sorted().toList()));
         }
@@ -376,8 +385,10 @@ public class DumpInfo {
         /**
          * @param confirmed whether the service has confirmed {@code addresses}
          * @param instanceId the id the service knows this server by, null until registered
+         * @param clockOffsetMillis the service's clock minus this machine's, which refuses requests when too far off
          */
-        public record Nxs(boolean confirmed, @Nullable String instanceId, List<String> addresses, List<Integer> assistedFamilies) {
+        public record Nxs(boolean confirmed, @Nullable String instanceId, long clockOffsetMillis, List<String> addresses,
+                          List<Integer> assistedFamilies) {
         }
     }
 }

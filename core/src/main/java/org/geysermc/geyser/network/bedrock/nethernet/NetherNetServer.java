@@ -569,7 +569,8 @@ public final class NetherNetServer implements EventRegistrar {
                 // An entry without a port is on the WebRTC port
                 .map(address -> address.getPort() == 0 ? new InetSocketAddress(address.getAddress(), webrtcPort) : address)
                 .toList(), builtinStun, builtin.discoveredEndpoints()),
-            client == null ? null : new Advertised.Nxs(client.publishedEndpoints().orElse(null), providerInstanceId));
+            client == null ? null : new Advertised.Nxs(client.publishedEndpoints().orElse(null), providerInstanceId,
+                client.clockOffsetMillis()));
     }
 
     /**
@@ -590,8 +591,10 @@ public final class NetherNetServer implements EventRegistrar {
         /**
          * @param published what the service last confirmed, or null while it has confirmed nothing
          * @param instanceId the id the service knows this server by, or null until it has registered
+         * @param clockOffsetMillis the service's clock minus this machine's, positive when this machine is behind
          */
-        public record Nxs(ProviderClient.@Nullable PublishedEndpoints published, @Nullable String instanceId) {
+        public record Nxs(ProviderClient.@Nullable PublishedEndpoints published, @Nullable String instanceId,
+                          long clockOffsetMillis) {
         }
     }
 

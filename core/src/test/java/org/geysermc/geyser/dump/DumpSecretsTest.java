@@ -107,12 +107,12 @@ class DumpSecretsTest {
         new Advertised.Builtin(List.of(), true, List.of(new InetSocketAddress("198.51.100.1", 40404))),
         new Advertised.Nxs(new ProviderClient.PublishedEndpoints(List.of(new InetSocketAddress("198.51.100.1", 19132),
             new InetSocketAddress("2001:db8::1", 19133), new InetSocketAddress("192.168.1.5", 19132)), Set.of(6, 4)),
-            "srv_01HZX"));
+            "srv_01HZX", -125_000));
 
     @Test
     void censorsPublicAddressesNetherNetAdvertisesButKeepsTheirPorts() {
         assertEquals("{\"builtin\":{\"advertised\":[],\"stunDiscovery\":true,\"discovered\":[\"***:40404\"]},"
-                + "\"nxs\":{\"confirmed\":true,\"instanceId\":\"srv_01HZX\",\"addresses\":[\"***:19132\",\"[***]:19133\",\"192.168.1.5:19132\"],"
+                + "\"nxs\":{\"confirmed\":true,\"instanceId\":\"srv_01HZX\",\"clockOffsetMillis\":-125000,\"addresses\":[\"***:19132\",\"[***]:19133\",\"192.168.1.5:19132\"],"
                 + "\"assistedFamilies\":[4,6]}}",
             new Gson().toJson(DumpInfo.NetherNetInfo.of(ADVERTISED)));
     }
@@ -134,8 +134,8 @@ class DumpSecretsTest {
 
     @Test
     void tellsNxsRunningWithoutConfirmedAddressesFromNotRunning() {
-        assertEquals("{\"nxs\":{\"confirmed\":false,\"addresses\":[],\"assistedFamilies\":[]}}",
-            new Gson().toJson(DumpInfo.NetherNetInfo.of(new Advertised(null, new Advertised.Nxs(null, null)))));
+        assertEquals("{\"nxs\":{\"confirmed\":false,\"clockOffsetMillis\":0,\"addresses\":[],\"assistedFamilies\":[]}}",
+            new Gson().toJson(DumpInfo.NetherNetInfo.of(new Advertised(null, new Advertised.Nxs(null, null, 0)))));
         assertEquals("{}", new Gson().toJson(DumpInfo.NetherNetInfo.of(new Advertised(null, null))));
     }
 }
