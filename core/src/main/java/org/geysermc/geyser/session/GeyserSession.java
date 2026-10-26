@@ -2664,11 +2664,6 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource, Jav
     }
 
     @Override
-    public void showEmote(@NonNull GeyserPlayerEntity emoter, @NonNull String emoteId) {
-        entities().showEmote(emoter, emoteId);
-    }
-
-    @Override
     public @NonNull GeyserPlayerEntity playerEntity() {
         return playerEntity;
     }

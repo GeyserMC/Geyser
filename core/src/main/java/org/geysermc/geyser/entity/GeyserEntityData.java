@@ -28,11 +28,9 @@ package org.geysermc.geyser.entity;
 import org.checkerframework.checker.index.qual.NonNegative;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
-import org.cloudburstmc.protocol.bedrock.packet.EmotePacket;
 import org.geysermc.geyser.api.entity.EntityData;
 import org.geysermc.geyser.api.entity.type.GeyserEntity;
 import org.geysermc.geyser.api.entity.type.player.GeyserPlayerEntity;
-import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.input.InputLocksFlag;
 import org.geysermc.geyser.session.GeyserSession;
 
@@ -80,22 +78,6 @@ public class GeyserEntityData implements EntityData {
             throw new IllegalArgumentException("geyser entity id cannot be negative! (got: " + geyserId + ")");
         }
         return session.getEntityCache().getEntityByGeyserId(geyserId);
-    }
-
-    @Override
-    public void showEmote(@NonNull GeyserPlayerEntity emoter, @NonNull String emoteId) {
-        Objects.requireNonNull(emoter, "emoter must not be null!");
-        Entity entity = (Entity) emoter;
-        if (entity.getSession() != session) {
-            throw new IllegalStateException("Given entity must be from this session!");
-        }
-
-        EmotePacket packet = new EmotePacket();
-        packet.setRuntimeEntityId(entity.geyserId());
-        packet.setXuid("");
-        packet.setPlatformId(""); // BDS sends empty
-        packet.setEmoteId(emoteId);
-        session.sendUpstreamPacket(packet);
     }
 
     @Override

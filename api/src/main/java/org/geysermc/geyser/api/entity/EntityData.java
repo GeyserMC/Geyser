@@ -28,6 +28,7 @@ package org.geysermc.geyser.api.entity;
 import org.checkerframework.checker.index.qual.NonNegative;
 import org.geysermc.geyser.api.connection.GeyserConnection;
 import org.geysermc.geyser.api.entity.type.GeyserEntity;
+import org.geysermc.geyser.api.entity.type.player.GeyserAvatarEntity;
 import org.geysermc.geyser.api.entity.type.player.GeyserPlayerEntity;
 import org.jetbrains.annotations.ApiStatus;
 import org.jspecify.annotations.Nullable;
@@ -106,10 +107,15 @@ public interface EntityData {
     void switchHands();
 
     /**
-     * @deprecated Use {@link GeyserConnection#showEmote(GeyserPlayerEntity, String)} instead.
+     * This is the equivalent of {@link GeyserAvatarEntity#showEmote(String, boolean)},
+     * with the emote chat announcement silencing set to false.
+     *
+     * @deprecated Use {@link GeyserAvatarEntity#showEmote(String, boolean)} instead.
      */
     @Deprecated(since = "2.9.3")
-    void showEmote(GeyserPlayerEntity emoter, String emoteId);
+    default void showEmote(GeyserPlayerEntity emoter, String emoteId) {
+        emoter.showEmote(emoteId);
+    }
 
     /**
      * @deprecated Use {@link GeyserConnection#playerEntity()} instead.
