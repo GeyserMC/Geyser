@@ -48,6 +48,9 @@ public class JavaStartConfigurationTranslator extends PacketTranslator<Clientbou
         // Reset code of conduct being accepted
         session.hasAcceptedCodeOfConduct(false);
 
+        // The pending custom biome candidate was built against the previous phase's registry
+        session.getCustomBiomeCache().discardPending();
+
         ChunkUtils.sendEmptyChunks(session, session.getPlayerEntity().position().toInt(), session.getServerRenderDistance(), false);
 
         // Clear networked registries, pending new data from the server
