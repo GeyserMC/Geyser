@@ -476,7 +476,7 @@ public class TextDisplayEntity extends DisplayBaseEntity {
                     + " bedrockScale=" + bedrockScale
                     + " baselineY=" + baseVerticalOffset
                     + " glyphOffsetY=" + customGlyphOffset
-                    + " packetY=" + text.getPosition().getY()
+                    + " packetY=" + verticalOffset
                     + " requestedOffset=" + System.getProperty(
                             "geyser.textDisplay.singleGlyphVerticalOffset", "<not set>")
                     + " configuredOffset=" + BEDROCK_SINGLE_GLYPH_VERTICAL_OFFSET
