@@ -94,10 +94,17 @@ public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommands
     private static final String[] ATTRIBUTES = AttributeType.Builtin.BUILTIN.values().stream().map(type -> type.getIdentifier().asString()).toList().toArray(String[]::new);
     private static final String[] PARTICLES = Arrays.stream(ParticleType.values()).map(type -> "minecraft:" + type.name().toLowerCase(Locale.ROOT)).toArray(String[]::new);
     private static final String[] GAMEMODES = Arrays.stream(GameMode.values()).map(mode -> mode.name().toLowerCase(Locale.ROOT)).toArray(String[]::new);
+    // https://mcsrc.dev/2/26.3/net/minecraft/commands/arguments/EntityAnchorArgument
     private static final String[] ANCHORS = {"eyes", "feet"};
+    // https://mcsrc.dev/2/26.3/net/minecraft/world/level/block/Mirror
     private static final String[] MIRROR_MODES = {"none", "left_right", "front_back"};
+    // https://mcsrc.dev/2/26.3/net/minecraft/world/level/block/Rotation
     private static final String[] ROTATION_MODES = {"none", "clockwise_90", "180", "counterclockwise_90"};
-    private static final String[] HEIGHTMAPS = Arrays.stream(HeightmapTypes.values()).map(type -> type.name().toLowerCase(Locale.ROOT)).toArray(String[]::new);
+    private static final String[] HEIGHTMAPS = Arrays.stream(HeightmapTypes.values())
+        // Java doesn't allow worldgen heightmaps
+        .filter(type -> !type.isWorldGen())
+        .map(type -> type.name().toLowerCase(Locale.ROOT))
+        .toArray(String[]::new);
     private static final String[] SWING_ANIMATIONS = Arrays.stream(SwingAnimation.Type.values()).map(type -> type.name().toLowerCase(Locale.ROOT)).toArray(String[]::new);
     private static final String[] ENUM_BOOLEAN = {"true", "false"};
     private static final String[] VALID_COLORS;
@@ -368,9 +375,7 @@ public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommands
         // If the registry is tracked by us, this will be an easy case
         JavaRegistryKey<?> registry = JavaRegistries.fromKey(registryKey);
         if (registry != null) {
-            String[] a = tags ? context.getRegistryElementsAndTags(registry) : context.getRegistryElements(registry);
-            System.out.println(registryKey + " " + tags + " : " + Arrays.toString(a));
-            return a;
+            return tags ? context.getRegistryElementsAndTags(registry) : context.getRegistryElements(registry);
         }
 
         // Else, go through some hardcoded registries:
