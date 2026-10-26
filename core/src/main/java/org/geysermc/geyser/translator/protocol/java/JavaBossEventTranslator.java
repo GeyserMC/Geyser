@@ -25,6 +25,7 @@
 
 package org.geysermc.geyser.translator.protocol.java;
 
+import org.geysermc.mcprotocollib.protocol.data.game.BossBarColor;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.ClientboundBossEventPacket;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.cache.BossBar;
@@ -40,7 +41,7 @@ public class JavaBossEventTranslator extends PacketTranslator<ClientboundBossEve
         switch (packet.getAction()) {
             case ADD:
                 long entityId = session.getEntityCache().nextEntityId();
-                bossBar = new BossBar(session, entityId, packet.getTitle(), packet.getHealth(), packet.getColor().ordinal(), 1, 0);
+                bossBar = new BossBar(session, entityId, packet.getTitle(), packet.getHealth(), toBedrockColor(packet.getColor()), 1, 0);
                 session.getEntityCache().addBossBar(packet.getUuid(), bossBar);
                 break;
             case UPDATE_TITLE:
@@ -53,10 +54,19 @@ public class JavaBossEventTranslator extends PacketTranslator<ClientboundBossEve
                 session.getEntityCache().removeBossBar(packet.getUuid());
                 break;
             case UPDATE_STYLE:
-                if (bossBar != null) bossBar.updateColor(packet.getColor().ordinal());
+                if (bossBar != null) bossBar.updateColor(toBedrockColor(packet.getColor()));
                 break;
             case UPDATE_FLAGS:
                 //todo
         }
+    }
+
+    /**
+     * Java boss bar colors share Bedrock's BossEventPacket color values for indexes 0-5,
+     * but Bedrock inserts REBECCA_PURPLE at index 6, shifting WHITE to 7.
+     * See https://github.com/GeyserMC/Geyser/issues/6780
+     */
+    private static int toBedrockColor(BossBarColor color) {
+        return color == BossBarColor.WHITE ? 7 : color.ordinal();
     }
 }
