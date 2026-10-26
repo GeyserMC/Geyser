@@ -46,6 +46,24 @@ class TextDisplayLayoutTest {
     }
 
     @Test
+    void customGlyphVerticalOffsetTracksJavaScaleButNotGlyphScaleCorrection() {
+        // At 1.5x Java scale, -0.40 blocks per unit moves the Help Box
+        // glyph down 0.60 world blocks, irrespective of the 0.80 font sizing.
+        assertEquals(-0.60f, TextDisplayEntity.singleGlyphVerticalOffset("\uE200", 1.5f, -0.40f), 0.00001f);
+        assertEquals(-0.40f, TextDisplayEntity.singleGlyphVerticalOffset("\uE200", 1.0f, -0.40f), 0.00001f);
+        assertEquals(0.0f, TextDisplayEntity.singleGlyphVerticalOffset("\uE200", 1.0f, 0.0f), 0.00001f);
+    }
+
+    @Test
+    void regularTextAndMixedGlyphsRetainOriginalVerticalAnchor() {
+        assertEquals(0.0f, TextDisplayEntity.singleGlyphVerticalOffset("SURVIVAL PORTAL", 1.5f, -0.40f), 0.00001f);
+        assertEquals(0.0f, TextDisplayEntity.singleGlyphVerticalOffset("Title \uE200", 1.5f, -0.40f), 0.00001f);
+        assertEquals(0.0f, TextDisplayEntity.singleGlyphVerticalOffset("\uE200\uE201", 1.5f, -0.40f), 0.00001f);
+        assertEquals(0.0f, TextDisplayEntity.singleGlyphVerticalOffset("?", 1.5f, -0.40f), 0.00001f);
+        assertEquals(0.0f, TextDisplayEntity.singleGlyphVerticalOffset(null, 1.5f, -0.40f), 0.00001f);
+    }
+
+    @Test
     void standardAndMixedTextNeverReceivesCustomGlyphCorrection() {
         assertEquals(1.5f, TextDisplayEntity.adjustedGlyphScale("SURVIVAL PORTAL", 1.5f, 0.80f), 0.00001f);
         assertEquals(1.5f, TextDisplayEntity.adjustedGlyphScale("Text \uE200", 1.5f, 0.80f), 0.00001f);
