@@ -28,6 +28,7 @@ package org.geysermc.geyser.entity.type;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.cloudburstmc.math.imaginary.Quaternionf;
 import org.cloudburstmc.math.matrix.Matrix4f;
@@ -91,6 +92,27 @@ public class TextDisplayEntity extends DisplayBaseEntity {
             return Float.isFinite(correction) ? correction : 0.66f;
         } catch (NumberFormatException exception) {
             return 0.66f;
+        }
+    }
+
+    /**
+     * Bedrock bitmap font pages and Java font bitmap providers can have different
+     * native glyph pixel heights. DebugText multiplies that font size by the
+     * entity transform, exaggerating the mismatch on larger furniture icons.
+     * Only single private-use glyph displays receive this additional correction.
+     * Normal multiline text (including signs and portal titles) stays unchanged.
+     *
+     * Override with {@code -Dgeyser.textDisplay.singleGlyphScale=0.80}.
+     */
+    private static final float BEDROCK_SINGLE_GLYPH_SCALE = readSingleGlyphScale();
+
+    private static float readSingleGlyphScale() {
+        String property = System.getProperty("geyser.textDisplay.singleGlyphScale", "0.80");
+        try {
+            float correction = Float.parseFloat(property);
+            return Float.isFinite(correction) && correction > 0.0f ? correction : 0.80f;
+        } catch (NumberFormatException exception) {
+            return 0.80f;
         }
     }
 
@@ -403,7 +425,15 @@ public class TextDisplayEntity extends DisplayBaseEntity {
         //text.setShowBackface();
         //text.setShowTextBackface();
         text.setDimension(session.getBedrockDimension().bedrockId());
-        text.setScale(scale);
+        // Apply a separate correction only to a text display containing one
+        // private-use font icon. Keep the Java-scale pivot correction above:
+        // changing the glyph's pixel size must not move its attachment anchor.
+        String rawText = PlainTextComponentSerializer.plainText().serialize(this.text);
+        float bedrockScale = adjustedGlyphScale(rawText, scale, BEDROCK_SINGLE_GLYPH_SCALE);
+        text.setScale(bedrockScale);
+        if (DEBUG && bedrockScale != scale) {
+            log.info("- Single font glyph scaling: javaScale=" + scale + ", bedrockScale=" + bedrockScale);
+        }
         DebugDrawerPacket packet = new DebugDrawerPacket();
         packet.getShapes().add(text);
         session.sendUpstreamPacket(packet);
@@ -422,6 +452,20 @@ public class TextDisplayEntity extends DisplayBaseEntity {
         }
         float javaTextHeight = (lineCount * 10.0f - 1.0f) * JAVA_TEXT_PIXEL_SCALE;
         return javaTextHeight * scale / 2.0f + BEDROCK_TEXT_ANCHOR_CORRECTION;
+    }
+
+    /**
+     * A single private-use Unicode code point represents a custom-font icon.
+     * For these displays the Bedrock bitmap-font page has a different native
+     * glyph scale than the Java font provider. Correct the visual glyph size
+     * without modifying the source entity's transform or other text displays.
+     */
+    static float adjustedGlyphScale(String plainText, float javaScale, float correction) {
+        if (plainText == null || plainText.codePointCount(0, plainText.length()) != 1) {
+            return javaScale;
+        }
+        int codePoint = plainText.codePointAt(0);
+        return Character.getType(codePoint) == Character.PRIVATE_USE ? javaScale * correction : javaScale;
     }
 
     /**
