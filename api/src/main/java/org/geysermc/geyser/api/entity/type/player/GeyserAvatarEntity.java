@@ -28,4 +28,25 @@ package org.geysermc.geyser.api.entity.type.player;
 import org.geysermc.geyser.api.entity.type.GeyserEntity;
 
 public interface GeyserAvatarEntity extends GeyserEntity {
+
+    /**
+     * Displays a player or mannequin entity as emoting to this client.
+     * This is the equivalent of {@link GeyserAvatarEntity#showEmote(String, boolean)}
+     * with the emote chat announcement silencing set to false
+     *
+     * @param emoteId the emote ID to send to this client
+     * @since 2.11.1
+     */
+    default void showEmote(String emoteId) {
+        showEmote(emoteId, false);
+    }
+
+    /**
+     * Displays a player or mannequin entity as emoting to this client.
+     *
+     * @param emoteId the emote ID to send to this client
+     * @param silent whether to silence the emote chat announcement
+     * @since 2.11.1
+     */
+    void showEmote(String emoteId, boolean silent);
 }

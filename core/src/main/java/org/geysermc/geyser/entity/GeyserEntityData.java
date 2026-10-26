@@ -84,26 +84,6 @@ public class GeyserEntityData implements EntityData {
         return session.getEntityCache().getEntityByGeyserId(geyserId);
     }
 
-    public void showEmote(@NonNull GeyserAvatarEntity emoter, @NonNull String emoteId, boolean silent) {
-        Objects.requireNonNull(emoter, "emoter must not be null!");
-        Entity entity = (Entity) emoter;
-        if (entity.getSession() != session) {
-            throw new IllegalStateException("Given entity must be from this session!");
-        }
-
-        EmotePacket packet = new EmotePacket();
-        packet.setRuntimeEntityId(entity.geyserId());
-        packet.setXuid("");
-        packet.setPlatformId(""); // BDS sends empty
-        packet.setEmoteId(emoteId);
-        if (entity.getDisplayName(false) == null) { // The emote chat announcement will have no player name if the entity name is blank
-            packet.getFlags().add(EmoteFlag.MUTE_EMOTE_CHAT);
-        } else if (silent) {
-            packet.getFlags().add(EmoteFlag.MUTE_EMOTE_CHAT);
-        }
-        session.sendUpstreamPacket(packet);
-    }
-
     @Override
     public @NonNull GeyserPlayerEntity playerEntity() {
         return session.getPlayerEntity();
