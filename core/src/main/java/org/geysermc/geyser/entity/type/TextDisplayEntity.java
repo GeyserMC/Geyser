@@ -140,12 +140,22 @@ public class TextDisplayEntity extends DisplayBaseEntity {
     private static final boolean DEBUG = Boolean.getBoolean("Geyser.Debug.TextDisplay");
 
     /**
+     * Log actual custom-font glyph layout without replacing the rendered
+     * content with its entity ID. Useful for diagnosing JVM argument placement,
+     * outdated Geyser builds, or a Bedrock client ignoring DebugText positions.
+     * Log at most three updates per display so animated furniture stays quiet.
+     */
+    private static final boolean GLYPH_DIAGNOSTICS =
+            Boolean.getBoolean("geyser.textDisplay.glyphDiagnostics");
+
+    /**
      * On Java Edition, armor stands can have a custom name shown additionally to
      * the text in the display. They are rendered separately, and can cross each other...
      */
     private @Nullable ArmorStandEntity secondEntity = null;
     private boolean isInvisible = false;
     private boolean sendUpdates = false;
+    private int glyphDiagnosticUpdates = 0;
 
     @Getter
     private @NonNull Component text = Component.empty();
@@ -397,8 +407,9 @@ public class TextDisplayEntity extends DisplayBaseEntity {
         // the raw component; translation and trailing empty lines can alter it.
         int lineCount = message.split("\\n", -1).length;
         String rawText = PlainTextComponentSerializer.plainText().serialize(this.text);
-        float verticalOffset = calculateBedrockVerticalOffset(lineCount, scale)
-                + singleGlyphVerticalOffset(rawText, scale, BEDROCK_SINGLE_GLYPH_VERTICAL_OFFSET);
+        float baseVerticalOffset = calculateBedrockVerticalOffset(lineCount, scale);
+        float customGlyphOffset = singleGlyphVerticalOffset(rawText, scale, BEDROCK_SINGLE_GLYPH_VERTICAL_OFFSET);
+        float verticalOffset = baseVerticalOffset + customGlyphOffset;
         text.setPosition(Vector3f.from(0, verticalOffset, 0));
         text.setAttachedToEntityId(geyserId);
 
@@ -456,6 +467,21 @@ public class TextDisplayEntity extends DisplayBaseEntity {
         if (DEBUG && bedrockScale != scale) {
             log.info("- Single font glyph scaling: javaScale=" + scale + ", bedrockScale=" + bedrockScale);
         }
+        if (GLYPH_DIAGNOSTICS && glyphDiagnosticUpdates < 3 && hasPrivateUseGlyph(rawText)) {
+            glyphDiagnosticUpdates++;
+            log.info("[TextDisplay glyph diagnostics] entity=" + geyserId
+                    + " codepoints=" + glyphCodepoints(rawText)
+                    + " singleGlyph=" + isSinglePrivateUseGlyph(rawText)
+                    + " javaScale=" + scale
+                    + " bedrockScale=" + bedrockScale
+                    + " baselineY=" + baseVerticalOffset
+                    + " glyphOffsetY=" + customGlyphOffset
+                    + " packetY=" + text.getPosition().getY()
+                    + " requestedOffset=" + System.getProperty(
+                            "geyser.textDisplay.singleGlyphVerticalOffset", "<not set>")
+                    + " configuredOffset=" + BEDROCK_SINGLE_GLYPH_VERTICAL_OFFSET
+                    + " attachedEntityId=" + geyserId);
+        }
         DebugDrawerPacket packet = new DebugDrawerPacket();
         packet.getShapes().add(text);
         session.sendUpstreamPacket(packet);
@@ -494,6 +520,25 @@ public class TextDisplayEntity extends DisplayBaseEntity {
      */
     static float singleGlyphVerticalOffset(String plainText, float javaScale, float offsetPerScale) {
         return isSinglePrivateUseGlyph(plainText) ? javaScale * offsetPerScale : 0.0f;
+    }
+
+    private static boolean hasPrivateUseGlyph(String plainText) {
+        return plainText != null && plainText.codePoints()
+                .anyMatch(codePoint -> Character.getType(codePoint) == Character.PRIVATE_USE);
+    }
+
+    private static String glyphCodepoints(String plainText) {
+        StringBuilder result = new StringBuilder();
+        plainText.codePoints().limit(8).forEach(codePoint -> {
+            if (!result.isEmpty()) {
+                result.append(' ');
+            }
+            result.append("U+").append(Integer.toHexString(codePoint).toUpperCase(java.util.Locale.ROOT));
+        });
+        if (plainText.codePointCount(0, plainText.length()) > 8) {
+            result.append(" ...");
+        }
+        return result.toString();
     }
 
     private static boolean isSinglePrivateUseGlyph(String plainText) {
