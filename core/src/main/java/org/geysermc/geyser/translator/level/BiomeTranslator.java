@@ -25,33 +25,35 @@
 
 package org.geysermc.geyser.translator.level;
 
-import org.checkerframework.checker.nullness.qual.Nullable;
-import org.geysermc.geyser.level.BedrockDimension;
-import org.geysermc.geyser.level.JavaDimension;
-import org.geysermc.geyser.session.cache.registry.JavaRegistries;
-import org.geysermc.geyser.session.cache.registry.JavaRegistry;
-import org.geysermc.geyser.session.cache.registry.RegistryEntryContext;
-import org.geysermc.mcprotocollib.protocol.data.game.chunk.BitStorage;
-import org.geysermc.mcprotocollib.protocol.data.game.chunk.DataPalette;
-import org.geysermc.mcprotocollib.protocol.data.game.chunk.palette.GlobalPalette;
-import org.geysermc.mcprotocollib.protocol.data.game.chunk.palette.Palette;
-import org.geysermc.mcprotocollib.protocol.data.game.chunk.palette.SingletonPalette;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
 import it.unimi.dsi.fastutil.ints.IntLists;
+import org.checkerframework.checker.nullness.qual.Nullable;
+import org.geysermc.geyser.level.BedrockDimension;
+import org.geysermc.geyser.level.JavaDimension;
 import org.geysermc.geyser.level.chunk.BlockStorage;
 import org.geysermc.geyser.level.chunk.bitarray.BitArray;
 import org.geysermc.geyser.level.chunk.bitarray.BitArrayVersion;
 import org.geysermc.geyser.level.chunk.bitarray.SingletonBitArray;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.registry.java.JavaRegistries;
+import org.geysermc.geyser.registry.java.JavaRegistryLookup;
+import org.geysermc.geyser.registry.java.reader.RegistryEntryContext;
+import org.geysermc.mcprotocollib.protocol.data.game.chunk.BitStorage;
+import org.geysermc.mcprotocollib.protocol.data.game.chunk.DataPalette;
+import org.geysermc.mcprotocollib.protocol.data.game.chunk.palette.GlobalPalette;
+import org.geysermc.mcprotocollib.protocol.data.game.chunk.palette.Palette;
+import org.geysermc.mcprotocollib.protocol.data.game.chunk.palette.SingletonPalette;
+
+import java.util.Optional;
 
 // Array index formula by https://wiki.vg/Chunk_Format
 public class BiomeTranslator {
 
     /**
      * Marks a Java biome with no direct Bedrock equivalent; a dimension-appropriate fallback
-     * is selected in {@link #bedrockBiomeId(GeyserSession, JavaRegistry, int)} instead.
+     * is selected in {@link #bedrockBiomeId(GeyserSession, JavaRegistryLookup, int)} instead.
      */
     private static final int UNKNOWN_BIOME = -1;
 
@@ -66,12 +68,12 @@ public class BiomeTranslator {
      * vanilla biome fitting the session's current dimension so that sky, fog and weather
      * render sensibly instead of always defaulting to ocean.
      */
-    private static int bedrockBiomeId(GeyserSession session, JavaRegistry<Integer> biomeTranslations, int javaId) {
-        Integer bedrockId = javaId < 0 ? null : biomeTranslations.byId(javaId);
-        if (bedrockId == null || bedrockId == UNKNOWN_BIOME) {
+    private static int bedrockBiomeId(GeyserSession session, JavaRegistryLookup<Integer> biomeTranslations, int javaId) {
+        Optional<Integer> bedrockId = javaId < 0 ? Optional.empty() : biomeTranslations.get(javaId);
+        if (bedrockId.isEmpty() || bedrockId.get() == UNKNOWN_BIOME) {
             return fallbackBiomeId(session.getDimensionType());
         }
-        return bedrockId;
+        return bedrockId.get();
     }
 
     private static int fallbackBiomeId(@Nullable JavaDimension dimension) {
@@ -91,7 +93,7 @@ public class BiomeTranslator {
     }
 
     public static BlockStorage toNewBedrockBiome(GeyserSession session, DataPalette biomeData) {
-        JavaRegistry<Integer> biomeTranslations = session.getRegistryCache().registry(JavaRegistries.BIOME);
+        JavaRegistryLookup<Integer> biomeTranslations = session.javaRegistries().registry(JavaRegistries.BIOME);
         // As of 1.17.10: the client expects the same format as a chunk but filled with biomes
         // As of 1.18 this is the same as Java Edition
 

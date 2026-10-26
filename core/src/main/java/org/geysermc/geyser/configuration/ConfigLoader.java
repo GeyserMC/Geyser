@@ -26,6 +26,7 @@
 package org.geysermc.geyser.configuration;
 
 import com.google.common.annotations.VisibleForTesting;
+import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.checkerframework.common.returnsreceiver.qual.This;
 import org.geysermc.geyser.GeyserBootstrap;
@@ -34,6 +35,7 @@ import org.geysermc.geyser.api.util.PlatformType;
 import org.geysermc.geyser.text.GeyserLocale;
 import org.spongepowered.configurate.CommentedConfigurationNode;
 import org.spongepowered.configurate.ConfigurateException;
+import org.spongepowered.configurate.NodePath;
 import org.spongepowered.configurate.interfaces.InterfaceDefaultOptions;
 import org.spongepowered.configurate.objectmapping.meta.Processor;
 import org.spongepowered.configurate.transformation.ConfigurationTransformation;
@@ -43,6 +45,8 @@ import org.spongepowered.configurate.yaml.YamlConfigurationLoader;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.Map;
+import java.util.Set;
 import java.util.function.Consumer;
 
 public final class ConfigLoader {
@@ -67,6 +71,12 @@ public final class ConfigLoader {
     private PlatformType platformType;
     private @Nullable Consumer<CommentedConfigurationNode> transformer;
     private File configFile;
+    private Map<String, String> environment = System.getenv();
+    /**
+     * Paths removed by platform-specific processors during serialization.
+     */
+    @VisibleForTesting
+    final Set<NodePath> platformExcluded = new ObjectOpenHashSet<>();
 
     /**
      * Only set during testing.
@@ -85,6 +95,7 @@ public final class ConfigLoader {
         this.bootstrap = null;
         this.platformType = type;
         configFile = file;
+        environment = Map.of();
     }
 
     /**
@@ -113,6 +124,13 @@ public final class ConfigLoader {
         return this;
     }
 
+    @VisibleForTesting
+    @This
+    ConfigLoader environment(Map<String, String> environment) {
+        this.environment = environment;
+        return this;
+    }
+
     /**
      * @return null if the config failed to load.
      */
@@ -128,6 +146,7 @@ public final class ConfigLoader {
 
 
     <T extends GeyserConfig> T load0(Class<T> configClass) throws ConfigurateException {
+        platformExcluded.clear();
         var loader = createLoader(configFile);
 
         CommentedConfigurationNode node = loader.load();
@@ -159,9 +178,18 @@ public final class ConfigLoader {
             loader.save(newRoot);
         }
 
+        // Like the transformer, environment overrides are applied after saving so that they aren't written to file.
+        // They are applied first so that platform transformers (e.g. standalone command line arguments) take priority.
+        boolean modified = EnvironmentOverrides.apply(newRoot, platformExcluded, environment,
+            bootstrap == null ? null : bootstrap.getGeyserLogger());
+
         if (transformer != null) {
             // We transform AFTER saving so that these specific transformations aren't applied to file.
             transformer.accept(newRoot);
+            modified = true;
+        }
+
+        if (modified) {
             config = newRoot.get(configClass);
         }
 
@@ -186,9 +214,9 @@ public final class ConfigLoader {
             .indent(2)
             .nodeStyle(NodeStyle.BLOCK)
             .defaultOptions(options -> InterfaceDefaultOptions.addTo(options, builder -> {
-                        builder.addProcessor(ExcludePlatform.class, excludePlatform(platformType.platformName()))
-                            .addProcessor(IncludePlatform.class, includePlatform(platformType.platformName()))
-                            .addProcessor(PluginSpecific.class, integrationSpecific(platformType != PlatformType.STANDALONE));
+                        builder.addProcessor(ExcludePlatform.class, excludePlatform(platformType.platformName(), platformExcluded))
+                            .addProcessor(IncludePlatform.class, includePlatform(platformType.platformName(), platformExcluded))
+                            .addProcessor(PluginSpecific.class, integrationSpecific(platformType != PlatformType.STANDALONE, platformExcluded));
                 })
                 .shouldCopyDefaults(false) // If we use ConfigurationNode#get(type, default), do not write the default back to the node.
                 .header(ConfigLoader.HEADER)
@@ -196,10 +224,11 @@ public final class ConfigLoader {
             .build();
     }
 
-    private static Processor.Factory<ExcludePlatform, Object> excludePlatform(String thisPlatform) {
+    private static Processor.Factory<ExcludePlatform, Object> excludePlatform(String thisPlatform, Set<NodePath> removed) {
         return (data, fieldType) -> (value, destination) -> {
             for (String platform : data.platforms()) {
                 if (thisPlatform.equals(platform)) {
+                    removed.add(destination.path());
                     //noinspection DataFlowIssue
                     destination.parent().removeChild(destination.key());
                     break;
@@ -208,7 +237,7 @@ public final class ConfigLoader {
         };
     }
 
-    private static Processor.Factory<IncludePlatform, Object> includePlatform(String thisPlatform) {
+    private static Processor.Factory<IncludePlatform, Object> includePlatform(String thisPlatform, Set<NodePath> removed) {
         return (data, fieldType) -> (value, destination) -> {
             boolean matches = false;
             for (String platform : data.platforms()) {
@@ -219,15 +248,17 @@ public final class ConfigLoader {
             }
 
             if (!matches) {
+                removed.add(destination.path());
                 //noinspection DataFlowIssue
                 destination.parent().removeChild(destination.key());
             }
         };
     }
 
-    private static Processor.Factory<PluginSpecific, Object> integrationSpecific(boolean thisConfigPlugin) {
+    private static Processor.Factory<PluginSpecific, Object> integrationSpecific(boolean thisConfigPlugin, Set<NodePath> removed) {
         return (data, fieldType) -> (value, destination) -> {
             if (data.forPlugin() != thisConfigPlugin) {
+                removed.add(destination.path());
                 //noinspection DataFlowIssue
                 destination.parent().removeChild(destination.key());
             }

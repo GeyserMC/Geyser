@@ -30,6 +30,7 @@ import com.google.gson.JsonObject;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.api.item.custom.v2.CustomItemBedrockOptions;
 import org.geysermc.geyser.api.item.custom.v2.CustomItemDefinition;
+import org.geysermc.geyser.api.item.custom.v2.CustomItemIcons;
 import org.geysermc.geyser.api.predicate.MinecraftPredicate;
 import org.geysermc.geyser.api.predicate.context.item.ItemPredicateContext;
 import org.geysermc.geyser.api.util.Identifier;
@@ -140,15 +141,42 @@ public class SingleDefinitionReader implements ItemDefinitionReader {
         }
 
         String[] context = {"bedrock options", baseContext};
-        MappingsUtil.readIfPresent(bedrockOptions, "icon", builder::icon, NodeReader.NON_EMPTY_STRING, context);
         MappingsUtil.readIfPresent(bedrockOptions, "allow_offhand", builder::allowOffhand, NodeReader.BOOLEAN, context);
+
+        JsonElement legacyIcon = bedrockOptions.getAsJsonObject().get("icon");
+        JsonElement iconData = bedrockOptions.getAsJsonObject().get("icons");
+        if (iconData != null) {
+            if (legacyIcon != null) {
+                throw new InvalidCustomMappingsFileException("reading icon data", "bedrock options must specify 'icon' or 'icons', not both", context);
+            }
+            builder.icons(readCustomItemIcons(iconData, baseContext));
+        } else {
+            MappingsUtil.readIfPresent(bedrockOptions, "icon", builder::icon, NodeReader.NON_EMPTY_STRING, context);
+        }
+
         MappingsUtil.readIfPresent(bedrockOptions, "display_handheld", builder::displayHandheld, NodeReader.BOOLEAN, context);
         MappingsUtil.readIfPresent(bedrockOptions, "protection_value", builder::protectionValue, NodeReader.NON_NEGATIVE_INT, context);
         MappingsUtil.readIfPresent(bedrockOptions, "creative_category", builder::creativeCategory, NodeReader.CREATIVE_CATEGORY, context);
         MappingsUtil.readIfPresent(bedrockOptions, "creative_group", builder::creativeGroup, NodeReader.NON_EMPTY_STRING, context);
         MappingsUtil.readArrayIfPresent(bedrockOptions, "tags", tags -> builder.tags(new HashSet<>(tags)), NodeReader.IDENTIFIER, context);
 
+        JsonElement dyeable = bedrockOptions.getAsJsonObject().get("dyeable");
+        if (dyeable != null) {
+            builder.dyeable(MappingsUtil.readOrThrow(dyeable, "default_color", NodeReader.HEX_INT, context));
+        }
+
         definitionBuilder.bedrockOptions(builder);
+    }
+
+    private static CustomItemIcons readCustomItemIcons(JsonElement icons, String context) throws InvalidCustomMappingsFileException {
+        if (icons instanceof JsonObject object) {
+            CustomItemIcons.Builder builder = CustomItemIcons.builder();
+            MappingsUtil.readIfPresent(object, "default", builder::defaultIcon, NodeReader.NON_EMPTY_STRING, "icon data", context);
+            MappingsUtil.readIfPresent(object, "dyed", builder::dyedIcon, NodeReader.NON_EMPTY_STRING, "icon data", context);
+            return builder.build();
+        } else {
+            throw new InvalidCustomMappingsFileException("reading icon data", "icons key must be an object", context);
+        }
     }
 
     private static void readComponents(CustomItemDefinition.Builder builder, JsonObject definition, String context) throws InvalidCustomMappingsFileException {

@@ -43,4 +43,16 @@ public interface IGeyserPingPassthrough {
     @Nullable
     GeyserPingInfo getPingInformation(InetSocketAddress inetSocketAddress);
 
+    /**
+     * Gets the ping information, including the MOTD and player count, from the server
+     *
+     * @param inetSocketAddress the ip address of the client pinging the server
+     * @param virtualHost the hostname and port the client pinged, if known. RakNet pings do not include it.
+     * @return the ping information
+     */
+    @Nullable
+    default GeyserPingInfo getPingInformation(InetSocketAddress inetSocketAddress, @Nullable InetSocketAddress virtualHost) {
+        return getPingInformation(inetSocketAddress);
+    }
+
 }

@@ -46,11 +46,11 @@ public class DialogManager {
     }
 
     public void openDialog(Key dialog) {
-        openDialog(Dialog.getDialogFromKey(session, dialog));
+        openDialog(Dialog.getDialogFromKey(session.javaRegistries(), dialog));
     }
 
     public void openDialog(Holder<NbtMap> dialog) {
-        openDialog(Dialog.getDialogFromHolder(session, dialog));
+        openDialog(Dialog.getDialogFromHolder(session.javaRegistries(), dialog));
     }
 
     /**
