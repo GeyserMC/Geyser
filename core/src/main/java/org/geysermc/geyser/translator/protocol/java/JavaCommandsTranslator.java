@@ -375,9 +375,7 @@ public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommands
         // If the registry is tracked by us, this will be an easy case
         JavaRegistryKey<?> registry = JavaRegistries.fromKey(registryKey);
         if (registry != null) {
-            String[] a = tags ? context.getRegistryElementsAndTags(registry) : context.getRegistryElements(registry);
-            System.out.println(registryKey + " " + tags + " : " + Arrays.toString(a));
-            return a;
+            return tags ? context.getRegistryElementsAndTags(registry) : context.getRegistryElements(registry);
         }
 
         // Else, go through some hardcoded registries:
