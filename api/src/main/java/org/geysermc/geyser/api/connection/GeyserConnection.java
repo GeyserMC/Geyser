@@ -166,7 +166,7 @@ public interface GeyserConnection extends Connection, CommandSource {
      *
      * @param emoter the player entity emoting.
      * @param emoteId the emote ID to send to this client.
-     * @deprecated since 1.21.1: use {@link GeyserAvatarEntity#showEmote(String, boolean)} instead.
+     * @deprecated since 2.12.1: use {@link GeyserAvatarEntity#showEmote(String, boolean)} instead.
      */
     @Deprecated(since = "2.12.1")
     default void showEmote(GeyserPlayerEntity emoter, String emoteId) {

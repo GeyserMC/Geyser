@@ -107,8 +107,8 @@ public interface EntityData {
     void switchHands();
 
     /**
-     * This is the equivalent of {@link GeyserAvatarEntity#showEmote(String, boolean)}
-     * with the emote chat announcement silencing set to false
+     * This is the equivalent of {@link GeyserAvatarEntity#showEmote(String, boolean)},
+     * with the emote chat announcement silencing set to false.
      *
      * @deprecated Use {@link GeyserAvatarEntity#showEmote(String, boolean)} instead.
      */
