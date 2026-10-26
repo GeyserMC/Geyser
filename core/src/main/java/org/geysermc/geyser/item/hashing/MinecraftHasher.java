@@ -35,7 +35,7 @@ import org.cloudburstmc.nbt.NbtUtils;
 import org.geysermc.geyser.api.util.Identifier;
 import org.geysermc.geyser.inventory.item.DyeColor;
 import org.geysermc.geyser.item.components.Rarity;
-import org.geysermc.geyser.session.cache.registry.JavaRegistryProvider;
+import org.geysermc.geyser.registry.java.JavaRegistryProvider;
 import org.geysermc.geyser.util.MinecraftKey;
 import org.geysermc.mcprotocollib.auth.GameProfile;
 import org.geysermc.mcprotocollib.auth.texture.TextureModel;

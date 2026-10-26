@@ -49,7 +49,7 @@ import org.geysermc.geyser.item.type.BannerItem;
 import org.geysermc.geyser.item.type.DyeItem;
 import org.geysermc.geyser.level.block.Blocks;
 import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.geyser.session.cache.registry.JavaRegistries;
+import org.geysermc.geyser.registry.java.JavaRegistries;
 import org.geysermc.geyser.session.cache.tags.Tag;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.BannerPatternLayer;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentTypes;
@@ -106,7 +106,7 @@ public class LoomInventoryTranslator extends AbstractBlockInventoryTranslator<Co
             return rejectRequest(request);
         }
 
-        int index = session.getTagCache().get(NO_ITEMS_REQUIRED).indexOf(requestedPattern);
+        int index = session.javaRegistries().tag(NO_ITEMS_REQUIRED).indexOf(requestedPattern);
         if (index == -1) {
             return rejectRequest(request);
         }
@@ -124,7 +124,7 @@ public class LoomInventoryTranslator extends AbstractBlockInventoryTranslator<Co
 
         GeyserItemStack inputCopy = container.getItem(0).copy(1);
         inputCopy.setNetId(session.getNextItemNetId());
-        BannerPatternLayer bannerPatternLayer = BannerItem.getJavaBannerPattern(session, pattern); // TODO
+        BannerPatternLayer bannerPatternLayer = BannerItem.getJavaBannerPattern(session.javaRegistries(), pattern); // TODO
         if (bannerPatternLayer != null) {
             List<BannerPatternLayer> patternsList = new ArrayList<>(inputCopy.getComponentElseGet(DataComponentTypes.BANNER_PATTERNS, ArrayList::new));
             patternsList.add(bannerPatternLayer);

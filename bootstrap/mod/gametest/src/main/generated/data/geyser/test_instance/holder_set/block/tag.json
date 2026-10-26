@@ -1,0 +1,5 @@
+{
+  "type": "geyser:holder_set",
+  "registry": "minecraft:block",
+  "set": "#minecraft:all_signs"
+}

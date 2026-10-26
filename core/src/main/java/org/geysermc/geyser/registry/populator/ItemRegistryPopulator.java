@@ -47,10 +47,8 @@ import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.nbt.NbtUtils;
 import org.cloudburstmc.protocol.bedrock.codec.v1001.Bedrock_v1001;
 import org.cloudburstmc.protocol.bedrock.codec.v2168.Bedrock_v2168;
-import org.cloudburstmc.protocol.bedrock.codec.v2192.Bedrock_v2192;
-import org.cloudburstmc.protocol.bedrock.codec.v924.Bedrock_v924;
-import org.cloudburstmc.protocol.bedrock.codec.v944.Bedrock_v944;
-import org.cloudburstmc.protocol.bedrock.codec.v975.Bedrock_v975;
+import org.cloudburstmc.protocol.bedrock.codec.v2193.Bedrock_v2193;
+import org.cloudburstmc.protocol.bedrock.codec.v2225.Bedrock_v2225;
 import org.cloudburstmc.protocol.bedrock.data.definitions.BlockDefinition;
 import org.cloudburstmc.protocol.bedrock.data.definitions.ItemDefinition;
 import org.cloudburstmc.protocol.bedrock.data.definitions.SimpleItemDefinition;
@@ -85,8 +83,9 @@ import org.geysermc.geyser.item.type.Item;
 import org.geysermc.geyser.level.block.property.Properties;
 import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.registry.Registries;
-import org.geysermc.geyser.registry.populator.conversion.ChaosCubedConverter;
-import org.geysermc.geyser.registry.populator.conversion.GoldenDandelionConverter;
+import org.geysermc.geyser.registry.java.BuiltInJavaRegistries;
+import org.geysermc.geyser.registry.populator.conversion.ItemRemapper;
+import org.geysermc.geyser.registry.populator.conversion.WildernessBoundConverter;
 import org.geysermc.geyser.registry.type.BlockMappings;
 import org.geysermc.geyser.registry.type.CustomSkull;
 import org.geysermc.geyser.registry.type.GeyserBedrockBlock;
@@ -120,7 +119,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class ItemRegistryPopulator {
 
     @SuppressWarnings("unused") // kept here for convenience when updating
-    record PaletteVersion(String version, int protocolVersion, String creativeVersion, Map<Item, Item> javaOnlyItems, Remapper remapper) {
+    record PaletteVersion(String version, int protocolVersion, String creativeVersion, Map<Item, Item> javaOnlyItems, ItemRemapper remapper) {
 
         public PaletteVersion(String version, int protocolVersion) {
             this(version, protocolVersion, null, Collections.emptyMap(), (item, mapping) -> mapping);
@@ -130,7 +129,7 @@ public class ItemRegistryPopulator {
             this(version, protocolVersion, null, javaOnlyItems, (item, mapping) -> mapping);
         }
 
-        public PaletteVersion(String version, int protocolVersion, Remapper remapper) {
+        public PaletteVersion(String version, int protocolVersion, ItemRemapper remapper) {
             this(version, protocolVersion, null, Collections.emptyMap(), remapper);
         }
 
@@ -147,17 +146,13 @@ public class ItemRegistryPopulator {
         }
     }
 
-    @FunctionalInterface
-    interface Remapper {
-        @NonNull
-        GeyserMappingItem remap(Item item, GeyserMappingItem mapping);
-    }
-
+    // TODO: ideally split the populating of the Java ITEM registry (non-vanilla items) from the populating of item mappings
     public static void populate() {
-        List<PaletteVersion> paletteVersions = new ArrayList<>(3);
-        paletteVersions.add(new PaletteVersion("26_30", Bedrock_v1001.CODEC.getProtocolVersion()));
-        paletteVersions.add(new PaletteVersion("26_40", Bedrock_v2168.CODEC.getProtocolVersion()));
-        paletteVersions.add(new PaletteVersion("26_50", Bedrock_v2192.CODEC.getProtocolVersion()));
+        List<PaletteVersion> paletteVersions = new ArrayList<>(4);
+        paletteVersions.add(new PaletteVersion("26_30", Bedrock_v1001.CODEC.getProtocolVersion(), WildernessBoundConverter.itemMappings()));
+        paletteVersions.add(new PaletteVersion("26_40", Bedrock_v2168.CODEC.getProtocolVersion(), WildernessBoundConverter.itemMappings()));
+        paletteVersions.add(new PaletteVersion("26_50", Bedrock_v2193.CODEC.getProtocolVersion()));
+        paletteVersions.add(new PaletteVersion("26_60", Bedrock_v2225.CODEC.getProtocolVersion()));
 
         GeyserBootstrap bootstrap = GeyserImpl.getInstance().getBootstrap();
 
@@ -245,8 +240,8 @@ public class ItemRegistryPopulator {
 
             List<ItemDefinition> buckets = new ObjectArrayList<>();
 
-            List<ItemMapping> mappings = new ObjectArrayList<>(Registries.JAVA_ITEMS.get().size());
-            while (Registries.JAVA_ITEMS.get().size() >= mappings.size()) {
+            List<ItemMapping> mappings = new ObjectArrayList<>(BuiltInJavaRegistries.ITEM.size());
+            while (BuiltInJavaRegistries.ITEM.size() >= mappings.size()) {
                 mappings.add(ItemMapping.AIR);
             }
             // Temporary mapping to create stored items
@@ -307,17 +302,14 @@ public class ItemRegistryPopulator {
             Set<Identifier> registeredCustomItems = new ObjectOpenHashSet<>(); // This is used to check for duplicate item names
 
             for (Map.Entry<String, GeyserMappingItem> entry : items.entrySet()) {
-                Item javaItem = Registries.JAVA_ITEM_IDENTIFIERS.get(entry.getKey());
-                if (javaItem == null) {
-                    throw new RuntimeException("Extra item in mappings? " + entry.getKey());
-                }
+                Item javaItem = BuiltInJavaRegistries.ITEM.getOrThrow(MinecraftKey.key(entry.getKey()));
                 GeyserMappingItem mappingItem;
                 Item replacementItem = palette.javaOnlyItems().get(javaItem);
                 if (replacementItem != null) {
-                    mappingItem = items.get(replacementItem.javaIdentifier()); // java only item, a java id fallback has been provided
+                    mappingItem = items.get(replacementItem.javaKey().asString()); // java only item, a java id fallback has been provided
                 } else {
                     // check if any mapping changes need to be made on this version
-                    mappingItem = palette.remapper().remap(javaItem, entry.getValue());
+                    mappingItem = palette.remapper().remapItem(javaItem, entry.getValue());
                 }
 
                 String bedrockIdentifier = mappingItem.getBedrockIdentifier();
@@ -334,7 +326,7 @@ public class ItemRegistryPopulator {
 
                     // We'll do this here for custom blocks we want in the creative inventory so we can piggyback off the existing logic to find these
                     // blocks in creativeItems
-                    CustomBlockData customBlockData = BlockRegistries.CUSTOM_BLOCK_ITEM_OVERRIDES.getOrDefault(javaItem.javaIdentifier(), null);
+                    CustomBlockData customBlockData = BlockRegistries.CUSTOM_BLOCK_ITEM_OVERRIDES.getOrDefault(javaItem.javaKey().asString(), null);
                     if (customBlockData != null) {
                         // this block has a custom item override and thus we should use its runtime ID for the ItemMapping
                         if (customBlockData.includedInCreativeInventory()) {
@@ -515,7 +507,7 @@ public class ItemRegistryPopulator {
                 // Add the custom item properties, if applicable
                 boolean containsOldMappings = false;
                 SortedSetMultimap<Key, GeyserCustomMappingData> customItemDefinitions;
-                Collection<CustomItemDefinition> customItemsToLoad = customItems.get(Identifier.of(javaItem.javaIdentifier()));
+                Collection<CustomItemDefinition> customItemsToLoad = customItems.get(MinecraftKey.keyToIdentifier(javaItem.javaKey()));
                 if (!customItemsToLoad.isEmpty()) {
                     customItemDefinitions = MultimapBuilder.hashKeys(customItemsToLoad.size()).treeSetValues(new CustomItemDefinitionComparator()).build();
 
@@ -574,7 +566,7 @@ public class ItemRegistryPopulator {
 
                 ItemMapping mapping = mappingBuilder.build();
 
-                if (javaItem.javaIdentifier().contains("bucket") && !javaItem.javaIdentifier().contains("milk")) {
+                if (javaItem.javaKey().asString().contains("bucket") && !javaItem.javaKey().asString().contains("milk")) {
                     buckets.add(definition);
                 }
 

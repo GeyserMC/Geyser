@@ -30,7 +30,6 @@ import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.protocol.bedrock.data.ParticleType;
 import org.cloudburstmc.protocol.bedrock.data.SoundEvent;
-import org.cloudburstmc.protocol.bedrock.data.sound.StopSoundData;
 import org.cloudburstmc.protocol.bedrock.packet.ClientboundUpdateSoundDataPacket;
 import org.cloudburstmc.protocol.bedrock.packet.LevelEventGenericPacket;
 import org.cloudburstmc.protocol.bedrock.packet.LevelEventPacket;
@@ -42,14 +41,15 @@ import org.cloudburstmc.protocol.bedrock.packet.StopSoundPacket;
 import org.cloudburstmc.protocol.bedrock.packet.TextPacket;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.level.JukeboxSong;
-import org.geysermc.geyser.network.GameProtocol;
+import org.geysermc.geyser.network.bedrock.GameProtocol;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.registry.type.SoundMapping;
 import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.geyser.session.cache.registry.JavaRegistries;
+import org.geysermc.geyser.registry.java.JavaRegistries;
 import org.geysermc.geyser.translator.level.event.LevelEventTranslator;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
+import org.geysermc.geyser.translator.text.MessageTranslator;
 import org.geysermc.geyser.util.DimensionUtils;
 import org.geysermc.geyser.util.SoundUtils;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.object.Direction;
@@ -83,15 +83,15 @@ public class JavaLevelEventTranslator extends PacketTranslator<ClientboundLevelE
         // Separate case since each RecordEventData in Java is an individual track in Bedrock
         if (levelEvent == LevelEventType.SOUND_PLAY_JUKEBOX_SONG) {
             RecordEventData recordEventData = (RecordEventData) packet.getData();
-            JukeboxSong jukeboxSong = session.getRegistryCache().registry(JavaRegistries.JUKEBOX_SONG).byId(recordEventData.getRecordId());
-            if (jukeboxSong == null) {
+            Optional<JukeboxSong> jukeboxSong = JavaRegistries.JUKEBOX_SONG.get(session.javaRegistries(), recordEventData.getRecordId());
+            if (jukeboxSong.isEmpty()) {
                 return;
             }
             Vector3i origin = packet.getPosition();
             Vector3f pos = Vector3f.from(origin.getX() + 0.5f, origin.getY() + 0.5f, origin.getZ() + 0.5f);
 
             // Prioritize level events because it makes parrots dance.
-            SoundMapping mapping = Registries.SOUNDS.get(jukeboxSong.soundEvent().replace("minecraft:", ""));
+            SoundMapping mapping = Registries.SOUNDS.get(jukeboxSong.get().soundEvent().replace("minecraft:", ""));
             SoundEvent soundEvent = null;
             if (mapping != null) {
                 String bedrock = mapping.bedrock();
@@ -101,7 +101,7 @@ public class JavaLevelEventTranslator extends PacketTranslator<ClientboundLevelE
             }
 
             if (GameProtocol.is26_50orHigher(session.protocolVersion())) {
-                String bedrockSound = SoundUtils.translatePlaySound(jukeboxSong.soundEvent());
+                String bedrockSound = SoundUtils.translatePlaySound(jukeboxSong.get().soundEvent());
                 long id = session.getWorldCache().addPlayingRecord(packet.getPosition());
 
                 PlaySoundPacket playSoundPacket = new PlaySoundPacket();
@@ -127,7 +127,7 @@ public class JavaLevelEventTranslator extends PacketTranslator<ClientboundLevelE
                     levelSoundEvent.setBabySound(false);
                     session.sendUpstreamPacket(levelSoundEvent);
                 } else {
-                    String bedrockSound = SoundUtils.translatePlaySound(jukeboxSong.soundEvent());
+                    String bedrockSound = SoundUtils.translatePlaySound(jukeboxSong.get().soundEvent());
                     // Pitch and volume from Java 1.21
                     PlaySoundPacket playSoundPacket = new PlaySoundPacket();
                     playSoundPacket.setPosition(pos);
@@ -149,7 +149,7 @@ public class JavaLevelEventTranslator extends PacketTranslator<ClientboundLevelE
             textPacket.setPlatformChatId("");
             textPacket.setSourceName(null);
             textPacket.setMessage("record.nowPlaying");
-            textPacket.setParameters(Collections.singletonList(jukeboxSong.description()));
+            textPacket.setParameters(Collections.singletonList(MessageTranslator.convertMessage(session, jukeboxSong.get().description())));
             session.sendUpstreamPacket(textPacket);
             return;
         }
@@ -346,7 +346,7 @@ public class JavaLevelEventTranslator extends PacketTranslator<ClientboundLevelE
             }
             case DRIPSTONE_DRIP -> effectPacket.setType(org.cloudburstmc.protocol.bedrock.data.LevelEvent.PARTICLE_DRIPSTONE_DRIP);
             case PARTICLES_ELECTRIC_SPARK -> effectPacket.setType(org.cloudburstmc.protocol.bedrock.data.LevelEvent.PARTICLE_ELECTRIC_SPARK); // Matches with a Bedrock server but doesn't seem to match up with Java
-            case PARTICLES_AND_SOUND_WAX_ON -> effectPacket.setType(org.cloudburstmc.protocol.bedrock.data.LevelEvent.PARTICLE_WAX_ON);
+            case PARTICLES_WAX_ON -> effectPacket.setType(org.cloudburstmc.protocol.bedrock.data.LevelEvent.PARTICLE_WAX_ON);
             case PARTICLES_WAX_OFF -> effectPacket.setType(org.cloudburstmc.protocol.bedrock.data.LevelEvent.PARTICLE_WAX_OFF);
             case PARTICLES_SCRAPE -> effectPacket.setType(org.cloudburstmc.protocol.bedrock.data.LevelEvent.PARTICLE_SCRAPE);
             case PARTICLES_SCULK_CHARGE -> {

@@ -42,10 +42,6 @@
       "value": 3844589
     },
     {
-      "component": "minecraft:map_color",
-      "value": 439435
-    },
-    {
       "component": "minecraft:map_id",
       "value": 55
     },
@@ -56,6 +52,10 @@
     {
       "component": "minecraft:ominous_bottle_amplifier",
       "value": 3
+    },
+    {
+      "component": "minecraft:waxed",
+      "value": {}
     }
   ]
 }

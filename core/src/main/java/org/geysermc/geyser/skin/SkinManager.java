@@ -31,7 +31,6 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.protocol.bedrock.data.skin.ImageData;
 import org.cloudburstmc.protocol.bedrock.data.skin.SerializedSkin;
 import org.cloudburstmc.protocol.bedrock.packet.PlayerListPacket;
-import org.cloudburstmc.protocol.bedrock.packet.PlayerSkinPacket;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.skin.Cape;
 import org.geysermc.geyser.api.skin.Skin;
@@ -114,29 +113,21 @@ public class SkinManager {
         Cape cape = skinData.cape();
         SkinGeometry geometry = skinData.geometry();
 
-        // Since 1.21.130: PlayerSkinPacket only works if player is listed; might as well always use the player list packet
-        if (entity.uuid().equals(session.getPlayerEntity().uuid()) || !entity.isListed()) {
-            PlayerListPacket.Entry entry = PlayerListUtils.buildEntryManually(
-                session,
-                entity.uuid(),
-                entity.getUsername(),
-                entity.geyserId(),
-                getSkin(session, skin.textureUrl(), skin, cape, geometry)
-            );
+        // Since 1.21.130 the client takes a player's skin from their player list entry, which means a
+        // PlayerSkinPacket no longer applies to listed players (still broken as of 26.51). Always go through
+        // the player list instead, as that works for both listed and unlisted entities.
+        PlayerListPacket.Entry entry = PlayerListUtils.buildEntryManually(
+            session,
+            entity.uuid(),
+            entity.getUsername(),
+            entity.geyserId(),
+            getSkin(session, skin.textureUrl(), skin, cape, geometry)
+        );
 
-            // Slight delay ensures skins are actually shown
-            session.scheduleInEventLoop(() -> {
-                PlayerListUtils.sendSkinUsingPlayerList(session, entry, entity, entity.isListed());
-            }, 100, TimeUnit.MILLISECONDS);
-        } else {
-            PlayerSkinPacket packet = new PlayerSkinPacket();
-            packet.setUuid(entity.uuid());
-            packet.setOldSkinName("");
-            packet.setNewSkinName(skin.textureUrl());
-            packet.setSkin(getSkin(session, skin.textureUrl(), skin, cape, geometry));
-            packet.setTrustedSkin(true);
-            session.sendUpstreamPacket(packet);
-        }
+        // Slight delay ensures skins are actually shown
+        session.scheduleInEventLoop(() -> {
+            PlayerListUtils.sendSkinUsingPlayerList(session, entry, entity, entity.isListed());
+        }, 100, TimeUnit.MILLISECONDS);
     }
 
     private static SerializedSkin getSkin(GeyserSession session, String skinId, Skin skin, Cape cape, SkinGeometry geometry) {

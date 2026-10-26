@@ -31,19 +31,22 @@ import org.cloudburstmc.nbt.NbtMap;
  * Har har funny icanhasbukkit reference, this class actually downgrades the palette for versions below 26.50,
  * as that version introduced new states for stairs and fences (server controlled now, wooo!)
  */
-public class ICanHasStates extends ConversionHelper {
-    public static NbtMap convertBlock(NbtMap tag) {
+public class ICanHasStates implements BlockRemapper {
+    public static final ICanHasStates INSTANCE = new ICanHasStates();
+
+    public NbtMap remapBlock(NbtMap tag) {
         String name = tag.getString("name");
         if (name.contains("_stairs")) {
-            return removeStates(tag, "minecraft:corner");
+            return ConversionHelper.removeStates(tag, "minecraft:corner");
         } else if (
             (name.contains("_fence") && !name.contains("_fence_gate")) ||
                 name.contains("glass_pane") ||
                 name.contains("_bars") ||
                 name.equals("minecraft:trip_wire")
         ) {
-            return removeStates(tag, "minecraft:connection_north", "minecraft:connection_east",
-                "minecraft:connection_south", "minecraft:connection_west");
+            return ConversionHelper.removeStates(tag, "minecraft:connection_north",
+                "minecraft:connection_east", "minecraft:connection_south",
+                "minecraft:connection_west");
         }
         return tag;
     }

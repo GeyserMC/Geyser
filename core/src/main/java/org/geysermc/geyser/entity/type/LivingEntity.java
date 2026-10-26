@@ -51,7 +51,6 @@ import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.item.type.Item;
 import org.geysermc.geyser.level.EffectType;
-import org.geysermc.geyser.network.GameProtocol;
 import org.geysermc.geyser.scoreboard.Team;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.cache.tags.ItemTag;
@@ -728,7 +727,7 @@ public class LivingEntity extends Entity implements Tickable {
             if (equippable != null) {
                 return slot == equippable.slot() &&
                     canUseSlot(slot) &&
-                    EntityUtils.equipmentUsableByEntity(session, equippable, javaDefinition.type());
+                    EntityUtils.equipmentUsableByEntity(session.javaRegistries(), equippable, javaDefinition);
             } else {
                 return slot == EquipmentSlot.MAIN_HAND && canUseSlot(EquipmentSlot.MAIN_HAND);
             }
@@ -742,7 +741,7 @@ public class LivingEntity extends Entity implements Tickable {
         if (equippable == null) {
             return slot == EquipmentSlot.MAIN_HAND && this.canUseSlot(EquipmentSlot.MAIN_HAND);
         } else {
-            return slot == equippable.slot() && this.canUseSlot(equippable.slot()) && EntityUtils.equipmentUsableByEntity(session, equippable, javaDefinition.type());
+            return slot == equippable.slot() && this.canUseSlot(equippable.slot()) && EntityUtils.equipmentUsableByEntity(session.javaRegistries(), equippable, javaDefinition);
         }
     }
 

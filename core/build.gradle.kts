@@ -2,6 +2,7 @@ import org.eclipse.jgit.api.Git
 import org.eclipse.jgit.revwalk.RevWalk
 import net.kyori.indra.git.RepositoryValueSource
 
+import java.net.URI
 import java.util.Properties
 
 plugins {
@@ -55,6 +56,19 @@ dependencies {
         exclude("io.netty", "*")
     }
 
+    implementation(libs.nethernet.transport) {
+        exclude("io.netty", "*")
+    }
+    implementation(libs.nethernet.signaling) {
+        exclude("io.netty", "*")
+    }
+    // Needed for signaling
+    implementation(libs.netty.codec.http)
+    // WebRTC lib, with natives for linux x86_64/aarch64, windows x86_64 and macos x86_64/arm64
+    implementation(libs.libdatachannel)
+    // Host-owned DTLS certificates and the inbuilt signaling identity
+    implementation(libs.bouncycastle.pkix)
+    implementation(libs.bouncycastle.prov)
 
     // Network dependencies we are updating ourselves
     api(libs.netty.handler)
@@ -181,7 +195,29 @@ val generateGitProperties = tasks.register("generateGitProperties") {
     }
 }
 
+val downloadIntegratedPack = tasks.register("downloadIntegratedPack") {
+    val packFile = file("src/main/resources/GeyserIntegratedPack.mcpack")
+    val source = "https://download.geysermc.org/v2/projects/geyserintegratedpack/versions/latest/builds/latest/downloads/geyserintegratedpack"
+    onlyIf { !packFile.exists() }
+    doLast {
+        println("Cannot find GeyserIntegratedPack.mcpack, trying to download from $source, and writing it to core/src/main/resources/GeyserIntegratedPack.mcpack")
+        packFile.parentFile.mkdirs()
+        val tmp = File(packFile.parentFile, packFile.name + ".tmp")
+        try {
+            URI(source).toURL().openStream().use { input ->
+                tmp.outputStream().use { input.copyTo(it) }
+            }
+            if (!tmp.renameTo(packFile)) {
+                throw GradleException("Failed to install downloaded integrated pack at $packFile")
+            }
+        } finally {
+            tmp.delete()
+        }
+    }
+}
+
 tasks.processResources {
+    dependsOn(downloadIntegratedPack)
     from(generateGitProperties) {
         into(".")
     }

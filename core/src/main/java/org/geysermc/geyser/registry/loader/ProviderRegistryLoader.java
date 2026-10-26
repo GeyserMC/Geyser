@@ -45,6 +45,7 @@ import org.geysermc.geyser.api.item.custom.CustomItemOptions;
 import org.geysermc.geyser.api.item.custom.NonVanillaCustomItemData;
 import org.geysermc.geyser.api.item.custom.v2.CustomItemBedrockOptions;
 import org.geysermc.geyser.api.item.custom.v2.CustomItemDefinition;
+import org.geysermc.geyser.api.item.custom.v2.CustomItemIcons;
 import org.geysermc.geyser.api.item.custom.v2.NonVanillaCustomItemDefinition;
 import org.geysermc.geyser.api.item.custom.v2.component.ItemDataComponent;
 import org.geysermc.geyser.api.item.custom.v2.component.geyser.GeyserBlockPlacer;
@@ -90,6 +91,7 @@ import org.geysermc.geyser.impl.entity.HitboxImpl;
 import org.geysermc.geyser.item.GeyserCustomItemData;
 import org.geysermc.geyser.item.GeyserCustomItemOptions;
 import org.geysermc.geyser.item.GeyserNonVanillaCustomItemData;
+import org.geysermc.geyser.item.custom.GeyserCustomItemIcons;
 import org.geysermc.geyser.item.custom.GeyserCustomItemBedrockOptions;
 import org.geysermc.geyser.item.custom.GeyserCustomItemDefinition;
 import org.geysermc.geyser.item.custom.GeyserNonVanillaCustomItemDefinition;
@@ -173,6 +175,7 @@ public class ProviderRegistryLoader implements RegistryLoader<Map<Class<?>, Prov
         providers.put(CustomItemDefinition.Builder.class, args -> new GeyserCustomItemDefinition.Builder((Identifier) args[0], (Identifier) args[1]));
         providers.put(NonVanillaCustomItemDefinition.Builder.class, args -> new GeyserNonVanillaCustomItemDefinition.Builder((Identifier) args[0], (Identifier) args[1], (int) args[2]));
         providers.put(CustomItemBedrockOptions.Builder.class, args -> new GeyserCustomItemBedrockOptions.Builder());
+        providers.put(CustomItemIcons.Builder.class, args -> new GeyserCustomItemIcons.Builder());
 
         providers.put(ItemDataComponent.class, args -> dataComponentProvider((Identifier) args[0], (Predicate<?>) args[1], (Boolean) args[2]));
 

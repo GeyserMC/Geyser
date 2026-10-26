@@ -30,7 +30,7 @@ import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.TranslatableComponent;
 import org.geysermc.geyser.api.util.PlatformType;
 import org.geysermc.geyser.event.type.SessionDisconnectEventImpl;
-import org.geysermc.geyser.network.GameProtocol;
+import org.geysermc.geyser.network.bedrock.GameProtocol;
 import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.translator.text.MessageTranslator;
 

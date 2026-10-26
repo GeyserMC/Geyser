@@ -35,6 +35,7 @@ import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtType;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
 import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.api.util.Identifier;
 import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.inventory.item.BedrockEnchantment;
 import org.geysermc.geyser.item.Items;
@@ -47,9 +48,8 @@ import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.registry.type.ItemMappings;
 import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.geyser.session.cache.registry.JavaRegistries;
+import org.geysermc.geyser.registry.java.JavaRegistries;
 import org.geysermc.geyser.session.cache.tags.Tag;
-import org.geysermc.geyser.text.ChatColor;
 import org.geysermc.geyser.text.MinecraftLocale;
 import org.geysermc.geyser.translator.item.BedrockItemBuilder;
 import org.geysermc.geyser.translator.text.MessageTranslator;
@@ -67,6 +67,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 public class Item {
     public static final int BEDROCK_MAX_STACK_SIZE = 64;
@@ -105,9 +106,14 @@ public class Item {
             .toList();
     }
 
-    // TODO maybe deprecate?
-    public String javaIdentifier() {
-        return javaIdentifier.asString();
+    /**
+     * This method exists to "unofficially support" extensions getting an item's identifier. They cannot target {@link Item#javaKey()},
+     * as we relocate the {@link Key} class.
+     *
+     * @return the {@link Item#javaKey()} as {@link Identifier}
+     */
+    public Identifier javaIdentifier() {
+        return MinecraftKey.keyToIdentifier(javaIdentifier);
     }
 
     public Key javaKey() {
@@ -131,11 +137,11 @@ public class Item {
     }
 
     public boolean is(GeyserSession session, Tag<Item> tag) {
-        return session.getTagCache().is(tag, javaId);
+        return session.javaRegistries().is(tag, javaId);
     }
 
     public boolean is(GeyserSession session, HolderSet set) {
-        return session.getTagCache().is(set, JavaRegistries.ITEM, javaId);
+        return session.javaRegistries().is(JavaRegistries.ITEM, set, javaId);
     }
 
     /**
@@ -262,6 +268,8 @@ public class Item {
             builder.putByte("Unbreakable", (byte) 1);
         }
 
+        translateDyedColor(components, builder);
+
         // Prevents the client from trying to stack items with untranslated components
         // Relies on correct hash code implementation, and some luck
         // However, we should only set a hash when the components differ from the default ones,
@@ -304,15 +312,15 @@ public class Item {
     }
 
     protected final @Nullable NbtMap remapEnchantment(GeyserSession session, int enchantId, int level, BedrockItemBuilder builder) {
-        Enchantment enchantment = session.getRegistryCache().registry(JavaRegistries.ENCHANTMENT).byId(enchantId);
-        if (enchantment == null) {
+        Optional<Enchantment> enchantment = JavaRegistries.ENCHANTMENT.get(session.javaRegistries(), enchantId);
+        if (enchantment.isEmpty()) {
             GeyserImpl.getInstance().getLogger().debug("Unknown Java enchantment while NBT item translating: " + enchantId);
             return null;
         }
 
-        BedrockEnchantment bedrockEnchantment = enchantment.bedrockEnchantment();
+        BedrockEnchantment bedrockEnchantment = enchantment.get().bedrockEnchantment();
         if (bedrockEnchantment == null) {
-            String enchantmentTranslation = MinecraftLocale.getLocaleString(enchantment.description(), session.locale());
+            String enchantmentTranslation = MessageTranslator.convertMessageForTooltip(enchantment.get().description(), session.locale());
             addJavaOnlyEnchantment(session, builder, enchantmentTranslation, level);
             builder.addEnchantmentGlint();
             return null;
@@ -327,7 +335,7 @@ public class Item {
     private void addJavaOnlyEnchantment(GeyserSession session, BedrockItemBuilder builder, String enchantmentName, int level) {
         String lvlTranslation = MinecraftLocale.getLocaleString("enchantment.level." + level, session.locale());
 
-        builder.getOrCreateLore().addFirst(ChatColor.RESET + ChatColor.GRAY + enchantmentName + " " + lvlTranslation);
+        builder.getOrCreateLore().addFirst(enchantmentName + " " + lvlTranslation);
     }
 
     protected final void translateDyedColor(DataComponents components, BedrockItemBuilder builder) {
