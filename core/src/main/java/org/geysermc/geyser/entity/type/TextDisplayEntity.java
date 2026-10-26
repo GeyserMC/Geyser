@@ -147,6 +147,8 @@ public class TextDisplayEntity extends DisplayBaseEntity {
      */
     private static final boolean GLYPH_DIAGNOSTICS =
             Boolean.getBoolean("geyser.textDisplay.glyphDiagnostics");
+    private static final java.util.concurrent.atomic.AtomicBoolean GLYPH_DIAGNOSTICS_STARTED =
+            new java.util.concurrent.atomic.AtomicBoolean(false);
 
     /**
      * On Java Edition, armor stands can have a custom name shown additionally to
@@ -336,6 +338,13 @@ public class TextDisplayEntity extends DisplayBaseEntity {
 
     public void updatePrimitiveText() {
         if (!sendUpdates) return;
+        if (GLYPH_DIAGNOSTICS && GLYPH_DIAGNOSTICS_STARTED.compareAndSet(false, true)) {
+            GeyserImpl.getInstance().getLogger().info(
+                    "[TextDisplay glyph diagnostics] active; Geyser JVM requestedOffset="
+                            + System.getProperty("geyser.textDisplay.singleGlyphVerticalOffset", "<not set>")
+                            + ", effectiveOffset=" + BEDROCK_SINGLE_GLYPH_VERTICAL_OFFSET
+                            + ", glyphScale=" + BEDROCK_SINGLE_GLYPH_SCALE);
+        }
         // Find the message and color
         String message;
         Color color = null;
@@ -467,7 +476,9 @@ public class TextDisplayEntity extends DisplayBaseEntity {
         if (DEBUG && bedrockScale != scale) {
             log.info("- Single font glyph scaling: javaScale=" + scale + ", bedrockScale=" + bedrockScale);
         }
-        if (GLYPH_DIAGNOSTICS && glyphDiagnosticUpdates < 3 && hasPrivateUseGlyph(rawText)) {
+        if (GLYPH_DIAGNOSTICS && glyphDiagnosticUpdates < 3
+                && (hasPrivateUseGlyph(rawText)
+                        || (!rawText.isEmpty() && rawText.codePointCount(0, rawText.length()) <= 2))) {
             glyphDiagnosticUpdates++;
             log.info("[TextDisplay glyph diagnostics] entity=" + geyserId
                     + " codepoints=" + glyphCodepoints(rawText)
