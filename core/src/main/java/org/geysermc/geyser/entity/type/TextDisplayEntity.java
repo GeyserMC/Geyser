@@ -28,7 +28,6 @@ package org.geysermc.geyser.entity.type;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.cloudburstmc.math.imaginary.Quaternionf;
 import org.cloudburstmc.math.matrix.Matrix4f;
@@ -72,8 +71,17 @@ public class TextDisplayEntity extends DisplayBaseEntity {
     /** Java displays render text at 40 pixels per block, with 10-pixel line spacing. */
     private static final float JAVA_TEXT_PIXEL_SCALE = 1.0f / 40.0f;
 
-    /** Additional baseline compensation for Bedrock DebugText's different font metrics. */
-    private static final float BEDROCK_TEXT_ANCHOR_CORRECTION = 0.25f;
+    /**
+     * Bedrock DebugText draws below the equivalent Java text-display anchor.
+     * The default is calibrated against Java/Bedrock screenshots of the same
+     * multiline text display. Units are blocks at scale 1; keep this scaled
+     * with the display transformation so smaller text does not overcompensate.
+     *
+     * Override with -Dgeyser.textDisplay.verticalAnchorCorrection=<blocks>
+     * when calibrating different Bedrock builds without recompiling.
+     */
+    private static final float BEDROCK_TEXT_ANCHOR_CORRECTION =
+            Float.getFloat("geyser.textDisplay.verticalAnchorCorrection", 0.70f);
 
     private static final boolean DEBUG = Boolean.getBoolean("Geyser.Debug.TextDisplay");
 
@@ -331,11 +339,11 @@ public class TextDisplayEntity extends DisplayBaseEntity {
         );
         // Java renders upward from its bottom-center pivot, while Bedrock DebugText
         // is center-anchored. Java uses a 9-pixel glyph height and 1-pixel line gap.
-        int lineCount = PlainTextComponentSerializer.plainText()
-                .serialize(this.text).split("\\n", -1).length;
-        float textHeight = (lineCount * 10.0f - 1.0f) * JAVA_TEXT_PIXEL_SCALE;
-        text.setPosition(Vector3f.from(
-                0, textHeight * scale / 2.0f + BEDROCK_TEXT_ANCHOR_CORRECTION, 0));
+        // Count the translated message that we actually submit to Bedrock, not
+        // the raw component; translation and trailing empty lines can alter it.
+        int lineCount = message.split("\\n", -1).length;
+        float verticalOffset = calculateBedrockVerticalOffset(lineCount, scale);
+        text.setPosition(Vector3f.from(0, verticalOffset, 0));
         text.setAttachedToEntityId(geyserId);
 
         GeyserLogger log = GeyserImpl.getInstance().getLogger();
@@ -346,6 +354,7 @@ public class TextDisplayEntity extends DisplayBaseEntity {
 
         if (DEBUG) {
             log.info("Text Display Debug Update (" + geyserId + "):");
+            log.info("- Text layout: lines=" + lineCount + ", scale=" + scale + ", verticalOffset=" + verticalOffset);
             log.info("- Rotation:");
             log.info("  - Yaw: " + outputRotation);
         }
@@ -390,10 +399,24 @@ public class TextDisplayEntity extends DisplayBaseEntity {
     }
 
     /**
+     * Align the vertical centre of Bedrock's DebugText with Java's bottom
+     * text-display pivot. Java uses 9-pixel glyphs plus 1-pixel line spacing
+     * and 40 pixels per world block. The remaining font-anchor difference is
+     * calibrated separately and scales with the entity transform.
+     */
+    static float calculateBedrockVerticalOffset(int lineCount, float scale) {
+        if (lineCount <= 0) {
+            return 0.0f;
+        }
+        float javaTextHeight = (lineCount * 10.0f - 1.0f) * JAVA_TEXT_PIXEL_SCALE;
+        return (javaTextHeight / 2.0f + BEDROCK_TEXT_ANCHOR_CORRECTION) * scale;
+    }
+
+    /**
      * Keep explicit empty lines visible in the Bedrock DebugText layout.
      * A non-breaking space occupies the line without adding visible lettering.
      */
-    private static String preserveBlankLines(String message) {
+    static String preserveBlankLines(String message) {
         String[] lines = message.replace("\r\n", "\n").split("\n", -1);
         StringBuilder result = new StringBuilder(message.length());
         for (int i = 0; i < lines.length; i++) {
