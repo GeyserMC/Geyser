@@ -28,11 +28,13 @@ package org.geysermc.geyser.registry.mappings;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMaps;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
+import org.geysermc.geyser.api.biome.custom.CustomBiomeDefinition;
 import org.geysermc.geyser.api.event.lifecycle.GeyserDefineCustomSkullsEvent;
 import org.geysermc.geyser.api.item.custom.v2.CustomItemDefinition;
 import org.geysermc.geyser.api.util.Identifier;
 import org.geysermc.geyser.api.waypoint.CustomWaypointStyle;
 import org.geysermc.geyser.registry.mappings.util.CustomBlockMapping;
+import org.geysermc.geyser.registry.mappings.versions.biome.BiomeMappingsReader_v1;
 import org.geysermc.geyser.registry.mappings.versions.block.BlockMappingsReader_v1;
 import org.geysermc.geyser.registry.mappings.versions.item.ItemMappingsReader_v1;
 import org.geysermc.geyser.registry.mappings.versions.item.ItemMappingsReader_v2;
@@ -43,6 +45,8 @@ import java.util.List;
 import java.util.function.UnaryOperator;
 
 public record MappingsType<K, V>(String name, Int2ObjectMap<MappingsReader<K, V>> readers) {
+    public static final MappingsType<Identifier, CustomBiomeDefinition> BIOMES = create("biomes", builder -> builder
+        .with(1, new BiomeMappingsReader_v1()));
     public static final MappingsType<String, CustomBlockMapping> BLOCKS = create("blocks", builder -> builder
         .with(1, new BlockMappingsReader_v1()));
     public static final MappingsType<Identifier, CustomItemDefinition> ITEMS = create("items", builder -> builder
