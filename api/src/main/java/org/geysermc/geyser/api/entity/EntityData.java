@@ -43,10 +43,12 @@ import java.util.concurrent.CompletableFuture;
 public interface EntityData {
 
     /**
-     * @deprecated use {@link #byJavaId(int)}
+     * This method is deprecated for removal and will be removed in Geyser 2.13.0.
+     *
+     * @deprecated since 2.11.0: use {@link #byJavaId(int)}
      * @since 2.3.0
      */
-    @Deprecated(since = "2.11.0")
+    @Deprecated(since = "2.11.0", forRemoval = true)
     CompletableFuture<@Nullable GeyserEntity> entityByJavaId(@NonNegative int javaId);
 
     /**
@@ -101,25 +103,31 @@ public interface EntityData {
     boolean isMovementLocked();
 
     /**
-     * @deprecated use {@link GeyserConnection#requestOffhandSwap()} instead
+     * This method is deprecated for removal and will be removed in Geyser 2.13.0.
+     *
+     * @deprecated since 2.9.3: use {@link GeyserConnection#requestOffhandSwap()} instead
      */
-    @Deprecated(since = "2.9.3")
+    @Deprecated(since = "2.9.3", forRemoval = true)
     void switchHands();
 
     /**
      * This is the equivalent of {@link GeyserAvatarEntity#showEmote(String, boolean)},
      * with the emote chat announcement silencing set to false.
      *
-     * @deprecated Use {@link GeyserAvatarEntity#showEmote(String, boolean)} instead.
+     * <p>This method is deprecated for removal and will be removed in Geyser 2.13.0.</p>
+     *
+     * @deprecated since 2.9.3: use {@link GeyserConnection#showEmote(GeyserPlayerEntity, String)} instead
      */
-    @Deprecated(since = "2.9.3")
+    @Deprecated(since = "2.9.3", forRemoval = true)
     default void showEmote(GeyserPlayerEntity emoter, String emoteId) {
         emoter.showEmote(emoteId);
     }
 
     /**
+     * This method is deprecated for removal and will be removed in Geyser 2.13.0.
+     *
      * @deprecated Use {@link GeyserConnection#playerEntity()} instead.
      */
-    @Deprecated(since = "2.9.3")
+    @Deprecated(since = "2.9.3", forRemoval = true)
     GeyserPlayerEntity playerEntity();
 }
