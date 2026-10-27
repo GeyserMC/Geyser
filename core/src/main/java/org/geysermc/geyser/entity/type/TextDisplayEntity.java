@@ -26,7 +26,6 @@
 package org.geysermc.geyser.entity.type;
 
 import lombok.Getter;
-import lombok.extern.slf4j.Slf4j;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.checkerframework.checker.nullness.qual.NonNull;
@@ -39,8 +38,6 @@ import org.cloudburstmc.protocol.bedrock.data.debugshape.DebugShape;
 import org.cloudburstmc.protocol.bedrock.data.debugshape.DebugText;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.cloudburstmc.protocol.bedrock.packet.DebugDrawerPacket;
-import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.GeyserLogger;
 import org.geysermc.geyser.entity.VanillaEntities;
 import org.geysermc.geyser.entity.spawn.EntitySpawnContext;
 import org.geysermc.geyser.entity.type.living.ArmorStandEntity;
@@ -58,7 +55,6 @@ import java.util.Optional;
 import java.util.Set;
 
 // Note: 1.19.4 requires that the billboard is set to something in order to show, on Java Edition
-@Slf4j
 @Getter
 public class TextDisplayEntity extends DisplayBaseEntity {
 
@@ -139,19 +135,6 @@ public class TextDisplayEntity extends DisplayBaseEntity {
         }
     }
 
-    private static final boolean DEBUG = Boolean.getBoolean("Geyser.Debug.TextDisplay");
-
-    /**
-     * Log actual custom-font glyph layout without replacing the rendered
-     * content with its entity ID. Useful for diagnosing JVM argument placement,
-     * outdated Geyser builds, or a Bedrock client ignoring DebugText positions.
-     * Log at most three updates per display so animated furniture stays quiet.
-     */
-    private static final boolean GLYPH_DIAGNOSTICS =
-            Boolean.getBoolean("geyser.textDisplay.glyphDiagnostics");
-    private static final java.util.concurrent.atomic.AtomicBoolean GLYPH_DIAGNOSTICS_STARTED =
-            new java.util.concurrent.atomic.AtomicBoolean(false);
-
     /**
      * On Java Edition, armor stands can have a custom name shown additionally to
      * the text in the display. They are rendered separately, and can cross each other...
@@ -159,7 +142,6 @@ public class TextDisplayEntity extends DisplayBaseEntity {
     private @Nullable ArmorStandEntity secondEntity = null;
     private boolean isInvisible = false;
     private boolean sendUpdates = false;
-    private int glyphDiagnosticUpdates = 0;
 
     @Getter
     private @NonNull Component text = Component.empty();
@@ -340,13 +322,6 @@ public class TextDisplayEntity extends DisplayBaseEntity {
 
     public void updatePrimitiveText() {
         if (!sendUpdates) return;
-        if (GLYPH_DIAGNOSTICS && GLYPH_DIAGNOSTICS_STARTED.compareAndSet(false, true)) {
-            GeyserImpl.getInstance().getLogger().info(
-                    "[TextDisplay glyph diagnostics] active; Geyser JVM requestedOffset="
-                            + System.getProperty("geyser.textDisplay.singleGlyphVerticalOffset", "<not set>")
-                            + ", effectiveOffset=" + BEDROCK_SINGLE_GLYPH_VERTICAL_OFFSET
-                            + ", glyphScale=" + BEDROCK_SINGLE_GLYPH_SCALE);
-        }
         // Find the message and color
         String message;
         Color color = null;
@@ -402,7 +377,7 @@ public class TextDisplayEntity extends DisplayBaseEntity {
 
         DebugText text = new DebugText();
         text.setId(geyserId);
-        text.setText(DEBUG ? String.valueOf(geyserId) : message);
+        text.setText(message);
         text.setColor(
             color == null ? null :
                 new Color(
@@ -424,42 +399,12 @@ public class TextDisplayEntity extends DisplayBaseEntity {
         text.setPosition(Vector3f.from(0, verticalOffset, 0));
         text.setAttachedToEntityId(geyserId);
 
-        GeyserLogger log = GeyserImpl.getInstance().getLogger();
-
         Vector3f outputRotation = Vector3f.from(
             0, (-getYaw()) + 180, 0
         );
 
-        if (DEBUG) {
-            log.info("Text Display Debug Update (" + geyserId + "):");
-            log.info("- Text layout: lines=" + lineCount + ", scale=" + scale + ", verticalOffset=" + verticalOffset);
-            log.info("- Rotation:");
-            log.info("  - Yaw: " + outputRotation);
-        }
-
-//        Vector3f leftRotation = toVector(this.getLeftRotation());
-//
-//        if (DEBUG) {
-//            log.info("  - Left Rotation: " + leftRotation);
-//        }
-//
-//        // Add left rotation
-//        outputRotation = outputRotation.add(leftRotation);
-//
-//        if (DEBUG) {
-//            log.info("  - Yaw + Left Rotation: " + outputRotation);
-//        }
-
-        if (DEBUG) {
-            log.info("  - Rotation: " + rotation);
-        }
-
-        // Add rotation
+        // Combine the entity's world yaw with its display transform rotation.
         outputRotation = outputRotation.add(rotation);
-
-        if (DEBUG) {
-            log.info("  - Yaw + Rotation: " + outputRotation);
-        }
 
         text.setRotation(outputRotation);
         text.setUseRotation(!getBillboard().equals(Billboard.CENTER));
@@ -475,26 +420,6 @@ public class TextDisplayEntity extends DisplayBaseEntity {
         // changing the glyph's pixel size must not move its attachment anchor.
         float bedrockScale = adjustedGlyphScale(rawText, scale, BEDROCK_SINGLE_GLYPH_SCALE);
         text.setScale(bedrockScale);
-        if (DEBUG && bedrockScale != scale) {
-            log.info("- Single font glyph scaling: javaScale=" + scale + ", bedrockScale=" + bedrockScale);
-        }
-        if (GLYPH_DIAGNOSTICS && glyphDiagnosticUpdates < 3
-                && (hasPrivateUseGlyph(rawText)
-                        || (!rawText.isEmpty() && rawText.codePointCount(0, rawText.length()) <= 2))) {
-            glyphDiagnosticUpdates++;
-            log.info("[TextDisplay glyph diagnostics] entity=" + geyserId
-                    + " codepoints=" + glyphCodepoints(rawText)
-                    + " singleGlyph=" + isSinglePrivateUseGlyph(rawText)
-                    + " javaScale=" + scale
-                    + " bedrockScale=" + bedrockScale
-                    + " baselineY=" + baseVerticalOffset
-                    + " glyphOffsetY=" + customGlyphOffset
-                    + " packetY=" + verticalOffset
-                    + " requestedOffset=" + System.getProperty(
-                            "geyser.textDisplay.singleGlyphVerticalOffset", "<not set>")
-                    + " configuredOffset=" + BEDROCK_SINGLE_GLYPH_VERTICAL_OFFSET
-                    + " attachedEntityId=" + geyserId);
-        }
         DebugDrawerPacket packet = new DebugDrawerPacket();
         packet.getShapes().add(text);
         session.sendUpstreamPacket(packet);
@@ -533,25 +458,6 @@ public class TextDisplayEntity extends DisplayBaseEntity {
      */
     static float singleGlyphVerticalOffset(String plainText, float javaScale, float offsetPerScale) {
         return isSinglePrivateUseGlyph(plainText) ? javaScale * offsetPerScale : 0.0f;
-    }
-
-    private static boolean hasPrivateUseGlyph(String plainText) {
-        return plainText != null && plainText.codePoints()
-                .anyMatch(codePoint -> Character.getType(codePoint) == Character.PRIVATE_USE);
-    }
-
-    private static String glyphCodepoints(String plainText) {
-        StringBuilder result = new StringBuilder();
-        plainText.codePoints().limit(8).forEach(codePoint -> {
-            if (!result.isEmpty()) {
-                result.append(' ');
-            }
-            result.append("U+").append(Integer.toHexString(codePoint).toUpperCase(java.util.Locale.ROOT));
-        });
-        if (plainText.codePointCount(0, plainText.length()) > 8) {
-            result.append(" ...");
-        }
-        return result.toString();
     }
 
     private static boolean isSinglePrivateUseGlyph(String plainText) {
@@ -598,28 +504,5 @@ public class TextDisplayEntity extends DisplayBaseEntity {
         secondEntity.getMetadata().put(EntityDataTypes.WIDTH, 0.0f);
         secondEntity.getMetadata().put(EntityDataTypes.HEIGHT, 0.0f);
         secondEntity.getMetadata().put(EntityDataTypes.HITBOX, NbtMap.EMPTY);
-    }
-
-    private Vector3f toVector(Quaternionf q) {
-        double x, y, z;
-        double angle = 2 * Math.acos(q.getW());
-
-        if (1 - (q.getW() * q.getW()) < 0.000001) {
-            x = q.getX();
-            y = q.getY();
-            z = q.getZ();
-        } else {
-            // http://www.euclideanspace.com/maths/geometry/rotations/conversions/quaternionToAngle/
-            double s = Math.sqrt(1 - (q.getW() * q.getW()));
-            x = q.getX() / s;
-            y = q.getY() / s;
-            z = q.getZ() / s;
-        }
-
-        return Vector3f.from(
-            -Math.toDegrees(x * angle),
-            Math.toDegrees(y * angle),
-            Math.toDegrees(z * angle)
-        );
     }
 }
