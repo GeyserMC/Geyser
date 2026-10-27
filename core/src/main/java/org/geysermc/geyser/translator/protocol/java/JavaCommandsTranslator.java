@@ -575,8 +575,6 @@ public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommands
          * Bedrock rejects fixed enum values that are not lowercase ("Keywords in commands need to be
          * lower case"), while soft enum values keep their case. Brigadier literals are case-sensitive,
          * so the exact spelling has to survive the round trip. Vanilla BDS uses the same split.
-         *
-         * <p>Mitigates <a href="https://github.com/GeyserMC/Geyser/issues/3411">issue 3411</a>. Not a perfect solution.</p>
          */
         private static boolean needsSoftEnum(String literal) {
             return !literal.equals(literal.toLowerCase(Locale.ROOT));
@@ -593,6 +591,9 @@ public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommands
             return context.softEnumNames.computeIfAbsent(signature, key -> literal + "_" + context.softEnumNames.size());
         }
 
+        /**
+         * Mitigates <a href="https://github.com/GeyserMC/Geyser/issues/3411">issue 3411</a>. Not a perfect solution.
+         */
         private static String getEnumDataName(CommandNode node) {
             if (node.getProperties() instanceof ResourceProperties properties) {
                 Key registryKey = properties.getRegistryKey();
