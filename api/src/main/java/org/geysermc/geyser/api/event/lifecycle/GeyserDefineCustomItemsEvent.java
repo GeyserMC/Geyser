@@ -51,9 +51,9 @@ public interface GeyserDefineCustomItemsEvent extends Event {
      * The map returned here will only contain items registered with the deprecated
      * {@link GeyserDefineCustomItemsEvent#register(String, CustomItemData)} method.
      *
-     * @deprecated replaced by {@link GeyserDefineCustomItemsEvent#customItemDefinitions()}
+     * @deprecated since 2.9.3: replaced by {@link GeyserDefineCustomItemsEvent#customItemDefinitions()}
      */
-    @Deprecated
+    @Deprecated(since = "2.9.3")
     Map<String, Collection<CustomItemData>> getExistingCustomItems();
 
     /**
@@ -68,9 +68,9 @@ public interface GeyserDefineCustomItemsEvent extends Event {
      * The map returned here will only contain items registered with the deprecated
      * {@link GeyserDefineCustomItemsEvent#register(NonVanillaCustomItemData)} method.
      *
-     * @deprecated replaced by {@link GeyserDefineCustomItemsEvent#nonVanillaCustomItemDefinitions()}
+     * @deprecated since 2.9.3: replaced by {@link GeyserDefineCustomItemsEvent#nonVanillaCustomItemDefinitions()}
      */
-    @Deprecated
+    @Deprecated(since = "2.9.3")
     List<NonVanillaCustomItemData> getExistingNonVanillaCustomItems();
 
     /**
@@ -88,9 +88,9 @@ public interface GeyserDefineCustomItemsEvent extends Event {
      * @param identifier the base (java) item
      * @param customItemData the custom item data to register
      * @return if the item was registered
-     * @deprecated use {@link GeyserDefineCustomItemsEvent#register(Identifier, CustomItemDefinition)}
+     * @deprecated since 2.9.3: use {@link GeyserDefineCustomItemsEvent#register(Identifier, CustomItemDefinition)}
      */
-    @Deprecated
+    @Deprecated(since = "2.9.3")
     boolean register(String identifier, CustomItemData customItemData);
 
     /**
@@ -110,9 +110,9 @@ public interface GeyserDefineCustomItemsEvent extends Event {
      *
      * @param customItemData the custom item data to register
      * @return if the item was registered
-     * @deprecated use {@link GeyserDefineCustomItemsEvent#register(NonVanillaCustomItemDefinition)}
+     * @deprecated since 2.9.3: use {@link GeyserDefineCustomItemsEvent#register(NonVanillaCustomItemDefinition)}
      */
-    @Deprecated
+    @Deprecated(since = "2.9.3")
     boolean register(NonVanillaCustomItemData customItemData);
 
     /**

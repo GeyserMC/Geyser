@@ -45,6 +45,8 @@ public interface CustomItemBedrockOptions {
     /**
      * Gets the item's icon, if it was manually set. When not present, the item's Bedrock identifier is used.
      *
+     * <p>This method is deprecated and planned to be removed in Geyser 2.14.0.</p>
+     *
      * @return the item's icon
      * @see CustomItemIcons#defaultIcon()
      * @deprecated since 2.12.0: use {@link CustomItemBedrockOptions#icons()} and {@link CustomItemIcons#defaultIcon()} instead

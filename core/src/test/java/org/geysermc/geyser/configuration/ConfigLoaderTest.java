@@ -109,7 +109,7 @@ public class ConfigLoaderTest {
         migratedV4.node("java").comment(null);
         defaultConfig.node("java").comment(null);
 
-        assertEquals("raknet", migratedV4.node("bedrock", "transport").getString());
+        assertEquals("nethernet", migratedV4.node("bedrock", "transport").getString());
 
         // Metric uuids, if present, won't be equal, ofc
         var migratedUuid = migratedV4.node("metrics-uuid");
@@ -137,7 +137,7 @@ public class ConfigLoaderTest {
         assertEquals(19122, config.bedrock().port());
         assertTrue(config.bedrock().cloneRemotePort());
 
-        assertEquals(GeyserConfig.BedrockConfig.Transport.RAKNET, config.bedrock().transport());
+        assertEquals(GeyserConfig.BedrockConfig.Transport.NETHERNET, config.bedrock().transport());
         assertEquals(0, config.bedrock().webrtcPort());
 
         // Verify Java section (was remote)

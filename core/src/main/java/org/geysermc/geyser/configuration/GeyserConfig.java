@@ -278,7 +278,7 @@ public interface GeyserConfig {
             "both": accepts NetherNet and RakNet. Each needs its own UDP port, see "port" and "webrtc-port".
             "raknet": the old connection method. Bedrock Edition will stop supporting it in a future version.""")
         default Transport transport() {
-            return Transport.RAKNET;
+            return Transport.NETHERNET;
         }
 
         void transport(Transport transport);
