@@ -17,6 +17,13 @@ class TextDisplayLayoutTest {
     }
 
     @Test
+    void calibratedDefaultVerticalAnchorOffsetsJavaTextHeight() {
+        // One Java line is 9 pixels tall; at 1x the centre is 9 / 40 / 2
+        // blocks above its bottom pivot, plus the measured -0.65 offset.
+        assertEquals(-0.5375f, TextDisplayEntity.calculateBedrockVerticalOffset(1, 1.0f), 0.00001f);
+    }
+
+    @Test
     void fontScaleChangesOnlyTextHeightNotTheBedrockAnchor() {
         // Five Java lines occupy 49px at 40px/block; pivot to centre is half that height.
         float full = TextDisplayEntity.calculateBedrockVerticalOffset(5, 1.0f);
@@ -47,20 +54,20 @@ class TextDisplayLayoutTest {
 
     @Test
     void customGlyphVerticalOffsetTracksJavaScaleButNotGlyphScaleCorrection() {
-        // At 1.5x Java scale, -0.40 blocks per unit moves the Help Box
-        // glyph down 0.60 world blocks, irrespective of the 0.80 font sizing.
-        assertEquals(-0.60f, TextDisplayEntity.singleGlyphVerticalOffset("\uE200", 1.5f, -0.40f), 0.00001f);
-        assertEquals(-0.40f, TextDisplayEntity.singleGlyphVerticalOffset("\uE200", 1.0f, -0.40f), 0.00001f);
+        // At 1.5x Java scale, -0.25 blocks per unit moves the Help Box
+        // glyph down 0.375 world blocks, irrespective of the 0.80 font sizing.
+        assertEquals(-0.375f, TextDisplayEntity.singleGlyphVerticalOffset("\uE200", 1.5f, -0.25f), 0.00001f);
+        assertEquals(-0.25f, TextDisplayEntity.singleGlyphVerticalOffset("\uE200", 1.0f, -0.25f), 0.00001f);
         assertEquals(0.0f, TextDisplayEntity.singleGlyphVerticalOffset("\uE200", 1.0f, 0.0f), 0.00001f);
     }
 
     @Test
     void regularTextAndMixedGlyphsRetainOriginalVerticalAnchor() {
-        assertEquals(0.0f, TextDisplayEntity.singleGlyphVerticalOffset("SURVIVAL PORTAL", 1.5f, -0.40f), 0.00001f);
-        assertEquals(0.0f, TextDisplayEntity.singleGlyphVerticalOffset("Title \uE200", 1.5f, -0.40f), 0.00001f);
-        assertEquals(0.0f, TextDisplayEntity.singleGlyphVerticalOffset("\uE200\uE201", 1.5f, -0.40f), 0.00001f);
-        assertEquals(0.0f, TextDisplayEntity.singleGlyphVerticalOffset("?", 1.5f, -0.40f), 0.00001f);
-        assertEquals(0.0f, TextDisplayEntity.singleGlyphVerticalOffset(null, 1.5f, -0.40f), 0.00001f);
+        assertEquals(0.0f, TextDisplayEntity.singleGlyphVerticalOffset("SURVIVAL PORTAL", 1.5f, -0.25f), 0.00001f);
+        assertEquals(0.0f, TextDisplayEntity.singleGlyphVerticalOffset("Title \uE200", 1.5f, -0.25f), 0.00001f);
+        assertEquals(0.0f, TextDisplayEntity.singleGlyphVerticalOffset("\uE200\uE201", 1.5f, -0.25f), 0.00001f);
+        assertEquals(0.0f, TextDisplayEntity.singleGlyphVerticalOffset("?", 1.5f, -0.25f), 0.00001f);
+        assertEquals(0.0f, TextDisplayEntity.singleGlyphVerticalOffset(null, 1.5f, -0.25f), 0.00001f);
     }
 
     @Test
