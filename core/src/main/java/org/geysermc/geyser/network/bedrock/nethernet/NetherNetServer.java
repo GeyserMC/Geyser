@@ -56,6 +56,7 @@ import org.geysermc.geyser.api.event.EventRegistrar;
 import org.geysermc.geyser.api.event.bedrock.SessionJoinEvent;
 import org.geysermc.geyser.api.network.BedrockListener;
 import org.geysermc.geyser.configuration.GeyserConfig;
+import org.geysermc.geyser.configuration.GeyserPluginConfig;
 import org.geysermc.geyser.event.type.SessionDisconnectEventImpl;
 import org.geysermc.geyser.network.BedrockPingHandler;
 import org.geysermc.geyser.network.bedrock.GameProtocol;
@@ -182,7 +183,7 @@ public final class NetherNetServer implements EventRegistrar {
             return;
         }
 
-        if (inbuilt && signalingPort == geyser.config().java().port()) {
+        if (inbuilt && geyser.config() instanceof GeyserPluginConfig pluginConfig && signalingPort == pluginConfig.java().port()) {
             // e.g. clone-remote-port: the Java server owns that TCP port
             inbuilt = false;
             String reason = "Built-in signaling cannot use port " + signalingPort + " because the Java server already uses it. ";
