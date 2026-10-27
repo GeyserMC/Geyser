@@ -40,8 +40,9 @@ import org.geysermc.geyser.inventory.Inventory;
 import org.geysermc.geyser.inventory.item.BedrockEnchantment;
 import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.item.enchantment.Enchantment;
+import org.geysermc.geyser.registry.java.JavaRegistryProvider;
 import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.geyser.session.cache.registry.JavaRegistries;
+import org.geysermc.geyser.registry.java.JavaRegistries;
 import org.geysermc.geyser.translator.inventory.InventoryTranslator;
 import org.geysermc.geyser.translator.text.MessageTranslator;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.GameMode;
@@ -306,15 +307,17 @@ public class AnvilInventoryUpdater extends InventoryUpdater {
      * @return the number of levels needed or -1 if no enchantments can be applied
      */
     private int calcMergeEnchantmentCost(GeyserSession session, GeyserItemStack input, GeyserItemStack material, boolean bedrock) {
+        JavaRegistryProvider registries = session.javaRegistries();
+
         boolean hasCompatible = false;
-        Object2IntMap<Enchantment> combinedEnchantments = getEnchantments(session, input);
+        Object2IntMap<Enchantment> combinedEnchantments = getEnchantments(registries, input);
         int cost = 0;
-        for (Object2IntMap.Entry<Enchantment> entry : getEnchantments(session, material).object2IntEntrySet()) {
+        for (Object2IntMap.Entry<Enchantment> entry : getEnchantments(registries, material).object2IntEntrySet()) {
             Enchantment enchantment = entry.getKey();
 
-            boolean canApply = isEnchantedBook(input) || enchantment.supportedItems().contains(session, input.asItem());
+            boolean canApply = isEnchantedBook(input) || enchantment.supportedItems().contains(registries, input.asItem());
 
-            List<Enchantment> incompatibleEnchantments = enchantment.exclusiveSet().resolve(session);
+            List<Enchantment> incompatibleEnchantments = enchantment.exclusiveSet().resolve(registries);
             for (Enchantment incompatible : incompatibleEnchantments) {
                 // An exclusive set contains the enchantment itself, which never conflicts with a higher level of itself
                 if (!incompatible.equals(enchantment) && combinedEnchantments.containsKey(incompatible)) {
@@ -366,7 +369,7 @@ public class AnvilInventoryUpdater extends InventoryUpdater {
         return cost;
     }
 
-    private Object2IntMap<Enchantment> getEnchantments(GeyserSession session, GeyserItemStack itemStack) {
+    private Object2IntMap<Enchantment> getEnchantments(JavaRegistryProvider registries, GeyserItemStack itemStack) {
         ItemEnchantments enchantmentComponent;
         if (isEnchantedBook(itemStack)) {
             enchantmentComponent = itemStack.getComponent(DataComponentTypes.STORED_ENCHANTMENTS);
@@ -376,12 +379,10 @@ public class AnvilInventoryUpdater extends InventoryUpdater {
         if (enchantmentComponent != null) {
             Object2IntMap<Enchantment> enchantments = new Object2IntOpenHashMap<>();
             for (Map.Entry<Integer, Integer> entry : enchantmentComponent.getEnchantments().entrySet()) {
-                Enchantment enchantment = session.getRegistryCache().registry(JavaRegistries.ENCHANTMENT).byId(entry.getKey());
-                if (enchantment == null) {
-                    GeyserImpl.getInstance().getLogger().debug("Unknown Java enchantment in anvil: " + entry.getKey());
-                    continue;
-                }
-                enchantments.put(enchantment, entry.getValue().intValue());
+                JavaRegistries.ENCHANTMENT.get(registries, entry.getKey()).ifPresentOrElse(
+                    enchantment -> enchantments.put(enchantment, entry.getValue().intValue()),
+                    () -> GeyserImpl.getInstance().getLogger().debug("Unknown Java enchantment in anvil: " + entry.getKey())
+                );
             }
             return enchantments;
         }

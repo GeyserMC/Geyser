@@ -31,7 +31,6 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.protocol.bedrock.data.skin.ImageData;
 import org.cloudburstmc.protocol.bedrock.data.skin.SerializedSkin;
 import org.cloudburstmc.protocol.bedrock.packet.PlayerListPacket;
-import org.cloudburstmc.protocol.bedrock.packet.PlayerSkinPacket;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.skin.Cape;
 import org.geysermc.geyser.api.skin.Skin;
@@ -62,6 +61,11 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
 public class SkinManager {
+    private static final int MAX_IMAGE_SIZE = 128 * 128 * 4;
+    /**
+     * The library's default limit for geometry read from a skin packet
+     */
+    private static final int MAX_GEOMETRY_SIZE = 512 * 1024;
 
     private static final Map<ResolvableProfile, CompletableFuture<GameProfile>> requestedProfiles = new ConcurrentHashMap<>();
     private static final Cache<ResolvableProfile, GameProfile> RESOLVED_PROFILES_CACHE = CacheBuilder.newBuilder()
@@ -105,9 +109,7 @@ public class SkinManager {
                 playerEntity.uuid(),
                 playerEntity.getUsername(),
                 playerEntity.geyserId(),
-                getSkin(session, skin.textureUrl(), skin, cape, geometry),
-                // Default to white when waypoint colour is unknown, which is the most visible
-                session.getWaypointCache().getWaypointColor(playerEntity.uuid()).orElse(Color.WHITE)
+                getSkin(session, skin.textureUrl(), skin, cape, geometry)
         );
     }
 
@@ -116,30 +118,21 @@ public class SkinManager {
         Cape cape = skinData.cape();
         SkinGeometry geometry = skinData.geometry();
 
-        // Since 1.21.130: PlayerSkinPacket only works if player is listed; might as well always use the player list packet
-        if (entity.uuid().equals(session.getPlayerEntity().uuid()) || !entity.isListed()) {
-            PlayerListPacket.Entry entry = PlayerListUtils.buildEntryManually(
-                session,
-                entity.uuid(),
-                entity.getUsername(),
-                entity.geyserId(),
-                getSkin(session, skin.textureUrl(), skin, cape, geometry),
-                session.getWaypointCache().getWaypointColor(entity.uuid()).orElse(Color.WHITE)
-            );
+        // Since 1.21.130 the client takes a player's skin from their player list entry, which means a
+        // PlayerSkinPacket no longer applies to listed players (still broken as of 26.51). Always go through
+        // the player list instead, as that works for both listed and unlisted entities.
+        PlayerListPacket.Entry entry = PlayerListUtils.buildEntryManually(
+            session,
+            entity.uuid(),
+            entity.getUsername(),
+            entity.geyserId(),
+            getSkin(session, skin.textureUrl(), skin, cape, geometry)
+        );
 
-            // Slight delay ensures skins are actually shown
-            session.scheduleInEventLoop(() -> {
-                PlayerListUtils.sendSkinUsingPlayerList(session, entry, entity, entity.isListed());
-            }, 100, TimeUnit.MILLISECONDS);
-        } else {
-            PlayerSkinPacket packet = new PlayerSkinPacket();
-            packet.setUuid(entity.uuid());
-            packet.setOldSkinName("");
-            packet.setNewSkinName(skin.textureUrl());
-            packet.setSkin(getSkin(session, skin.textureUrl(), skin, cape, geometry));
-            packet.setTrustedSkin(true);
-            session.sendUpstreamPacket(packet);
-        }
+        // Slight delay ensures skins are actually shown
+        session.scheduleInEventLoop(() -> {
+            PlayerListUtils.sendSkinUsingPlayerList(session, entry, entity, entity.isListed());
+        }, 100, TimeUnit.MILLISECONDS);
     }
 
     private static SerializedSkin getSkin(GeyserSession session, String skinId, Skin skin, Cape cape, SkinGeometry geometry) {
@@ -246,19 +239,36 @@ public class SkinManager {
             byte[] geometryNameBytes = clientData.getGeometryName();
             byte[] geometryBytes = clientData.getGeometryData();
 
-            if (skinBytes.length <= (128 * 128 * 4) && !clientData.isPersonaSkin()) {
+            if (isImage(skinBytes) && !clientData.isPersonaSkin()) {
                 SkinProvider.storeBedrockSkin(playerEntity.uuid(), clientData.getSkinId(), skinBytes);
-                SkinProvider.storeBedrockGeometry(playerEntity.uuid(), geometryNameBytes, geometryBytes);
+                if (geometryNameBytes.length + geometryBytes.length <= MAX_GEOMETRY_SIZE) {
+                    SkinProvider.storeBedrockGeometry(playerEntity.uuid(), geometryNameBytes, geometryBytes);
+                }
             } else if (geyser.config().debugMode()) {
                 geyser.getLogger().info(GeyserLocale.getLocaleStringLog("geyser.skin.bedrock.fail", playerEntity.getUsername()));
                 geyser.getLogger().debug("The size of '" + playerEntity.getUsername() + "' skin is: " + clientData.getSkinImageWidth() + "x" + clientData.getSkinImageHeight());
             }
 
-            if (!clientData.getCapeId().isEmpty()) {
-                SkinProvider.storeBedrockCape(clientData.getCapeId(), capeBytes);
+            if (!clientData.getCapeId().isEmpty() && isImage(capeBytes)) {
+                SkinProvider.storeBedrockCape(playerEntity.uuid(), clientData.getCapeId(), capeBytes);
             }
         } catch (Exception e) {
             throw new AssertionError("Failed to cache skin for bedrock user (" + playerEntity.getUsername() + "): ", e);
+        }
+    }
+
+    /**
+     * Whether the data has a size Bedrock images can have.
+     */
+    private static boolean isImage(byte[] data) {
+        if (data.length > MAX_IMAGE_SIZE) {
+            return false;
+        }
+        try {
+            ImageData.of(data);
+            return true;
+        } catch (IllegalArgumentException e) {
+            return false;
         }
     }
 

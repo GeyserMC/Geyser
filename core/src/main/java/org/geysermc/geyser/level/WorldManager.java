@@ -26,7 +26,6 @@
 package org.geysermc.geyser.level;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
-import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.geysermc.erosion.util.BlockPositionIterator;
 import org.geysermc.geyser.level.block.type.BlockState;
@@ -34,8 +33,8 @@ import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.GameMode;
 import org.geysermc.mcprotocollib.protocol.data.game.setting.Difficulty;
 
-import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 
@@ -136,16 +135,9 @@ public abstract class WorldManager {
     }
 
     /**
-     * Returns a list of biome identifiers available on the server.
-     */
-    public String @Nullable [] getBiomeIdentifiers(boolean withTags) {
-        return null;
-    }
-
-    /**
      * Retrieves decorated pot sherds from the server. Used to ensure the data is not erased on animation sent
      * through the BlockEntityDataPacket.
      */
-    public void getDecoratedPotData(GeyserSession session, Vector3i pos, Consumer<List<String>> apply) {
+    public void getDecoratedPotData(GeyserSession session, Vector3i pos, Consumer<Map<String, String>> apply) {
     }
 }

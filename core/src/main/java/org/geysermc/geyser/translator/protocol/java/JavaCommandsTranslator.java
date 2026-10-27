@@ -32,21 +32,31 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import it.unimi.dsi.fastutil.ints.IntSet;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenCustomHashMap;
+import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.objects.Reference2ObjectOpenHashMap;
 import lombok.Getter;
 import lombok.ToString;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.format.NamedTextColor;
-import org.checkerframework.checker.nullness.qual.MonotonicNonNull;
-import org.cloudburstmc.protocol.bedrock.data.command.*;
+import org.cloudburstmc.protocol.bedrock.data.command.CommandData;
+import org.cloudburstmc.protocol.bedrock.data.command.CommandEnumConstraint;
+import org.cloudburstmc.protocol.bedrock.data.command.CommandEnumData;
+import org.cloudburstmc.protocol.bedrock.data.command.CommandOverloadData;
+import org.cloudburstmc.protocol.bedrock.data.command.CommandParam;
+import org.cloudburstmc.protocol.bedrock.data.command.CommandParamData;
+import org.cloudburstmc.protocol.bedrock.data.command.CommandPermission;
 import org.cloudburstmc.protocol.bedrock.packet.AvailableCommandsPacket;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.event.java.ServerDefineCommandsEvent;
 import org.geysermc.geyser.api.util.PlatformType;
 import org.geysermc.geyser.command.CommandRegistry;
-import org.geysermc.geyser.registry.BlockRegistries;
-import org.geysermc.geyser.registry.Registries;
+import org.geysermc.geyser.registry.java.BuiltInJavaRegistries;
+import org.geysermc.geyser.registry.java.JavaRegistries;
+import org.geysermc.geyser.registry.java.JavaRegistryKey;
+import org.geysermc.geyser.registry.java.JavaRegistryProvider;
 import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.geyser.session.cache.registry.JavaRegistries;
+import org.geysermc.geyser.session.cache.WorldCache;
+import org.geysermc.geyser.session.cache.tags.Tag;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 import org.geysermc.geyser.util.EntityUtils;
@@ -54,10 +64,26 @@ import org.geysermc.mcprotocollib.protocol.data.game.command.CommandNode;
 import org.geysermc.mcprotocollib.protocol.data.game.command.CommandParser;
 import org.geysermc.mcprotocollib.protocol.data.game.command.properties.ResourceProperties;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.attribute.AttributeType;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.player.GameMode;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.SwingAnimation;
+import org.geysermc.mcprotocollib.protocol.data.game.level.HeightmapTypes;
+import org.geysermc.mcprotocollib.protocol.data.game.level.particle.ParticleType;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.ClientboundCommandsPacket;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.EnumSet;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeSet;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @SuppressWarnings("removal") // We know. This is our doing.
 @Translator(packet = ClientboundCommandsPacket.class)
@@ -66,9 +92,23 @@ public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommands
     /**
      * Wait until the registries load before getting all the block names.
      */
-    private static final Supplier<String[]> ALL_BLOCK_NAMES = Suppliers.memoize(() -> BlockRegistries.JAVA_BLOCKS.get().stream().map(block -> block.javaIdentifier().toString()).toArray(String[]::new));
+    private static final Supplier<String[]> ALL_BLOCK_NAMES = Suppliers.memoize(() -> BuiltInJavaRegistries.BLOCK.keys().stream().map(Key::asString).toArray(String[]::new));
     private static final String[] ALL_EFFECT_IDENTIFIERS = EntityUtils.getAllEffectIdentifiers();
-    private static final String[] ATTRIBUTES = AttributeType.Builtin.BUILTIN.values().stream().map(type -> type.getIdentifier().asString()).toList().toArray(new String[0]);
+    private static final String[] ATTRIBUTES = AttributeType.Builtin.BUILTIN.values().stream().map(type -> type.getIdentifier().asString()).toList().toArray(String[]::new);
+    private static final String[] PARTICLES = Arrays.stream(ParticleType.values()).map(type -> "minecraft:" + type.name().toLowerCase(Locale.ROOT)).toArray(String[]::new);
+    private static final String[] GAMEMODES = Arrays.stream(GameMode.values()).map(mode -> mode.name().toLowerCase(Locale.ROOT)).toArray(String[]::new);
+    // https://mcsrc.dev/2/26.3/net/minecraft/commands/arguments/EntityAnchorArgument
+    private static final String[] ANCHORS = {"eyes", "feet"};
+    // https://mcsrc.dev/2/26.3/net/minecraft/world/level/block/Mirror
+    private static final String[] MIRROR_MODES = {"none", "left_right", "front_back"};
+    // https://mcsrc.dev/2/26.3/net/minecraft/world/level/block/Rotation
+    private static final String[] ROTATION_MODES = {"none", "clockwise_90", "180", "counterclockwise_90"};
+    private static final String[] HEIGHTMAPS = Arrays.stream(HeightmapTypes.values())
+        // Java doesn't allow worldgen heightmaps
+        .filter(type -> !type.isWorldGen())
+        .map(type -> type.name().toLowerCase(Locale.ROOT))
+        .toArray(String[]::new);
+    private static final String[] SWING_ANIMATIONS = Arrays.stream(SwingAnimation.Type.values()).map(type -> type.name().toLowerCase(Locale.ROOT)).toArray(String[]::new);
     private static final String[] ENUM_BOOLEAN = {"true", "false"};
     private static final String[] VALID_COLORS;
     private static final String[] VALID_SCOREBOARD_SLOTS;
@@ -132,15 +172,13 @@ public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommands
         }
 
         CommandRegistry registry = session.getGeyser().commandRegistry();
+        CommandBuilderContext builderContext = new CommandBuilderContext(session.javaRegistries(), session.getWorldCache(), session.getLevels());
         CommandNode[] nodes = packet.getNodes();
         List<CommandData> commandData = new ArrayList<>();
         IntSet commandNodes = new IntOpenHashSet();
         Set<String> knownAliases = new HashSet<>();
         Map<BedrockCommandInfo, Set<String>> commands = new Object2ObjectOpenCustomHashMap<>(PARAM_STRATEGY);
         Int2ObjectMap<List<CommandNode>> commandArgs = new Int2ObjectOpenHashMap<>();
-        // One namespace of soft enum names per packet: identical value sets share a name so command
-        // aliases still deduplicate, while distinct sets are guaranteed distinct names
-        Map<String, String> softEnumNames = new HashMap<>();
 
         // Get the first node, it should be a root node
         CommandNode rootNode = nodes[packet.getFirstNodeIndex()];
@@ -162,7 +200,7 @@ public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommands
             }
 
             // Get and parse all params
-            CommandOverloadData[] params = getParams(session, nodes[nodeIndex], nodes, softEnumNames);
+            CommandOverloadData[] params = getParams(builderContext, nodes[nodeIndex], nodes);
 
             // Insert the alias name into the command list
             String name = node.getName().toLowerCase(Locale.ROOT);
@@ -259,12 +297,12 @@ public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommands
     /**
      * Build the command parameter array for the given command
      *
-     * @param session the session
+     * @param context the {@link CommandBuilderContext}
      * @param commandNode The command to build the parameters for
      * @param allNodes    Every command node
      * @return An array of parameter option arrays
      */
-    private static CommandOverloadData[] getParams(GeyserSession session, CommandNode commandNode, CommandNode[] allNodes, Map<String, String> softEnumNames) {
+    private static CommandOverloadData[] getParams(CommandBuilderContext context, CommandNode commandNode, CommandNode[] allNodes) {
         // Check if the command is an alias and redirect it
         if (commandNode.getRedirectIndex().isPresent()) {
             int redirectIndex = commandNode.getRedirectIndex().getAsInt();
@@ -275,7 +313,7 @@ public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommands
         if (commandNode.getChildIndices().length >= 1) {
             // Create the root param node and build all the children
             ParamInfo rootParam = new ParamInfo(commandNode, null);
-            rootParam.buildChildren(new CommandBuilderContext(session, softEnumNames), allNodes);
+            rootParam.buildChildren(context, allNodes);
 
             List<CommandOverloadData> treeData = rootParam.getTree();
 
@@ -299,35 +337,54 @@ public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommands
         }
 
         return switch (parser) {
-            case FLOAT, ROTATION, DOUBLE -> CommandParam.FLOAT;
+            case BOOL -> ENUM_BOOLEAN;
+            case FLOAT, DOUBLE, ROTATION -> CommandParam.FLOAT;
             case INTEGER, LONG -> CommandParam.INT;
-            case ENTITY, GAME_PROFILE -> CommandParam.TARGET;
+            case ENTITY, GAME_PROFILE, SCORE_HOLDER -> CommandParam.TARGET;
             case BLOCK_POS -> CommandParam.BLOCK_POSITION;
             case COLUMN_POS, VEC3 -> CommandParam.POSITION;
+            case BLOCK_STATE -> ALL_BLOCK_NAMES.get();
+            case ITEM_STACK -> context.getRegistryElements(JavaRegistries.ITEM);
+            case TEAM_COLOR -> VALID_COLORS;
+            case COMPONENT -> CommandParam.TEXT;
             case MESSAGE -> CommandParam.MESSAGE;
             case NBT_COMPOUND_TAG, NBT_TAG, NBT_PATH -> CommandParam.JSON; //TODO NBT was removed
-            case RESOURCE_LOCATION, FUNCTION -> CommandParam.FILE_PATH;
-            case BOOL -> ENUM_BOOLEAN;
             case OPERATION -> CommandParam.OPERATOR; // ">=", "==", etc
-            case BLOCK_STATE -> ALL_BLOCK_NAMES.get();
-            case ITEM_STACK -> context.getItemNames();
-            case TEAM_COLOR -> VALID_COLORS;
+            case PARTICLE -> PARTICLES;
             case SCOREBOARD_SLOT -> VALID_SCOREBOARD_SLOTS;
-            case RESOURCE -> handleResource(context, ((ResourceProperties) node.getProperties()).getRegistryKey(), false);
-            case RESOURCE_OR_TAG -> handleResource(context, ((ResourceProperties) node.getProperties()).getRegistryKey(), true);
-            case DIMENSION -> context.session.getLevels();
             case TEAM -> context.getTeams(); // Note: as of Java 1.19.3, objectives are currently parsed from the server
+            case ITEM_SLOT, ITEM_SLOTS, SLOT_SOURCE -> CommandParam.EQUIPMENT_SLOTS;
+            case RESOURCE_LOCATION, FUNCTION -> CommandParam.FILE_PATH; // TODO FIXME
+            case ENTITY_ANCHOR -> ANCHORS;
+            case INT_RANGE -> CommandParam.INT_RANGE_FULL;
+            case FLOAT_RANGE -> CommandParam.RATIONAL_RANGE_FULL;
+            case DIMENSION -> context.levels;
+            case GAMEMODE -> GAMEMODES;
+            case RESOURCE_OR_TAG, RESOURCE_OR_TAG_KEY -> handleResource(context, ((ResourceProperties) node.getProperties()).getRegistryKey(), true);
+            case RESOURCE, RESOURCE_KEY -> handleResource(context, ((ResourceProperties) node.getProperties()).getRegistryKey(), false);
+            case TEMPLATE_MIRROR -> MIRROR_MODES;
+            case TEMPLATE_ROTATION -> ROTATION_MODES;
+            case HEIGHTMAP -> HEIGHTMAPS;
+            // These are reloadable registries and as such can never be loaded by Geyser
+            case LOOT_TABLE, LOOT_PREDICATE, LOOT_MODIFIER, FEATURE,
+                 CONTEXT_FLOAT_PROVIDER, CONTEXT_INT_PROVIDER -> CommandParam.FILE_PATH;
+            case DIALOG -> context.getRegistryElements(JavaRegistries.DIALOG);
+            case SWING_ANIMATION -> SWING_ANIMATIONS;
             default -> CommandParam.STRING;
         };
     }
 
-    private static Object handleResource(CommandBuilderContext context, Key resource, boolean tags) {
-        return switch (resource.asString()) {
+    private static Object handleResource(CommandBuilderContext context, Key registryKey, boolean tags) {
+        // If the registry is tracked by us, this will be an easy case
+        JavaRegistryKey<?> registry = JavaRegistries.fromKey(registryKey);
+        if (registry != null) {
+            return tags ? context.getRegistryElementsAndTags(registry) : context.getRegistryElements(registry);
+        }
+
+        // Else, go through some hardcoded registries:
+        return switch (registryKey.asString()) {
             case "minecraft:attribute" -> ATTRIBUTES;
-            case "minecraft:enchantment" -> context.getEnchantments();
-            case "minecraft:entity_type" -> context.getEntityTypes();
             case "minecraft:mob_effect" -> ALL_EFFECT_IDENTIFIERS;
-            case "minecraft:worldgen/biome" -> tags ? context.getBiomesWithTags() : context.getBiomes();
             default -> CommandParam.STRING;
         };
     }
@@ -342,75 +399,49 @@ public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommands
      */
     private record BedrockCommandInfo(String name, String description, CommandOverloadData[] paramData) implements
             org.geysermc.geyser.api.event.downstream.ServerDefineCommandsEvent.CommandInfo,
-            ServerDefineCommandsEvent.CommandInfo
-    {
+            ServerDefineCommandsEvent.CommandInfo {
     }
 
     /**
      * Stores command completions so we don't have to rebuild the same values multiple times.
      */
-    @MonotonicNonNull
     private static class CommandBuilderContext {
-        private final GeyserSession session;
-        private final Map<String, String> softEnumNames;
-        private Object biomesWithTags;
-        private Object biomesNoTags;
-        private String[] enchantments;
-        private String[] entityTypes;
-        private String[] itemNames;
+        private final JavaRegistryProvider javaRegistries;
+        private final WorldCache worldCache;
+        private final String[] levels;
+        private final Map<JavaRegistryKey<?>, String[]> registryElements = new Reference2ObjectOpenHashMap<>();
+        private final Map<JavaRegistryKey<?>, String[]> registryElementsAndTags = new Reference2ObjectOpenHashMap<>();
+        // One namespace of soft enum names per packet: identical value sets share a name so command
+        // aliases still deduplicate, while distinct sets are guaranteed distinct names
+        private final Map<String, String> softEnumNames = new Object2ObjectOpenHashMap<>();
         private CommandEnumData teams;
 
-        CommandBuilderContext(GeyserSession session, Map<String, String> softEnumNames) {
-            this.session = session;
-            this.softEnumNames = softEnumNames;
+        private CommandBuilderContext(JavaRegistryProvider javaRegistries, WorldCache worldCache, String[] levels) {
+            this.javaRegistries = javaRegistries;
+            this.worldCache = worldCache;
+            this.levels = levels;
         }
 
-        private Object getBiomes() {
-            if (biomesNoTags != null) {
-                return biomesNoTags;
-            }
-
-            String[] identifiers = session.getGeyser().getWorldManager().getBiomeIdentifiers(false);
-            return (biomesNoTags = identifiers != null ? identifiers : CommandParam.STRING);
+        public String[] getRegistryElements(JavaRegistryKey<?> registry) {
+            return registryElements.computeIfAbsent(registry, $ -> javaRegistries.registry(registry).keys().stream()
+                .map(Key::asString)
+                .toArray(String[]::new));
         }
 
-        private Object getBiomesWithTags() {
-            if (biomesWithTags != null) {
-                return biomesWithTags;
-            }
-
-            String[] identifiers = session.getGeyser().getWorldManager().getBiomeIdentifiers(true);
-            return (biomesWithTags = identifiers != null ? identifiers : CommandParam.STRING);
-        }
-
-        private String[] getEnchantments() {
-            if (enchantments != null) {
-                return enchantments;
-            }
-            return (enchantments = session.getRegistryCache().registry(JavaRegistries.ENCHANTMENT).keys().stream().map(Key::asString).toArray(String[]::new));
-        }
-
-        private String[] getEntityTypes() {
-            if (entityTypes != null) {
-                return entityTypes;
-            }
-            return (entityTypes = Registries.JAVA_ENTITY_IDENTIFIERS.get().keySet().toArray(new String[0]));
-        }
-
-        public String[] getItemNames() {
-            if (itemNames != null) {
-                return itemNames;
-            }
-            return (itemNames = Registries.JAVA_ITEM_IDENTIFIERS.get().keySet().toArray(new String[0]));
+        public String[] getRegistryElementsAndTags(JavaRegistryKey<?> registry) {
+            return registryElementsAndTags.computeIfAbsent(registry, $ -> Stream.concat(javaRegistries.tags(registry)
+                    .map(Tag::tag)
+                    .map(Key::asString)
+                    // Prefix tags with a '#'
+                    .map(string -> "#" + string), Arrays.stream(getRegistryElements(registry)))
+                .toArray(String[]::new));
         }
 
         private CommandEnumData getTeams() {
             if (teams != null) {
                 return teams;
             }
-            return (teams = new CommandEnumData("Geyser_Teams",
-                    session.getWorldCache().getScoreboard().getTeamNames(), true
-            ));
+            return (teams = new CommandEnumData("Geyser_Teams", worldCache.getScoreboard().getTeamNames(), true));
         }
     }
 
@@ -541,12 +572,11 @@ public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommands
         }
 
         /**
-         * Mitigates <a href="https://github.com/GeyserMC/Geyser/issues/3411">issue 3411</a>. Not a perfect solution.
-         */
-        /**
          * Bedrock rejects fixed enum values that are not lowercase ("Keywords in commands need to be
          * lower case"), while soft enum values keep their case. Brigadier literals are case-sensitive,
          * so the exact spelling has to survive the round trip. Vanilla BDS uses the same split.
+         *
+         * <p>Mitigates <a href="https://github.com/GeyserMC/Geyser/issues/3411">issue 3411</a>. Not a perfect solution.</p>
          */
         private static boolean needsSoftEnum(String literal) {
             return !literal.equals(literal.toLowerCase(Locale.ROOT));
@@ -559,7 +589,7 @@ public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommands
          * its own name. The client only displays the values.
          */
         private static String softEnumName(CommandBuilderContext context, String literal, Map<String, Set<CommandEnumConstraint>> values) {
-            String signature = String.join(" ", new TreeSet<>(values.keySet()));
+            String signature = values.keySet().stream().sorted().collect(Collectors.joining(" "));
             return context.softEnumNames.computeIfAbsent(signature, key -> literal + "_" + context.softEnumNames.size());
         }
 

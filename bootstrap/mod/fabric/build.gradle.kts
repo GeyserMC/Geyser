@@ -31,7 +31,11 @@ dependencies {
     shadowBundle(libs.protocol.connection)
     shadowBundle(libs.protocol.common)
     shadowBundle(libs.protocol.codec)
+    // Shared by raknet and nethernet, so it must be relocated along with them
+    shadowBundle(libs.netty.transport.common)
     shadowBundle(libs.raknet)
+    shadowBundle(libs.nethernet.transport)
+    shadowBundle(libs.nethernet.signaling)
     shadowBundle(libs.mcprotocollib)
 
     // Shade + relocate configurate as we're using a fork

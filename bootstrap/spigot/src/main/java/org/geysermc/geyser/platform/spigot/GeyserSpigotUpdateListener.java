@@ -31,7 +31,9 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.Permissions;
+import org.geysermc.geyser.command.GeyserCommandSource;
 import org.geysermc.geyser.platform.spigot.command.SpigotCommandSource;
+import org.geysermc.geyser.util.NewsHandler;
 import org.geysermc.geyser.util.VersionCheckUtils;
 
 public final class GeyserSpigotUpdateListener implements Listener {
@@ -42,6 +44,14 @@ public final class GeyserSpigotUpdateListener implements Listener {
             final Player player = event.getPlayer();
             if (player.hasPermission(Permissions.CHECK_UPDATE)) {
                 VersionCheckUtils.checkForGeyserUpdate(() -> new SpigotCommandSource(player));
+            }
+        }
+
+        if (!GeyserImpl.getInstance().config().bedrock().transport().nethernet()) {
+            Player player = event.getPlayer();
+            GeyserCommandSource source = new SpigotCommandSource(player);
+            if (source.hasPermission(Permissions.SERVER_SETTINGS)) {
+                NewsHandler.sendRakNetDeprecationNotice(source);
             }
         }
     }

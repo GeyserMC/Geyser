@@ -51,7 +51,6 @@ public final class Team {
     private @NonNull NameTagVisibility nameTagVisibility = NameTagVisibility.ALWAYS;
     private @Nullable TeamColor color;
 
-    private String name;
     private String prefix;
     private String suffix;
     private long lastUpdate;
@@ -60,7 +59,6 @@ public final class Team {
         Scoreboard scoreboard,
         String id,
         String[] players,
-        Component name,
         Component prefix,
         Component suffix,
         NameTagVisibility visibility,
@@ -73,7 +71,7 @@ public final class Team {
         this.lastUpdate = LAST_UPDATE_DEFAULT;
 
         // doesn't call entity update
-        updateProperties(name, prefix, suffix, visibility, color);
+        updateProperties(prefix, suffix, visibility, color);
         // calls entity update
         addEntities(players);
         lastUpdate = LAST_UPDATE_DEFAULT;
@@ -93,7 +91,7 @@ public final class Team {
                     // Java 1.19.3 Mojmap: Scoreboard#addPlayerToTeam calls #removePlayerFromTeam
                     oldTeam.entities.remove(player);
                     // also remove the managed entity if there is one
-                    removeManagedEntity(player);
+                    oldTeam.removeManagedEntity(player);
                 }
                 return this;
             });
@@ -124,13 +122,9 @@ public final class Team {
     }
 
     public String displayName(String score) {
-        String chatColor = ChatColor.chatColorFor(color);
-        // most sidebar plugins will use the reset color, because they don't want color
-        // skip the unneeded double reset color in that case
-        if (ChatColor.RESET.equals(chatColor)) {
-            chatColor = "";
-        }
-        // also add reset because setting the color does not reset the formatting, unlike Java
+        // Most sidebar plugins will not have a team color, because they don't want one.
+        String chatColor = color == null ? "" : ChatColor.chatColorFor(color);
+        // We should however add a reset because setting the color does not reset the formatting, unlike Java
         return chatColor + prefix + ChatColor.RESET + chatColor + score + ChatColor.RESET + chatColor + suffix;
     }
 
@@ -147,19 +141,17 @@ public final class Team {
         };
     }
 
-    public void updateProperties(Component name, Component prefix, Component suffix, NameTagVisibility visibility, @Nullable TeamColor color) {
+    public void updateProperties(Component prefix, Component suffix, NameTagVisibility visibility, @Nullable TeamColor color) {
         // this shouldn't happen but hey!
         if (lastUpdate == LAST_UPDATE_REMOVE) {
             return;
         }
 
-        String oldName = this.name;
         String oldPrefix = this.prefix;
         String oldSuffix = this.suffix;
         boolean oldVisible = isVisibleFor(playerName());
         var oldColor = this.color;
 
-        this.name = MessageTranslator.convertMessageRaw(name, session().locale());
         this.prefix = MessageTranslator.convertMessageRaw(prefix, session().locale());
         this.suffix = MessageTranslator.convertMessageRaw(suffix, session().locale());
         // matches vanilla behaviour, the visibility is not reset (to ALWAYS) if it is null.
@@ -169,16 +161,7 @@ public final class Team {
         }
         this.color = color;
 
-        if (lastUpdate == LAST_UPDATE_DEFAULT) {
-            // addEntities is called after the initial updateProperties, so no need to do any entity updates here
-            if (this.color != null || !this.prefix.isEmpty() || !this.suffix.isEmpty()) {
-                markChanged();
-            }
-            return;
-        }
-
-        if (!this.name.equals(oldName)
-            || !this.prefix.equals(oldPrefix)
+        if (!this.prefix.equals(oldPrefix)
             || !this.suffix.equals(oldSuffix)
             || color != oldColor) {
             markChanged();
@@ -193,7 +176,7 @@ public final class Team {
         }
     }
 
-    public boolean shouldRemove() {
+    public boolean isRemoved() {
         return lastUpdate == LAST_UPDATE_REMOVE;
     }
 
@@ -201,7 +184,7 @@ public final class Team {
         if (lastUpdate == LAST_UPDATE_REMOVE) {
             return;
         }
-        lastUpdate = System.currentTimeMillis();
+        lastUpdate = scoreboard.nextUpdateId();
     }
 
     public void remove() {

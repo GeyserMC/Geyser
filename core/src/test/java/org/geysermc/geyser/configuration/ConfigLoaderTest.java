@@ -109,6 +109,8 @@ public class ConfigLoaderTest {
         migratedV4.node("java").comment(null);
         defaultConfig.node("java").comment(null);
 
+        assertEquals("nethernet", migratedV4.node("bedrock", "transport").getString());
+
         // Metric uuids, if present, won't be equal, ofc
         var migratedUuid = migratedV4.node("metrics-uuid");
         if (!migratedUuid.virtual()) {
@@ -134,6 +136,9 @@ public class ConfigLoaderTest {
         assertEquals("127.0.0.1", config.bedrock().address());
         assertEquals(19122, config.bedrock().port());
         assertTrue(config.bedrock().cloneRemotePort());
+
+        assertEquals(GeyserConfig.BedrockConfig.Transport.NETHERNET, config.bedrock().transport());
+        assertEquals(0, config.bedrock().webrtcPort());
 
         // Verify Java section (was remote)
         assertEquals(configClass == GeyserRemoteConfig.class ? "test.geysermc.org" : null, config.java().address());
@@ -224,6 +229,21 @@ public class ConfigLoaderTest {
         assertEquals(0, config.gameplay().maxVisibleCustomSkulls());
         // When emote-offhand-workaround was "no-emotes", it should become emotes-enabled: false
         assertFalse(config.gameplay().emotesEnabled());
+        assertEquals(Constants.CONFIG_VERSION, config.configVersion());
+    }
+
+    @ParameterizedTest
+    @MethodSource("platformTypes")
+    void testSignalingMigration(PlatformType platformType, Class<? extends GeyserConfig> configClass) throws Exception {
+        GeyserConfig config = new ConfigLoader(copyResourceToTempFile("tests", "v10-signaling.yml"), platformType)
+            .load0(configClass);
+
+        // The two lists become one, each address once, built-in's first
+        GeyserConfig.SignalingConfig signaling = config.bedrock().signaling();
+        assertEquals(List.of("1.1.1.1", "play.example.com:19133", "8.8.8.8:19133"), signaling.advertiseAddresses());
+        assertFalse(signaling.stunDiscovery());
+        assertEquals(GeyserConfig.SignalingConfig.Mode.HYBRID, signaling.mode());
+        assertTrue(config.advanced().nxs().assistedJoins());
         assertEquals(Constants.CONFIG_VERSION, config.configVersion());
     }
 

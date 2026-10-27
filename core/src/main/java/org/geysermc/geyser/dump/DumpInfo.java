@@ -39,13 +39,15 @@ import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import lombok.Getter;
 import org.checkerframework.checker.nullness.qual.Nullable;
+import org.cloudburstmc.netty.signaling.ProviderClient;
 import org.geysermc.floodgate.util.DeviceOs;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.GeyserApi;
 import org.geysermc.geyser.api.entity.custom.CustomEntityDefinition;
 import org.geysermc.geyser.api.extension.Extension;
 import org.geysermc.geyser.api.util.MinecraftVersion;
-import org.geysermc.geyser.network.GameProtocol;
+import org.geysermc.geyser.network.bedrock.GameProtocol;
+import org.geysermc.geyser.network.bedrock.nethernet.NetherNetServer;
 import org.geysermc.geyser.pack.ResourcePackHolder;
 import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.registry.Registries;
@@ -56,8 +58,6 @@ import org.geysermc.geyser.util.FileUtils;
 import org.geysermc.geyser.util.WebUtils;
 import org.spongepowered.configurate.CommentedConfigurationNode;
 import org.spongepowered.configurate.ConfigurationNode;
-import org.spongepowered.configurate.ConfigurationOptions;
-import org.spongepowered.configurate.interfaces.InterfaceDefaultOptions;
 import org.spongepowered.configurate.serialize.SerializationException;
 
 import java.io.File;
@@ -69,6 +69,10 @@ import java.net.Socket;
 import java.net.UnknownHostException;
 import java.nio.charset.Charset;
 import java.nio.file.Paths;
+import java.time.OffsetDateTime;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -85,6 +89,8 @@ public class DumpInfo {
     private final String cpuName;
     private final Locale systemLocale;
     private final String systemEncoding;
+    private final String systemTime;
+    private final String systemTimeZone;
     private final GitInfo gitInfo;
     private Object config;
     private final Object2IntMap<DeviceOs> userPlatforms;
@@ -97,6 +103,7 @@ public class DumpInfo {
     private final List<ExtensionInfo> extensionInfo;
     private final List<PackInfo> packInfo;
     private final MappingInfo mappingInfo;
+    private final NetherNetInfo netherNetInfo;
 
     public DumpInfo(GeyserImpl geyser, boolean addLog) {
         this.versionInfo = new VersionInfo();
@@ -105,16 +112,14 @@ public class DumpInfo {
         this.cpuName = CpuUtils.tryGetProcessorName();
         this.systemLocale = Locale.getDefault();
         this.systemEncoding = Charset.defaultCharset().displayName();
+        this.systemTime = DateTimeFormatter.ISO_OFFSET_DATE_TIME.format(OffsetDateTime.now().truncatedTo(ChronoUnit.SECONDS));
+        this.systemTimeZone = ZoneId.systemDefault().getId();
 
         this.gitInfo = new GitInfo(GeyserImpl.BUILD_NUMBER, GeyserImpl.COMMIT.substring(0, 7), GeyserImpl.COMMIT, GeyserImpl.BRANCH, GeyserImpl.REPOSITORY);
 
         try {
             // Workaround for JsonAdapter not being allowed on methods
-            ConfigurationOptions options = InterfaceDefaultOptions.addTo(ConfigurationOptions.defaults(), builder ->
-                    builder.addProcessor(AsteriskSerializer.Asterisk.class, String.class, AsteriskSerializer.CONFIGURATE_SERIALIZER))
-                .shouldCopyDefaults(false);
-
-            ConfigurationNode configNode = CommentedConfigurationNode.root(options);
+            ConfigurationNode configNode = CommentedConfigurationNode.root(AsteriskSerializer.dumpOptions());
             configNode.set(geyser.config());
             this.config = toGson(configNode);
         } catch (SerializationException e) {
@@ -173,6 +178,9 @@ public class DumpInfo {
             Registries.ITEMS.forVersion(GameProtocol.DEFAULT_BEDROCK_PROTOCOL).getCustomIdMappings().size(),
             Registries.BEDROCK_ENTITY_DEFINITIONS.get().values().stream().filter(def -> def instanceof CustomEntityDefinition).toArray().length
         );
+
+        NetherNetServer netherNet = geyser.getNetherNetServer();
+        this.netherNetInfo = netherNet == null ? null : NetherNetInfo.of(netherNet.advertised());
     }
 
     private JsonElement toGson(ConfigurationNode node) {
@@ -343,5 +351,44 @@ public class DumpInfo {
     }
 
     public record MappingInfo(int customBlocks, int customSkulls, int customItems, int customEntities) {
+    }
+
+    /**
+     * What each running signaling mode sends to joining players, see {@link NetherNetServer#advertised()}. Public
+     * addresses are censored unless the dump is full. The NXS instance id is not secret and stays readable.
+     *
+     * @param builtin null when built-in signaling is not running
+     * @param nxs null when the external signaling service is not running
+     */
+    public record NetherNetInfo(@Nullable Builtin builtin, @Nullable Nxs nxs) {
+        static NetherNetInfo of(NetherNetServer.Advertised advertised) {
+            NetherNetServer.Advertised.Builtin builtin = advertised.builtin();
+            ProviderClient.PublishedEndpoints published = advertised.nxs() == null ? null : advertised.nxs().published();
+            return new NetherNetInfo(
+                builtin == null ? null : new Builtin(censor(builtin.configured()), builtin.stun(), censor(builtin.discovered())),
+                advertised.nxs() == null ? null : new Nxs(published != null, advertised.nxs().instanceId(),
+                    advertised.nxs().clockOffsetMillis(),
+                    published == null ? List.of() : censor(published.endpoints()),
+                    published == null ? List.of() : published.assistedFamilies().stream().sorted().toList()));
+        }
+
+        private static List<String> censor(List<InetSocketAddress> addresses) {
+            return addresses.stream().map(AsteriskSerializer::censor).toList();
+        }
+
+        /**
+         * @param advertised the configured addresses. When empty, this machine's own addresses and {@code discovered}
+         */
+        public record Builtin(List<String> advertised, boolean stunDiscovery, List<String> discovered) {
+        }
+
+        /**
+         * @param confirmed whether the service has confirmed {@code addresses}
+         * @param instanceId the id the service knows this server by, null until registered
+         * @param clockOffsetMillis the service's clock minus this machine's, which refuses requests when too far off
+         */
+        public record Nxs(boolean confirmed, @Nullable String instanceId, long clockOffsetMillis, List<String> addresses,
+                          List<Integer> assistedFamilies) {
+        }
     }
 }

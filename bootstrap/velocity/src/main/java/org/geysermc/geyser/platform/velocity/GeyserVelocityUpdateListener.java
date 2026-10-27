@@ -30,7 +30,9 @@ import com.velocitypowered.api.event.connection.PostLoginEvent;
 import com.velocitypowered.api.proxy.Player;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.Permissions;
+import org.geysermc.geyser.command.GeyserCommandSource;
 import org.geysermc.geyser.platform.velocity.command.VelocityCommandSource;
+import org.geysermc.geyser.util.NewsHandler;
 import org.geysermc.geyser.util.VersionCheckUtils;
 
 public final class GeyserVelocityUpdateListener {
@@ -41,6 +43,14 @@ public final class GeyserVelocityUpdateListener {
             final Player player = event.getPlayer();
             if (player.hasPermission(Permissions.CHECK_UPDATE)) {
                 VersionCheckUtils.checkForGeyserUpdate(() -> new VelocityCommandSource(player));
+            }
+        }
+
+        if (!GeyserImpl.getInstance().config().bedrock().transport().nethernet()) {
+            Player player = event.getPlayer();
+            GeyserCommandSource source = new VelocityCommandSource(player);
+            if (source.hasPermission(Permissions.SERVER_SETTINGS)) {
+                NewsHandler.sendRakNetDeprecationNotice(source);
             }
         }
     }

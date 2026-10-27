@@ -28,21 +28,26 @@ package org.geysermc.geyser.entity.type.player;
 import lombok.Getter;
 import lombok.Setter;
 import net.kyori.adventure.text.Component;
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.protocol.bedrock.data.Ability;
 import org.cloudburstmc.protocol.bedrock.data.AbilityLayer;
+import org.cloudburstmc.protocol.bedrock.data.EmoteFlag;
 import org.cloudburstmc.protocol.bedrock.data.GameType;
 import org.cloudburstmc.protocol.bedrock.data.PlayerPermission;
 import org.cloudburstmc.protocol.bedrock.data.command.CommandPermission;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.cloudburstmc.protocol.bedrock.packet.AddPlayerPacket;
+import org.cloudburstmc.protocol.bedrock.packet.EmotePacket;
 import org.cloudburstmc.protocol.bedrock.packet.MovePlayerPacket;
 import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.api.entity.type.player.GeyserAvatarEntity;
 import org.geysermc.geyser.api.skin.SkinData;
 import org.geysermc.geyser.entity.spawn.EntitySpawnContext;
+import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.type.LivingEntity;
 import org.geysermc.geyser.level.block.Blocks;
 import org.geysermc.geyser.session.GeyserSession;
@@ -63,8 +68,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import org.jetbrains.annotations.ApiStatus;
 
-public abstract class AvatarEntity extends LivingEntity {
+public abstract class AvatarEntity extends LivingEntity implements GeyserAvatarEntity {
     public static final float SNEAKING_POSE_HEIGHT = 1.5f;
     protected static final List<AbilityLayer> BASE_ABILITY_LAYER;
 
@@ -112,7 +118,7 @@ public abstract class AvatarEntity extends LivingEntity {
         addPlayerPacket.setUsername(username);
         addPlayerPacket.setRuntimeEntityId(geyserId);
         addPlayerPacket.setUniqueEntityId(geyserId);
-        addPlayerPacket.setPosition(position()); // No offset sent here, apparently?
+        addPlayerPacket.setPosition(spawnPosition(position())); // No offset sent here, apparently?
         addPlayerPacket.setRotation(bedrockRotation());
         addPlayerPacket.setMotion(motion);
         addPlayerPacket.setHand(ItemTranslator.translateToBedrock(session, getMainHandItem()));
@@ -367,5 +373,28 @@ public abstract class AvatarEntity extends LivingEntity {
 
         SkinData fallback = SkinProvider.determineFallbackSkinData(this.uuid);
         return fallback.skin().textureUrl();
+    }
+
+    /**
+     * Only exposed for Scoreboard tests, do not use.
+     */
+    @ApiStatus.Internal
+    public void clearCachedScoreUnsafe() {
+        cachedScore = null;
+    }
+
+    @Override
+    public void showEmote(@NonNull String emoteId, boolean silent) {
+        EmotePacket packet = new EmotePacket();
+        packet.setRuntimeEntityId(geyserId());
+        packet.setXuid("");
+        packet.setPlatformId(""); // BDS sends empty
+        packet.setEmoteId(emoteId);
+        if (getDisplayName(false) == null) { // The emote chat announcement will have no player name if the entity name is blank
+            packet.getFlags().add(EmoteFlag.MUTE_EMOTE_CHAT);
+        } else if (silent) {
+            packet.getFlags().add(EmoteFlag.MUTE_EMOTE_CHAT);
+        }
+        session.sendUpstreamPacket(packet);
     }
 }

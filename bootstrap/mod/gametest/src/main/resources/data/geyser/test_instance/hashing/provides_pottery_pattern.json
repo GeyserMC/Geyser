@@ -1,0 +1,11 @@
+{
+  "type": "geyser:component_hash",
+  "component": "minecraft:provides_pottery_pattern",
+  "value": [
+    "minecraft:angler",
+    "minecraft:archer",
+    "minecraft:prize",
+    "minecraft:shelter",
+    "minecraft:snort"
+  ]
+}

@@ -29,7 +29,7 @@ import net.kyori.adventure.key.InvalidKeyException;
 import net.kyori.adventure.key.Key;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.nbt.NbtMap;
-import org.geysermc.geyser.session.cache.registry.RegistryEntryContext;
+import org.geysermc.geyser.registry.java.reader.RegistryEntryContext;
 import org.geysermc.geyser.util.DimensionUtils;
 import org.geysermc.geyser.util.MinecraftKey;
 
@@ -52,7 +52,7 @@ public record JavaDimension(int minY, int height, boolean piglinSafe, boolean ul
     );
 
     public static JavaDimension read(RegistryEntryContext entry) {
-        NbtMap dimension = entry.data();
+        NbtMap dimension = entry.dataAsMap();
         int minY = dimension.getInt("min_y");
         int height = dimension.getInt("height");
         // Logical height can be ignored probably - seems to be for artificial limits like the Nether.
@@ -66,21 +66,25 @@ public record JavaDimension(int minY, int height, boolean piglinSafe, boolean ul
         // Cache the Bedrock version of this dimension, and base it off the ID - THE ID CAN CHANGE!!!
         // https://github.com/GeyserMC/Geyser/issues/4837
         int bedrockId;
+        // Effects should give is a clue on how this (custom) dimension is supposed to look like
+        String skyboxId = switch (dimension.getString("skybox")) {
+            case "none" -> "minecraft:the_nether";
+            case "end" -> "minecraft:the_end";
+            default -> "minecraft:overworld";
+        };
+        // The dimension a custom dimension resembles is also the one whose clock it should follow.
+        // Note that custom dimension types can also live in the minecraft namespace.
+        Key clockId;
         Key id = entry.id();
         if ("minecraft".equals(id.namespace())) {
             String identifier = id.asString();
             bedrockId = DimensionUtils.javaToBedrock(identifier);
             isNetherLike = BedrockDimension.NETHER_IDENTIFIER.equals(identifier);
+            clockId = COMMON_CLOCKS.containsKey(id) ? id : MinecraftKey.key(skyboxId);
         } else {
-            // Effects should give is a clue on how this (custom) dimension is supposed to look like
-            String skybox = dimension.getString("skybox");
-            String skyboxId = switch (skybox) {
-                case "none" -> "minecraft:the_nether";
-                case "end" -> "minecraft:the_end";
-                default -> "minecraft:overworld";
-            };
             bedrockId = DimensionUtils.javaToBedrock(skyboxId);
             isNetherLike = BedrockDimension.NETHER_IDENTIFIER.equals(skyboxId);
+            clockId = MinecraftKey.key(skyboxId);
         }
 
         Key defaultClock;
@@ -90,7 +94,7 @@ public record JavaDimension(int minY, int height, boolean piglinSafe, boolean ul
             defaultClock = null;
         }
         if (defaultClock == null) {
-            defaultClock = COMMON_CLOCKS.get(entry.id());
+            defaultClock = COMMON_CLOCKS.get(clockId);
         }
 
         if (minY % 16 != 0) {

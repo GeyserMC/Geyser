@@ -53,11 +53,13 @@ public interface CustomBlockComponents {
      * Gets the collision box component
      * Equivalent to "minecraft:collision_box"
      *
+     * <p>This method is deprecated for removal and will be removed in Geyser 2.13.0.</p>
+     *
      * @return the collision box
-     * @deprecated Use {@link #collisionBoxes()} instead
+     * @deprecated since 2.9.5: use {@link #collisionBoxes()} instead
      * @since 2.2.0
      */
-    @Deprecated(since = "2.9.5")
+    @Deprecated(since = "2.9.5", forRemoval = true)
     @Nullable BoxComponent collisionBox();
 
     /**
@@ -155,11 +157,13 @@ public interface CustomBlockComponents {
      * Gets the unit cube component
      * Equivalent to "minecraft:unit_cube"
      *
-     * @deprecated Use {@link #geometry()} and compare with `minecraft:geometry.full_block` instead.
+     * <p>This method is deprecated for removal and will be removed in Geyser 2.13.0.</p>
+     *
+     * @deprecated since 2.2.2: use {@link #geometry()} and compare with `minecraft:geometry.full_block` instead.
      * @return whether this block is a unit cube
      * @since 2.2.0
      */
-    @Deprecated(since = "2.2.2")
+    @Deprecated(since = "2.2.2", forRemoval = true)
     boolean unitCube();
 
     /**
@@ -205,12 +209,14 @@ public interface CustomBlockComponents {
         /**
          * Sets a collision box for the block. Can be null to disable collisions.
          *
-         * @deprecated use {@link #collisionBoxes(BoxComponent...)} instead
+         * <p>This method is deprecated for removal and will be removed in Geyser 2.13.0.</p>
+         *
+         * @deprecated since 2.9.5: use {@link #collisionBoxes(BoxComponent...)} instead
          * @param collisionBox the collision box to set
          * @return this builder
          * @since 2.2.0
          */
-        @Deprecated(since = "2.9.5")
+        @Deprecated(since = "2.9.5", forRemoval = true)
         @This Builder collisionBox(@Nullable BoxComponent collisionBox);
 
         /**
@@ -327,10 +333,12 @@ public interface CustomBlockComponents {
         /**
          * Sets the unit cube value, equivalent to setting a full block geometry.
          *
+         * <p>This method is deprecated for removal and will be removed in Geyser 2.13.0.</p>
+         *
          * @see CustomBlockComponents#unitCube()
-         * @deprecated Use {@link #geometry(GeometryComponent)} with `minecraft:geometry.full_block` instead.
+         * @deprecated since 2.2.2: use {@link #geometry(GeometryComponent)} with `minecraft:geometry.full_block` instead.
          */
-        @Deprecated(since = "2.2.2")
+        @Deprecated(since = "2.2.2", forRemoval = true)
         @This Builder unitCube(boolean unitCube);
 
         /**

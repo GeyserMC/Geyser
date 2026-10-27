@@ -30,6 +30,7 @@ import lombok.Getter;
 import lombok.Setter;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.math.vector.Vector2f;
+import org.cloudburstmc.math.vector.Vector3d;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.protocol.bedrock.data.AttributeData;
@@ -54,6 +55,8 @@ import org.geysermc.geyser.level.block.type.TrapDoorBlock;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.cache.TeleportCache;
 import org.geysermc.geyser.session.cache.tags.BlockTag;
+import org.geysermc.geyser.translator.protocol.bedrock.BedrockInventoryTransactionTranslator;
+import org.geysermc.geyser.translator.protocol.java.entity.player.JavaPlayerPositionTranslator;
 import org.geysermc.geyser.util.AttributeUtils;
 import org.geysermc.geyser.util.DimensionUtils;
 import org.geysermc.geyser.util.MathUtils;
@@ -144,6 +147,24 @@ public class SessionPlayerEntity extends PlayerEntity {
      */
     @Getter @Setter
     private @Nullable Integer removedPlayerVehicleId = null;
+
+    /**
+     * Vanilla Java, as of at least 26.3, always teleports the player to the centre of the bed head when the player interacts with a bed to sleep.
+     *
+     * <p>When translating this teleport to Bedrock, the Bedrock client will step out of the bed and wake up. This results in the client being unable to sleep,
+     * as it will always be "kicked out" again by the server.</p>
+     *
+     * <p>To fix this, Geyser will have to silently ignore this teleport. However, as this teleport (as of 26.3) is sent before any other indicators that the player is actually sleeping
+     * (like occupied block state, or bed position metadata, etc.), the only way to recognise this teleport is by matching the position and motion with what would be expected from
+     * a bed interaction.</p>
+     *
+     * <p>This field serves that purpose: it is set by {@link BedrockInventoryTransactionTranslator} when interacting with a bed, and queried by {@link JavaPlayerPositionTranslator} when translating teleports.
+     * If a teleport does not match what would be expected after a bed interaction, it'll be processed as normal, and this field will be cleared.</p>
+     *
+     * @see <a href="https://mcsrc.dev/2/26.3/net/minecraft/world/entity/LivingEntity#L3825-3831">Mojang's {@code startSleeping} code</a>, where {@code setPosToBed} is called first
+     */
+    @Getter @Setter
+    private @Nullable PendingBedInteraction pendingBedInteraction = null;
 
     public SessionPlayerEntity(GeyserSession session) {
         super(new EntitySpawnContext(session, VanillaEntities.PLAYER, -1, null), null, null);
@@ -636,5 +657,12 @@ public class SessionPlayerEntity extends PlayerEntity {
 
     public boolean isGliding() {
         return getFlag(EntityFlag.GLIDING);
+    }
+
+    public record PendingBedInteraction(Vector3i headPosition, double yOffset) {
+
+        public Vector3d expectedTeleportPosition() {
+            return headPosition.toDouble().add(0.5, yOffset, 0.5);
+        }
     }
 }
