@@ -73,25 +73,25 @@ public class TextDisplayEntity extends DisplayBaseEntity {
     private static final float JAVA_TEXT_PIXEL_SCALE = 1.0f / 40.0f;
 
     /**
-     * Bedrock DebugText draws below the equivalent Java text-display anchor.
-     * The default is calibrated against Java/Bedrock screenshots of the same
-     * multiline text display. This baseline compensates for Bedrock's text
-     * attachment origin in world units and must NOT be multiplied by font
-     * scale: that made large headings and furniture glyphs float too high.
-     * Only the text block height scales.
+     * The default vertical anchor offset was calibrated against Java/Bedrock
+     * screenshots of the same text displays. It compensates for differences
+     * in their world-space attachment origins, independently of font scale.
+     * Only the text block's height is multiplied by the display scale.
      *
-     * Override with {@code -Dgeyser.textDisplay.verticalAnchorCorrection=0.66}
+     * Override with {@code -Dgeyser.textDisplay.verticalAnchorCorrection=-0.65}
      * when calibrating different Bedrock builds without recompiling.
      */
+    private static final float DEFAULT_VERTICAL_ANCHOR_CORRECTION = -0.65f;
     private static final float BEDROCK_TEXT_ANCHOR_CORRECTION = readVerticalAnchorCorrection();
 
     private static float readVerticalAnchorCorrection() {
-        String property = System.getProperty("geyser.textDisplay.verticalAnchorCorrection", "0.66");
+        String property = System.getProperty("geyser.textDisplay.verticalAnchorCorrection",
+                Float.toString(DEFAULT_VERTICAL_ANCHOR_CORRECTION));
         try {
             float correction = Float.parseFloat(property);
-            return Float.isFinite(correction) ? correction : 0.66f;
+            return Float.isFinite(correction) ? correction : DEFAULT_VERTICAL_ANCHOR_CORRECTION;
         } catch (NumberFormatException exception) {
-            return 0.66f;
+            return DEFAULT_VERTICAL_ANCHOR_CORRECTION;
         }
     }
 
@@ -123,17 +123,19 @@ public class TextDisplayEntity extends DisplayBaseEntity {
      * anchor. This is measured in world blocks per 1x Java text display scale:
      * negative values move the glyph down.
      *
-     * Override with {@code -Dgeyser.textDisplay.singleGlyphVerticalOffset=-0.40}.
+     * Override with {@code -Dgeyser.textDisplay.singleGlyphVerticalOffset=-0.25}.
      */
+    private static final float DEFAULT_SINGLE_GLYPH_VERTICAL_OFFSET = -0.25f;
     private static final float BEDROCK_SINGLE_GLYPH_VERTICAL_OFFSET = readSingleGlyphVerticalOffset();
 
     private static float readSingleGlyphVerticalOffset() {
-        String property = System.getProperty("geyser.textDisplay.singleGlyphVerticalOffset", "-0.40");
+        String property = System.getProperty("geyser.textDisplay.singleGlyphVerticalOffset",
+                Float.toString(DEFAULT_SINGLE_GLYPH_VERTICAL_OFFSET));
         try {
             float offset = Float.parseFloat(property);
-            return Float.isFinite(offset) ? offset : -0.40f;
+            return Float.isFinite(offset) ? offset : DEFAULT_SINGLE_GLYPH_VERTICAL_OFFSET;
         } catch (NumberFormatException exception) {
-            return -0.40f;
+            return DEFAULT_SINGLE_GLYPH_VERTICAL_OFFSET;
         }
     }
 
