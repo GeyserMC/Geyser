@@ -1,3 +1,4 @@
+
 /*
  * Copyright (c) 2024 GeyserMC. http://geysermc.org
  *
@@ -387,6 +388,7 @@ public class TextDisplayEntity extends DisplayBaseEntity {
                     textOpacity < 0 ? (textOpacity + 256) : textOpacity
                 )
         );
+
         // Java renders upward from its bottom-center pivot, while Bedrock DebugText
         // is center-anchored. Java uses a 9-pixel glyph height and 1-pixel line gap.
         // Count the translated message that we actually submit to Bedrock, not
@@ -415,11 +417,13 @@ public class TextDisplayEntity extends DisplayBaseEntity {
         //text.setShowBackface();
         //text.setShowTextBackface();
         text.setDimension(session.getBedrockDimension().bedrockId());
+
         // Apply a separate correction only to a text display containing one
         // private-use font icon. Keep the Java-scale pivot correction above:
         // changing the glyph's pixel size must not move its attachment anchor.
         float bedrockScale = adjustedGlyphScale(rawText, scale, BEDROCK_SINGLE_GLYPH_SCALE);
         text.setScale(bedrockScale);
+
         DebugDrawerPacket packet = new DebugDrawerPacket();
         packet.getShapes().add(text);
         session.sendUpstreamPacket(packet);
