@@ -220,14 +220,6 @@ public class TextDisplayEntity extends DisplayBaseEntity {
     }
 
     @Override
-    public void setBillboard(ByteEntityMetadata metadata) {
-        super.setBillboard(metadata);
-        // Billboard metadata may change after the text display is spawned.
-        // A DebugText shape must be resent to update its rotation behaviour.
-        updatePrimitiveText();
-    }
-
-    @Override
     public void setScale(EntityMetadata<Vector3f, ?> translationMeta) {
         super.setScale(translationMeta);
 
@@ -468,12 +460,7 @@ public class TextDisplayEntity extends DisplayBaseEntity {
         }
 
         text.setRotation(outputRotation);
-        // Bedrock DebugText supports either an explicit rotation (FIXED) or
-        // camera-facing text. Treat all Java billboard modes as camera-facing
-        // rather than incorrectly locking VERTICAL/HORIZONTAL in world space.
-        // Bedrock cannot natively restrict billboarding to a single axis;
-        // VERTICAL and HORIZONTAL therefore currently face the full camera.
-        text.setUseRotation(usesFixedRotation(getBillboard()));
+        text.setUseRotation(!getBillboard().equals(Billboard.CENTER));
         text.setMaximumRenderDistance(getViewDistance());
         text.setBackgroundColor(backgroundColor);
         text.setDepthTest(!seeThrough);
@@ -509,16 +496,6 @@ public class TextDisplayEntity extends DisplayBaseEntity {
         DebugDrawerPacket packet = new DebugDrawerPacket();
         packet.getShapes().add(text);
         session.sendUpstreamPacket(packet);
-    }
-
-    /**
-     * Bedrock's DebugText useRotation=true applies the supplied fixed Euler
-     * rotation. With false, Bedrock billboards toward the viewing camera.
-     * Java VERTICAL/HORIZONTAL constraints aren't supported by this boolean,
-     * but they must not be rendered as FIXED.
-     */
-    static boolean usesFixedRotation(Billboard billboard) {
-        return billboard == Billboard.FIXED;
     }
 
     /**
