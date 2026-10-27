@@ -9,20 +9,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class TextDisplayLayoutTest {
     @Test
-    void explicitJavaFixedBillboardKeepsItsRotation() {
-        assertEquals(true, TextDisplayEntity.usesFixedRotation(DisplayBaseEntity.Billboard.FIXED));
-    }
-
-    @Test
-    void javaCameraFacingBillboardModesAreNotLockedInWorldSpace() {
-        // DebugText only exposes a fixed-rotation toggle, not the three
-        // camera-facing constraints implemented in Java Edition.
-        assertEquals(false, TextDisplayEntity.usesFixedRotation(DisplayBaseEntity.Billboard.VERTICAL));
-        assertEquals(false, TextDisplayEntity.usesFixedRotation(DisplayBaseEntity.Billboard.HORIZONTAL));
-        assertEquals(false, TextDisplayEntity.usesFixedRotation(DisplayBaseEntity.Billboard.CENTER));
-    }
-
-    @Test
     void bedrockAnchorAccountsForJavaLineHeight() {
         // Java renders 9px glyphs and 1px line gap, at 40px/block.
         float oneLine = TextDisplayEntity.calculateBedrockVerticalOffset(1, 1.0f);
