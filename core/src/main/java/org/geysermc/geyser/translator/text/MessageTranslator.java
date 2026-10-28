@@ -149,14 +149,14 @@ public class MessageTranslator {
                 .build();
 
         NO_COLOR_SERIALIZER = LegacyComponentSerializer.legacySection().toBuilder()
-                .formats(List.of(
-                        CharacterAndFormat.OBFUSCATED,
-                        CharacterAndFormat.BOLD,
-                        CharacterAndFormat.ITALIC,
-                        CharacterAndFormat.WHITE
-                ))
-                .flattener(flattener)
-                .build();
+            .formats(List.of(
+                CharacterAndFormat.OBFUSCATED,
+                CharacterAndFormat.BOLD,
+                CharacterAndFormat.ITALIC,
+                CharacterAndFormat.WHITE
+            ))
+            .flattener(flattener)
+            .build();
 
         // Cache all the legacy character codes and formats
 
@@ -181,9 +181,11 @@ public class MessageTranslator {
     }
 
     public static String convertNoColorMessage(Component message, String locale) {
+        // Translate the component
         message = RENDERER.render(message, locale);
-        return NO_COLOR_SERIALIZER.serialize(message)
-                .replace("" + LegacyComponentSerializer.SECTION_CHAR + CharacterAndFormat.WHITE.character(), "");
+
+        // Wait what, color? Yes! LegacyComponentSerializer NSEEs with no colors present, so we add white and remove!
+        return NO_COLOR_SERIALIZER.serialize(message).replace("" + LegacyComponentSerializer.SECTION_CHAR + CharacterAndFormat.WHITE.character(), "");
     }
 
     /* ===== Java -> Bedrock conversion ===== */
