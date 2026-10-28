@@ -353,10 +353,9 @@ public class TextDisplayEntity extends DisplayBaseEntity {
                 )
         );
 
-        // Java renders upward from its bottom-center pivot, while Bedrock DebugText
-        // is center-anchored. Java uses a 9-pixel glyph height and 1-pixel line gap.
-        // Count the translated message that we actually submit to Bedrock, not
-        // the raw component; translation and trailing empty lines can alter it.
+        // Count explicit newlines for vertical positioning.
+        // TODO: Account for automatic wrapping based on the Java
+        // text display's line_width and font metrics.
         int lineCount = message.split("\\n", -1).length;
         String rawText = PlainTextComponentSerializer.plainText().serialize(this.text);
         float baseVerticalOffset = calculateBedrockVerticalOffset(lineCount, scale);
