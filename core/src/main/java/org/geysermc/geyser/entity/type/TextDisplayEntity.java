@@ -335,7 +335,7 @@ public class TextDisplayEntity extends DisplayBaseEntity {
         float y = (float) Math.atan2(-r20, Math.hypot(r00, r10));
         float z = (float) Math.atan2(r10, r00);
 
-        float scale = MathUtils.average(new float[]{ sx, sy, sz });
+        float scale = MathUtils.average(new float[]{ sx, sy });
 
         // I'm not even gonna pretend I know why x needs to be negative, but it does, and it works
         Vector3f rotation = Vector3f.from(-Math.toDegrees(x), Math.toDegrees(y), Math.toDegrees(z));
