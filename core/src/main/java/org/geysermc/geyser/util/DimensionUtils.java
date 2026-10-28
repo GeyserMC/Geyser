@@ -77,7 +77,7 @@ public class DimensionUtils {
             session.sendUpstreamPacket(mobEffectPacket);
         }
         // Effects are re-sent from server
-        entityEffects.clear();
+        session.getEffectCache().clearEffects();
 
         // Always reset weather, as it sometimes suddenly starts raining. See https://github.com/GeyserMC/Geyser/issues/3679
         session.updateRain(0);
