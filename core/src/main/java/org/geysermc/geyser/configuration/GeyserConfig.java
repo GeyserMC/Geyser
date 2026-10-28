@@ -154,6 +154,7 @@ public interface GeyserConfig {
             A host name is looked up when signaling starts, and signaling does not start if it does not resolve.
             You can list an address this machine does not have, such as your public IP, if your router forwards that port
             to this machine. You need to set up the port forwarding yourself.
+            With "webrtc-proxy-protocol-relays" set under "advanced.bedrock", list the relays here instead.
             Leave empty to use this machine's own addresses, plus the public address found with "stun-discovery".""")
         @AsteriskSerializer.Asterisk
         default List<String> advertiseAddresses() {
@@ -535,21 +536,13 @@ public interface GeyserConfig {
         int compressionLevel();
 
         @Comment("""
-                Whether to expect HAPROXY protocol for connecting Bedrock clients.
-                This is useful only when you are running a reverse proxy in front of your Geyser instance.
-                RakNet: clients that do not send a HAPROXY header are ignored.
-                Built-in signaling: HAPROXY headers are only read from proxies listed in "haproxy-protocol-whitelisted-ips".
-                Connections without one are still accepted.
-                IF YOU DON'T KNOW WHAT THIS IS, DON'T TOUCH IT!""")
-        @DefaultBoolean
-        boolean useHaproxyProtocol();
-
-        @Comment("""
-                A list of allowed HAPROXY protocol speaking proxy IP addresses/subnets. Only effective when "use-haproxy-protocol" is enabled.
-                Keeping this list empty means there is no IP address whitelist for HAPROXY header sending connections.
-                Built-in signaling only reads HAPROXY headers from proxies in this list, so it reads none while the list is empty.
+                The HAPROXY protocol speaking proxies in front of your Geyser instance, as IP addresses or subnets.
+                Listing one turns HAPROXY protocol on, so leave this empty unless you run such a proxy.
+                RakNet: only these proxies may connect, and each connection has to start with a HAPROXY header.
+                Built-in signaling: HAPROXY headers are read from these proxies. Their connections without one are still accepted.
                 Proxies in this list are also not affected by built-in signaling's per-address connection limit.
-                IP addresses, subnets, and links to plain text files are supported.""")
+                IP addresses, subnets, and links to plain text files are supported.
+                IF YOU DON'T KNOW WHAT THIS IS, DON'T TOUCH IT!""")
         @AsteriskSerializer.Asterisk
         default List<String> haproxyProtocolWhitelistedIps() {
             return Collections.emptyList();
@@ -559,9 +552,23 @@ public interface GeyserConfig {
                 A list of reverse proxy addresses (for example, an HTTP load balancer) in front of built-in signaling.
                 Built-in signaling reads the player's real address from the "X-Forwarded-For" header, and does not apply
                 its per-address connection limit to them for all listed proxies. This is separate from HAPROXY protocol.
-                IP addresses, subnets, and links to plain text files are supported.""")
+                IP addresses, subnets, and links to plain text files are supported.
+                IF YOU DON'T KNOW WHAT THIS IS, DON'T TOUCH IT!""")
         @AsteriskSerializer.Asterisk
         default List<String> signalingTrustedProxies() {
+            return Collections.emptyList();
+        }
+
+        @Comment("""
+                UDP relays in front of the NetherNet media (WebRTC) port that send a PROXY protocol v2 header with each
+                player's address, as IP addresses or subnets. Leave this empty unless you run such a relay.
+                While set, players can only reach the media port through these relays, so "advertise-addresses" under
+                "bedrock.signaling" has to name the relays, or NetherNet does not start.
+                This is separate from the two lists above, which only cover RakNet and signaling.
+                IP addresses, subnets, and links to plain text files are supported.
+                IF YOU DON'T KNOW WHAT THIS IS, DON'T TOUCH IT!""")
+        @AsteriskSerializer.Asterisk
+        default List<String> webrtcProxyProtocolRelays() {
             return Collections.emptyList();
         }
 

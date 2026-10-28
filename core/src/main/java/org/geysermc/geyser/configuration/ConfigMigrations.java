@@ -26,6 +26,7 @@
 package org.geysermc.geyser.configuration;
 
 import org.geysermc.geyser.GeyserBootstrap;
+import org.spongepowered.configurate.CommentedConfigurationNode;
 import org.spongepowered.configurate.ConfigurateException;
 import org.spongepowered.configurate.ConfigurationNode;
 import org.spongepowered.configurate.transformation.ConfigurationTransformation;
@@ -44,6 +45,13 @@ import static org.spongepowered.configurate.transformation.TransformAction.remov
 import static org.spongepowered.configurate.transformation.TransformAction.rename;
 
 public class ConfigMigrations {
+
+    /** Geyser's default until August 2026, which named the HAProxy switch "use-proxy-protocol". */
+    private static final String OLD_HAPROXY_LIST_COMMENT = """
+        A list of allowed HAPROXY protocol speaking proxy IP addresses/subnets. Only effective when "use-proxy-protocol" is enabled, and
+        should really only be used when you are not able to use a proper firewall (usually true with shared hosting providers etc.).
+        Keeping this list empty means there is no IP address whitelist.
+        IP addresses, subnets, and links to plain text files are supported.""";
 
     public static final BiFunction<Class<? extends GeyserConfig>, GeyserBootstrap, ConfigurationTransformation.Versioned> TRANSFORMER = (configClass, bootstrap) ->
         ConfigurationTransformation.versionedBuilder()
@@ -215,6 +223,32 @@ public class ConfigMigrations {
                 })
                 .addAction(path("advanced", "nxs", "stun-discovery"), (path, value) ->
                     new Object[]{ "bedrock", "signaling", "stun-discovery" })
+                .build())
+            // Listing HAProxy proxies turns the protocol on, so its switch is gone
+            .addVersion(12, ConfigurationTransformation.builder()
+                .addAction(path("advanced", "bedrock", "use-haproxy-protocol"), (path, value) -> {
+                    ConfigurationNode proxies = value.parent().node("haproxy-protocol-whitelisted-ips");
+                    // A comment naming the removed switch is stale, so the current one is written instead.
+                    // The old default named it wrong, so only that exact text goes, not a comment of the user's own.
+                    if (proxies instanceof CommentedConfigurationNode commented && commented.comment() != null
+                            && (commented.comment().contains("use-haproxy-protocol")
+                                || commented.comment().strip().equals(OLD_HAPROXY_LIST_COMMENT))) {
+                        commented.comment(null);
+                    }
+                    if (!value.getBoolean(false)) {
+                        // Ignored while it was off, and would turn it on now. Emptied rather than removed, so a comment of the user's own stays
+                        if (!proxies.virtual()) {
+                            proxies.setList(String.class, List.of());
+                        }
+                    } else if (proxies.getList(String.class, List.of()).isEmpty() && bootstrap != null) {
+                        bootstrap.getGeyserLogger().warning("\"use-haproxy-protocol\" has been removed: listing proxies in "
+                            + "\"haproxy-protocol-whitelisted-ips\" under \"advanced.bedrock\" now turns HAProxy protocol on. "
+                            + "Yours was on with an empty list, which took a HAProxy header from any address, so it is off "
+                            + "until you list your proxies there.");
+                    }
+                    value.raw(null);
+                    return null;
+                })
                 .build())
         .build();
 

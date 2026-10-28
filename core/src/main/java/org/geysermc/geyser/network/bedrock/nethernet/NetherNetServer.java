@@ -43,7 +43,6 @@ import org.cloudburstmc.netty.signaling.ServerStatus;
 import org.cloudburstmc.netty.signaling.provider.NativeProviderHostFactory;
 import org.cloudburstmc.netty.signaling.provider.ProviderRuntimeConfiguration;
 import org.cloudburstmc.netty.signaling.provider.ProviderShutdown;
-import org.cloudburstmc.netty.util.nethernet.IpRangeSet;
 import org.cloudburstmc.netty.util.nethernet.NetherNetLogging;
 import org.cloudburstmc.netty.util.nethernet.OperatorIdentity;
 import org.cloudburstmc.netty.util.nethernet.SecretValue;
@@ -222,6 +221,12 @@ public final class NetherNetServer implements EventRegistrar {
         //  where the provider's listener takes unknown requests and inbuilt connections attach as agents; this relies on both
         //  binding the same address (inbuilt ICE leaves a wildcard address unset, the provider passes it explicitly).
         List<String> advertised = advertisedAddresses();
+        // Players only reach the media port through the relays, so this host's own addresses would serve nobody
+        if (advertised.isEmpty() && !geyser.config().advanced().bedrock().webrtcProxyProtocolRelays().isEmpty()) {
+            logger().error("NetherNet will not start! \"webrtc-proxy-protocol-relays\" is set, so \"advertise-addresses\" "
+                + "under \"bedrock.signaling\" has to name the relays players reach this server through.");
+            return;
+        }
         if (inbuilt) startInbuilt(advertised);
         if (provider) startProvider(advertised);
     }
@@ -269,10 +274,8 @@ public final class NetherNetServer implements EventRegistrar {
             signalingBuilder
                     .setIdentity(identity)
                     .setForwardedForProxies(TrustedProxies.parse(geyser.config().advanced().bedrock().signalingTrustedProxies()))
-                    // The same HAProxy settings RakNet uses, applied to the TCP listener
-                    .setProxyProtocolProxies(geyser.config().advanced().bedrock().useHaproxyProtocol()
-                            ? TrustedProxies.parse(geyser.config().advanced().bedrock().haproxyProtocolWhitelistedIps())
-                            : IpRangeSet.empty())
+                    // The same HAProxy proxies RakNet takes, applied to the TCP listener
+                    .setProxyProtocolProxies(TrustedProxies.parse(geyser.config().advanced().bedrock().haproxyProtocolWhitelistedIps()))
                     // Behind a proxy the peer is the proxy, signing its own assertion. The same
                     // setting already accepts the login chain it forwards
                     .setTokenTrust(geyser.config().advanced().bedrock().validateBedrockLogin()
@@ -319,6 +322,8 @@ public final class NetherNetServer implements EventRegistrar {
             ServerBootstrap b = new ServerBootstrap();
             b.group(inbuiltEventLoopGroup)
                     .channelFactory(NetherNetChannelFactory.server(signaling))
+                    .option(NetherChannelOption.NETHER_SERVER_PROXY_PROTOCOL,
+                            TrustedProxies.parse(geyser.config().advanced().bedrock().webrtcProxyProtocolRelays()))
                     .childHandler(inbuiltInitialiser);
             if (separateIcePort) {
                 b.option(NetherChannelOption.NETHER_SERVER_ICE_ADDRESS, new InetSocketAddress(listener.address(), webrtcPort));
@@ -421,7 +426,8 @@ public final class NetherNetServer implements EventRegistrar {
             ProviderTransport initializingTransport = null;
             try {
                 BedrockListener listener = geyser.config().bedrock();
-                ProviderRuntimeConfiguration runtime = ProviderRuntimeConfiguration.resolve(providerSettings(config, advertised, geyser.config().advanced().nxs()),
+                ProviderRuntimeConfiguration runtime = ProviderRuntimeConfiguration.resolve(providerSettings(config, advertised, geyser.config().advanced().nxs(),
+                    geyser.config().advanced().bedrock().webrtcProxyProtocolRelays()),
                     dataFolder, listener.address(), webrtcPort, collectServerStatus().maxPlayerCount());
                 URI origin = runtime.origin();
                 var statePath = runtime.stateDirectory();
@@ -498,7 +504,8 @@ public final class NetherNetServer implements EventRegistrar {
      */
     public static ProviderRuntimeConfiguration.Settings providerSettings(GeyserConfig.SignalingConfig signaling,
                                                                          List<String> advertised,
-                                                                         GeyserConfig.AdvancedNxsConfig advanced) throws IOException {
+                                                                         GeyserConfig.AdvancedNxsConfig advanced,
+                                                                         List<String> webrtcRelays) throws IOException {
         GeyserConfig.SignalingConfig.NxsConfig nxs = signaling.nxs();
         ProviderClient.Location location;
         try {
@@ -516,6 +523,7 @@ public final class NetherNetServer implements EventRegistrar {
             .location(location)
             .bedrockProtocols(bedrockProtocols())
             .gameOutcomes(true)
+            .proxyProtocolRelays(TrustedProxies.parse(webrtcRelays))
             .build();
     }
 

@@ -316,9 +316,14 @@ public class GeyserImpl implements GeyserApi, EventRegistrar {
         Registries.WAYPOINT_STYLE_MAPPINGS.load();
 
         // Warnings to users who enable options that they might not need.
-        if (config.advanced().bedrock().useHaproxyProtocol()) {
+        if (!config.advanced().bedrock().haproxyProtocolWhitelistedIps().isEmpty()) {
             logger.warning("Geyser is configured to expect HAProxy protocol for incoming Bedrock connections.");
-            logger.warning("If you do not know what this is, open the Geyser config, and set \"use-haproxy-protocol\" under the  \"advanced/bedrock\" section to \"false\".");
+            logger.warning("If you do not know what this is, open the Geyser config, and empty \"haproxy-protocol-whitelisted-ips\" under the \"advanced/bedrock\" section.");
+        }
+
+        if (config.bedrock().transport().nethernet() && !config.advanced().bedrock().webrtcProxyProtocolRelays().isEmpty()) {
+            logger.warning("Geyser is configured to expect PROXY protocol on the WebRTC port, so players can only reach NetherNet through the relays in \"webrtc-proxy-protocol-relays\".");
+            logger.warning("If you do not know what this is, open the Geyser config, and empty \"webrtc-proxy-protocol-relays\" under the \"advanced/bedrock\" section.");
         }
 
         if (config.advanced().java().useHaproxyProtocol()) {
@@ -948,7 +953,7 @@ public class GeyserImpl implements GeyserApi, EventRegistrar {
             metrics.addCustomChart(new SimplePie("defaultLocale", GeyserLocale::getDefaultLocale));
             metrics.addCustomChart(new SimplePie("version", () -> GeyserImpl.VERSION));
             metrics.addCustomChart(new SimplePie("javaHaProxyProtocol", () -> String.valueOf(config.advanced().java().useHaproxyProtocol())));
-            metrics.addCustomChart(new SimplePie("bedrockHaProxyProtocol", () -> String.valueOf(config.advanced().bedrock().useHaproxyProtocol())));
+            metrics.addCustomChart(new SimplePie("bedrockHaProxyProtocol", () -> String.valueOf(!config.advanced().bedrock().haproxyProtocolWhitelistedIps().isEmpty())));
             metrics.addCustomChart(new SimplePie("bedrockTransport", () -> config.bedrock().transport().toString().toLowerCase(Locale.ROOT)));
             metrics.addCustomChart(new DrilldownPie("signalingMode", () -> {
                 // Signaling is only used with NetherNet; an empty map skips this chart
