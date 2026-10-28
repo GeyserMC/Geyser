@@ -9,6 +9,28 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class TextDisplayLayoutTest {
     @Test
+    void textDisplayFlagsMatchJavaAndRestoreDepthTesting() {
+        assertEquals(0x01, TextDisplayEntity.STYLE_FLAG_SHADOW);
+        assertEquals(0x02, TextDisplayEntity.STYLE_FLAG_SEE_THROUGH);
+        assertEquals(0x04, TextDisplayEntity.STYLE_FLAG_DEFAULT_BACKGROUND);
+
+        // Default background must not accidentally make the text see-through.
+        assertEquals(false, TextDisplayEntity.hasStyleFlag((byte) 0x00, TextDisplayEntity.STYLE_FLAG_SEE_THROUGH));
+        assertEquals(false, TextDisplayEntity.hasStyleFlag((byte) 0x01, TextDisplayEntity.STYLE_FLAG_SEE_THROUGH));
+        assertEquals(false, TextDisplayEntity.hasStyleFlag((byte) 0x04, TextDisplayEntity.STYLE_FLAG_SEE_THROUGH));
+
+        // Only Java's explicit see_through bit disables Bedrock depth testing.
+        assertEquals(true, TextDisplayEntity.hasStyleFlag((byte) 0x02, TextDisplayEntity.STYLE_FLAG_SEE_THROUGH));
+        assertEquals(true, TextDisplayEntity.hasStyleFlag((byte) 0x06, TextDisplayEntity.STYLE_FLAG_SEE_THROUGH));
+
+        // The other two flags remain independent.
+        assertEquals(true, TextDisplayEntity.hasStyleFlag((byte) 0x01, TextDisplayEntity.STYLE_FLAG_SHADOW));
+        assertEquals(false, TextDisplayEntity.hasStyleFlag((byte) 0x02, TextDisplayEntity.STYLE_FLAG_SHADOW));
+        assertEquals(true, TextDisplayEntity.hasStyleFlag((byte) 0x04, TextDisplayEntity.STYLE_FLAG_DEFAULT_BACKGROUND));
+        assertEquals(false, TextDisplayEntity.hasStyleFlag((byte) 0x02, TextDisplayEntity.STYLE_FLAG_DEFAULT_BACKGROUND));
+    }
+
+    @Test
     void bedrockAnchorAccountsForJavaLineHeight() {
         // Java renders 9px glyphs and 1px line gap, at 40px/block.
         float oneLine = TextDisplayEntity.calculateBedrockVerticalOffset(1, 1.0f);
