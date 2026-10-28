@@ -217,9 +217,6 @@ public final class NetherNetServer implements EventRegistrar {
         geyser.eventBus().subscribe(this, SessionJoinEvent.class, this::onSessionJoin);
         geyser.eventBus().subscribe(this, SessionDisconnectEventImpl.class, event -> refreshProviderStatus());
 
-        // TODO TEST hybrid: both use UDP on the WebRTC port. They should share it through libjuice's in-process ICE mux,
-        //  where the provider's listener takes unknown requests and inbuilt connections attach as agents; this relies on both
-        //  binding the same address (inbuilt ICE leaves a wildcard address unset, the provider passes it explicitly).
         List<String> advertised = advertisedAddresses();
         // Players only reach the media port through the relays, so this host's own addresses would serve nobody
         if (advertised.isEmpty() && !geyser.config().advanced().bedrock().webrtcProxyProtocolRelays().isEmpty()) {
