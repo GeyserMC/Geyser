@@ -36,7 +36,6 @@ import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.inventory.Inventory;
 import org.geysermc.geyser.inventory.InventoryHolder;
 import org.geysermc.geyser.inventory.recipe.GeyserShapedRecipe;
-import org.geysermc.geyser.network.bedrock.GameProtocol;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.inventory.SmithingInventoryTranslator;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
@@ -181,14 +180,10 @@ public class JavaContainerSetSlotTranslator extends PacketTranslator<Clientbound
 
             CraftingDataPacket craftPacket = new CraftingDataPacket();
             ShapedRecipeData data = geyserRecipe.asRecipeData(session).getFirst();
-            if (GameProtocol.is26_40orHigher(session.protocolVersion())) {
-                if (data.getType().equals(CraftingDataType.SHAPED)) {
-                    craftPacket.getShapedData().add(data);
-                } else {
-                    throw new IllegalStateException("Unexpected value: " + data);
-                }
+            if (data.getType().equals(CraftingDataType.SHAPED)) {
+                craftPacket.getShapedData().add(data);
             } else {
-                craftPacket.getCraftingData().add(data);
+                throw new IllegalStateException("Unexpected value: " + data);
             }
             session.sendUpstreamPacket(craftPacket);
 

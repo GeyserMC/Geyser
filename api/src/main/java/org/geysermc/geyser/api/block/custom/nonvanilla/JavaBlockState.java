@@ -82,10 +82,12 @@ public interface JavaBlockState {
     /**
      * Gets the pick item of the block state
      *
+     * <p>This method is deprecated for removal and will be removed in Geyser 2.13.0.</p>
+     *
      * @return the pick item of the block state
-     * @deprecated the pick item is sent by the Java server
+     * @deprecated since 2.9.0: the pick item is sent by the Java server since Java Edition 1.21.9
      */
-    @Deprecated
+    @Deprecated(since = "2.9.0", forRemoval = true)
     @Nullable String pickItem();
 
     /**
@@ -97,12 +99,14 @@ public interface JavaBlockState {
 
     /**
      * Gets whether the block state has a block entity
-     * 
+     *
+     * <p>This method is deprecated for removal and will be removed in Geyser 2.13.0.</p>
+     *
      * @return whether the block state has block entity
-     * @deprecated Does not have an effect. If you were using this to
+     * @deprecated since 2.4.0: does not have an effect. If you were using this to
      * set piston behavior, use {@link #pistonBehavior()} instead.
      */
-    @Deprecated(forRemoval = true)
+    @Deprecated(since = "2.4.0", forRemoval = true)
     boolean hasBlockEntity();
 
     /**
@@ -129,16 +133,21 @@ public interface JavaBlockState {
 
         Builder canBreakWithHand(boolean canBreakWithHand);
 
-        @Deprecated
+        /**
+         * This method is deprecated for removal and will be removed in Geyser 2.13.0.
+         */
+        @Deprecated(since = "2.9.0", forRemoval = true)
         Builder pickItem(@Nullable String pickItem);
 
         Builder pistonBehavior(@Nullable String pistonBehavior);
 
         /**
-         * @deprecated Does not have an effect. If you were using this to
-         *      * set piston behavior, use {@link #pistonBehavior(String)} instead.
+         * This method is deprecated for removal and will be removed in Geyser 2.13.0.
+         *
+         * @deprecated since 2.4.0: does not have an effect. If you were using this to
+         * set piston behavior, use {@link #pistonBehavior(String)} instead.
          */
-        @Deprecated(forRemoval = true)
+        @Deprecated(since = "2.4.0", forRemoval = true)
         Builder hasBlockEntity(boolean hasBlockEntity);
 
         JavaBlockState build();

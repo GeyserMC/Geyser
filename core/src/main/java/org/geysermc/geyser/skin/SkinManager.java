@@ -61,6 +61,11 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
 public class SkinManager {
+    private static final int MAX_IMAGE_SIZE = 128 * 128 * 4;
+    /**
+     * The library's default limit for geometry read from a skin packet
+     */
+    private static final int MAX_GEOMETRY_SIZE = 512 * 1024;
 
     private static final Map<ResolvableProfile, CompletableFuture<GameProfile>> requestedProfiles = new ConcurrentHashMap<>();
     private static final Cache<ResolvableProfile, GameProfile> RESOLVED_PROFILES_CACHE = CacheBuilder.newBuilder()
@@ -234,19 +239,36 @@ public class SkinManager {
             byte[] geometryNameBytes = clientData.getGeometryName();
             byte[] geometryBytes = clientData.getGeometryData();
 
-            if (skinBytes.length <= (128 * 128 * 4) && !clientData.isPersonaSkin()) {
+            if (isImage(skinBytes) && !clientData.isPersonaSkin()) {
                 SkinProvider.storeBedrockSkin(playerEntity.uuid(), clientData.getSkinId(), skinBytes);
-                SkinProvider.storeBedrockGeometry(playerEntity.uuid(), geometryNameBytes, geometryBytes);
+                if (geometryNameBytes.length + geometryBytes.length <= MAX_GEOMETRY_SIZE) {
+                    SkinProvider.storeBedrockGeometry(playerEntity.uuid(), geometryNameBytes, geometryBytes);
+                }
             } else if (geyser.config().debugMode()) {
                 geyser.getLogger().info(GeyserLocale.getLocaleStringLog("geyser.skin.bedrock.fail", playerEntity.getUsername()));
                 geyser.getLogger().debug("The size of '" + playerEntity.getUsername() + "' skin is: " + clientData.getSkinImageWidth() + "x" + clientData.getSkinImageHeight());
             }
 
-            if (!clientData.getCapeId().isEmpty()) {
-                SkinProvider.storeBedrockCape(clientData.getCapeId(), capeBytes);
+            if (!clientData.getCapeId().isEmpty() && isImage(capeBytes)) {
+                SkinProvider.storeBedrockCape(playerEntity.uuid(), clientData.getCapeId(), capeBytes);
             }
         } catch (Exception e) {
             throw new AssertionError("Failed to cache skin for bedrock user (" + playerEntity.getUsername() + "): ", e);
+        }
+    }
+
+    /**
+     * Whether the data has a size Bedrock images can have.
+     */
+    private static boolean isImage(byte[] data) {
+        if (data.length > MAX_IMAGE_SIZE) {
+            return false;
+        }
+        try {
+            ImageData.of(data);
+            return true;
+        } catch (IllegalArgumentException e) {
+            return false;
         }
     }
 

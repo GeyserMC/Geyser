@@ -56,9 +56,11 @@ public abstract class SessionLoadResourcePacksEvent extends ConnectionEvent {
     public abstract List<ResourcePack> resourcePacks();
 
     /**
-     * @deprecated Use {{@link #register(ResourcePack, ResourcePackOption[])}} instead
+     * This method is deprecated for removal and will be removed in Geyser 2.13.0.
+     *
+     * @deprecated since 2.6.2: use {@link #register(ResourcePack, ResourcePackOption[])} instead
      */
-    @Deprecated
+    @Deprecated(since = "2.6.2", forRemoval = true)
     public abstract boolean register(ResourcePack pack);
 
     /**

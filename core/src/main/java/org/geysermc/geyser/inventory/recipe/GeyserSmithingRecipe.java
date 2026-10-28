@@ -34,7 +34,6 @@ import org.cloudburstmc.protocol.bedrock.data.inventory.descriptor.ItemDescripto
 import org.cloudburstmc.protocol.bedrock.packet.CraftingDataPacket;
 import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.item.type.Item;
-import org.geysermc.geyser.network.bedrock.GameProtocol;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.util.InventoryUtils;
 import org.geysermc.mcprotocollib.protocol.data.game.recipe.display.SmithingRecipeDisplay;
@@ -60,11 +59,7 @@ public interface GeyserSmithingRecipe<T extends RecipeData> extends GeyserRecipe
 
     default int addToPacket(GeyserSession session, CraftingDataPacket craftingDataPacket) {
         List<T> recipeData = asRecipeData(session);
-        if (GameProtocol.is26_40orHigher(session.protocolVersion())) {
-            getCraftingDataList(craftingDataPacket).addAll(recipeData);
-        } else {
-            craftingDataPacket.getCraftingData().addAll(recipeData);
-        }
+        getCraftingDataList(craftingDataPacket).addAll(recipeData);
         return recipeData.size();
     }
 
