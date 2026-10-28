@@ -257,12 +257,16 @@ public class TextDisplayEntity extends DisplayBaseEntity {
     static final int STYLE_FLAG_SEE_THROUGH = 0x02;
     static final int STYLE_FLAG_DEFAULT_BACKGROUND = 0x04;
 
+    static boolean hasStyleFlag(byte flags, int mask) {
+        return (flags & mask) != 0;
+    }
+
     public void setStyleFlags(ByteEntityMetadata metadata) {
         byte flags = metadata.getPrimitiveValue();
 
-        this.shadow = (flags & STYLE_FLAG_SHADOW) != 0;
-        this.seeThrough = (flags & STYLE_FLAG_SEE_THROUGH) != 0;
-        this.defaultBackground = (flags & STYLE_FLAG_DEFAULT_BACKGROUND) != 0;
+        this.shadow = hasStyleFlag(flags, STYLE_FLAG_SHADOW);
+        this.seeThrough = hasStyleFlag(flags, STYLE_FLAG_SEE_THROUGH);
+        this.defaultBackground = hasStyleFlag(flags, STYLE_FLAG_DEFAULT_BACKGROUND);
 
         updatePrimitiveText();
     }
