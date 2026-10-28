@@ -216,6 +216,8 @@ public class ConfigMigrations {
                 .addAction(path("advanced", "nxs", "stun-discovery"), (path, value) ->
                     new Object[]{ "bedrock", "signaling", "stun-discovery" })
                 .build())
+            // Addition of use-haproxy-protocol-webrtc
+            .addVersion(12, ConfigurationTransformation.empty())
         .build();
 
     static TransformAction renameAndMove(String... newPath) {

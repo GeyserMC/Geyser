@@ -228,6 +228,8 @@ public final class NetherNetServer implements EventRegistrar {
 
     private void startInbuilt(List<String> advertised) {
         GeyserConfig.SignalingConfig.BuiltinConfig builtin = config.builtin();
+        // Before falling back to this machine's own addresses, which players cannot reach behind a media relay
+        boolean addressesConfigured = !advertised.isEmpty();
         NetherNetHTTPServerSignaling.Builder signalingBuilder = new NetherNetHTTPServerSignaling.Builder();
         try {
             // Configured addresses already say what STUN would find, and network refuses both
@@ -266,13 +268,16 @@ public final class NetherNetServer implements EventRegistrar {
 
         // Start up NetherNet
         try {
+            GeyserConfig.AdvancedBedrockConfig bedrock = geyser.config().advanced().bedrock();
+            // Parsed once, as a link in the list is fetched on every parse
+            IpRangeSet haproxyProxies = bedrock.useHaproxyProtocol()
+                    ? TrustedProxies.parse(bedrock.haproxyProtocolWhitelistedIps())
+                    : IpRangeSet.empty();
             signalingBuilder
                     .setIdentity(identity)
                     .setForwardedForProxies(TrustedProxies.parse(geyser.config().advanced().bedrock().signalingTrustedProxies()))
                     // The same HAProxy settings RakNet uses, applied to the TCP listener
-                    .setProxyProtocolProxies(geyser.config().advanced().bedrock().useHaproxyProtocol()
-                            ? TrustedProxies.parse(geyser.config().advanced().bedrock().haproxyProtocolWhitelistedIps())
-                            : IpRangeSet.empty())
+                    .setProxyProtocolProxies(haproxyProxies)
                     // Behind a proxy the peer is the proxy, signing its own assertion. The same
                     // setting already accepts the login chain it forwards
                     .setTokenTrust(geyser.config().advanced().bedrock().validateBedrockLogin()
@@ -323,13 +328,29 @@ public final class NetherNetServer implements EventRegistrar {
             if (separateIcePort) {
                 b.option(NetherChannelOption.NETHER_SERVER_ICE_ADDRESS, new InetSocketAddress(listener.address(), webrtcPort));
             }
+            // And to the ICE port, for a proxy that relays the media too. Without it the player's address only comes
+            // from the signaling, which a signaling relay sends in their place
+            boolean webrtcHaproxy = bedrock.useHaproxyProtocolWebrtc();
+            if (webrtcHaproxy && haproxyProxies.isEmpty()) {
+                webrtcHaproxy = false;
+                logger().warning("\"use-haproxy-protocol-webrtc\" needs \"use-haproxy-protocol\" and the proxies in "
+                    + "\"haproxy-protocol-whitelisted-ips\", so NetherNet traffic is read without HAPROXY headers.");
+            } else if (webrtcHaproxy && !addressesConfigured) {
+                webrtcHaproxy = false;
+                logger().warning("\"use-haproxy-protocol-webrtc\" needs \"advertise-addresses\" set to the address players "
+                    + "reach your proxy at, so NetherNet traffic is read without HAPROXY headers.");
+            }
+            if (webrtcHaproxy) {
+                b.option(NetherChannelOption.NETHER_SERVER_PROXY_PROTOCOL, haproxyProxies);
+            }
 
             this.inbuiltChannel = b.bind(new InetSocketAddress(listener.address(), signalingPort)).sync().channel();
 
             // With a certificate configured, plain HTTP is rejected
             String scheme = https.certificate().isBlank() ? "http://" : "https://";
             logger().info("Built-in signaling started on " + scheme + listener.address() + ":" + signalingPort
-                + (separateIcePort ? ", with NetherNet on UDP port " + webrtcPort : ""));
+                + (separateIcePort ? ", with NetherNet on UDP port " + webrtcPort : "")
+                + (webrtcHaproxy ? ", reading HAPROXY headers on NetherNet traffic" : ""));
         } catch (Throwable e) {
             // Throwable: the WebRTC natives are not available on every platform
             closeInbuiltResources();
