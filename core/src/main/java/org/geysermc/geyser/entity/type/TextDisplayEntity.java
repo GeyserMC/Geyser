@@ -249,12 +249,20 @@ public class TextDisplayEntity extends DisplayBaseEntity {
         updatePrimitiveText();
     }
 
+    // Java TextDisplay metadata flags (Minecraft 26.3):
+    // 0x01 = shadow, 0x02 = see through blocks, 0x04 = default background.
+    // Do not mistake default-background (0x04) for see-through; that disables
+    // Bedrock DebugText depth testing and lets holograms show through walls.
+    static final int STYLE_FLAG_SHADOW = 0x01;
+    static final int STYLE_FLAG_SEE_THROUGH = 0x02;
+    static final int STYLE_FLAG_DEFAULT_BACKGROUND = 0x04;
+
     public void setStyleFlags(ByteEntityMetadata metadata) {
         byte flags = metadata.getPrimitiveValue();
 
-        this.defaultBackground = (flags & 0x01) == 1;
-        this.shadow = ((flags >> 1) & 0x01) == 1;
-        this.seeThrough = ((flags >> 2) & 0x01) == 1;
+        this.shadow = (flags & STYLE_FLAG_SHADOW) != 0;
+        this.seeThrough = (flags & STYLE_FLAG_SEE_THROUGH) != 0;
+        this.defaultBackground = (flags & STYLE_FLAG_DEFAULT_BACKGROUND) != 0;
 
         updatePrimitiveText();
     }
