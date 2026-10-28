@@ -261,6 +261,15 @@ public class TextDisplayEntity extends DisplayBaseEntity {
         return (flags & mask) != 0;
     }
 
+    /**
+     * Java TextDisplay's see_through flag and Bedrock DebugText's depthTest
+     * property have opposite meanings. Keep this mapping in one place so
+     * default, shadowed, and background-only text remains block-occluded.
+     */
+    static void applySeeThroughToBedrock(DebugText bedrockText, boolean javaSeeThrough) {
+        bedrockText.setDepthTest(!javaSeeThrough);
+    }
+
     public void setStyleFlags(ByteEntityMetadata metadata) {
         byte flags = metadata.getPrimitiveValue();
 
@@ -423,7 +432,7 @@ public class TextDisplayEntity extends DisplayBaseEntity {
         text.setUseRotation(!getBillboard().equals(Billboard.CENTER));
         text.setMaximumRenderDistance(getViewDistance());
         text.setBackgroundColor(backgroundColor);
-        text.setDepthTest(!seeThrough);
+        applySeeThroughToBedrock(text, seeThrough);
         //text.setLineGapHeight();
         //text.setShowBackface();
         //text.setShowTextBackface();
