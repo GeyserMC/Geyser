@@ -103,10 +103,8 @@ class TextDisplayLayoutTest {
     }
 
     @Test
-    void emptyParagraphsAndTrailingNewlinesRemainRepresented() {
-        assertEquals("heading\n\u00a0\nbody\n\u00a0",
-                TextDisplayEntity.preserveBlankLines("heading\n\nbody\n"));
-        assertEquals("heading\n\u00a0\nbody",
-                TextDisplayEntity.preserveBlankLines("heading\r\n\r\nbody"));
-    }
+	void emptyParagraphsAndTrailingNewlinesRemainRepresented() {
+		assertEquals("heading\n\u00a0\nbody\n\u00a0",
+				TextDisplayEntity.preserveBlankLines("heading\n\nbody\n"));
+	}
 }

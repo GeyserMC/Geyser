@@ -440,7 +440,7 @@ public class TextDisplayEntity extends DisplayBaseEntity {
      * A non-breaking space occupies the line without adding visible lettering.
      */
     static String preserveBlankLines(String message) {
-        String[] lines = message.replace("\r\n", "\n").split("\n", -1);
+        String[] lines = message.split("\n", -1);
         StringBuilder result = new StringBuilder(message.length());
         for (int i = 0; i < lines.length; i++) {
             if (i > 0) {
