@@ -385,7 +385,7 @@ public class TextDisplayEntity extends DisplayBaseEntity {
         text.setUseRotation(!getBillboard().equals(Billboard.CENTER));
         text.setMaximumRenderDistance(getViewDistance());
         text.setBackgroundColor(backgroundColor);
-        applySeeThroughToBedrock(text, seeThrough);
+        text.setDepthTest(!seeThrough);
         //text.setLineGapHeight();
         //text.setShowBackface();
         //text.setShowTextBackface();
