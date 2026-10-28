@@ -3,6 +3,7 @@
  */
 package org.geysermc.geyser.entity.type;
 
+import org.cloudburstmc.protocol.bedrock.data.debugshape.DebugText;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -28,6 +29,17 @@ class TextDisplayLayoutTest {
         assertEquals(false, TextDisplayEntity.hasStyleFlag((byte) 0x02, TextDisplayEntity.STYLE_FLAG_SHADOW));
         assertEquals(true, TextDisplayEntity.hasStyleFlag((byte) 0x04, TextDisplayEntity.STYLE_FLAG_DEFAULT_BACKGROUND));
         assertEquals(false, TextDisplayEntity.hasStyleFlag((byte) 0x02, TextDisplayEntity.STYLE_FLAG_DEFAULT_BACKGROUND));
+    }
+
+    @Test
+    void seeThroughControlsBedrockDepthTest() {
+        for (int value = 0; value < 32; value++) {
+            boolean seeThrough = TextDisplayEntity.hasStyleFlag(
+                    (byte) value, TextDisplayEntity.STYLE_FLAG_SEE_THROUGH);
+            DebugText shape = new DebugText();
+            TextDisplayEntity.applySeeThroughToBedrock(shape, seeThrough);
+            assertEquals(!seeThrough, shape.isDepthTest());
+        }
     }
 
     @Test
