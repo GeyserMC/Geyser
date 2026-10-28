@@ -69,71 +69,24 @@ public class TextDisplayEntity extends DisplayBaseEntity {
     private static final float JAVA_TEXT_PIXEL_SCALE = 1.0f / 40.0f;
 
     /**
-     * The default vertical anchor offset was calibrated against Java/Bedrock
-     * screenshots of the same text displays. It compensates for differences
-     * in their world-space attachment origins, independently of font scale.
-     * Only the text block's height is multiplied by the display scale.
-     *
-     * Override with {@code -Dgeyser.textDisplay.verticalAnchorCorrection=-0.65}
-     * when calibrating different Bedrock builds without recompiling.
+     * Bedrock's world-space text attachment origin differs from Java's.
+     * Keep this correction constant regardless of text scale; only the
+     * text block height is scaled separately.
      */
-    private static final float DEFAULT_VERTICAL_ANCHOR_CORRECTION = -0.65f;
-    private static final float BEDROCK_TEXT_ANCHOR_CORRECTION = readVerticalAnchorCorrection();
-
-    private static float readVerticalAnchorCorrection() {
-        String property = System.getProperty("geyser.textDisplay.verticalAnchorCorrection",
-                Float.toString(DEFAULT_VERTICAL_ANCHOR_CORRECTION));
-        try {
-            float correction = Float.parseFloat(property);
-            return Float.isFinite(correction) ? correction : DEFAULT_VERTICAL_ANCHOR_CORRECTION;
-        } catch (NumberFormatException exception) {
-            return DEFAULT_VERTICAL_ANCHOR_CORRECTION;
-        }
-    }
+    private static final float BEDROCK_TEXT_ANCHOR_CORRECTION = -0.65f;
 
     /**
-     * Bedrock bitmap font pages and Java font bitmap providers can have different
-     * native glyph pixel heights. DebugText multiplies that font size by the
-     * entity transform, exaggerating the mismatch on larger furniture icons.
-     * Only single private-use glyph displays receive this additional correction.
-     * Normal multiline text (including signs and portal titles) stays unchanged.
-     *
-     * Override with {@code -Dgeyser.textDisplay.singleGlyphScale=0.80}.
+     * Correct Bedrock's larger rendering of standalone private-use font glyphs.
+     * This scales only a single custom glyph, not normal text or mixed content.
      */
-    private static final float BEDROCK_SINGLE_GLYPH_SCALE = readSingleGlyphScale();
-
-    private static float readSingleGlyphScale() {
-        String property = System.getProperty("geyser.textDisplay.singleGlyphScale", "0.80");
-        try {
-            float correction = Float.parseFloat(property);
-            return Float.isFinite(correction) && correction > 0.0f ? correction : 0.80f;
-        } catch (NumberFormatException exception) {
-            return 0.80f;
-        }
-    }
+    private static final float BEDROCK_SINGLE_GLYPH_SCALE = 0.80f;
 
     /**
-     * A single custom bitmap glyph can have a different vertical origin in
-     * Bedrock's glyph sheet than Java's bitmap font. Correct that origin
-     * independently of the text's visual scale and the general line-height
-     * anchor. This is measured in world blocks per 1x Java text display scale:
-     * negative values move the glyph down.
-     *
-     * Override with {@code -Dgeyser.textDisplay.singleGlyphVerticalOffset=-0.25}.
+     * Additional downward offset for standalone custom glyphs, in blocks
+     * per unit of Java display scale. Applied on top of the text anchor
+     * correction, independently of the Bedrock glyph-size adjustment.
      */
-    private static final float DEFAULT_SINGLE_GLYPH_VERTICAL_OFFSET = -0.25f;
-    private static final float BEDROCK_SINGLE_GLYPH_VERTICAL_OFFSET = readSingleGlyphVerticalOffset();
-
-    private static float readSingleGlyphVerticalOffset() {
-        String property = System.getProperty("geyser.textDisplay.singleGlyphVerticalOffset",
-                Float.toString(DEFAULT_SINGLE_GLYPH_VERTICAL_OFFSET));
-        try {
-            float offset = Float.parseFloat(property);
-            return Float.isFinite(offset) ? offset : DEFAULT_SINGLE_GLYPH_VERTICAL_OFFSET;
-        } catch (NumberFormatException exception) {
-            return DEFAULT_SINGLE_GLYPH_VERTICAL_OFFSET;
-        }
-    }
+    private static final float BEDROCK_SINGLE_GLYPH_VERTICAL_OFFSET = -0.25f;
 
     /**
      * On Java Edition, armor stands can have a custom name shown additionally to
