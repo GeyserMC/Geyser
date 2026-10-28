@@ -30,6 +30,7 @@ import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.protocol.bedrock.data.ParticleType;
 import org.cloudburstmc.protocol.bedrock.data.SoundEvent;
+import org.cloudburstmc.protocol.bedrock.data.sound.StopSoundData;
 import org.cloudburstmc.protocol.bedrock.packet.ClientboundUpdateSoundDataPacket;
 import org.cloudburstmc.protocol.bedrock.packet.LevelEventGenericPacket;
 import org.cloudburstmc.protocol.bedrock.packet.LevelEventPacket;
@@ -452,6 +453,7 @@ public class JavaLevelEventTranslator extends PacketTranslator<ClientboundLevelE
                     Long id = session.getWorldCache().removePlayingRecord(origin);
                     if (id != null) { // Not sure how this would ever happen...
                         ClientboundUpdateSoundDataPacket updateSoundDataPacket = new ClientboundUpdateSoundDataPacket();
+                        updateSoundDataPacket.setEvent(new StopSoundData());
                         updateSoundDataPacket.setServerSoundHandle(id);
                         session.sendUpstreamPacket(updateSoundDataPacket);
                     }

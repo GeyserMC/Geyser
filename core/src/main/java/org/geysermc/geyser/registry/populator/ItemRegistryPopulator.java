@@ -41,13 +41,12 @@ import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import net.kyori.adventure.key.Key;
-import org.checkerframework.checker.nullness.qual.NonNull;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.nbt.NbtUtils;
-import org.cloudburstmc.protocol.bedrock.codec.v1001.Bedrock_v1001;
 import org.cloudburstmc.protocol.bedrock.codec.v2168.Bedrock_v2168;
 import org.cloudburstmc.protocol.bedrock.codec.v2193.Bedrock_v2193;
+import org.cloudburstmc.protocol.bedrock.codec.v2225.Bedrock_v2225;
 import org.cloudburstmc.protocol.bedrock.data.definitions.BlockDefinition;
 import org.cloudburstmc.protocol.bedrock.data.definitions.ItemDefinition;
 import org.cloudburstmc.protocol.bedrock.data.definitions.SimpleItemDefinition;
@@ -83,6 +82,7 @@ import org.geysermc.geyser.level.block.property.Properties;
 import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.registry.java.BuiltInJavaRegistries;
+import org.geysermc.geyser.registry.populator.conversion.ItemRemapper;
 import org.geysermc.geyser.registry.populator.conversion.WildernessBoundConverter;
 import org.geysermc.geyser.registry.type.BlockMappings;
 import org.geysermc.geyser.registry.type.CustomSkull;
@@ -117,7 +117,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class ItemRegistryPopulator {
 
     @SuppressWarnings("unused") // kept here for convenience when updating
-    record PaletteVersion(String version, int protocolVersion, String creativeVersion, Map<Item, Item> javaOnlyItems, Remapper remapper) {
+    record PaletteVersion(String version, int protocolVersion, String creativeVersion, Map<Item, Item> javaOnlyItems, ItemRemapper remapper) {
 
         public PaletteVersion(String version, int protocolVersion) {
             this(version, protocolVersion, null, Collections.emptyMap(), (item, mapping) -> mapping);
@@ -127,7 +127,7 @@ public class ItemRegistryPopulator {
             this(version, protocolVersion, null, javaOnlyItems, (item, mapping) -> mapping);
         }
 
-        public PaletteVersion(String version, int protocolVersion, Remapper remapper) {
+        public PaletteVersion(String version, int protocolVersion, ItemRemapper remapper) {
             this(version, protocolVersion, null, Collections.emptyMap(), remapper);
         }
 
@@ -144,18 +144,12 @@ public class ItemRegistryPopulator {
         }
     }
 
-    @FunctionalInterface
-    interface Remapper {
-        @NonNull
-        GeyserMappingItem remap(Item item, GeyserMappingItem mapping);
-    }
-
     // TODO: ideally split the populating of the Java ITEM registry (non-vanilla items) from the populating of item mappings
     public static void populate() {
-        List<PaletteVersion> paletteVersions = new ArrayList<>(3);
-        paletteVersions.add(new PaletteVersion("26_30", Bedrock_v1001.CODEC.getProtocolVersion(), WildernessBoundConverter.itemMappings()));
+        List<PaletteVersion> paletteVersions = new ArrayList<>(4);
         paletteVersions.add(new PaletteVersion("26_40", Bedrock_v2168.CODEC.getProtocolVersion(), WildernessBoundConverter.itemMappings()));
         paletteVersions.add(new PaletteVersion("26_50", Bedrock_v2193.CODEC.getProtocolVersion()));
+        paletteVersions.add(new PaletteVersion("26_60", Bedrock_v2225.CODEC.getProtocolVersion()));
 
         GeyserBootstrap bootstrap = GeyserImpl.getInstance().getBootstrap();
 
@@ -312,7 +306,7 @@ public class ItemRegistryPopulator {
                     mappingItem = items.get(replacementItem.javaKey().asString()); // java only item, a java id fallback has been provided
                 } else {
                     // check if any mapping changes need to be made on this version
-                    mappingItem = palette.remapper().remap(javaItem, entry.getValue());
+                    mappingItem = palette.remapper().remapItem(javaItem, entry.getValue());
                 }
 
                 String bedrockIdentifier = mappingItem.getBedrockIdentifier();

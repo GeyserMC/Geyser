@@ -43,6 +43,7 @@ import org.cloudburstmc.netty.signaling.ServerStatus;
 import org.cloudburstmc.netty.signaling.provider.NativeProviderHostFactory;
 import org.cloudburstmc.netty.signaling.provider.ProviderRuntimeConfiguration;
 import org.cloudburstmc.netty.signaling.provider.ProviderShutdown;
+import org.cloudburstmc.netty.util.nethernet.IpRangeSet;
 import org.cloudburstmc.netty.util.nethernet.NetherNetLogging;
 import org.cloudburstmc.netty.util.nethernet.OperatorIdentity;
 import org.cloudburstmc.netty.util.nethernet.SecretValue;
@@ -55,8 +56,10 @@ import org.geysermc.geyser.api.event.EventRegistrar;
 import org.geysermc.geyser.api.event.bedrock.SessionJoinEvent;
 import org.geysermc.geyser.api.network.BedrockListener;
 import org.geysermc.geyser.configuration.GeyserConfig;
+import org.geysermc.geyser.configuration.GeyserPluginConfig;
 import org.geysermc.geyser.event.type.SessionDisconnectEventImpl;
 import org.geysermc.geyser.network.BedrockPingHandler;
+import org.geysermc.geyser.network.bedrock.GameProtocol;
 import org.geysermc.geyser.network.bedrock.nethernet.signaling.provider.GameOutcomeReporter;
 import org.geysermc.geyser.network.bedrock.nethernet.signaling.provider.GeyserStatusCollector;
 import org.geysermc.geyser.session.GeyserSession;
@@ -79,8 +82,10 @@ import java.util.Optional;
 import java.util.Random;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
+import java.util.concurrent.CompletionStage;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
@@ -102,6 +107,10 @@ public final class NetherNetServer implements EventRegistrar {
      */
     private static final String OPERATOR_LINK_FILE = "operator-link.txt";
     /**
+     * How long {@link #awaitShutdown()} waits, the window ProviderShutdown keeps the JVM alive for the same stop.
+     */
+    private static final long SHUTDOWN_WAIT_SECONDS = 20;
+    /**
      * Whether "nethernet-debug" raised NetherNet's own logs, so a reload with it off lowers them again.
      */
     private static boolean debugLogging;
@@ -122,7 +131,17 @@ public final class NetherNetServer implements EventRegistrar {
     private final Object providerLifecycle = new Object();
     private volatile boolean stopping;
     private volatile ProviderClient providerClient;
+    /** The id the external signaling service knows this server by, null until registered. */
+    private volatile @Nullable String providerInstanceId;
     private volatile ProviderShutdown providerShutdown;
+    /**
+     * The provider's start, which stops what it opened itself if shut down midway.
+     */
+    private volatile CompletableFuture<Void> providerStart = CompletableFuture.completedFuture(null);
+    /**
+     * The last provider stop, done once its state directory and UDP port are free.
+     */
+    private volatile CompletionStage<Void> providerStopped = CompletableFuture.completedFuture(null);
     private final GameOutcomeReporter gameOutcomes = new GameOutcomeReporter(this::reportGameOutcome);
     private volatile Supplier<ServerStatus> providerStatusSupplier = this::collectServerStatus;
 
@@ -164,7 +183,7 @@ public final class NetherNetServer implements EventRegistrar {
             return;
         }
 
-        if (inbuilt && signalingPort == geyser.config().java().port()) {
+        if (inbuilt && geyser.config() instanceof GeyserPluginConfig pluginConfig && signalingPort == pluginConfig.java().port()) {
             // e.g. clone-remote-port: the Java server owns that TCP port
             inbuilt = false;
             String reason = "Built-in signaling cannot use port " + signalingPort + " because the Java server already uses it. ";
@@ -251,8 +270,9 @@ public final class NetherNetServer implements EventRegistrar {
                     .setIdentity(identity)
                     .setForwardedForProxies(TrustedProxies.parse(geyser.config().advanced().bedrock().signalingTrustedProxies()))
                     // The same HAProxy settings RakNet uses, applied to the TCP listener
-                    .setProxyProtocol(geyser.config().advanced().bedrock().useHaproxyProtocol())
-                    .setProxyProtocolProxies(TrustedProxies.parse(geyser.config().advanced().bedrock().haproxyProtocolWhitelistedIps()))
+                    .setProxyProtocolProxies(geyser.config().advanced().bedrock().useHaproxyProtocol()
+                            ? TrustedProxies.parse(geyser.config().advanced().bedrock().haproxyProtocolWhitelistedIps())
+                            : IpRangeSet.empty())
                     // Behind a proxy the peer is the proxy, signing its own assertion. The same
                     // setting already accepts the login chain it forwards
                     .setTokenTrust(geyser.config().advanced().bedrock().validateBedrockLogin()
@@ -268,6 +288,8 @@ public final class NetherNetServer implements EventRegistrar {
                                 .setVersion(pong.version())
                                 .setPlayerCount(pong.playerCount())
                                 .setMaxPlayerCount(pong.maximumPlayerCount())
+                                // As BDS sets it from online-mode, telling clients signed in to no Xbox account whether they may join
+                                .setSelfSignedAuth(!geyser.config().advanced().bedrock().validateBedrockLogin())
                                 .build();
                     });
 
@@ -394,7 +416,7 @@ public final class NetherNetServer implements EventRegistrar {
     }
 
     private void startProvider(List<String> advertised) {
-        CompletableFuture.runAsync(() -> {
+        providerStart = CompletableFuture.runAsync(() -> {
             ProviderStateStore store = null;
             ProviderTransport initializingTransport = null;
             try {
@@ -417,7 +439,7 @@ public final class NetherNetServer implements EventRegistrar {
                 transport = host.transport();
                 host.warnings().forEach(message -> logger().warning(message));
                 if (stopping) {
-                    transport.close();
+                    providerStopped = transport.close();
                     closeNetworkResources();
                     return;
                 }
@@ -428,7 +450,7 @@ public final class NetherNetServer implements EventRegistrar {
                 initializingTransport = null;
                 synchronized (providerLifecycle) {
                     if (stopping) {
-                        client.close();
+                        providerStopped = client.stop();
                         return;
                     }
                     try {
@@ -445,6 +467,7 @@ public final class NetherNetServer implements EventRegistrar {
                         stopProvider();
                         return;
                     }
+                    providerInstanceId = registration.instanceId();
                     logger().info(registrationMessage(registration));
                     // Says where logins are vouched for, without putting provider credentials in the log
                     logger().debug("Player logins over NetherNet are verified by the external signaling service at " + origin.getHost() + ".");
@@ -453,7 +476,7 @@ public final class NetherNetServer implements EventRegistrar {
                 });
             } catch (Throwable e) {
                 // Throwable: the WebRTC natives are not available on every platform
-                if (initializingTransport != null) initializingTransport.close();
+                if (initializingTransport != null) providerStopped = initializingTransport.close();
                 if (e instanceof IOException && e.getMessage() != null) {
                     // Says what in the settings is wrong
                     logger().error("Could not start the external signaling service: " + e.getMessage());
@@ -491,8 +514,17 @@ public final class NetherNetServer implements EventRegistrar {
             .stunDiscovery(signaling.stunDiscovery())
             .deregisterOnShutdown(advanced.deregisterOnShutdown())
             .location(location)
+            .bedrockProtocols(bedrockProtocols())
             .gameOutcomes(true)
             .build();
+    }
+
+    /**
+     * Every protocol a login is accepted with, one per supported codec.
+     */
+    static ProviderClient.BedrockProtocols bedrockProtocols() {
+        List<Integer> accepted = GameProtocol.SUPPORTED_BEDROCK_PROTOCOLS.intStream().distinct().sorted().boxed().toList();
+        return new ProviderClient.BedrockProtocols(accepted, GameProtocol.DEFAULT_BEDROCK_VERSION);
     }
 
     private ServerStatus collectServerStatus() {
@@ -538,7 +570,8 @@ public final class NetherNetServer implements EventRegistrar {
                 // An entry without a port is on the WebRTC port
                 .map(address -> address.getPort() == 0 ? new InetSocketAddress(address.getAddress(), webrtcPort) : address)
                 .toList(), builtinStun, builtin.discoveredEndpoints()),
-            client == null ? null : new Advertised.Nxs(client.publishedEndpoints().orElse(null)));
+            client == null ? null : new Advertised.Nxs(client.publishedEndpoints().orElse(null), providerInstanceId,
+                client.clockOffsetMillis()));
     }
 
     /**
@@ -558,8 +591,11 @@ public final class NetherNetServer implements EventRegistrar {
 
         /**
          * @param published what the service last confirmed, or null while it has confirmed nothing
+         * @param instanceId the id the service knows this server by, or null until it has registered
+         * @param clockOffsetMillis the service's clock minus this machine's, positive when this machine is behind
          */
-        public record Nxs(ProviderClient.@Nullable PublishedEndpoints published) {
+        public record Nxs(ProviderClient.@Nullable PublishedEndpoints published, @Nullable String instanceId,
+                          long clockOffsetMillis) {
         }
     }
 
@@ -691,13 +727,33 @@ public final class NetherNetServer implements EventRegistrar {
         }
     }
 
+    /**
+     * Waits for {@link #shutdown()} to stop the provider, which holds its state directory and UDP port until then.
+     * Another instance cannot start the provider while they are held.
+     */
+    public void awaitShutdown() {
+        try {
+            providerStart.thenCompose(ignored -> providerStopped).get(SHUTDOWN_WAIT_SECONDS, TimeUnit.SECONDS);
+        } catch (TimeoutException e) {
+            logger().warning("The external signaling service has not stopped after " + SHUTDOWN_WAIT_SECONDS
+                + " seconds, so it may not start again.");
+        } catch (ExecutionException ignored) {
+            // A close that failed is still over
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
+    }
+
     private void stopProvider() {
         synchronized (providerLifecycle) {
             if (providerShutdown != null) {
                 providerShutdown.close();
                 providerShutdown = null;
+                // The same stop close() began
+                providerStopped = providerClient.stop();
             } else closeNetworkResources();
             providerClient = null;
+            providerInstanceId = null;
         }
     }
 
