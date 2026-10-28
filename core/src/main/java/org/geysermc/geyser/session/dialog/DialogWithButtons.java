@@ -29,7 +29,6 @@ import org.cloudburstmc.nbt.NbtMap;
 import org.geysermc.cumulus.component.DropdownComponent;
 import org.geysermc.cumulus.form.CustomForm;
 import org.geysermc.cumulus.form.SimpleForm;
-import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.registry.java.JavaRegistryProvider;
 import org.geysermc.geyser.session.dialog.input.ParsedInputs;
 import org.geysermc.geyser.text.GeyserLocale;
@@ -41,8 +40,8 @@ public abstract class DialogWithButtons extends Dialog {
 
     protected final Optional<DialogButton> exitAction;
 
-    protected DialogWithButtons(Optional<GeyserSession> session, NbtMap map, Optional<DialogButton> exitAction) {
-        super(session, map);
+    protected DialogWithButtons(NbtMap map, Optional<DialogButton> exitAction) {
+        super(map);
         this.exitAction = exitAction;
     }
 
@@ -55,9 +54,9 @@ public abstract class DialogWithButtons extends Dialog {
         DropdownComponent.Builder dropdown = DropdownComponent.builder();
         dropdown.text(GeyserLocale.getPlayerLocaleString("geyser.dialogs.select_action", holder.session().locale()));
         for (DialogButton button : buttons) {
-            dropdown.option(button.label());
+            dropdown.option(holder.convertText(button.label()));
         }
-        exitAction.ifPresent(button -> dropdown.option(button.label()));
+        exitAction.ifPresent(button -> dropdown.option(holder.convertText(button.label())));
         builder.dropdown(dropdown);
 
         builder.validResultHandler(response -> parseInput(holder, response).ifPresent(inputs -> {
@@ -74,9 +73,9 @@ public abstract class DialogWithButtons extends Dialog {
     protected void addCustomComponents(DialogHolder holder, SimpleForm.Builder builder) {
         List<DialogButton> buttons = buttons(holder);
         for (DialogButton button : buttons) {
-            builder.button(button.label());
+            builder.button(holder.convertText(button.label()));
         }
-        exitAction.ifPresent(button -> builder.button(button.label()));
+        exitAction.ifPresent(button -> builder.button(holder.convertText(button.label())));
 
         builder.validResultHandler(response -> {
             if (response.clickedButtonId() == buttons.size()) {
@@ -92,7 +91,7 @@ public abstract class DialogWithButtons extends Dialog {
         return exitAction;
     }
 
-    protected static Optional<DialogButton> readDefaultExitAction(JavaRegistryProvider registries, Optional<GeyserSession> session, NbtMap map) {
-        return DialogButton.read(registries, session, map.get("exit_action"));
+    protected static Optional<DialogButton> readDefaultExitAction(JavaRegistryProvider registries, NbtMap map) {
+        return DialogButton.read(registries, map.get("exit_action"));
     }
 }

@@ -27,7 +27,6 @@ package org.geysermc.geyser.item.hashing;
 
 import com.google.common.hash.HashCode;
 import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.registry.java.JavaRegistryProvider;
 import org.geysermc.mcprotocollib.protocol.data.game.Holder;
 import org.geysermc.mcprotocollib.protocol.data.game.item.HashedStack;
@@ -367,7 +366,7 @@ public class DataComponentHashers {
         return hash(registries, component.getType(), component.getValue());
     }
 
-    public static HashedStack hashStack(GeyserSession session, ItemStack stack) {
+    public static HashedStack hashStack(JavaRegistryProvider registries, ItemStack stack) {
         if (stack == null) {
             return null;
         }
@@ -385,7 +384,7 @@ public class DataComponentHashers {
             } else if (component.getValue().getValue() == null) {
                 removals.add(component.getKey());
             } else {
-                hashedAdditions.put(component.getKey(), hash(session.javaRegistries(), component.getValue()).asInt());
+                hashedAdditions.put(component.getKey(), hash(registries, component.getValue()).asInt());
             }
         }
         return new HashedStack(stack.getId(), stack.getAmount(), hashedAdditions, removals);

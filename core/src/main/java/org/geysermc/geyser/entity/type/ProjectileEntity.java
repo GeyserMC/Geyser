@@ -65,6 +65,8 @@ public class ProjectileEntity extends Entity implements Tickable {
         MoveEntityDeltaPacket moveEntityDeltaPacket = new MoveEntityDeltaPacket();
         moveEntityDeltaPacket.setRuntimeEntityId(geyserId);
 
+        // Since 26.40 the ground state is its own field instead of that flag
+        moveEntityDeltaPacket.setOnGround(isOnGround);
         if (isOnGround) {
             moveEntityDeltaPacket.getFlags().add(MoveEntityDeltaPacket.Flag.ON_GROUND);
         }

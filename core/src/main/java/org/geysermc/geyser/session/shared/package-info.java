@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2023 GeyserMC. http://geysermc.org
+ * Copyright (c) 2026 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,25 +23,7 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.item.type;
+@NullMarked
+package org.geysermc.geyser.session.shared;
 
-import org.checkerframework.checker.nullness.qual.NonNull;
-import org.geysermc.geyser.item.TooltipOptions;
-import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.geyser.translator.item.BedrockItemBuilder;
-import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
-
-public class DyeableArmorItem extends ArmorItem {
-    public DyeableArmorItem(String javaIdentifier, Builder builder) {
-        super(javaIdentifier, builder);
-    }
-
-    @Override
-    public void translateComponentsToBedrock(@NonNull GeyserSession session, @NonNull DataComponents components, @NonNull TooltipOptions tooltip, @NonNull BedrockItemBuilder builder) {
-        super.translateComponentsToBedrock(session, components, tooltip, builder);
-
-        // Note that this is handled as of 1.20.5 in the ItemColors class.
-        // But horse leather armor and body leather armor are now both armor items. So it works!
-        translateDyedColor(components, builder);
-    }
-}
+import org.jspecify.annotations.NullMarked;

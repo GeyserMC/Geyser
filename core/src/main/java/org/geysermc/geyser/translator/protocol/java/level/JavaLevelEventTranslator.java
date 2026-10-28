@@ -30,6 +30,7 @@ import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.protocol.bedrock.data.ParticleType;
 import org.cloudburstmc.protocol.bedrock.data.SoundEvent;
+import org.cloudburstmc.protocol.bedrock.data.sound.StopSoundData;
 import org.cloudburstmc.protocol.bedrock.packet.ClientboundUpdateSoundDataPacket;
 import org.cloudburstmc.protocol.bedrock.packet.LevelEventGenericPacket;
 import org.cloudburstmc.protocol.bedrock.packet.LevelEventPacket;
@@ -49,6 +50,7 @@ import org.geysermc.geyser.registry.java.JavaRegistries;
 import org.geysermc.geyser.translator.level.event.LevelEventTranslator;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
+import org.geysermc.geyser.translator.text.MessageTranslator;
 import org.geysermc.geyser.util.DimensionUtils;
 import org.geysermc.geyser.util.SoundUtils;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.object.Direction;
@@ -148,7 +150,7 @@ public class JavaLevelEventTranslator extends PacketTranslator<ClientboundLevelE
             textPacket.setPlatformChatId("");
             textPacket.setSourceName(null);
             textPacket.setMessage("record.nowPlaying");
-            textPacket.setParameters(Collections.singletonList(jukeboxSong.get().description()));
+            textPacket.setParameters(Collections.singletonList(MessageTranslator.convertMessage(session, jukeboxSong.get().description())));
             session.sendUpstreamPacket(textPacket);
             return;
         }
@@ -451,6 +453,7 @@ public class JavaLevelEventTranslator extends PacketTranslator<ClientboundLevelE
                     Long id = session.getWorldCache().removePlayingRecord(origin);
                     if (id != null) { // Not sure how this would ever happen...
                         ClientboundUpdateSoundDataPacket updateSoundDataPacket = new ClientboundUpdateSoundDataPacket();
+                        updateSoundDataPacket.setEvent(new StopSoundData());
                         updateSoundDataPacket.setServerSoundHandle(id);
                         session.sendUpstreamPacket(updateSoundDataPacket);
                     }

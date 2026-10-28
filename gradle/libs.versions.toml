@@ -9,17 +9,18 @@ events = "1.1-SNAPSHOT"
 yaml = "2.2"
 fastutil = "8.5.15-SNAPSHOT"
 netty = "4.2.7.Final"
+netty-legacy = "4.1.139.Final"
 guava = "29.0-jre"
 gson = "2.3.1" # Provided by Spigot 1.8.8 TODO bump to 2.8.1 or similar (Spigot 1.16.5 version) after Merge
 gson-runtime = "2.10.1"
 websocket = "1.5.1"
-protocol-connection = "3.0.0.Beta14-20261009.172637-6"
-protocol-common = "3.0.0.Beta14-20261009.172637-6"
-protocol-codec = "3.0.0.Beta14-20261009.172637-6"
+protocol-connection = "3.0.0.Beta15-20261026.210753-2"
+protocol-common = "3.0.0.Beta15-20261026.210753-2"
+protocol-codec = "3.0.0.Beta15-20261026.210753-2"
 # CloudburstMC/Network, "nethernet" branch; RakNet and NetherNet come from the same build
-network = "2.0.0.CR5-20261014.182204-6"
+network = "2.0.0.CR6-20261026.130552-16"
 # opencollab-incubator/libdatachannel-java, which builds opencollab-incubator/libdatachannel and libjuice into its natives
-libdatachannel = "0.24.6.0-20261010.095218-4"
+libdatachannel = "0.24.6.0-20261023.142230-9"
 bouncycastle-pkix = "1.85"
 bouncycastle-prov = "1.85.2"
 minecraftauth = "5.0.0"
@@ -98,7 +99,7 @@ adventure-text-serializer-legacy = { group = "net.kyori", name = "adventure-text
 adventure-text-serializer-plain = { group = "net.kyori", name = "adventure-text-serializer-plain", version.ref = "adventure" }
 
 netty-codec-haproxy = { group = "io.netty", name = "netty-codec-haproxy", version.ref = "netty" }
-netty-codec-http = { group = "io.netty", name = "netty-codec-http", version.ref = "netty" }
+netty-codec-http = { group = "io.netty", name = "netty-codec-http", version.ref = "netty-legacy" }
 netty-handler = { group = "io.netty", name = "netty-handler", version.ref = "netty" }
 netty-transport-native-epoll = { group = "io.netty", name = "netty-transport-native-epoll", version.ref = "netty" }
 netty-transport-native-kqueue = { group = "io.netty", name = "netty-transport-native-kqueue", version.ref = "netty" }

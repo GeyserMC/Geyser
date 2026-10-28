@@ -50,7 +50,6 @@ import org.geysermc.geyser.session.cache.tags.Tag;
 import org.geysermc.mcprotocollib.protocol.data.game.Holder;
 
 import java.util.List;
-import java.util.Optional;
 
 public class GeyserHolderSetTestInstance extends GeyserTestInstance {
     public static final MapCodec<GeyserHolderSetTestInstance> MAP_CODEC = RecordCodecBuilder.mapCodec(instance ->
@@ -78,7 +77,7 @@ public class GeyserHolderSetTestInstance extends GeyserTestInstance {
         DynamicOps<Object> ops = mojangRegistries.createSerializationContext(CloudburstNbtOps.INSTANCE);
 
         JavaRegistryKey<?> geyserRegistry = GeyserGameTestsUtil.mojangKeyToGeyserKey(set.registry);
-        GeyserHolderSet<?> geyserSet = GeyserHolderSet.readHolderSet(geyserRegistries, geyserRegistry, set.encode(ops).getOrThrow(), Optional.empty());
+        GeyserHolderSet<?> geyserSet = GeyserHolderSet.readHolderSet(geyserRegistries, geyserRegistry, set.encode(ops).getOrThrow());
 
         // First, verify Geyser correctly identified tag holder sets
         // Named sets are tags

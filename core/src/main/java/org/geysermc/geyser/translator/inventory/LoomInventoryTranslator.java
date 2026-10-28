@@ -124,7 +124,7 @@ public class LoomInventoryTranslator extends AbstractBlockInventoryTranslator<Co
 
         GeyserItemStack inputCopy = container.getItem(0).copy(1);
         inputCopy.setNetId(session.getNextItemNetId());
-        BannerPatternLayer bannerPatternLayer = BannerItem.getJavaBannerPattern(session, pattern); // TODO
+        BannerPatternLayer bannerPatternLayer = BannerItem.getJavaBannerPattern(session.javaRegistries(), pattern); // TODO
         if (bannerPatternLayer != null) {
             List<BannerPatternLayer> patternsList = new ArrayList<>(inputCopy.getComponentElseGet(DataComponentTypes.BANNER_PATTERNS, ArrayList::new));
             patternsList.add(bannerPatternLayer);

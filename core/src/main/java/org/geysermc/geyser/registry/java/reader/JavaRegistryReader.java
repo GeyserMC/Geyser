@@ -30,18 +30,12 @@ import net.kyori.adventure.text.Component;
 import org.cloudburstmc.nbt.NbtMap;
 import org.geysermc.geyser.registry.java.JavaRegistryProvider;
 import org.geysermc.geyser.registry.java.RegistryUnit;
-import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.text.MessageTranslator;
-
-import java.util.Optional;
 
 /**
  * A {@link JavaRegistryReader} is a function that takes a {@link Context}, holding an {@link Object} (the "registry entry", serialised as NBT),
- * and parses it into a {@link T}, possibly using other registries provided by {@link JavaRegistryProvider} or data from a {@link GeyserSession}.
+ * and parses it into a {@link T}, possibly using other registries provided by {@link JavaRegistryProvider}.
  * All readers are registered, one for each of Java's networked-registries, in {@link JavaRegistryReaders}.
- *
- * <p>Note however that {@link GeyserSession} may not always be present when parsing registry data - it should generally only be used to pre-compute text component translations
- * (see {@link Context#parseDescription()}).</p>
  *
  * <p>If you don't care about the contents of the registry, and only about the network ID ≪-≫ key mapping, you should use the {@link JavaRegistryReader#UNIT} reader.</p>
  *
@@ -73,11 +67,10 @@ public interface JavaRegistryReader<T> extends KeyDependentJavaRegistryReader<T>
      * Creates a {@link Context} for parsing a registry entry. Should be used to parse inline entries.
      *
      * @param registries the {@link JavaRegistryProvider}
-     * @param session the {@link GeyserSession}, may be empty
      * @param data the registry entry to parse
      * @return the created {@link Context}
      */
-    static Context createContext(JavaRegistryProvider registries, Optional<GeyserSession> session, Object data) {
+    static Context createContext(JavaRegistryProvider registries, Object data) {
         return new Context() {
             @Override
             public Object data() {
@@ -85,19 +78,14 @@ public interface JavaRegistryReader<T> extends KeyDependentJavaRegistryReader<T>
             }
 
             @Override
-            public Optional<GeyserSession> session() {
-                return session;
-            }
-
-            @Override
-            public JavaRegistryProvider registries() {
+            public JavaRegistryProvider javaRegistries() {
                 return registries;
             }
         };
     }
 
     /**
-     * Provides context around a registry entry (serialised to NBT), such as a {@link JavaRegistryProvider}, and optionally the {@link GeyserSession}.
+     * Provides a registry entry (serialised to NBT), and a {@link JavaRegistryProvider}.
      */
     interface Context extends JavaRegistryProvider.Provider {
 
@@ -116,15 +104,6 @@ public interface JavaRegistryReader<T> extends KeyDependentJavaRegistryReader<T>
         }
 
         /**
-         * This may be an empty {@link Optional}, and you should generally depend on the presence of this {@link Optional} as little as possible.
-         *
-         * <p>For accessing registry data, use {@link JavaRegistryProvider.Provider#registries()} instead.</p>
-         *
-         * @return the current {@link GeyserSession}, may be empty
-         */
-        Optional<GeyserSession> session();
-
-        /**
          * Attempts to use {@link Context#dataAsMap()} to get this registry entry as an {@link NbtMap}, and then tries to parse the {@code "description"} key
          * into a {@link Component}, using {@link MessageTranslator#componentFromNbtTag(Object)}. If the key did not exist, an empty component is returned.
          *
@@ -132,16 +111,6 @@ public interface JavaRegistryReader<T> extends KeyDependentJavaRegistryReader<T>
          */
         default Component parseDescription() {
              return MessageTranslator.componentFromNbtTag(dataAsMap().get("description"));
-        }
-
-        /**
-         * Uses {@link MessageTranslator#convertFromNullableNbtTag(Optional, Object)} to convert the {@code "description"} key from
-         * this registry entry into a bedrock text string.
-         *
-         * @return the {@code "description"} key from this entry, converted to a bedrock text string
-         */
-        default String deserializeDescription() {
-            return MessageTranslator.convertFromNullableNbtTag(session(), dataAsMap().getOrDefault("description", null));
         }
     }
 }

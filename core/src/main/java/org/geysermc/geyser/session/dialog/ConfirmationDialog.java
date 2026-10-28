@@ -27,7 +27,6 @@ package org.geysermc.geyser.session.dialog;
 
 import net.kyori.adventure.key.Key;
 import org.cloudburstmc.nbt.NbtMap;
-import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.registry.java.JavaRegistryProvider;
 import org.geysermc.geyser.util.MinecraftKey;
 
@@ -41,10 +40,10 @@ public class ConfirmationDialog extends DialogWithButtons {
     private final DialogButton yes;
     private final DialogButton no;
 
-    public ConfirmationDialog(JavaRegistryProvider registries, Optional<GeyserSession> session, NbtMap map) {
-        super(session, map, Optional.empty());
-        yes = DialogButton.read(registries, session, map.get("yes")).orElseThrow();
-        no = DialogButton.read(registries, session, map.get("no")).orElseThrow();
+    public ConfirmationDialog(JavaRegistryProvider registries, NbtMap map) {
+        super(map, Optional.empty());
+        yes = DialogButton.read(registries, map.get("yes")).orElseThrow();
+        no = DialogButton.read(registries, map.get("no")).orElseThrow();
     }
 
     @Override

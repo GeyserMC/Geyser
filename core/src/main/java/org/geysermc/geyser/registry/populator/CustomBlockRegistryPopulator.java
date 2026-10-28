@@ -51,8 +51,10 @@ import org.geysermc.geyser.api.block.custom.property.CustomBlockProperty;
 import org.geysermc.geyser.api.block.custom.property.PropertyType;
 import org.geysermc.geyser.api.event.lifecycle.GeyserDefineCustomBlocksEvent;
 import org.geysermc.geyser.api.util.CreativeCategory;
+import org.geysermc.geyser.level.block.Blocks;
 import org.geysermc.geyser.level.block.GeyserCustomBlockState;
 import org.geysermc.geyser.level.block.type.Block;
+import org.geysermc.geyser.level.block.type.BlockState;
 import org.geysermc.geyser.level.physics.BoundingBox;
 import org.geysermc.geyser.level.physics.PistonBehavior;
 import org.geysermc.geyser.registry.BlockRegistries;
@@ -70,6 +72,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -261,10 +264,16 @@ public class CustomBlockRegistryPopulator {
             String cleanJavaIdentifier = BlockUtils.getCleanIdentifier(javaBlockState.identifier());
 
             // Only register new block if it's not in the BLOCK registry yet
-            if (BuiltInJavaRegistries.BLOCK.get(javaBlockState.stateGroupId()).isEmpty()) {
+            Optional<Block> existing = BuiltInJavaRegistries.BLOCK.get(javaBlockState.stateGroupId());
+            if (existing.isEmpty()) {
                 Block block = new Block(cleanJavaIdentifier, builder);
                 block.setJavaId(javaBlockState.stateGroupId());
                 BuiltInJavaRegistries.BLOCK.register(javaBlockState.stateGroupId(), block.javaIdentifier(), block);
+            } else {
+                // Building the block registered only its first state; every other state needs one too,
+                // or BlockState.of() returns air for it and block updates turn it into air on Bedrock
+                BlockRegistries.BLOCK_STATES.registerWithAnyIndex(stateRuntimeId,
+                    new BlockState(existing.get(), stateRuntimeId), Blocks.AIR.defaultBlockState());
             }
 
             BlockRegistries.JAVA_BLOCK_STATE_IDENTIFIER_TO_ID.register(javaId, stateRuntimeId);

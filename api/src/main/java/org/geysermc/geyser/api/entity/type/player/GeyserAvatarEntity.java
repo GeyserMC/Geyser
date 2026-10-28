@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 GeyserMC. http://geysermc.org
+ * Copyright (c) 2026 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,24 +23,30 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.item.type;
+package org.geysermc.geyser.api.entity.type.player;
 
-import org.checkerframework.checker.nullness.qual.NonNull;
-import org.geysermc.geyser.item.TooltipOptions;
-import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.geyser.translator.item.BedrockItemBuilder;
-import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
+import org.geysermc.geyser.api.entity.type.GeyserEntity;
 
-public class WolfArmorItem extends Item {
-    public WolfArmorItem(String javaIdentifier, Builder builder) {
-        super(javaIdentifier, builder);
+public interface GeyserAvatarEntity extends GeyserEntity {
+
+    /**
+     * Displays a player or mannequin entity as emoting to this client.
+     * This is the equivalent of {@link GeyserAvatarEntity#showEmote(String, boolean)},
+     * with the emote chat announcement silencing set to false.
+     *
+     * @param emoteId the emote ID to send to this client
+     * @since 2.12.1
+     */
+    default void showEmote(String emoteId) {
+        showEmote(emoteId, false);
     }
 
-    @Override
-    public void translateComponentsToBedrock(@NonNull GeyserSession session, @NonNull DataComponents components, @NonNull TooltipOptions tooltip, @NonNull BedrockItemBuilder builder) {
-        super.translateComponentsToBedrock(session, components, tooltip, builder);
-
-        // Note that this is handled as of 1.21 in the ItemColors class.
-        translateDyedColor(components, builder);
-    }
+    /**
+     * Displays a player or mannequin entity as emoting to this client.
+     *
+     * @param emoteId the emote ID to send to this client
+     * @param silent whether to silence the emote chat announcement
+     * @since 2.12.1
+     */
+    void showEmote(String emoteId, boolean silent);
 }

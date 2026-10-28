@@ -25,8 +25,8 @@
 
 package org.geysermc.geyser.session.dialog;
 
+import net.kyori.adventure.text.Component;
 import org.cloudburstmc.nbt.NbtMap;
-import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.registry.java.JavaRegistryProvider;
 import org.geysermc.geyser.session.dialog.action.DialogAction;
 import org.geysermc.geyser.translator.text.MessageTranslator;
@@ -35,23 +35,23 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-public record DialogButton(String label, Optional<DialogAction> action) {
+public record DialogButton(Component label, Optional<DialogAction> action) {
 
-    public static List<DialogButton> readList(JavaRegistryProvider registries, Optional<GeyserSession> session, List<NbtMap> tag) {
+    public static List<DialogButton> readList(JavaRegistryProvider registries, List<NbtMap> tag) {
         if (tag == null) {
             return List.of();
         }
         List<DialogButton> buttons = new ArrayList<>();
         for (NbtMap map : tag) {
-            buttons.add(read(registries, session, map).orElseThrow()); // Should never throw because we know map is a NbtMap
+            buttons.add(read(registries, map).orElseThrow()); // Should never throw because we know map is a NbtMap
         }
         return buttons;
     }
 
-    public static Optional<DialogButton> read(JavaRegistryProvider registries, Optional<GeyserSession> session, Object tag) {
+    public static Optional<DialogButton> read(JavaRegistryProvider registries, Object tag) {
         if (!(tag instanceof NbtMap map)) {
             return Optional.empty();
         }
-        return Optional.of(new DialogButton(MessageTranslator.convertFromNullableNbtTag(session, map.get("label")), DialogAction.read(registries, map.get("action"))));
+        return Optional.of(new DialogButton(MessageTranslator.componentFromNbtTag(map.get("label")), DialogAction.read(registries, map.get("action"))));
     }
 }

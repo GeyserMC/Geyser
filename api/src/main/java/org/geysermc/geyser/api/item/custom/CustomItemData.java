@@ -34,9 +34,9 @@ import java.util.Set;
 /**
  * This is used to store data for a custom item.
  *
- * @deprecated use the new {@link org.geysermc.geyser.api.item.custom.v2.CustomItemDefinition}
+ * @deprecated since 2.9.3: use the new {@link org.geysermc.geyser.api.item.custom.v2.CustomItemDefinition}
  */
-@Deprecated
+@Deprecated(since = "2.9.3")
 public interface CustomItemData {
     /**
      * Gets the item's name.
@@ -97,19 +97,19 @@ public interface CustomItemData {
     /**
      * Gets the item's texture size. This is to resize the item if the texture is not 16x16.
      *
-     * @deprecated setting the texture size is deprecated; use attachables instead
+     * @deprecated since 2.9.2: setting the texture size is deprecated; use attachables instead
      * @return the item's texture size
      */
-    @Deprecated
+    @Deprecated(since = "2.9.2")
     int textureSize();
 
     /**
      * Gets the item's render offsets. If it is null, the item will be rendered normally, with no offsets.
      *
-     * @deprecated render offsets have been deprecated; attachables should be used instead
+     * @deprecated since 2.9.2: render offsets have been deprecated; attachables should be used instead
      * @return the item's render offsets
      */
-    @Deprecated
+    @Deprecated(since = "2.9.2")
     @Nullable CustomRenderOffsets renderOffsets();
 
     /**
@@ -144,10 +144,10 @@ public interface CustomItemData {
 
         Builder creativeGroup(@Nullable String creativeGroup);
 
-        @Deprecated
+        @Deprecated(since = "2.9.2")
         Builder textureSize(int textureSize);
 
-        @Deprecated
+        @Deprecated(since = "2.9.2")
         Builder renderOffsets(@Nullable CustomRenderOffsets renderOffsets);
 
         Builder tags(@Nullable Set<String> tags);

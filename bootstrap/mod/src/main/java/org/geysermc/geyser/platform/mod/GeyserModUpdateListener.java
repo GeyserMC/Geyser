@@ -29,6 +29,7 @@ import net.minecraft.server.level.ServerPlayer;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.Permissions;
 import org.geysermc.geyser.platform.mod.command.ModCommandSource;
+import org.geysermc.geyser.util.NewsHandler;
 import org.geysermc.geyser.util.VersionCheckUtils;
 
 public final class GeyserModUpdateListener {
@@ -40,6 +41,13 @@ public final class GeyserModUpdateListener {
             ModCommandSource source = new ModCommandSource(player.createCommandSourceStack());
             if (source.hasPermission(Permissions.CHECK_UPDATE)) {
                 VersionCheckUtils.checkForGeyserUpdate(() -> source);
+            }
+        }
+
+        if (!GeyserImpl.getInstance().config().bedrock().transport().nethernet()) {
+            ModCommandSource source = new ModCommandSource(player.createCommandSourceStack());
+            if (source.hasPermission(Permissions.SERVER_SETTINGS)) {
+                NewsHandler.sendRakNetDeprecationNotice(source);
             }
         }
     }
