@@ -26,6 +26,7 @@
 package org.geysermc.geyser.entity.type;
 
 import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.checkerframework.checker.nullness.qual.NonNull;
@@ -38,6 +39,8 @@ import org.cloudburstmc.protocol.bedrock.data.debugshape.DebugShape;
 import org.cloudburstmc.protocol.bedrock.data.debugshape.DebugText;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.cloudburstmc.protocol.bedrock.packet.DebugDrawerPacket;
+import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.GeyserLogger;
 import org.geysermc.geyser.entity.VanillaEntities;
 import org.geysermc.geyser.entity.spawn.EntitySpawnContext;
 import org.geysermc.geyser.entity.type.living.ArmorStandEntity;
@@ -55,6 +58,7 @@ import java.util.Optional;
 import java.util.Set;
 
 // Note: 1.19.4 requires that the billboard is set to something in order to show, on Java Edition
+@Slf4j
 @Getter
 public class TextDisplayEntity extends DisplayBaseEntity {
 
@@ -65,28 +69,18 @@ public class TextDisplayEntity extends DisplayBaseEntity {
      */
     private static final float LINE_HEIGHT_OFFSET = 0.1414f;
 
-    /** Java displays render text at 40 pixels per block, with 10-pixel line spacing. */
-    private static final float JAVA_TEXT_PIXEL_SCALE = 1.0f / 40.0f;
+    // Both editions use 10 font pixels per line including background padding, but Bedrock's font pixels are larger
+    private static final float JAVA_LINE_HEIGHT = 0.25f; // 10px at 0.025 blocks per pixel
+    private static final float BEDROCK_LINE_HEIGHT = 0.266071429f; // measured at scale 1
+    private static final float BEDROCK_SCALE_FACTOR = JAVA_LINE_HEIGHT / BEDROCK_LINE_HEIGHT;
 
     /**
-     * Bedrock's world-space text attachment origin differs from Java's.
-     * Keep this correction constant regardless of text scale; only the
-     * text block height is scaled separately.
+     * Java anchors the text display at the bottom of its background, whereas Bedrock anchors primitive text
+     * 10% of its height below the top and scales from there.
      */
-    private static final float BEDROCK_TEXT_ANCHOR_CORRECTION = -0.65f;
+    private static final float BEDROCK_ANCHOR_HEIGHT = JAVA_LINE_HEIGHT * 0.9f;
 
-    /**
-     * Correct Bedrock's larger rendering of standalone private-use font glyphs.
-     * This scales only a single custom glyph, not normal text or mixed content.
-     */
-    private static final float BEDROCK_SINGLE_GLYPH_SCALE = 0.80f;
-
-    /**
-     * Additional downward offset for standalone custom glyphs, in blocks
-     * per unit of Java display scale. Applied on top of the text anchor
-     * correction, independently of the Bedrock glyph-size adjustment.
-     */
-    private static final float BEDROCK_SINGLE_GLYPH_VERTICAL_OFFSET = -0.25f;
+    private static final boolean DEBUG = Boolean.getBoolean("Geyser.Debug.TextDisplay");
 
     /**
      * On Java Edition, armor stands can have a custom name shown additionally to
@@ -202,24 +196,12 @@ public class TextDisplayEntity extends DisplayBaseEntity {
         updatePrimitiveText();
     }
 
-    // Java TextDisplay metadata flags (Minecraft 26.3):
-    // 0x01 = shadow, 0x02 = see through blocks, 0x04 = default background.
-    // Do not mistake default-background (0x04) for see-through; that disables
-    // Bedrock DebugText depth testing and lets holograms show through walls.
-    static final int STYLE_FLAG_SHADOW = 0x01;
-    static final int STYLE_FLAG_SEE_THROUGH = 0x02;
-    static final int STYLE_FLAG_DEFAULT_BACKGROUND = 0x04;
-
-    static boolean hasStyleFlag(byte flags, int mask) {
-        return (flags & mask) != 0;
-    }
-
     public void setStyleFlags(ByteEntityMetadata metadata) {
         byte flags = metadata.getPrimitiveValue();
 
-        this.shadow = hasStyleFlag(flags, STYLE_FLAG_SHADOW);
-        this.seeThrough = hasStyleFlag(flags, STYLE_FLAG_SEE_THROUGH);
-        this.defaultBackground = hasStyleFlag(flags, STYLE_FLAG_DEFAULT_BACKGROUND);
+        this.defaultBackground = (flags & 0x01) == 1;
+        this.shadow = ((flags >> 1) & 0x01) == 1;
+        this.seeThrough = ((flags >> 2) & 0x01) == 1;
 
         updatePrimitiveText();
     }
@@ -300,17 +282,14 @@ public class TextDisplayEntity extends DisplayBaseEntity {
             message = MessageTranslator.convertMessage(text, session.locale());
         }
 
-        // Retain empty lines which Bedrock's debug-text layout may collapse.
-        message = preserveBlankLines(message);
-
         // Calculate a matrix then extract components
 
-        // The attached Bedrock entity is already positioned at baseTranslation by
-        // DisplayBaseEntity.bedrockPosition(). Adding it again here doubles the offset.
-        Matrix4f matrix = Matrix4f.IDENTITY
+        Matrix4f matrix = Matrix4f.IDENTITY.translate(getBaseTranslation())
             .rotate(getLeftRotation())
             .scale(Vector4f.from(getBaseScale(), 1))
             .rotate(getRightRotation());
+
+        Vector3f translation = Vector3f.from(matrix.get(3, 0), matrix.get(3, 1), matrix.get(3, 2));
 
         float m00, m01, m02, m10, m11, m12, m20, m21, m22;
         m00 = matrix.get(0, 0);
@@ -335,14 +314,22 @@ public class TextDisplayEntity extends DisplayBaseEntity {
         float y = (float) Math.atan2(-r20, Math.hypot(r00, r10));
         float z = (float) Math.atan2(r10, r00);
 
-        float scale = MathUtils.average(new float[]{ sx, sy });
+        float scale = MathUtils.average(new float[]{ sx, sy }) * BEDROCK_SCALE_FACTOR; // sz doesn't affect the java scale, so don't use it
+
+        // Move the bedrock anchor to where it sits within the java text, in the java text's local space
+        int lines = PlainTextComponentSerializer.plainText().serialize(this.text).split("\n").length;
+        Vector4f anchor = Matrix4f.createRotation(getLeftRotation())
+            .mul(Matrix4f.createScaling(Vector4f.from(getBaseScale(), 1)))
+            .mul(Matrix4f.createRotation(getRightRotation()))
+            .transform(0, BEDROCK_ANCHOR_HEIGHT * lines, 0, 1);
+        translation = translation.add(anchor.getX(), anchor.getY(), anchor.getZ());
 
         // I'm not even gonna pretend I know why x needs to be negative, but it does, and it works
         Vector3f rotation = Vector3f.from(-Math.toDegrees(x), Math.toDegrees(y), Math.toDegrees(z));
 
         DebugText text = new DebugText();
         text.setId(geyserId);
-        text.setText(message);
+        text.setText(DEBUG ? String.valueOf(geyserId) : message);
         text.setColor(
             color == null ? null :
                 new Color(
@@ -352,24 +339,44 @@ public class TextDisplayEntity extends DisplayBaseEntity {
                     textOpacity < 0 ? (textOpacity + 256) : textOpacity
                 )
         );
-
-        // Count explicit newlines for vertical positioning.
-        // TODO: Account for automatic wrapping based on the Java
-        // text display's line_width and font metrics.
-        int lineCount = message.split("\\n", -1).length;
-        String rawText = PlainTextComponentSerializer.plainText().serialize(this.text);
-        float baseVerticalOffset = calculateBedrockVerticalOffset(lineCount, scale);
-        float customGlyphOffset = singleGlyphVerticalOffset(rawText, scale, BEDROCK_SINGLE_GLYPH_VERTICAL_OFFSET);
-        float verticalOffset = baseVerticalOffset + customGlyphOffset;
-        text.setPosition(Vector3f.from(0, verticalOffset, 0));
+        text.setPosition(translation);
         text.setAttachedToEntityId(geyserId);
+
+        GeyserLogger log = GeyserImpl.getInstance().getLogger();
 
         Vector3f outputRotation = Vector3f.from(
             0, (-getYaw()) + 180, 0
         );
 
-        // Combine the entity's world yaw with its display transform rotation.
+        if (DEBUG) {
+            log.info("Text Display Debug Update (" + geyserId + "):");
+            log.info("- Rotation:");
+            log.info("  - Yaw: " + outputRotation);
+        }
+
+//        Vector3f leftRotation = toVector(this.getLeftRotation());
+//
+//        if (DEBUG) {
+//            log.info("  - Left Rotation: " + leftRotation);
+//        }
+//
+//        // Add left rotation
+//        outputRotation = outputRotation.add(leftRotation);
+//
+//        if (DEBUG) {
+//            log.info("  - Yaw + Left Rotation: " + outputRotation);
+//        }
+
+        if (DEBUG) {
+            log.info("  - Rotation: " + rotation);
+        }
+
+        // Add rotation
         outputRotation = outputRotation.add(rotation);
+
+        if (DEBUG) {
+            log.info("  - Yaw + Rotation: " + outputRotation);
+        }
 
         text.setRotation(outputRotation);
         text.setUseRotation(!getBillboard().equals(Billboard.CENTER));
@@ -380,74 +387,10 @@ public class TextDisplayEntity extends DisplayBaseEntity {
         //text.setShowBackface();
         //text.setShowTextBackface();
         text.setDimension(session.getBedrockDimension().bedrockId());
-
-        // Apply a separate correction only to a text display containing one
-        // private-use font icon. Keep the Java-scale pivot correction above:
-        // changing the glyph's pixel size must not move its attachment anchor.
-        float bedrockScale = adjustedGlyphScale(rawText, scale, BEDROCK_SINGLE_GLYPH_SCALE);
-        text.setScale(bedrockScale);
-
+        text.setScale(scale);
         DebugDrawerPacket packet = new DebugDrawerPacket();
         packet.getShapes().add(text);
         session.sendUpstreamPacket(packet);
-    }
-
-    /**
-     * Align the vertical centre of Bedrock's DebugText with Java's bottom
-     * text-display pivot. Java uses 9-pixel glyphs plus 1-pixel line spacing
-     * and 40 pixels per world block. Only Java's text height scales with
-     * the display; Bedrock's attached-entity baseline correction is in
-     * world units and must remain constant across font scales.
-     */
-    static float calculateBedrockVerticalOffset(int lineCount, float scale) {
-        if (lineCount <= 0) {
-            return 0.0f;
-        }
-        float javaTextHeight = (lineCount * 10.0f - 1.0f) * JAVA_TEXT_PIXEL_SCALE;
-        return javaTextHeight * scale / 2.0f + BEDROCK_TEXT_ANCHOR_CORRECTION;
-    }
-
-    /**
-     * A single private-use Unicode code point represents a custom-font icon.
-     * For these displays the Bedrock bitmap-font page has a different native
-     * glyph scale than the Java font provider. Correct the visual glyph size
-     * without modifying the source entity's transform or other text displays.
-     */
-    static float adjustedGlyphScale(String plainText, float javaScale, float correction) {
-        return isSinglePrivateUseGlyph(plainText) ? javaScale * correction : javaScale;
-    }
-
-    /**
-     * Apply a custom-font-specific baseline offset on top of the standard Java
-     * line-height anchor. The delta follows the original Java transform scale
-     * (not the additionally corrected Bedrock font scale) so a glyph at 1.5x
-     * moves 1.5 times as far as the same font at 1x.
-     */
-    static float singleGlyphVerticalOffset(String plainText, float javaScale, float offsetPerScale) {
-        return isSinglePrivateUseGlyph(plainText) ? javaScale * offsetPerScale : 0.0f;
-    }
-
-    private static boolean isSinglePrivateUseGlyph(String plainText) {
-        if (plainText == null || plainText.isEmpty() || plainText.codePointCount(0, plainText.length()) != 1) {
-            return false;
-        }
-        return Character.getType(plainText.codePointAt(0)) == Character.PRIVATE_USE;
-    }
-
-    /**
-     * Keep explicit empty lines visible in the Bedrock DebugText layout.
-     * A non-breaking space occupies the line without adding visible lettering.
-     */
-    static String preserveBlankLines(String message) {
-        String[] lines = message.split("\n", -1);
-        StringBuilder result = new StringBuilder(message.length());
-        for (int i = 0; i < lines.length; i++) {
-            if (i > 0) {
-                result.append('\n');
-            }
-            result.append(lines[i].isEmpty() ? "\u00a0" : lines[i]);
-        }
-        return result.toString();
     }
 
     public void updateNameTag() {
