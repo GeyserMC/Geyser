@@ -223,6 +223,11 @@ public final class NetherNetServer implements EventRegistrar {
         //  binding the same address (inbuilt ICE leaves a wildcard address unset, the provider passes it explicitly).
         List<String> advertised = advertisedAddresses();
         boolean discovered = false;
+        if (advertised.isEmpty() && config.stunDiscovery()) {
+            logger().warning("STUN discovery is on, which cannot find this server's address where a firewall drops the UDP replies "
+                + "STUN needs, and players then cannot connect however often they retry. If that happens, set \"stun-discovery\" "
+                + "to false and \"ip-discovery\" to true, or start with -DgeyserDiscoveryMethod=ip.");
+        }
         if (advertised.isEmpty() && !config.stunDiscovery() && config.ipDiscovery()) {
             Optional<String> publicIp = PublicIpDiscovery.discover(logger(), dataFolder.resolve("public-ip.json"));
             if (publicIp.isPresent()) {
