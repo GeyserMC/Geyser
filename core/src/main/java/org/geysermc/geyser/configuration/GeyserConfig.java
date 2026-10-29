@@ -550,6 +550,8 @@ public interface GeyserConfig {
                 A list of reverse proxy addresses (for example, an HTTP load balancer) in front of built-in signaling.
                 Built-in signaling reads the player's real address from the "X-Forwarded-For" header, and does not apply
                 its per-address connection limit to them for all listed proxies. This is separate from HAPROXY protocol.
+                With more than one proxy in front of signaling, such as a CDN in front of nginx, list every one of them,
+                or have the last one send only the player's address in "X-Forwarded-For".
                 IP addresses, subnets, and links to plain text files are supported.
                 IF YOU DON'T KNOW WHAT THIS IS, DON'T TOUCH IT!""")
         @AsteriskSerializer.Asterisk
