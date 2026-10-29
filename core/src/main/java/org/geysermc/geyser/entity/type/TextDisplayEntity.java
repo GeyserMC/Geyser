@@ -284,10 +284,10 @@ public class TextDisplayEntity extends DisplayBaseEntity {
 
         // Calculate a matrix then extract components
 
-        Matrix4f matrix = Matrix4f.IDENTITY.translate(getBaseTranslation())
-            .rotate(getLeftRotation())
-            .scale(Vector4f.from(getBaseScale(), 1))
-            .rotate(getRightRotation());
+        Matrix4f matrix = Matrix4f.IDENTITY
+		.rotate(getLeftRotation())
+		.scale(Vector4f.from(getBaseScale(), 1))
+		.rotate(getRightRotation());
 
         Vector3f translation = Vector3f.from(matrix.get(3, 0), matrix.get(3, 1), matrix.get(3, 2));
 
