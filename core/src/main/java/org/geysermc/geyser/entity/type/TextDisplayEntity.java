@@ -69,9 +69,16 @@ public class TextDisplayEntity extends DisplayBaseEntity {
      */
     private static final float LINE_HEIGHT_OFFSET = 0.1414f;
 
-    private static final float JAVA_LINE_HEIGHT = 0.225f;
+    // Both editions use 10 font pixels per line including background padding, but Bedrock's font pixels are larger
+    private static final float JAVA_LINE_HEIGHT = 0.25f; // 10px at 0.025 blocks per pixel
     private static final float BEDROCK_LINE_HEIGHT = 0.266071429f; // measured at scale 1
     private static final float BEDROCK_SCALE_FACTOR = JAVA_LINE_HEIGHT / BEDROCK_LINE_HEIGHT;
+
+    /**
+     * Java anchors the text display at the bottom of its background, whereas Bedrock anchors primitive text
+     * 10% of its height below the top and scales from there.
+     */
+    private static final float BEDROCK_ANCHOR_HEIGHT = JAVA_LINE_HEIGHT * 0.9f;
 
     private static final boolean DEBUG = Boolean.getBoolean("Geyser.Debug.TextDisplay");
 
@@ -309,12 +316,13 @@ public class TextDisplayEntity extends DisplayBaseEntity {
 
         float scale = MathUtils.average(new float[]{ sx, sy }) * BEDROCK_SCALE_FACTOR; // sz doesn't affect the java scale, so don't use it
 
-        // Bedrock scales from mid-center, java scales from mid-bottom
-        if (scale != 1) {
-            float newHeight = BEDROCK_LINE_HEIGHT * scale;
-
-            translation = translation.add(0, (newHeight - BEDROCK_LINE_HEIGHT) / 2, 0);
-        }
+        // Move the bedrock anchor to where it sits within the java text, in the java text's local space
+        int lines = PlainTextComponentSerializer.plainText().serialize(this.text).split("\n").length;
+        Vector4f anchor = Matrix4f.createRotation(getLeftRotation())
+            .mul(Matrix4f.createScaling(Vector4f.from(getBaseScale(), 1)))
+            .mul(Matrix4f.createRotation(getRightRotation()))
+            .transform(0, BEDROCK_ANCHOR_HEIGHT * lines, 0, 1);
+        translation = translation.add(anchor.getX(), anchor.getY(), anchor.getZ());
 
         // I'm not even gonna pretend I know why x needs to be negative, but it does, and it works
         Vector3f rotation = Vector3f.from(-Math.toDegrees(x), Math.toDegrees(y), Math.toDegrees(z));
@@ -331,12 +339,7 @@ public class TextDisplayEntity extends DisplayBaseEntity {
                     textOpacity < 0 ? (textOpacity + 256) : textOpacity
                 )
         );
-        text.setPosition(Vector3f.from(
-            0,
-            0.13 * PlainTextComponentSerializer.plainText()
-                .serialize(this.text).split("\n").length,
-            0
-        ).add(0, 0.1, 0).add(translation));
+        text.setPosition(translation);
         text.setAttachedToEntityId(geyserId);
 
         GeyserLogger log = GeyserImpl.getInstance().getLogger();
