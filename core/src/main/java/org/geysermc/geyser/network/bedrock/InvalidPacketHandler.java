@@ -66,8 +66,9 @@ public class InvalidPacketHandler extends ChannelInboundHandlerAdapter {
             // The transport lost the connection, as when a player aborts it on leaving, so nobody is at fault.
             // Closing keeps the reason the transport gave, which a disconnect would replace.
             // The name is only a placeholder before login, so the address tells connections apart
-            logger.debug("The connection of " + session.bedrockUsername() + " from " + session.getSocketAddress()
-                + " failed: " + cause);
+            String address = GeyserImpl.getInstance().config().logPlayerIpAddresses()
+                ? String.valueOf(session.getSocketAddress()) : "<IP address withheld>";
+            logger.debug("The connection of " + session.bedrockUsername() + " from " + address + " failed: " + cause);
             ctx.channel().close();
             return;
         }
