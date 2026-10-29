@@ -34,7 +34,6 @@ import org.cloudburstmc.protocol.bedrock.data.command.CommandPermission;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.event.java.ServerDefineCommandsEvent;
 import org.geysermc.geyser.api.util.PlatformType;
-import org.geysermc.geyser.event.GeyserEventBus;
 import org.geysermc.geyser.translator.data.CommandTranslationData;
 import org.geysermc.mcprotocollib.protocol.data.game.command.CommandNode;
 import org.geysermc.mcprotocollib.protocol.data.game.command.CommandType;
@@ -54,7 +53,7 @@ public final class CommandTranslator {
 
     @SuppressWarnings("removal") // Legacy API event
     public static List<CommandData> translate(CommandTranslationData data) {
-        BedrockCommandContext bedrockContext = null;
+        BedrockCommandData bedrockData = new BedrockCommandData();
 
         CommandNode rootNode = data.nodes()[data.firstNodeIndex()];
 
@@ -62,21 +61,21 @@ public final class CommandTranslator {
             CommandNode node = data.nodes()[nodeIndex];
 
             BedrockCommandInfo translated = translate(data, node);
-            bedrockContext.commands.computeIfAbsent(translated, $ -> new HashSet<>()).add(translated.name());
+            bedrockData.commands.computeIfAbsent(translated, $ -> new HashSet<>()).add(translated.name());
 
             // Add the command to the command lists - we have to use the Java name here as this is used to compare to Java commands.
-            bedrockContext.knownCommands.add(node.getName());
+            bedrockData.knownCommands.add(node.getName());
             if (node.isAllowsRestricted()) { // Name is a bit confusing - this is what we want
-                bedrockContext.restrictedCommands.add(node.getName());
+                bedrockData.restrictedCommands.add(node.getName());
             }
         }
 
-        ServerDefineCommandsEvent event = data.fireConnectionEvent(connection -> new ServerDefineCommandsEvent(connection, bedrockContext.commands.keySet()));
+        ServerDefineCommandsEvent event = data.fireConnectionEvent(connection -> new ServerDefineCommandsEvent(connection, bedrockData.commands.keySet()));
         if (event.isCancelled()) {
             return List.of();
         }
 
-        var oldEvent = data.fireConnectionEvent(connection -> new org.geysermc.geyser.api.event.downstream.ServerDefineCommandsEvent(connection, bedrockContext.commands.keySet()));
+        var oldEvent = data.fireConnectionEvent(connection -> new org.geysermc.geyser.api.event.downstream.ServerDefineCommandsEvent(connection, bedrockData.commands.keySet()));
         if (oldEvent.isCancelled()) {
             return List.of();
         }
@@ -90,7 +89,7 @@ public final class CommandTranslator {
         List<CommandData> bedrockCommands = new ObjectArrayList<>();
 
         // Loop through all the found commands
-        for (Map.Entry<BedrockCommandInfo, Set<String>> entry : bedrockContext.commands.entrySet()) {
+        for (Map.Entry<BedrockCommandInfo, Set<String>> entry : bedrockData.commands.entrySet()) {
             String commandName = entry.getValue().iterator().next(); // We know this has a value
 
             LinkedHashMap<String, Set<CommandEnumConstraint>> values = new LinkedHashMap<>();
@@ -119,8 +118,8 @@ public final class CommandTranslator {
             }
 
             // Build the completed command and add it to the final list
-            CommandData data = new CommandData(commandName, description, flags, CommandPermission.ANY, aliases, Collections.emptyList(), entry.getKey().paramData());
-            bedrockCommands.add(data);
+            CommandData bedrockCommand = new CommandData(commandName, description, flags, CommandPermission.ANY, aliases, Collections.emptyList(), entry.getKey().paramData());
+            bedrockCommands.add(bedrockCommand);
 
             if (commandName.equals("help")) {
                 helpAdded = true;
@@ -133,7 +132,7 @@ public final class CommandTranslator {
         }
 
         if (data.platformType() == PlatformType.STANDALONE) {
-            data.commandRegistry().export(data.commandSource(), bedrockCommands, bedrockContext.knownCommands);
+            data.commandRegistry().export(data.commandSource(), bedrockCommands, bedrockData.knownCommands);
         }
 
         return bedrockCommands;

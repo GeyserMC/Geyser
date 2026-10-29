@@ -46,6 +46,7 @@ public interface CommonTranslationData extends JavaRegistryProvider.Provider, Te
 
     <T extends Event> T fireConnectionEvent(Function<GeyserConnection, T> constructor);
 
+    // TODO this can be one-per-session
     record Impl(@Deprecated GeyserEventBus eventBus, @Deprecated GeyserConnection connection,
                 PlatformType platformType, JavaRegistryProvider javaRegistries, String locale) implements CommonTranslationData {
 

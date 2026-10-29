@@ -27,7 +27,6 @@ package org.geysermc.geyser.translator.command;
 
 import it.unimi.dsi.fastutil.Hash;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenCustomHashMap;
-import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import org.cloudburstmc.protocol.bedrock.data.command.CommandParamData;
 
@@ -35,7 +34,7 @@ import java.util.Arrays;
 import java.util.Map;
 import java.util.Set;
 
-final class BedrockCommandContext {
+final class BedrockCommandData {
     private static final Hash.Strategy<BedrockCommandInfo> PARAM_STRATEGY = new Hash.Strategy<>() {
         @Override
         public int hashCode(BedrockCommandInfo o) {
@@ -71,16 +70,11 @@ final class BedrockCommandContext {
         }
     };
 
-    // One namespace of soft enum names per packet: identical value sets share a name so command
-    // aliases still deduplicate, while distinct sets are guaranteed distinct names
-    private final Map<String, String> softEnumNames = new Object2ObjectOpenHashMap<>();
     final Map<BedrockCommandInfo, Set<String>> commands = new Object2ObjectOpenCustomHashMap<>(PARAM_STRATEGY);
 
     // These 2 are technically Java properties, but they're in this context as they're registered post-translation
     final Set<String> knownCommands = new ObjectOpenHashSet<>();
     final Set<String> restrictedCommands = new ObjectOpenHashSet<>();
 
-    private BedrockCommandContext() {}
-
-
+    BedrockCommandData() {}
 }
