@@ -222,19 +222,41 @@ public final class NetherNetServer implements EventRegistrar {
         //  where the provider's listener takes unknown requests and inbuilt connections attach as agents; this relies on both
         //  binding the same address (inbuilt ICE leaves a wildcard address unset, the provider passes it explicitly).
         List<String> advertised = advertisedAddresses();
-        if (inbuilt) startInbuilt(advertised);
+        boolean discovered = false;
+        if (advertised.isEmpty() && !config.stunDiscovery() && config.ipDiscovery()) {
+            Optional<String> publicIp = PublicIpDiscovery.discover();
+            if (publicIp.isPresent()) {
+                // The port goes in explicitly: a public address this machine does not hold is the public side of a
+                // forward, which does not necessarily use the same port number
+                advertised = List.of(publicIp.get() + ":" + webrtcPort);
+                discovered = true;
+                logger().info("ip-discovery found this server's public address " + publicIp.get()
+                    + ", advertising " + advertised.get(0) + " to connecting players");
+            } else {
+                logger().warning("ip-discovery could not find this server's public address, so this machine's own addresses " +
+                    "will be advertised instead. Set the public address in \"advertise-addresses\" if players cannot connect.");
+            }
+        }
+        if (inbuilt) startInbuilt(advertised, discovered);
         if (provider) startProvider(advertised);
     }
 
-    private void startInbuilt(List<String> advertised) {
+    private void startInbuilt(List<String> advertised, boolean discovered) {
         GeyserConfig.SignalingConfig.BuiltinConfig builtin = config.builtin();
         NetherNetHTTPServerSignaling.Builder signalingBuilder = new NetherNetHTTPServerSignaling.Builder();
         try {
             // Configured addresses already say what STUN would find, and network refuses both
             boolean stun = advertised.isEmpty() && config.stunDiscovery();
             if (!stun && System.getProperty("geyserStunServers") != null) {
-                logger().warning("-DgeyserStunServers is ignored, as "
-                    + (config.stunDiscovery() ? "\"advertise-addresses\" is set" : "\"stun-discovery\" is off"));
+                String reason;
+                if (discovered) {
+                    reason = "\"ip-discovery\" found this server's public address";
+                } else if (config.stunDiscovery()) {
+                    reason = "\"advertise-addresses\" is set";
+                } else {
+                    reason = "\"stun-discovery\" is off";
+                }
+                logger().warning("-DgeyserStunServers is ignored, as " + reason);
             }
             List<String> stunServers = stun ? stunServers() : List.of();
             if (advertised.isEmpty() && stunServers.isEmpty()) {
@@ -582,7 +604,8 @@ public final class NetherNetServer implements EventRegistrar {
      */
     public record Advertised(@Nullable Builtin builtin, @Nullable Nxs nxs) {
         /**
-         * @param configured the configured addresses. When empty, this machine's own addresses and {@code discovered}
+         * @param configured the addresses sent to players: those in the config, or the one ip-discovery found. When
+         *                   empty, this machine's own addresses and {@code discovered} are sent
          * @param stun whether STUN discovery is on
          * @param discovered the public addresses STUN discovery currently finds
          */

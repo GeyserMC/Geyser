@@ -242,6 +242,8 @@ public class ConfigLoaderTest {
         GeyserConfig.SignalingConfig signaling = config.bedrock().signaling();
         assertEquals(List.of("1.1.1.1", "play.example.com:19133", "8.8.8.8:19133"), signaling.advertiseAddresses());
         assertFalse(signaling.stunDiscovery());
+        // Added later than v10, so it takes its default
+        assertTrue(signaling.ipDiscovery());
         assertEquals(GeyserConfig.SignalingConfig.Mode.HYBRID, signaling.mode());
         assertTrue(config.advanced().nxs().assistedJoins());
         assertEquals(Constants.CONFIG_VERSION, config.configVersion());

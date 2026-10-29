@@ -216,6 +216,8 @@ public class ConfigMigrations {
                 .addAction(path("advanced", "nxs", "stun-discovery"), (path, value) ->
                     new Object[]{ "bedrock", "signaling", "stun-discovery" })
                 .build())
+            // Public IP discovery over web APIs, for servers where STUN is disabled or blocked
+            .addVersion(12, ConfigurationTransformation.empty())
         .build();
 
     static TransformAction renameAndMove(String... newPath) {
