@@ -23,7 +23,7 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.translator.command;
+package org.geysermc.geyser.translator.data;
 
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Reference2ObjectOpenHashMap;
@@ -32,9 +32,9 @@ import lombok.experimental.Accessors;
 import net.kyori.adventure.key.Key;
 import org.cloudburstmc.protocol.bedrock.data.command.CommandEnumData;
 import org.geysermc.geyser.command.CommandRegistry;
+import org.geysermc.geyser.command.GeyserCommandSource;
 import org.geysermc.geyser.registry.java.JavaRegistryKey;
-import org.geysermc.geyser.registry.java.JavaRegistryProvider;
-import org.geysermc.geyser.session.cache.WorldCache;
+import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.cache.tags.Tag;
 import org.geysermc.mcprotocollib.protocol.data.game.command.CommandNode;
 
@@ -42,51 +42,43 @@ import java.util.Arrays;
 import java.util.Map;
 import java.util.stream.Stream;
 
-/**
- * Stores command completions so we don't have to rebuild the same values multiple times.
- */
 @Accessors(fluent = true)
-public class JavaCommandContext implements JavaRegistryProvider.Provider {
-    @Getter
-    private final JavaRegistryProvider javaRegistries;
-    private final WorldCache worldCache;
-    final CommandRegistry registry;
-    final String locale;
-    final CommandNode[] nodes;
+@Getter
+public final class CommandTranslationData implements CommonTranslationData.RecordBased {
+    private final CommonTranslationData commonData;
+    private final GeyserCommandSource commandSource;
+    private final CommandRegistry commandRegistry;
+    private final CommandNode[] nodes;
     private final String[] levels;
+    private final CommandEnumData teams;
+    private final int firstNodeIndex;
+
     private final Map<JavaRegistryKey<?>, String[]> registryElements = new Reference2ObjectOpenHashMap<>();
     private final Map<JavaRegistryKey<?>, String[]> registryElementsAndTags = new Reference2ObjectOpenHashMap<>();
-    // One namespace of soft enum names per packet: identical value sets share a name so command
-    // aliases still deduplicate, while distinct sets are guaranteed distinct names
-    final Map<String, String> softEnumNames = new Object2ObjectOpenHashMap<>();
-    private CommandEnumData teams;
+    private final Map<String, String> softEnumNames = new Object2ObjectOpenHashMap<>();
 
-    public JavaCommandContext(JavaRegistryProvider javaRegistries, WorldCache worldCache, CommandNode[] nodes, String[] levels) {
-        this.javaRegistries = javaRegistries;
-        this.worldCache = worldCache;
+    public CommandTranslationData(GeyserSession session, CommandNode[] nodes, int firstNodeIndex) {
+        this.commonData = new CommonTranslationData.Impl(session);
+        this.commandSource = session;
+        this.commandRegistry = session.getGeyser().commandRegistry();
         this.nodes = nodes;
-        this.levels = levels;
+        this.levels = session.getLevels();
+        this.teams = new CommandEnumData("Geyser_Teams", session.getWorldCache().getScoreboard().getTeamNames(), true);
+        this.firstNodeIndex = firstNodeIndex;
     }
 
     public String[] getRegistryElements(JavaRegistryKey<?> registry) {
-        return registryElements.computeIfAbsent(registry, $ -> javaRegistries.registry(registry).keys().stream()
+        return registryElements.computeIfAbsent(registry, $ -> javaRegistries().registry(registry).keys().stream()
             .map(Key::asString)
             .toArray(String[]::new));
     }
 
     public String[] getRegistryElementsAndTags(JavaRegistryKey<?> registry) {
-        return registryElementsAndTags.computeIfAbsent(registry, $ -> Stream.concat(javaRegistries.tags(registry)
+        return registryElementsAndTags.computeIfAbsent(registry, $ -> Stream.concat(javaRegistries().tags(registry)
                 .map(Tag::tag)
                 .map(Key::asString)
                 // Prefix tags with a '#'
                 .map(string -> "#" + string), Arrays.stream(getRegistryElements(registry)))
             .toArray(String[]::new));
-    }
-
-    CommandEnumData getTeams() {
-        if (teams != null) {
-            return teams;
-        }
-        return (teams = new CommandEnumData("Geyser_Teams", worldCache.getScoreboard().getTeamNames(), true));
     }
 }

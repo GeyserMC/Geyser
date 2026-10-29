@@ -35,7 +35,7 @@ import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.event.java.ServerDefineCommandsEvent;
 import org.geysermc.geyser.api.util.PlatformType;
 import org.geysermc.geyser.event.GeyserEventBus;
-import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.translator.data.CommandTranslationData;
 import org.geysermc.mcprotocollib.protocol.data.game.command.CommandNode;
 import org.geysermc.mcprotocollib.protocol.data.game.command.CommandType;
 
@@ -52,16 +52,16 @@ public final class CommandTranslator {
 
     private CommandTranslator() {}
 
-    public static List<CommandData> translate(GeyserSession session, CommandNode[] nodes, int firstNodeIndex) {
-        JavaCommandContext javaContext = null;
+    @SuppressWarnings("removal") // Legacy API event
+    public static List<CommandData> translate(CommandTranslationData data) {
         BedrockCommandContext bedrockContext = null;
 
-        CommandNode rootNode = nodes[firstNodeIndex];
+        CommandNode rootNode = data.nodes()[data.firstNodeIndex()];
 
         for (int nodeIndex : rootNode.getChildIndices()) {
-            CommandNode node = nodes[nodeIndex];
+            CommandNode node = data.nodes()[nodeIndex];
 
-            BedrockCommandInfo translated = translate(javaContext, node);
+            BedrockCommandInfo translated = translate(data, node);
             bedrockContext.commands.computeIfAbsent(translated, $ -> new HashSet<>()).add(translated.name());
 
             // Add the command to the command lists - we have to use the Java name here as this is used to compare to Java commands.
@@ -71,16 +71,12 @@ public final class CommandTranslator {
             }
         }
 
-        GeyserEventBus eventBus = session.getGeyser().eventBus();
-
-        ServerDefineCommandsEvent event = new ServerDefineCommandsEvent(session, bedrockContext.commands.keySet());
-        eventBus.fire(event);
+        ServerDefineCommandsEvent event = data.fireConnectionEvent(connection -> new ServerDefineCommandsEvent(connection, bedrockContext.commands.keySet()));
         if (event.isCancelled()) {
             return List.of();
         }
 
-        var oldEvent = new org.geysermc.geyser.api.event.downstream.ServerDefineCommandsEvent(session, bedrockContext.commands.keySet());
-        eventBus.fire(oldEvent);
+        var oldEvent = data.fireConnectionEvent(connection -> new org.geysermc.geyser.api.event.downstream.ServerDefineCommandsEvent(connection, bedrockContext.commands.keySet()));
         if (oldEvent.isCancelled()) {
             return List.of();
         }
@@ -136,22 +132,22 @@ public final class CommandTranslator {
             bedrockCommands.add(createFakeHelpCommand());
         }
 
-        if (session.getGeyser().platformType() == PlatformType.STANDALONE) {
-            session.getGeyser().commandRegistry().export(session, bedrockCommands, bedrockContext.knownCommands);
+        if (data.platformType() == PlatformType.STANDALONE) {
+            data.commandRegistry().export(data.commandSource(), bedrockCommands, bedrockContext.knownCommands);
         }
 
         return bedrockCommands;
     }
 
-    private static BedrockCommandInfo translate(JavaCommandContext javaContext, CommandNode node) {
+    private static BedrockCommandInfo translate(CommandTranslationData data, CommandNode node) {
         assert node.getType() == CommandType.LITERAL : "origin command node must be literal";
 
         // Get and parse all params
-        CommandOverloadData[] params = getParams(javaContext, node);
+        CommandOverloadData[] params = getParams(data, node);
 
         // Insert the alias name into the command list
         String name = node.getName().toLowerCase(Locale.ROOT);
-        String description = javaContext.registry.description(name, javaContext.locale);
+        String description = data.commandRegistry().description(name, data.locale());
 
         return new BedrockCommandInfo(name, description, params);
     }
@@ -159,23 +155,23 @@ public final class CommandTranslator {
     /**
      * Build the command parameter array for the given command
      *
-     * @param context the {@link JavaCommandContext}
+     * @param data the {@link CommandTranslationData}
      * @param commandNode The command to build the parameters for
      * @return An array of parameter option arrays
      */
-    private static CommandOverloadData[] getParams(JavaCommandContext context, CommandNode commandNode) {
+    private static CommandOverloadData[] getParams(CommandTranslationData data, CommandNode commandNode) {
         // Check if the command is an alias and redirect it
         if (commandNode.getRedirectIndex().isPresent()) {
             int redirectIndex = commandNode.getRedirectIndex().getAsInt();
             // FIXME perf
-            GeyserImpl.getInstance().getLogger().debug("Redirecting command " + commandNode.getName() + " to " + context.nodes[redirectIndex].getName());
-            commandNode = context.nodes[redirectIndex];
+            GeyserImpl.getInstance().getLogger().debug("Redirecting command " + commandNode.getName() + " to " + data.nodes()[redirectIndex].getName());
+            commandNode = data.nodes()[redirectIndex];
         }
 
         if (commandNode.getChildIndices().length >= 1) {
             // Create the root param node and build all the children
             ParamInfo rootParam = new ParamInfo(commandNode, null);
-            rootParam.buildChildren(context);
+            rootParam.buildChildren(data);
 
             List<CommandOverloadData> treeData = rootParam.getTree();
 

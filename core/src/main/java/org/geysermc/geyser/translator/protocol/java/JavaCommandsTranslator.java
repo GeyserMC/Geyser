@@ -33,6 +33,7 @@ import org.cloudburstmc.protocol.bedrock.data.command.CommandPermission;
 import org.cloudburstmc.protocol.bedrock.packet.AvailableCommandsPacket;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.command.CommandTranslator;
+import org.geysermc.geyser.translator.data.CommandTranslationData;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.ClientboundCommandsPacket;
@@ -60,7 +61,7 @@ public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommands
 
         // Add our commands to the AvailableCommandsPacket for the bedrock client
         AvailableCommandsPacket availableCommandsPacket = new AvailableCommandsPacket();
-        availableCommandsPacket.getCommands().addAll(CommandTranslator.translate(session, packet.getNodes(), packet.getFirstNodeIndex()));
+        availableCommandsPacket.getCommands().addAll(CommandTranslator.translate(new CommandTranslationData(session, packet.getNodes(), packet.getFirstNodeIndex())));
 
         session.getGeyser().getLogger().debug("Sending command packet of " + availableCommandsPacket.getCommands().size() + " commands");
 

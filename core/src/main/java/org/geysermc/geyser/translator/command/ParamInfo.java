@@ -38,7 +38,7 @@ import org.cloudburstmc.protocol.bedrock.data.command.CommandParamData;
 import org.geysermc.geyser.registry.java.BuiltInJavaRegistries;
 import org.geysermc.geyser.registry.java.JavaRegistries;
 import org.geysermc.geyser.registry.java.JavaRegistryKey;
-import org.geysermc.geyser.translator.protocol.java.JavaCommandsTranslator;
+import org.geysermc.geyser.translator.data.CommandTranslationData;
 import org.geysermc.geyser.util.EntityUtils;
 import org.geysermc.mcprotocollib.protocol.data.game.command.CommandNode;
 import org.geysermc.mcprotocollib.protocol.data.game.command.CommandParser;
@@ -113,11 +113,11 @@ public class ParamInfo {
     /**
      * Convert Java edition command types to Bedrock edition
      *
-     * @param context the session's command context
+     * @param data the {@link CommandTranslationData}
      * @param node Command type to convert
      * @return Bedrock parameter data type
      */
-    private static Object mapCommandType(JavaCommandContext context, CommandNode node) {
+    private static Object mapCommandType(CommandTranslationData data, CommandNode node) {
         CommandParser parser = node.getParser();
         if (parser == null) {
             return CommandParam.STRING;
@@ -131,7 +131,7 @@ public class ParamInfo {
             case BLOCK_POS -> CommandParam.BLOCK_POSITION;
             case COLUMN_POS, VEC3 -> CommandParam.POSITION;
             case BLOCK_STATE -> ALL_BLOCK_NAMES.get();
-            case ITEM_STACK -> context.getRegistryElements(JavaRegistries.ITEM);
+            case ITEM_STACK -> data.getRegistryElements(JavaRegistries.ITEM);
             case TEAM_COLOR -> VALID_COLORS;
             case COMPONENT -> CommandParam.TEXT;
             case MESSAGE -> CommandParam.MESSAGE;
@@ -139,33 +139,33 @@ public class ParamInfo {
             case OPERATION -> CommandParam.OPERATOR; // ">=", "==", etc
             case PARTICLE -> PARTICLES;
             case SCOREBOARD_SLOT -> VALID_SCOREBOARD_SLOTS;
-            case TEAM -> context.getTeams(); // Note: as of Java 1.19.3, objectives are currently parsed from the server
+            case TEAM -> data.teams(); // Note: as of Java 1.19.3, objectives are currently parsed from the server
             case ITEM_SLOT, ITEM_SLOTS, SLOT_SOURCE -> CommandParam.EQUIPMENT_SLOTS;
             case RESOURCE_LOCATION, FUNCTION -> CommandParam.FILE_PATH; // TODO FIXME
             case ENTITY_ANCHOR -> ANCHORS;
             case INT_RANGE -> CommandParam.INT_RANGE_FULL;
             case FLOAT_RANGE -> CommandParam.RATIONAL_RANGE_FULL;
-            case DIMENSION -> context.levels;
+            case DIMENSION -> data.levels();
             case GAMEMODE -> GAMEMODES;
-            case RESOURCE_OR_TAG, RESOURCE_OR_TAG_KEY -> handleResource(context, ((ResourceProperties) node.getProperties()).getRegistryKey(), true);
-            case RESOURCE, RESOURCE_KEY -> handleResource(context, ((ResourceProperties) node.getProperties()).getRegistryKey(), false);
+            case RESOURCE_OR_TAG, RESOURCE_OR_TAG_KEY -> handleResource(data, ((ResourceProperties) node.getProperties()).getRegistryKey(), true);
+            case RESOURCE, RESOURCE_KEY -> handleResource(data, ((ResourceProperties) node.getProperties()).getRegistryKey(), false);
             case TEMPLATE_MIRROR -> MIRROR_MODES;
             case TEMPLATE_ROTATION -> ROTATION_MODES;
             case HEIGHTMAP -> HEIGHTMAPS;
             // These are reloadable registries and as such can never be loaded by Geyser
             case LOOT_TABLE, LOOT_PREDICATE, LOOT_MODIFIER, FEATURE,
                  CONTEXT_FLOAT_PROVIDER, CONTEXT_INT_PROVIDER -> CommandParam.FILE_PATH;
-            case DIALOG -> context.getRegistryElements(JavaRegistries.DIALOG);
+            case DIALOG -> data.getRegistryElements(JavaRegistries.DIALOG);
             case SWING_ANIMATION -> SWING_ANIMATIONS;
             default -> CommandParam.STRING;
         };
     }
 
-    private static Object handleResource(JavaCommandContext context, Key registryKey, boolean tags) {
+    private static Object handleResource(CommandTranslationData data, Key registryKey, boolean tags) {
         // If the registry is tracked by us, this will be an easy case
         JavaRegistryKey<?> registry = JavaRegistries.fromKey(registryKey);
         if (registry != null) {
-            return tags ? context.getRegistryElementsAndTags(registry) : context.getRegistryElements(registry);
+            return tags ? data.getRegistryElementsAndTags(registry) : data.getRegistryElements(registry);
         }
 
         // Else, go through some hardcoded registries:
@@ -179,11 +179,11 @@ public class ParamInfo {
     /**
      * Build the array of all the child parameters (recursive)
      *
-     * @param context the session's command builder context
+     * @param data the {@link CommandTranslationData}
      */
-    public void buildChildren(JavaCommandContext context) {
+    public void buildChildren(CommandTranslationData data) {
         for (int paramID : paramNode.getChildIndices()) {
-            CommandNode paramNode = context.nodes[paramID];
+            CommandNode paramNode = data.nodes()[paramID];
 
             if (paramNode == this.paramNode) {
                 // Fixes a StackOverflowError when an argument has itself as a child
@@ -195,7 +195,7 @@ public class ParamInfo {
                 for (int i = 0; i < children.size(); i++) {
                     ParamInfo enumParamInfo = children.get(i);
                     // Check to make sure all descending nodes of this command are compatible - otherwise, create a new overload
-                    if (isCompatible(context.nodes, enumParamInfo.getParamNode(), paramNode)) {
+                    if (isCompatible(data.nodes(), enumParamInfo.getParamNode(), paramNode)) {
                         foundCompatible = true;
                         // TODO: Check this
                         // Extend the current list of enum values
@@ -208,7 +208,7 @@ public class ParamInfo {
                         // Re-create the command using the updated values
                         boolean soft = enumParamInfo.getParamData().getEnumData().isSoft() || needsSoftEnum(paramNode.getName());
                         String enumName = soft
-                            ? softEnumName(context, enumParamInfo.getParamData().getName(), values)
+                            ? softEnumName(data, enumParamInfo.getParamData().getName(), values)
                             : enumParamInfo.getParamData().getEnumData().getName();
                         CommandEnumData enumData = new CommandEnumData(enumName, values, soft);
                         CommandParamData commandParamData = new CommandParamData();
@@ -227,7 +227,7 @@ public class ParamInfo {
                     map.put(paramNode.getName(), Set.of());
                     boolean soft = needsSoftEnum(paramNode.getName());
                     CommandEnumData enumData = new CommandEnumData(
-                        soft ? softEnumName(context, paramNode.getName(), map) : paramNode.getName(), map, soft);
+                        soft ? softEnumName(data, paramNode.getName(), map) : paramNode.getName(), map, soft);
 
                     // On setting optional:
                     // isExecutable is defined as a node "constitutes a valid command."
@@ -241,7 +241,7 @@ public class ParamInfo {
                 }
             } else {
                 // Put the non-enum param into the list
-                Object mappedType = mapCommandType(context, paramNode);
+                Object mappedType = mapCommandType(data, paramNode);
                 CommandEnumData enumData = null;
                 CommandParam type = null;
                 boolean optional = this.paramNode.isExecutable();
@@ -278,7 +278,7 @@ public class ParamInfo {
 
         // Recursively build all child options
         for (ParamInfo child : children) {
-            child.buildChildren(context);
+            child.buildChildren(data);
         }
     }
 
@@ -297,9 +297,9 @@ public class ParamInfo {
      * identical across command aliases, so they still deduplicate, and gives every distinct set
      * its own name. The client only displays the values.
      */
-    private static String softEnumName(JavaCommandContext context, String literal, Map<String, Set<CommandEnumConstraint>> values) {
+    private static String softEnumName(CommandTranslationData data, String literal, Map<String, Set<CommandEnumConstraint>> values) {
         String signature = values.keySet().stream().sorted().collect(Collectors.joining(" "));
-        return context.softEnumNames.computeIfAbsent(signature, key -> literal + "_" + context.softEnumNames.size());
+        return data.softEnumNames().computeIfAbsent(signature, key -> literal + "_" + data.softEnumNames().size());
     }
 
     /**
