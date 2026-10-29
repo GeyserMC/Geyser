@@ -25,15 +25,31 @@
 
 package org.geysermc.geyser.network.bedrock.nethernet;
 
+import org.geysermc.geyser.scoreboard.network.util.EmptyGeyserLogger;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class PublicIpDiscoveryTest {
+    /**
+     * Refused immediately, so a test that reaches the APIs fails fast instead of waiting on the real ones.
+     */
+    private static final String UNREACHABLE_ENDPOINT = "http://127.0.0.1:1";
+
+    @TempDir
+    Path tempDirectory;
 
     @ParameterizedTest
     @ValueSource(strings = {
@@ -76,5 +92,87 @@ public class PublicIpDiscoveryTest {
     })
     void rejectsUnusableAddresses(String body) {
         assertEquals(Optional.empty(), PublicIpDiscovery.parse(body));
+    }
+
+    @Test
+    void cachesTheAnswer() {
+        PublicIpDiscovery.writeCache(new EmptyGeyserLogger(), cacheFile(), "203.0.113.7");
+
+        PublicIpDiscovery.CacheEntry entry = PublicIpDiscovery.readCache(cacheFile()).orElseThrow();
+        assertEquals("203.0.113.7", entry.address());
+        assertTrue(PublicIpDiscovery.isFresh(entry, Duration.ofHours(6)));
+    }
+
+    @Test
+    void cacheExpiresAfterTheTtl() {
+        writeRawCache(Instant.now().minus(Duration.ofHours(7)));
+
+        PublicIpDiscovery.CacheEntry entry = PublicIpDiscovery.readCache(cacheFile()).orElseThrow();
+        assertFalse(PublicIpDiscovery.isFresh(entry, Duration.ofHours(6)));
+    }
+
+    @Test
+    void ignoresACacheItDidNotWrite() throws IOException {
+        Files.createDirectories(cacheFile().getParent());
+        Files.writeString(cacheFile(), "203.0.113.7");
+
+        assertEquals(Optional.empty(), PublicIpDiscovery.readCache(cacheFile()));
+    }
+
+    @Test
+    void ignoresACachedAddressThatMustNotBeAdvertised() throws IOException {
+        Files.createDirectories(cacheFile().getParent());
+        Files.writeString(cacheFile(), "{\"address\":\"192.168.1.5\",\"stored-at\":" + Instant.now().toEpochMilli() + "}");
+
+        assertEquals(Optional.empty(), PublicIpDiscovery.readCache(cacheFile()));
+    }
+
+    @Test
+    void usesAFreshCacheWithoutAskingTheApis() {
+        PublicIpDiscovery.writeCache(new EmptyGeyserLogger(), cacheFile(), "203.0.113.9");
+
+        assertEquals("203.0.113.9", withEndpoints(UNREACHABLE_ENDPOINT, () ->
+            PublicIpDiscovery.discover(new EmptyGeyserLogger(), cacheFile())).orElseThrow());
+    }
+
+    @Test
+    void usesAStaleCacheWhenTheApisCannotBeReached() {
+        writeRawCache(Instant.now().minus(Duration.ofHours(7)));
+
+        assertEquals("203.0.113.7", withEndpoints(UNREACHABLE_ENDPOINT, () ->
+            PublicIpDiscovery.discover(new EmptyGeyserLogger(), cacheFile())).orElseThrow());
+    }
+
+    @Test
+    void disappearsWithoutACacheAndWithoutTheApis() {
+        assertEquals(Optional.empty(), withEndpoints(UNREACHABLE_ENDPOINT, () ->
+            PublicIpDiscovery.discover(new EmptyGeyserLogger(), cacheFile())));
+    }
+
+    private Path cacheFile() {
+        return tempDirectory.resolve("nethernet/public-ip.json");
+    }
+
+    private void writeRawCache(Instant storedAt) {
+        try {
+            Files.createDirectories(cacheFile().getParent());
+            Files.writeString(cacheFile(),
+                "{\"address\":\"203.0.113.7\",\"stored-at\":" + storedAt.toEpochMilli() + "}");
+        } catch (IOException e) {
+            throw new AssertionError(e);
+        }
+    }
+
+    private static <T> T withEndpoints(String endpoints, java.util.function.Supplier<T> action) {
+        String previous = System.setProperty("geyserIpDiscoveryEndpoints", endpoints);
+        try {
+            return action.get();
+        } finally {
+            if (previous == null) {
+                System.clearProperty("geyserIpDiscoveryEndpoints");
+            } else {
+                System.setProperty("geyserIpDiscoveryEndpoints", previous);
+            }
+        }
     }
 }

@@ -172,7 +172,8 @@ public interface GeyserConfig {
             Finds this server's public IPv4 address by asking a web API when "advertise-addresses" is empty and
             "stun-discovery" is off, then advertises "<public-ip>:<port>" to connecting players, where "port" is the
             NetherNet UDP port. Several APIs are asked in rotation, so one of them being blocked or down does not stop
-            discovery. Use this when outbound UDP is blocked and STUN cannot work.""")
+            discovery. The answer is cached in "nethernet/public-ip.json" for 6 hours, so restarts do not ask again.
+            Use this when outbound UDP is blocked and STUN cannot work.""")
         @DefaultBoolean(true)
         boolean ipDiscovery();
 

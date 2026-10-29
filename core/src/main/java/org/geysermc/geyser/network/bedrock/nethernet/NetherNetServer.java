@@ -224,14 +224,13 @@ public final class NetherNetServer implements EventRegistrar {
         List<String> advertised = advertisedAddresses();
         boolean discovered = false;
         if (advertised.isEmpty() && !config.stunDiscovery() && config.ipDiscovery()) {
-            Optional<String> publicIp = PublicIpDiscovery.discover();
+            Optional<String> publicIp = PublicIpDiscovery.discover(logger(), dataFolder.resolve("public-ip.json"));
             if (publicIp.isPresent()) {
                 // The port goes in explicitly: a public address this machine does not hold is the public side of a
                 // forward, which does not necessarily use the same port number
                 advertised = List.of(publicIp.get() + ":" + webrtcPort);
                 discovered = true;
-                logger().info("ip-discovery found this server's public address " + publicIp.get()
-                    + ", advertising " + advertised.get(0) + " to connecting players");
+                logger().info("ip-discovery is advertising " + advertised.get(0) + " to connecting players");
             } else {
                 logger().warning("ip-discovery could not find this server's public address, so this machine's own addresses " +
                     "will be advertised instead. Set the public address in \"advertise-addresses\" if players cannot connect.");

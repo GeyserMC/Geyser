@@ -25,8 +25,12 @@
 
 package org.geysermc.geyser.network.bedrock.nethernet;
 
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import org.checkerframework.checker.nullness.qual.Nullable;
+import org.geysermc.geyser.GeyserLogger;
 
+import java.io.IOException;
 import java.net.Inet4Address;
 import java.net.InetAddress;
 import java.net.URI;
@@ -34,18 +38,28 @@ import java.net.UnknownHostException;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.time.Duration;
+import java.time.Instant;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
 /**
  * Finds this machine's public IPv4 address by asking web APIs, for hosts whose public address cannot be learned
  * through STUN (blocked outbound UDP being the usual reason). Several APIs are rotated through, so one service being
  * down, rate limited or blocked does not stop discovery: the endpoints are tried in turn, each with its own short
  * timeout, until one returns a usable address.
+ * <p>
+ * The answer is cached in a file next to the NetherNet identity, so restarting a server does not ask the APIs again,
+ * which also keeps the server inside their rate limits. The cache is used for {@link #DEFAULT_CACHE_TTL} unless
+ * {@code -DgeyserIpDiscoveryCacheMinutes} says otherwise, and is still used when the APIs cannot be reached but have
+ * answered before, as a stale address beats no address.
  * <p>
  * Only a public IPv4 address is accepted. A service answering with a private, loopback, link-local or IPv6 address is
  * skipped, as advertising one of those is exactly what makes Bedrock clients time out on NetherNet.
@@ -74,6 +88,11 @@ public final class PublicIpDiscovery {
      * startup should not wait for all of them.
      */
     private static final Duration TOTAL_TIMEOUT = Duration.ofSeconds(6);
+    /**
+     * How long a cached address is trusted: public addresses rarely change, and asking on every boot only spends the
+     * APIs' rate limits.
+     */
+    private static final Duration DEFAULT_CACHE_TTL = Duration.ofHours(6);
 
     /**
      * Picks the endpoint this call starts at, so repeated starts do not all depend on the same service.
@@ -88,9 +107,44 @@ public final class PublicIpDiscovery {
     }
 
     /**
-     * @return this machine's public IPv4 address, or empty if no endpoint returned a usable one
+     * The cached answer, as long as it is still trusted.
+     *
+     * @param address the public IPv4 address, e.g. {@code 203.0.113.7}
+     * @param storedAt when the APIs were last asked for it
      */
-    public static Optional<String> discover() {
+    record CacheEntry(String address, Instant storedAt) {
+    }
+
+    /**
+     * @return this machine's public IPv4 address, from the cache when it is fresh and from the APIs otherwise, or
+     *         empty if no endpoint returned a usable one and nothing was cached
+     */
+    public static Optional<String> discover(GeyserLogger logger, Path cacheFile) {
+        Duration ttl = cacheTtl();
+        Optional<CacheEntry> cached = ttl.isZero() ? Optional.empty() : readCache(cacheFile);
+        if (cached.isPresent() && isFresh(cached.get(), ttl)) {
+            logger.info("ip-discovery is using the cached public address " + cached.get().address() + ", saved "
+                + age(cached.get().storedAt()) + " ago. Delete " + cacheFile + " to look it up again now.");
+            return Optional.of(cached.get().address());
+        }
+
+        Optional<String> found = queryEndpoints();
+        if (found.isPresent()) {
+            if (!ttl.isZero()) {
+                writeCache(logger, cacheFile, found.get());
+            }
+            return found;
+        }
+
+        if (cached.isPresent()) {
+            logger.warning("ip-discovery could not refresh this server's public address, so the cached one from "
+                + age(cached.get().storedAt()) + " ago is used: " + cached.get().address());
+            return Optional.of(cached.get().address());
+        }
+        return Optional.empty();
+    }
+
+    private static Optional<String> queryEndpoints() {
         List<String> endpoints = endpoints();
         int start = Math.floorMod(NEXT_ENDPOINT.getAndIncrement(), endpoints.size());
         long deadline = System.nanoTime() + TOTAL_TIMEOUT.toNanos();
@@ -122,6 +176,23 @@ public final class PublicIpDiscovery {
         return endpoints.isEmpty() ? DEFAULT_ENDPOINTS : endpoints;
     }
 
+    /**
+     * How long a cached address is used: {@code -DgeyserIpDiscoveryCacheMinutes} minutes, or
+     * {@link #DEFAULT_CACHE_TTL}. Zero or less looks the address up on every start.
+     */
+    private static Duration cacheTtl() {
+        String property = System.getProperty("geyserIpDiscoveryCacheMinutes");
+        if (property == null) {
+            return DEFAULT_CACHE_TTL;
+        }
+        try {
+            long minutes = Long.parseLong(property.trim());
+            return minutes <= 0 ? Duration.ZERO : Duration.ofMinutes(minutes);
+        } catch (NumberFormatException e) {
+            return DEFAULT_CACHE_TTL;
+        }
+    }
+
     private static Optional<Inet4Address> query(String endpoint) {
         try {
             HttpRequest request = HttpRequest.newBuilder(URI.create(endpoint))
@@ -142,6 +213,61 @@ public final class PublicIpDiscovery {
             // Timeouts, DNS failures, blocked endpoints: try the next one
             return Optional.empty();
         }
+    }
+
+    /**
+     * @return the address in {@code cacheFile}, or empty if the file is missing, unreadable, or holds something that
+     *         may not be advertised
+     */
+    static Optional<CacheEntry> readCache(Path cacheFile) {
+        try {
+            JsonObject json = JsonParser.parseString(Files.readString(cacheFile)).getAsJsonObject();
+            String address = json.get("address").getAsString();
+            Instant storedAt = Instant.ofEpochMilli(json.get("stored-at").getAsLong());
+            // A file from another machine, or written while a VPN was up, must not be advertised
+            return parse(address).map(ipv4 -> new CacheEntry(ipv4.getHostAddress(), storedAt));
+        } catch (Exception e) {
+            // Missing, unreadable or not ours: ask the APIs instead
+            return Optional.empty();
+        }
+    }
+
+    static void writeCache(GeyserLogger logger, Path cacheFile, String address) {
+        JsonObject json = new JsonObject();
+        json.addProperty("address", address);
+        json.addProperty("stored-at", Instant.now().toEpochMilli());
+        Path temporary = cacheFile.resolveSibling(cacheFile.getFileName() + ".tmp");
+        try {
+            Files.createDirectories(cacheFile.toAbsolutePath().getParent());
+            Files.writeString(temporary, json.toString());
+            // Replace in one step, so a stop midway cannot leave half a file behind
+            Files.move(temporary, cacheFile, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
+        } catch (IOException e) {
+            logger.warning("ip-discovery could not save this server's public address to " + cacheFile + ": " + e.getMessage());
+            try {
+                Files.deleteIfExists(temporary);
+            } catch (IOException ignored) {
+                // Nothing more to do about it
+            }
+        }
+    }
+
+    static boolean isFresh(CacheEntry entry, Duration ttl) {
+        return Duration.between(entry.storedAt(), Instant.now()).compareTo(ttl) < 0;
+    }
+
+    private static String age(Instant storedAt) {
+        Duration age = Duration.between(storedAt, Instant.now());
+        if (age.isNegative()) {
+            // The clock moved backwards since the file was written
+            return "0 minutes";
+        }
+        long minutes = age.toMinutes();
+        if (minutes < 60) {
+            return minutes + (minutes == 1 ? " minute" : " minutes");
+        }
+        long hours = age.toHours();
+        return hours + (hours == 1 ? " hour" : " hours");
     }
 
     /**
