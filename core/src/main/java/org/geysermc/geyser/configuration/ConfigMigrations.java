@@ -26,6 +26,7 @@
 package org.geysermc.geyser.configuration;
 
 import org.geysermc.geyser.GeyserBootstrap;
+import org.geysermc.geyser.GeyserLogger;
 import org.spongepowered.configurate.CommentedConfigurationNode;
 import org.spongepowered.configurate.ConfigurateException;
 import org.spongepowered.configurate.ConfigurationNode;
@@ -247,6 +248,22 @@ public class ConfigMigrations {
                             + "until you list your proxies there.");
                     }
                     value.raw(null);
+                    return null;
+                })
+                .addAction(path("bedrock", "transport"), (path, value) -> {
+                    if (value.getString("nethernet").equals("raknet")) {
+                        if (bootstrap != null) {
+                            GeyserLogger logger = bootstrap.getGeyserLogger();
+                            logger.error("      / \\");
+                            logger.error("     /   \\      WARNING! Raknet-only transport has now been REMOVED.");
+                            logger.error("    /  |  \\     Your server has now been set to use NetherNet transport,");
+                            logger.error("   /   |   \\    which means you MUST setup the network configurations required.");
+                            logger.error("  /         \\   Please see our blog post over at https://geysermc.org/blog/preparing-for-nethernet");
+                            logger.error(" /     o     \\  on how to configure NetherNet for your server.");
+                            logger.error("/_____________\\");
+                        }
+                        value.set("nethernet");
+                    }
                     return null;
                 })
                 .build())

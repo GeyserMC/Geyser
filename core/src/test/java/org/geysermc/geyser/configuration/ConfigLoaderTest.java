@@ -289,6 +289,15 @@ public class ConfigLoaderTest {
 
     @ParameterizedTest
     @MethodSource("platformTypes")
+    void testRaknetOnlyRemovalMigration(PlatformType platformType, Class<? extends GeyserConfig> configClass) throws Exception {
+        CommentedConfigurationNode migrated = new ConfigLoader(copyResourceToTempFile("tests", "v11-raknet-only-removal.yml"), platformType)
+            .loadConfigurationNode(configClass);
+
+        assertNotEquals("raknet", migrated.node("bedrock", "transport").getString());
+    }
+
+    @ParameterizedTest
+    @MethodSource("platformTypes")
     void testPlatformSpecificFieldsInNode(PlatformType platformType, Class<? extends GeyserConfig> configClass) throws Exception {
         File file = tempDirectory.resolve("platform-test-" + platformType + ".yml").toFile();
         CommentedConfigurationNode config = new ConfigLoader(file, platformType).loadConfigurationNode(configClass);

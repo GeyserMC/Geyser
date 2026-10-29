@@ -324,16 +324,14 @@ public interface GeyserConfig {
 
         enum Transport {
             NETHERNET,
-            BOTH,
-            // Deprecated, removed in Minecraft: Bedrock Edition 26.60
-            RAKNET;
+            BOTH;
 
             public boolean raknet() {
-                return this == BOTH || this == RAKNET;
+                return this == BOTH;
             }
 
             public boolean nethernet() {
-                return this == BOTH || this == NETHERNET;
+                return true;
             }
         }
     }
