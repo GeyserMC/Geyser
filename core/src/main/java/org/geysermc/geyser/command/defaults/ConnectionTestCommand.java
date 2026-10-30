@@ -157,7 +157,7 @@ public class ConnectionTestCommand extends GeyserCommand {
         }
 
         // Issue: did someone list WebRTC relays, and they didn't mean it?
-        if (config.bedrock().transport().nethernet() && !config.advanced().bedrock().webrtcProxyProtocolRelays().isEmpty()) {
+        if (!config.advanced().bedrock().webrtcProxyProtocolRelays().isEmpty()) {
             source.sendMessage("You have relays listed in the `webrtc-proxy-protocol-relays` setting, so players can only reach NetherNet through them. " +
                     "Unless you're deliberately using additional software that REQUIRES this setting, you may not need it.");
         }

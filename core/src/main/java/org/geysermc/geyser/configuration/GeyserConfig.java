@@ -276,8 +276,7 @@ public interface GeyserConfig {
         @Comment("""
             How Bedrock players can connect. Changes require a restart.
             "nethernet": the new connection method for Bedrock Edition. It needs signaling, see "signaling" below.
-            "both": accepts NetherNet and RakNet. Each needs its own UDP port, see "port" and "webrtc-port".
-            "raknet": the old connection method. Bedrock Edition will stop supporting it in a future version.""")
+            "both": accepts NetherNet and RakNet. Each needs its own UDP port, see "port" and "webrtc-port".""")
         default Transport transport() {
             return Transport.NETHERNET;
         }
@@ -328,10 +327,6 @@ public interface GeyserConfig {
 
             public boolean raknet() {
                 return this == BOTH;
-            }
-
-            public boolean nethernet() {
-                return true;
             }
         }
     }

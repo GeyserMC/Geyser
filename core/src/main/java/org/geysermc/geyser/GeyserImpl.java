@@ -321,7 +321,7 @@ public class GeyserImpl implements GeyserApi, EventRegistrar {
             logger.warning("If you do not know what this is, open the Geyser config, and empty \"haproxy-protocol-whitelisted-ips\" under the \"advanced/bedrock\" section.");
         }
 
-        if (config.bedrock().transport().nethernet() && !config.advanced().bedrock().webrtcProxyProtocolRelays().isEmpty()) {
+        if (!config.advanced().bedrock().webrtcProxyProtocolRelays().isEmpty()) {
             logger.warning("Geyser is configured to expect PROXY protocol on the WebRTC port, so players can only reach NetherNet through the relays in \"webrtc-proxy-protocol-relays\".");
             logger.warning("If you do not know what this is, open the Geyser config, and empty \"webrtc-proxy-protocol-relays\" under the \"advanced/bedrock\" section.");
         }
@@ -434,7 +434,7 @@ public class GeyserImpl implements GeyserApi, EventRegistrar {
                 config.bedrock().transport(transport);
                 logger.info("Transport set from system property: " + transport.name().toLowerCase(Locale.ROOT));
             } catch (IllegalArgumentException e) {
-                logger.error("Invalid transport from system property: " + transportProperty + "! Use \"nethernet\", \"both\" or \"raknet\". Defaulting to configured transport.");
+                logger.error("Invalid transport from system property: " + transportProperty + "! Use \"nethernet\" or \"both\". Defaulting to configured transport.");
             }
         }
 
@@ -526,18 +526,8 @@ public class GeyserImpl implements GeyserApi, EventRegistrar {
         if (transport.raknet()) {
             startRaknet(config, logger);
         }
-        if (transport.nethernet()) {
-            this.netherNetServer = new NetherNetServer(this);
-            this.netherNetServer.start();
-        } else {
-            logger.error("      / \\");
-            logger.error("     /   \\      WARNING! NetherNet support is NOT enabled.");
-            logger.error("    /  |  \\     Players will not be able to connect to your server,");
-            logger.error("   /   |   \\    starting October 27th, when NetherNet is scheduled to release.");
-            logger.error("  /         \\   Please see our blog post over at https://geysermc.org/blog/preparing-for-nethernet");
-            logger.error(" /     o     \\  on how to enable NetherNet support.");
-            logger.error("/_____________\\");
-        }
+        this.netherNetServer = new NetherNetServer(this);
+        this.netherNetServer.start();
 
         if (config.java().authType() == AuthType.FLOODGATE) {
             try {
@@ -956,11 +946,6 @@ public class GeyserImpl implements GeyserApi, EventRegistrar {
             metrics.addCustomChart(new SimplePie("bedrockHaProxyProtocol", () -> String.valueOf(!config.advanced().bedrock().haproxyProtocolWhitelistedIps().isEmpty())));
             metrics.addCustomChart(new SimplePie("bedrockTransport", () -> config.bedrock().transport().toString().toLowerCase(Locale.ROOT)));
             metrics.addCustomChart(new DrilldownPie("signalingMode", () -> {
-                // Signaling is only used with NetherNet; an empty map skips this chart
-                if (!config.bedrock().transport().nethernet()) {
-                    return Map.of();
-                }
-
                 // builtin => (https, 1)
                 // nxs => (nxs, 1)
                 GeyserConfig.SignalingConfig signaling = config.bedrock().signaling();

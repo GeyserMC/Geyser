@@ -207,7 +207,8 @@ public final class NetherNetServer implements EventRegistrar {
             LibDataChannelArchDetect.initialize();
         } catch (LinkageError e) {
             logger().error("NetherNet is not available on " + System.getProperty("os.name") + " (" + System.getProperty("os.arch") + "). " +
-                "Bedrock players can still join over RakNet: set \"transport\" in the \"bedrock\" section of the config to \"raknet\".", e);
+                "Bedrock players can still join over RakNet: set \"transport\" in the \"bedrock\" section of the config to \"both\", " +
+                "with \"webrtc-port\" set to a port of its own.", e);
             return;
         }
 

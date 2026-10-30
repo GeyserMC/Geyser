@@ -124,6 +124,16 @@ public class EnvironmentOverridesTest {
     }
 
     @Test
+    void testRemovedRaknetTransportOverride() throws Exception {
+        // Overrides apply after migrations, so the removed value has to be moved there too, in any case
+        GeyserConfig config = new ConfigLoader(tempDirectory.resolve("raknet.yml").toFile(), PlatformType.STANDALONE)
+            .environment(Map.of("GEYSER_BEDROCK_TRANSPORT", "RakNet"))
+            .load0(GeyserRemoteConfig.class);
+
+        assertEquals(GeyserConfig.BedrockConfig.Transport.NETHERNET, config.bedrock().transport());
+    }
+
+    @Test
     void testEmptyListOverrideClearsList() throws Exception {
         File file = tempDirectory.resolve("clear.yml").toFile();
         new ConfigLoader(file, PlatformType.STANDALONE)
