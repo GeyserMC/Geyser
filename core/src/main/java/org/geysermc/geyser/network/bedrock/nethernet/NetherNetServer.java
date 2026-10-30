@@ -88,6 +88,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.function.Supplier;
+import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
 /**
@@ -104,10 +105,13 @@ public final class NetherNetServer implements EventRegistrar {
     private static final List<String> DEFAULT_STUN_SERVERS =
         List.of("stun:stun.cloudflare.com:3478", "stun:stun.l.google.com:19302");
     /**
-     * Comma separated "Name: value" headers that built-in signaling adds to every response. Environment only, as only
-     * hosts set it.
+     * Comma separated "Name: value" headers that built-in signaling adds to every response. A part that does not
+     * start with a header name and a colon carries on the value before it, as in "Cache-Control: no-cache, no-store",
+     * and a name given twice joins its values. Environment only, as only hosts set it.
      */
     public static final String ADDITIONAL_HEADERS_ENV = "GEYSER_ADDITIONAL_HEADERS";
+    /** The characters a header name may have, so a colon inside a value does not start one. */
+    private static final Pattern HEADER_NAME = Pattern.compile("[!#$%&'*+.^_`|~0-9A-Za-z-]+");
     /**
      * Holds the provider's link for the operator, in the data folder.
      */
@@ -234,13 +238,17 @@ public final class NetherNetServer implements EventRegistrar {
                 + "so \"advertise-addresses\" under \"bedrock.signaling\" has to name the relays players reach this server through.");
             provider = false;
         }
-        warnIfProxyAddressUnused(inbuilt);
+        warnIfBuiltinSettingsUnused(inbuilt);
         if (inbuilt) startInbuilt(advertised);
         if (provider) startProvider(advertised);
     }
 
-    /** The option needs built-in signaling and a proxy in one of its lists. */
-    private void warnIfProxyAddressUnused(boolean inbuilt) {
+    /** Settings only built-in signaling uses, the proxy address one also needing a proxy in one of its lists. */
+    private void warnIfBuiltinSettingsUnused(boolean inbuilt) {
+        String additionalHeaders = System.getenv(ADDITIONAL_HEADERS_ENV);
+        if (!inbuilt && additionalHeaders != null && !additionalHeaders.isBlank()) {
+            logger().warning(ADDITIONAL_HEADERS_ENV + " is ignored, as built-in signaling is not running.");
+        }
         GeyserConfig.AdvancedBedrockConfig advanced = geyser.config().advanced().bedrock();
         if (!advanced.preferSignalingProxyAddress()) {
             return;
@@ -282,8 +290,10 @@ public final class NetherNetServer implements EventRegistrar {
                 try {
                     Map<String, String> headers = responseHeaders(additionalHeaders);
                     signalingBuilder.setResponseHeaders(headers);
-                    logger().info("Signaling response headers set from environment variable " + ADDITIONAL_HEADERS_ENV + ": "
-                        + String.join(", ", headers.keySet()));
+                    if (!headers.isEmpty()) {
+                        logger().info("Signaling response headers set from environment variable " + ADDITIONAL_HEADERS_ENV + ": "
+                            + String.join(", ", headers.keySet()));
+                    }
                 } catch (IllegalArgumentException e) {
                     throw new IllegalArgumentException("Invalid entry in " + ADDITIONAL_HEADERS_ENV + ": " + e.getMessage(), e);
                 }
@@ -460,15 +470,20 @@ public final class NetherNetServer implements EventRegistrar {
     /** Parses {@link #ADDITIONAL_HEADERS_ENV}. Network validates the names and values. */
     static Map<String, String> responseHeaders(String entries) {
         Map<String, String> headers = new LinkedHashMap<>();
+        String name = null;
         for (String entry : entries.split(",")) {
             if (entry.isBlank()) {
                 continue;
             }
             int colon = entry.indexOf(':');
-            if (colon < 0) {
+            String value = entry;
+            if (colon >= 0 && HEADER_NAME.matcher(entry.substring(0, colon).trim()).matches()) {
+                name = entry.substring(0, colon).trim();
+                value = entry.substring(colon + 1);
+            } else if (name == null) {
                 throw new IllegalArgumentException("\"" + entry.trim() + "\" is not \"Name: value\"");
             }
-            headers.put(entry.substring(0, colon).trim(), entry.substring(colon + 1).trim());
+            headers.merge(name, value.trim(), (joined, more) -> joined.isEmpty() ? more : joined + ", " + more);
         }
         return headers;
     }
