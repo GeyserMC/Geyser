@@ -147,6 +147,7 @@ public class EnvironmentOverridesTest {
             "GEYSER_BEDROCK", "section",
             "GEYSER_CONFIG_VERSION", "1",
             "NOT_GEYSER_BEDROCK_PORT", "1",
+            "GEYSER_ADDITIONAL_HEADERS", "X-Example: yes",
             // Moved to bedrock.signaling in config version 11
             "GEYSER_BEDROCK_SIGNALING_NXS_ADVERTISE_ADDRESSES", "198.51.100.1"
         ), logger);
@@ -158,6 +159,7 @@ public class EnvironmentOverridesTest {
         verify(logger).warning(contains("GEYSER_BEDROCK_SIGNALING_NXS_ADVERTISE_ADDRESSES"));
         verify(logger).warning(contains("config version cannot be set"));
         verify(logger, never()).warning(contains("NOT_GEYSER_BEDROCK_PORT"));
+        verify(logger, never()).warning(contains("GEYSER_ADDITIONAL_HEADERS"));
         verify(logger, never()).info(anyString());
     }
 

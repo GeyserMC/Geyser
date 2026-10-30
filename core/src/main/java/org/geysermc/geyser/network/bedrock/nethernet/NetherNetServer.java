@@ -75,7 +75,9 @@ import java.nio.file.Path;
 import java.nio.file.attribute.PosixFilePermissions;
 import java.time.Instant;
 import java.util.Arrays;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Random;
@@ -101,6 +103,11 @@ public final class NetherNetServer implements EventRegistrar {
      */
     private static final List<String> DEFAULT_STUN_SERVERS =
         List.of("stun:stun.cloudflare.com:3478", "stun:stun.l.google.com:19302");
+    /**
+     * Headers built-in signaling adds to every response, as comma separated "Name: value" entries. Only a host sets
+     * them, so they have no config option.
+     */
+    public static final String ADDITIONAL_HEADERS_ENV = "GEYSER_ADDITIONAL_HEADERS";
     /**
      * Holds the provider's link for the operator, in the data folder.
      */
@@ -265,6 +272,17 @@ public final class NetherNetServer implements EventRegistrar {
                 throw new IllegalArgumentException("Invalid entry in -DgeyserStunServers: " + e.getMessage(), e);
             }
             builtinStun = !stunServers.isEmpty();
+            String additionalHeaders = System.getenv(ADDITIONAL_HEADERS_ENV);
+            if (additionalHeaders != null) {
+                try {
+                    Map<String, String> headers = responseHeaders(additionalHeaders);
+                    signalingBuilder.setResponseHeaders(headers);
+                    logger().info("Signaling response headers set from environment variable " + ADDITIONAL_HEADERS_ENV + ": "
+                        + String.join(", ", headers.keySet()));
+                } catch (IllegalArgumentException e) {
+                    throw new IllegalArgumentException("Invalid entry in " + ADDITIONAL_HEADERS_ENV + ": " + e.getMessage(), e);
+                }
+            }
         } catch (IllegalArgumentException e) {
             logger().error("Built-in signaling will not start! " + e.getMessage());
             return;
@@ -432,6 +450,22 @@ public final class NetherNetServer implements EventRegistrar {
 
     private static List<String> addresses(Stream<String> entries) {
         return entries.map(String::trim).filter(address -> !address.isEmpty()).distinct().toList();
+    }
+
+    /** See {@link #ADDITIONAL_HEADERS_ENV}. Network refuses names and values no header can have. */
+    static Map<String, String> responseHeaders(String entries) {
+        Map<String, String> headers = new LinkedHashMap<>();
+        for (String entry : entries.split(",")) {
+            if (entry.isBlank()) {
+                continue;
+            }
+            int colon = entry.indexOf(':');
+            if (colon < 0) {
+                throw new IllegalArgumentException("\"" + entry.trim() + "\" is not \"Name: value\"");
+            }
+            headers.put(entry.substring(0, colon).trim(), entry.substring(colon + 1).trim());
+        }
+        return headers;
     }
 
     private void startProvider(List<String> advertised) {
