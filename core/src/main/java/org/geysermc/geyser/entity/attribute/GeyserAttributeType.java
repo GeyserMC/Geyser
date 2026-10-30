@@ -65,7 +65,8 @@ public enum GeyserAttributeType {
     EXPERIENCE_LEVEL(null, "minecraft:player.level", 0f, 24791.00f, 0f),
     HEALTH(null, "minecraft:health", 0f, 1024f, 20f),
     HUNGER(null, "minecraft:player.hunger", 0f, 20f, 20f),
-    SATURATION(null, "minecraft:player.saturation", 0f, 20f, 20f);
+    SATURATION(null, "minecraft:player.saturation", 0f, 20f, 20f),
+    UNDERWATER_MOVEMENT(null, "minecraft:underwater_movement", 0f, 1024f, 0.02f);
 
     private final String javaIdentifier;
     private final String bedrockIdentifier;
