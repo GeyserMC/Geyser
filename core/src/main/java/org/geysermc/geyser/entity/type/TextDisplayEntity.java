@@ -78,7 +78,7 @@ public class TextDisplayEntity extends DisplayBaseEntity {
      * Java anchors the text display at the bottom of its background, whereas Bedrock anchors primitive text
      * 10% of its height below the top and scales from there.
      */
-    private static final float BEDROCK_ANCHOR_HEIGHT = JAVA_LINE_HEIGHT * 0.65f;
+    private static final float BEDROCK_ANCHOR_HEIGHT = JAVA_LINE_HEIGHT * 0.625f;
 
     private static final boolean DEBUG = Boolean.getBoolean("Geyser.Debug.TextDisplay");
 
