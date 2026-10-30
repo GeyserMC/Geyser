@@ -320,7 +320,7 @@ public class TextDisplayEntity extends DisplayBaseEntity {
         int lines = PlainTextComponentSerializer.plainText().serialize(this.text).split("\n").length;
 		boolean unscaled = Math.abs(getBaseScale().getY() - 1.0f) < 0.001f;
 
-		float anchorHeight = JAVA_LINE_HEIGHT * (unscaled ? 0.52f : 0.70f);
+		float anchorHeight = JAVA_LINE_HEIGHT * (unscaled ? 0.52f : 0.90f);
 		float anchorOffset = anchorHeight * lines + (unscaled ? 0.1f : 0.0f);
 
 		Vector4f anchor = Matrix4f.createRotation(getLeftRotation())
