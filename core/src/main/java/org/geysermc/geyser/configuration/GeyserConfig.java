@@ -568,10 +568,9 @@ public interface GeyserConfig {
         }
 
         @Comment("""
-                Whether NetherNet players keep the address built-in signaling's proxies sent, in a HAPROXY header from
-                "haproxy-protocol-whitelisted-ips" or in "X-Forwarded-For" from "signaling-trusted-proxies", instead of the
-                address their WebRTC connection comes from. Enable this when something that hides player addresses, such as
-                a UDP forward without PROXY protocol, sits in front of the WebRTC port while signaling goes through those proxies.
+                Use the player address that built-in signaling's proxies send ("haproxy-protocol-whitelisted-ips" or
+                "signaling-trusted-proxies") instead of the one the WebRTC connection comes from. Enable this when the WebRTC
+                port is forwarded without PROXY protocol, so every player would otherwise show the forwarder's address.
                 IF YOU DON'T KNOW WHAT THIS IS, DON'T TOUCH IT!""")
         @DefaultBoolean
         boolean preferSignalingProxyAddress();

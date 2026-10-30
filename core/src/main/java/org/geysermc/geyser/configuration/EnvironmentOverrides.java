@@ -47,7 +47,7 @@ import java.util.StringJoiner;
 final class EnvironmentOverrides {
     private static final String PREFIX = "GEYSER";
     private static final String CONFIG_VERSION_KEY = "GEYSER_CONFIG_VERSION";
-    /** Read where they are used, as they have no config option. */
+    /** Environment variables Geyser reads directly rather than as config overrides. */
     private static final Set<String> NON_CONFIG_KEYS = Set.of(NetherNetServer.ADDITIONAL_HEADERS_ENV);
 
     private EnvironmentOverrides() {

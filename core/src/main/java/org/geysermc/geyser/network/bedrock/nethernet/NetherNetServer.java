@@ -104,8 +104,8 @@ public final class NetherNetServer implements EventRegistrar {
     private static final List<String> DEFAULT_STUN_SERVERS =
         List.of("stun:stun.cloudflare.com:3478", "stun:stun.l.google.com:19302");
     /**
-     * Headers built-in signaling adds to every response, as comma separated "Name: value" entries. Only a host sets
-     * them, so they have no config option.
+     * Comma separated "Name: value" headers that built-in signaling adds to every response. Environment only, as only
+     * hosts set it.
      */
     public static final String ADDITIONAL_HEADERS_ENV = "GEYSER_ADDITIONAL_HEADERS";
     /**
@@ -237,7 +237,7 @@ public final class NetherNetServer implements EventRegistrar {
         if (provider) startProvider(advertised);
     }
 
-    /** Only built-in signaling learns an address from a proxy, so the option needs it and one of its proxy lists. */
+    /** The option needs built-in signaling and a proxy in one of its lists. */
     private void warnIfProxyAddressUnused(boolean inbuilt) {
         GeyserConfig.AdvancedBedrockConfig advanced = geyser.config().advanced().bedrock();
         if (!advanced.preferSignalingProxyAddress()) {
@@ -453,7 +453,7 @@ public final class NetherNetServer implements EventRegistrar {
         return entries.map(String::trim).filter(address -> !address.isEmpty()).distinct().toList();
     }
 
-    /** See {@link #ADDITIONAL_HEADERS_ENV}. Network refuses names and values no header can have. */
+    /** Parses {@link #ADDITIONAL_HEADERS_ENV}. Network validates the names and values. */
     static Map<String, String> responseHeaders(String entries) {
         Map<String, String> headers = new LinkedHashMap<>();
         for (String entry : entries.split(",")) {
