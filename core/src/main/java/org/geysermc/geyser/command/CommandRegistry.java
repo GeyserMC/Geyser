@@ -36,6 +36,7 @@ import org.cloudburstmc.protocol.bedrock.data.command.CommandParamData;
 import org.cloudburstmc.protocol.bedrock.data.command.CommandPermission;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.command.Command;
+import org.geysermc.geyser.api.command.CommandSource;
 import org.geysermc.geyser.api.event.EventRegistrar;
 import org.geysermc.geyser.api.event.lifecycle.GeyserDefineCommandsEvent;
 import org.geysermc.geyser.api.event.lifecycle.GeyserRegisterPermissionsEvent;
@@ -341,11 +342,11 @@ public class CommandRegistry implements EventRegistrar {
         return cloud.suggestionFactory().suggestImmediately(source, input);
     }
 
-    public void export(GeyserSession session, List<CommandData> bedrockCommands, Set<String> knownAliases) {
+    public void export(CommandSource source, List<CommandData> bedrockCommands, Set<String> knownAliases) {
         cloud.commandTree().rootNodes().forEach(commandTree -> {
             var command = commandTree.command();
             // Command null happens if you register an extension command with custom Cloud parameters...
-            if (command == null || session.hasPermission(command.commandPermission().permissionString())) {
+            if (command == null || source.hasPermission(command.commandPermission().permissionString())) {
                 var rootComponent = commandTree.component();
                 String name = rootComponent.name();
                 if (!knownAliases.add(name)) {
@@ -361,7 +362,7 @@ public class CommandRegistry implements EventRegistrar {
 
                 List<CommandOverloadData> data = new ArrayList<>();
                 for (var node : commandTree.children()) {
-                    List<List<CommandParamData>> params = createParamData(session, node);
+                    List<List<CommandParamData>> params = createParamData(source, node);
                     params.forEach(param -> data.add(new CommandOverloadData(false, param.toArray(CommandParamData[]::new))));
                 }
 
@@ -373,9 +374,9 @@ public class CommandRegistry implements EventRegistrar {
         });
     }
 
-    private List<List<CommandParamData>> createParamData(GeyserSession session, CommandNode<GeyserCommandSource> node) {
+    private List<List<CommandParamData>> createParamData(CommandSource source, CommandNode<GeyserCommandSource> node) {
         var command = node.command();
-        if (command != null && !session.hasPermission(command.commandPermission().permissionString())) {
+        if (command != null && !source.hasPermission(command.commandPermission().permissionString())) {
             // Triggers with subcommands like Geyser dump, stop, etc.
             return Collections.emptyList();
         }
@@ -417,7 +418,7 @@ public class CommandRegistry implements EventRegistrar {
         // If a node has multiple children, this will need to be represented
         // by creating a new list/branch for each and cloning this node down each line.
         for (var child : children) {
-            collectiveData.addAll(createParamData(session, child));
+            collectiveData.addAll(createParamData(source, child));
         }
         collectiveData.forEach(list -> list.addFirst(data));
         return collectiveData;

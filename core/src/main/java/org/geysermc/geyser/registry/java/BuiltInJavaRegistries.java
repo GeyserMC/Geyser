@@ -39,6 +39,8 @@ import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.cache.registry.JavaRegistryTagCache;
 import org.geysermc.geyser.session.cache.tags.Tag;
 
+import java.util.Collection;
+
 /**
  * Defines Geyser-wide {@link JavaRegistry}s holding built-in Java content, for example, blocks and items. This content is static and will be the same across all sessions.
  * These registries are initialised and populated early within Geyser's start-up process (see {@link Registries#load()}, which calls {@link BuiltInJavaRegistries#bootstrap()}).
@@ -92,6 +94,11 @@ public final class BuiltInJavaRegistries {
 
         @Override
         public IntList rawTag(Tag<?> tag) {
+            throw new IllegalStateException("Unable to provide tags at this stage");
+        }
+
+        @Override
+        public Collection<Tag<?>> tags() {
             throw new IllegalStateException("Unable to provide tags at this stage");
         }
     };
