@@ -33,8 +33,7 @@ import com.google.gson.JsonParser;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
-import org.geysermc.geyser.GeyserBootstrap;
-import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.GeyserResources;
 import org.geysermc.geyser.item.components.resolvable.ResolvableComponent;
 import org.geysermc.geyser.item.components.resolvable.ResolvableHolderComponent;
 import org.geysermc.geyser.item.components.resolvable.ResolvableHolderReferenceComponent;
@@ -61,10 +60,9 @@ import java.util.Map;
  */
 public final class DataComponentRegistryPopulator {
 
-    public static void load() {
-        GeyserBootstrap bootstrap = GeyserImpl.getInstance().getBootstrap();
+    public static void load(GeyserResources resources) {
         List<DataComponents> defaultComponents;
-        try (InputStream stream = bootstrap.getResourceOrThrow("mappings/item_data_components.json")) {
+        try (InputStream stream = resources.getResourceOrThrow("mappings/item_data_components.json")) {
             //noinspection deprecation - 1.16.5 breaks otherwise
             JsonElement rootElement = new JsonParser().parse(new InputStreamReader(stream));
             JsonArray jsonArray = rootElement.getAsJsonArray();
@@ -95,7 +93,7 @@ public final class DataComponentRegistryPopulator {
         }
 
         List<List<ResolvableComponent<?>>> resolvableComponents;
-        try (InputStream stream = bootstrap.getResourceOrThrow("mappings/resolvable_item_data_components.json")) {
+        try (InputStream stream = resources.getResourceOrThrow("mappings/resolvable_item_data_components.json")) {
             //noinspection deprecation
             JsonElement rootElement = new JsonParser().parse(new InputStreamReader(stream));
             JsonArray items = rootElement.getAsJsonObject().get("value").getAsJsonArray();

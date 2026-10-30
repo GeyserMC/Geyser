@@ -38,12 +38,11 @@ import org.geysermc.geyser.ping.IGeyserPingPassthrough;
 import org.geysermc.geyser.util.metrics.MetricsPlatform;
 import org.geysermc.geyser.util.metrics.ProvidedMetricsPlatform;
 
-import java.io.InputStream;
 import java.net.SocketAddress;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
-public interface GeyserBootstrap {
+public interface GeyserBootstrap extends GeyserResources {
 
     GeyserWorldManager DEFAULT_CHUNK_MANAGER = new GeyserWorldManager();
 
@@ -165,31 +164,6 @@ public interface GeyserBootstrap {
      * @return  the name of the server platform Geyser is running on.
      */
     @NonNull String getServerPlatform();
-
-    /**
-     * Get an InputStream for the given resource path.
-     * Overridden on platforms that have different class loader properties.
-     *
-     * @param resource Resource to get
-     * @return InputStream of the given resource, or null if not found
-     */
-    default @Nullable InputStream getResourceOrNull(String resource) {
-        return GeyserBootstrap.class.getClassLoader().getResourceAsStream(resource);
-    }
-
-    /**
-     * Get an InputStream for the given resource path, throws AssertionError if resource is not found.
-     *
-     * @param resource Resource to get
-     * @return InputStream of the given resource
-     */
-    default @NonNull InputStream getResourceOrThrow(@NonNull String resource) {
-        InputStream stream = getResourceOrNull(resource);
-        if (stream == null) {
-            throw new AssertionError("Unable to find resource: " + resource);
-        }
-        return stream;
-    }
 
     /**
      * @return the bind address being used by the Java server.
