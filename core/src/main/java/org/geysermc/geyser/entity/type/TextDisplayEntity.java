@@ -318,10 +318,15 @@ public class TextDisplayEntity extends DisplayBaseEntity {
 
         // Move the bedrock anchor to where it sits within the java text, in the java text's local space
         int lines = PlainTextComponentSerializer.plainText().serialize(this.text).split("\n").length;
-        Vector4f anchor = Matrix4f.createRotation(getLeftRotation())
-            .mul(Matrix4f.createScaling(Vector4f.from(getBaseScale(), 1)))
-            .mul(Matrix4f.createRotation(getRightRotation()))
-            .transform(0, BEDROCK_ANCHOR_HEIGHT * lines, 0, 1);
+		boolean unscaled = Math.abs(getBaseScale().getY() - 1.0f) < 0.001f;
+
+		float anchorHeight = JAVA_LINE_HEIGHT * (unscaled ? 0.52f : 0.90f);
+		float anchorOffset = anchorHeight * lines + (unscaled ? 0.1f : 0.0f);
+
+		Vector4f anchor = Matrix4f.createRotation(getLeftRotation())
+			.mul(Matrix4f.createScaling(Vector4f.from(getBaseScale(), 1)))
+			.mul(Matrix4f.createRotation(getRightRotation()))
+			.transform(0, anchorOffset, 0, 1);
         translation = translation.add(anchor.getX(), anchor.getY(), anchor.getZ());
 
         // I'm not even gonna pretend I know why x needs to be negative, but it does, and it works
