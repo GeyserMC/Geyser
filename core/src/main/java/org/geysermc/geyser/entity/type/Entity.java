@@ -929,7 +929,7 @@ public class Entity implements GeyserEntity {
     /**
      * Send an entity event of the specified type with the specified data to the Bedrock player from this entity.
      */
-    public final void playEntityEvent(EntityEventType type, int data) {
+    public void playEntityEvent(EntityEventType type, int data) {
         EntityEventPacket packet = new EntityEventPacket();
         packet.setRuntimeEntityId(geyserId);
         packet.setType(type);

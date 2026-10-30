@@ -25,17 +25,39 @@
 
 package org.geysermc.geyser.entity.type;
 
+import lombok.Getter;
+import lombok.Setter;
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.cloudburstmc.math.imaginary.Quaternionf;
 import org.cloudburstmc.math.vector.Vector3f;
+import org.cloudburstmc.math.vector.Vector3i;
 import org.geysermc.geyser.entity.spawn.EntitySpawnContext;
 import org.geysermc.geyser.util.EntityUtils;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.EntityMetadata;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.ByteEntityMetadata;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.FloatEntityMetadata;
 
 import java.util.Objects;
 
 public class DisplayBaseEntity extends Entity {
 
+    @Getter
     private @NonNull Vector3f baseTranslation = Vector3f.ZERO;
+
+    @Getter
+    private @NonNull Vector3f baseScale = Vector3f.ONE;
+
+    @Getter
+    private @NonNull Quaternionf leftRotation = Quaternionf.IDENTITY;
+
+    @Getter
+    private @NonNull Quaternionf rightRotation = Quaternionf.IDENTITY;
+
+    @Getter
+    private @NonNull Billboard billboard = Billboard.FIXED;
+
+    @Getter
+    private float viewDistance = -1;
 
     public DisplayBaseEntity(EntitySpawnContext context) {
         super(context);
@@ -59,12 +81,35 @@ public class DisplayBaseEntity extends Entity {
         }
     }
 
-    public Vector3f getTranslation() {
-        return baseTranslation;
+    public void setScale(EntityMetadata<Vector3f, ?> metadata) {
+        this.baseScale = metadata.getValue();
+    }
+
+    public void setLeftRotation(EntityMetadata<Quaternionf, ?> metadata) {
+        this.leftRotation = metadata.getValue();
+    }
+
+    public void setRightRotation(EntityMetadata<Quaternionf, ?> metadata) {
+        this.rightRotation = metadata.getValue();
+    }
+
+    public void setBillboard(ByteEntityMetadata metadata) {
+        this.billboard = Billboard.values()[metadata.getPrimitiveValue()];
+    }
+
+    public void setViewDistance(FloatEntityMetadata metadata) {
+        this.viewDistance = metadata.getPrimitiveValue();
     }
 
     @Override
     public Vector3f bedrockPosition() {
         return super.bedrockPosition().add(baseTranslation);
+    }
+
+    public enum Billboard {
+        FIXED,
+        VERTICAL,
+        HORIZONTAL,
+        CENTER;
     }
 }
