@@ -82,10 +82,12 @@ public interface ExtensionDescription {
     int minorApiVersion();
 
     /**
-     * No longer in use. Geyser is now using an adaption of the romantic versioning scheme.
+     * This method is deprecated for removal and will be removed in Geyser 2.13.0.
+     *
+     * @deprecated since 2.4.1: no longer in use. Geyser is now using an adaption of the romantic versioning scheme.
      * See <a href="https://github.com/geysermc/api/blob/master/geyser-versioning.md">here</a> for details.
      */
-    @Deprecated(forRemoval = true)
+    @Deprecated(since = "2.4.1", forRemoval = true)
     default int patchApiVersion() {
         return minorApiVersion();
     }

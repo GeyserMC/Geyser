@@ -4,7 +4,7 @@ on:
   pull_request:
 
 jobs:
-  build:
+  build-pr:
     uses: GeyserMC/Geyser/.github/workflows/build-remote.yml@master
     with:
       repository: ${{ github.event.pull_request.head.repo.full_name }}

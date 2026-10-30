@@ -170,10 +170,12 @@ public interface GeyserEntity {
     }
 
     /**
-     * @deprecated use {@link #updateProperty(GeyserEntityProperty, Object)} instead
+     * This method is deprecated for removal and will be removed in Geyser 2.13.0.
+     *
+     * @deprecated since 2.11.0: use {@link #updateProperty(GeyserEntityProperty, Object)} instead
      * @since 2.9.0
      */
-    @Deprecated(since = "2.11.0")
+    @Deprecated(since = "2.11.0", forRemoval = true)
     default void updatePropertiesBatched(Consumer<BatchPropertyUpdater> consumer) {
         this.updatePropertiesBatched(consumer, false);
     }

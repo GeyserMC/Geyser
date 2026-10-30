@@ -28,7 +28,6 @@ package org.geysermc.geyser.translator.protocol.java;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMaps;
 import org.cloudburstmc.protocol.bedrock.packet.CraftingDataPacket;
 import org.cloudburstmc.protocol.bedrock.packet.PlayerListPacket;
-import org.geysermc.geyser.network.bedrock.GameProtocol;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.cache.registry.JavaRegistryTagCache;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
@@ -66,11 +65,8 @@ public class JavaFinishConfigurationTranslator extends PacketTranslator<Clientbo
         // (Also add it here so recipes get cleared on configuration - 1.21.3)
         CraftingDataPacket craftingDataPacket = new CraftingDataPacket();
         craftingDataPacket.setCleanRecipes(true);
-        if (GameProtocol.is26_40orHigher(session.protocolVersion())) {
-            craftingDataPacket.getMultiData().addAll(CARTOGRAPHY_RECIPES);
-        } else {
-            craftingDataPacket.getCraftingData().addAll(CARTOGRAPHY_RECIPES);
-        }
+        craftingDataPacket.getMultiData().addAll(CARTOGRAPHY_RECIPES);
+
         if (session.isSentSpawnPacket()) {
             session.getUpstream().sendPacket(craftingDataPacket);
             session.getLastRecipeNetId().set(InventoryUtils.LAST_RECIPE_NET_ID + 1);

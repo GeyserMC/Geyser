@@ -167,6 +167,8 @@ public interface JavaItemDataComponents {
      * whilst the former can now be found at {@link JavaItemDataComponents#ATTACK_ANIMATION}.
      * Just like this component, only the duration of the animation can be specified.</p>
      *
+     * <p>This component is planned to be removed in Geyser 2.14.0.</p>
+     *
      * @see JavaSwingAnimation
      * @since 2.9.3
      * @deprecated since 2.12.0: use {@link JavaItemDataComponents#ATTACK_ANIMATION} instead

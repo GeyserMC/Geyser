@@ -28,6 +28,7 @@ package org.geysermc.geyser.network.bedrock.nethernet;
 import io.netty.channel.Channel;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.protocol.bedrock.BedrockPeer;
+import org.cloudburstmc.protocol.bedrock.PacketDirection;
 import org.cloudburstmc.protocol.bedrock.netty.codec.batch.BedrockBatchEncoder;
 import org.cloudburstmc.protocol.bedrock.netty.codec.compression.CompressionCodec;
 import org.cloudburstmc.protocol.bedrock.netty.codec.compression.CompressionStrategy;
@@ -75,6 +76,9 @@ public class NetherNetChannelInitialiser extends GeyserServerInitializer {
             return;
         }
 
+        // Set by the overridden BedrockServerInitializer method; without it clientbound packets would be decoded too
+        channel.attr(PacketDirection.ATTRIBUTE).set(PacketDirection.CLIENT_BOUND);
+
         // Nothing is compressed until the peer sets compression after RequestNetworkSettings
         channel.pipeline()
                 .addLast(NetherNetFrameCodec.NAME, NetherNetFrameCodec.INSTANCE)
@@ -88,7 +92,9 @@ public class NetherNetChannelInitialiser extends GeyserServerInitializer {
     }
 
     @Override
-    protected void postInitChannel(Channel channel) {
+    protected void postInitChannel(Channel channel) throws Exception {
+        super.postInitChannel(channel);
+
         // TODO TEST batching: the BedrockBatchEncoder added by BedrockChannelInitializer batches every packet written between
         //  flushes into one message, like RakNet. The channel fragments large messages itself, so dropping this replace should
         //  be all that's needed. Until that is tested, keep sending one packet per message.
