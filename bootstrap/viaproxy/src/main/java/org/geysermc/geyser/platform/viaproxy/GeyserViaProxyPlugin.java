@@ -128,9 +128,14 @@ public class GeyserViaProxyPlugin extends ViaProxyPlugin implements GeyserBootst
             return;
         }
 
+        final SocketAddress channelAddress = event.getChannel().remoteAddress();
+        if (channelAddress == null) {
+            return;
+        }
         final GeyserSession session = GeyserImpl.getInstance().onlineConnections().stream()
             .filter(c -> c.getDownstream() != null)
-            .filter(c -> c.getDownstream().getSession().getLocalAddress().equals(event.getChannel().remoteAddress()))
+            // A downstream session that is still connecting has no local address yet
+            .filter(c -> channelAddress.equals(c.getDownstream().getSession().getLocalAddress()))
             .findAny().orElse(null);
         if (session != null) {
             final SocketAddress realAddress = session.getSocketAddress();
