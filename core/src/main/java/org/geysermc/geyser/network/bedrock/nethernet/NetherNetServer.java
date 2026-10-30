@@ -226,11 +226,13 @@ public final class NetherNetServer implements EventRegistrar {
         geyser.eventBus().subscribe(this, SessionDisconnectEventImpl.class, event -> refreshProviderStatus());
 
         List<String> advertised = advertisedAddresses();
-        // Players only reach the media port through the relays, so this host's own addresses would serve nobody
-        if (advertised.isEmpty() && !geyser.config().advanced().bedrock().webrtcProxyProtocolRelays().isEmpty()) {
-            logger().error("NetherNet will not start! \"webrtc-proxy-protocol-relays\" is set, so \"advertise-addresses\" "
-                + "under \"bedrock.signaling\" has to name the relays players reach this server through.");
-            return;
+        // A front can rewrite built-in signaling's answers to name the relays, which network warns about when it
+        // binds, but nothing can for NXS
+        if (provider && advertised.isEmpty() && !geyser.config().advanced().bedrock().webrtcProxyProtocolRelays().isEmpty()) {
+            // Without built-in signaling, nothing else is left to start
+            logger().error((inbuilt ? "External signaling" : "NetherNet") + " will not start! \"webrtc-proxy-protocol-relays\" is set, "
+                + "so \"advertise-addresses\" under \"bedrock.signaling\" has to name the relays players reach this server through.");
+            provider = false;
         }
         warnIfProxyAddressUnused(inbuilt);
         if (inbuilt) startInbuilt(advertised);
@@ -256,14 +258,16 @@ public final class NetherNetServer implements EventRegistrar {
         GeyserConfig.AdvancedBedrockConfig advanced = geyser.config().advanced().bedrock();
         NetherNetHTTPServerSignaling.Builder signalingBuilder = new NetherNetHTTPServerSignaling.Builder();
         try {
-            // Configured addresses already say what STUN would find, and network refuses both
-            boolean stun = advertised.isEmpty() && config.stunDiscovery();
+            // Configured addresses already say what STUN would find, and network refuses both. Behind relays,
+            // STUN and the bound address name this host, which players cannot reach
+            boolean relayed = !advanced.webrtcProxyProtocolRelays().isEmpty();
+            boolean stun = advertised.isEmpty() && config.stunDiscovery() && !relayed;
             if (!stun && System.getProperty("geyserStunServers") != null) {
-                logger().warning("-DgeyserStunServers is ignored, as "
-                    + (config.stunDiscovery() ? "\"advertise-addresses\" is set" : "\"stun-discovery\" is off"));
+                logger().warning("-DgeyserStunServers is ignored, as " + (!config.stunDiscovery() ? "\"stun-discovery\" is off"
+                    : !advertised.isEmpty() ? "\"advertise-addresses\" is set" : "\"webrtc-proxy-protocol-relays\" is set"));
             }
             List<String> stunServers = stun ? stunServers() : List.of();
-            if (advertised.isEmpty() && stunServers.isEmpty()) {
+            if (advertised.isEmpty() && stunServers.isEmpty() && !relayed) {
                 advertised = boundAddress(geyser.config().bedrock());
             }
             signalingBuilder.setAdvertisedAddresses(advertised);

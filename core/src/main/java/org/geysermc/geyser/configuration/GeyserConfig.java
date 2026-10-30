@@ -558,7 +558,8 @@ public interface GeyserConfig {
                 UDP relays in front of the NetherNet media (WebRTC) port that send a PROXY protocol v2 header with each
                 player's address, as IP addresses or subnets. Leave this empty unless you run such a relay.
                 While set, players can only reach the media port through these relays, so "advertise-addresses" under
-                "bedrock.signaling" has to name the relays, or NetherNet does not start.
+                "bedrock.signaling" should name the relays. Without any, the external signaling service does not start, and
+                built-in signaling only works if something in front of it rewrites its answers to name the relays.
                 This is separate from the two lists above, which only cover signaling, and RakNet with the "both" transport.
                 IP addresses, subnets, and links to plain text files are supported.
                 IF YOU DON'T KNOW WHAT THIS IS, DON'T TOUCH IT!""")
