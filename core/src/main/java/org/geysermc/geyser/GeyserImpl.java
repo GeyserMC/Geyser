@@ -943,7 +943,24 @@ public class GeyserImpl implements GeyserApi, EventRegistrar {
             metrics.addCustomChart(new SimplePie("defaultLocale", GeyserLocale::getDefaultLocale));
             metrics.addCustomChart(new SimplePie("version", () -> GeyserImpl.VERSION));
             metrics.addCustomChart(new SimplePie("javaHaProxyProtocol", () -> String.valueOf(config.advanced().java().useHaproxyProtocol())));
-            metrics.addCustomChart(new SimplePie("bedrockHaProxyProtocol", () -> String.valueOf(!config.advanced().bedrock().haproxyProtocolWhitelistedIps().isEmpty())));
+            metrics.addCustomChart(new AdvancedPie("bedrockProxies", () -> {
+                // Every kind configured counts, so a server running several shows up under each
+                GeyserConfig.AdvancedBedrockConfig bedrock = config.advanced().bedrock();
+                Map<String, Integer> proxies = new HashMap<>();
+                if (!bedrock.haproxyProtocolWhitelistedIps().isEmpty()) {
+                    proxies.put("haproxy", 1);
+                }
+                if (!bedrock.signalingTrustedProxies().isEmpty()) {
+                    proxies.put("x-forwarded-for", 1);
+                }
+                if (!bedrock.webrtcProxyProtocolRelays().isEmpty()) {
+                    proxies.put("webrtc-relays", 1);
+                }
+                if (proxies.isEmpty()) {
+                    proxies.put("none", 1);
+                }
+                return proxies;
+            }));
             metrics.addCustomChart(new SimplePie("bedrockTransport", () -> config.bedrock().transport().toString().toLowerCase(Locale.ROOT)));
             metrics.addCustomChart(new DrilldownPie("signalingMode", () -> {
                 // builtin => (https, 1)
