@@ -111,6 +111,19 @@ public class EnvironmentOverridesTest {
     }
 
     @Test
+    void testSignalingProxyOverrides() throws Exception {
+        // Hosts set these per server, so their names are what hosts are told
+        File file = tempDirectory.resolve("signaling-proxy.yml").toFile();
+        GeyserConfig config = new ConfigLoader(file, PlatformType.STANDALONE)
+            .environment(Map.of(
+                "GEYSER_ADVANCED_BEDROCK_PREFER_SIGNALING_PROXY_ADDRESS", "true"
+            ))
+            .load0(GeyserRemoteConfig.class);
+
+        assertTrue(config.advanced().bedrock().preferSignalingProxyAddress());
+    }
+
+    @Test
     void testEmptyListOverrideClearsList() throws Exception {
         File file = tempDirectory.resolve("clear.yml").toFile();
         new ConfigLoader(file, PlatformType.STANDALONE)

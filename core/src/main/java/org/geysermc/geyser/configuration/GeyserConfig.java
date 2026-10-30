@@ -573,6 +573,15 @@ public interface GeyserConfig {
         }
 
         @Comment("""
+                Whether NetherNet players keep the address built-in signaling's proxies sent, in a HAPROXY header from
+                "haproxy-protocol-whitelisted-ips" or in "X-Forwarded-For" from "signaling-trusted-proxies", instead of the
+                address their WebRTC connection comes from. Enable this when something that hides player addresses, such as
+                a UDP forward without PROXY protocol, sits in front of the WebRTC port while signaling goes through those proxies.
+                IF YOU DON'T KNOW WHAT THIS IS, DON'T TOUCH IT!""")
+        @DefaultBoolean
+        boolean preferSignalingProxyAddress();
+
+        @Comment("""
                Should be enabled if this Geyser instance is behind a WaterdogPE proxy. If enabled, Geyser will
                use the xuid / address sent from WaterdogPE and reject clients that do not send it.
                """)

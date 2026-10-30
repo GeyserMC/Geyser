@@ -224,12 +224,28 @@ public final class NetherNetServer implements EventRegistrar {
                 + "under \"bedrock.signaling\" has to name the relays players reach this server through.");
             return;
         }
+        warnIfProxyAddressUnused(inbuilt);
         if (inbuilt) startInbuilt(advertised);
         if (provider) startProvider(advertised);
     }
 
+    /** Only built-in signaling learns an address from a proxy, so the option needs it and one of its proxy lists. */
+    private void warnIfProxyAddressUnused(boolean inbuilt) {
+        GeyserConfig.AdvancedBedrockConfig advanced = geyser.config().advanced().bedrock();
+        if (!advanced.preferSignalingProxyAddress()) {
+            return;
+        }
+        if (!inbuilt) {
+            logger().warning("\"prefer-signaling-proxy-address\" does nothing, as built-in signaling is not running.");
+        } else if (advanced.haproxyProtocolWhitelistedIps().isEmpty() && advanced.signalingTrustedProxies().isEmpty()) {
+            logger().warning("\"prefer-signaling-proxy-address\" does nothing, as neither \"haproxy-protocol-whitelisted-ips\" "
+                + "nor \"signaling-trusted-proxies\" lists a proxy in front of built-in signaling.");
+        }
+    }
+
     private void startInbuilt(List<String> advertised) {
         GeyserConfig.SignalingConfig.BuiltinConfig builtin = config.builtin();
+        GeyserConfig.AdvancedBedrockConfig advanced = geyser.config().advanced().bedrock();
         NetherNetHTTPServerSignaling.Builder signalingBuilder = new NetherNetHTTPServerSignaling.Builder();
         try {
             // Configured addresses already say what STUN would find, and network refuses both
@@ -321,6 +337,7 @@ public final class NetherNetServer implements EventRegistrar {
                     .channelFactory(NetherNetChannelFactory.server(signaling))
                     .option(NetherChannelOption.NETHER_SERVER_PROXY_PROTOCOL,
                             TrustedProxies.parse(geyser.config().advanced().bedrock().webrtcProxyProtocolRelays()))
+                    .option(NetherChannelOption.NETHER_SERVER_PREFER_PROXIED_ADDRESS, advanced.preferSignalingProxyAddress())
                     .childHandler(inbuiltInitialiser);
             if (separateIcePort) {
                 b.option(NetherChannelOption.NETHER_SERVER_ICE_ADDRESS, new InetSocketAddress(listener.address(), webrtcPort));
