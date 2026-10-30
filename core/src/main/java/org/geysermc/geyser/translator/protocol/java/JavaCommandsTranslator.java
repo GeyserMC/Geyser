@@ -25,11 +25,6 @@
 
 package org.geysermc.geyser.translator.protocol.java;
 
-import org.cloudburstmc.protocol.bedrock.data.command.CommandData;
-import org.cloudburstmc.protocol.bedrock.data.command.CommandEnumConstraint;
-import org.cloudburstmc.protocol.bedrock.data.command.CommandEnumData;
-import org.cloudburstmc.protocol.bedrock.data.command.CommandOverloadData;
-import org.cloudburstmc.protocol.bedrock.data.command.CommandPermission;
 import org.cloudburstmc.protocol.bedrock.packet.AvailableCommandsPacket;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.command.CommandTranslator;
@@ -37,11 +32,6 @@ import org.geysermc.geyser.translator.data.CommandTranslationData;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.ClientboundCommandsPacket;
-
-import java.util.Collections;
-import java.util.EnumSet;
-import java.util.Map;
-import java.util.Set;
 
 @Translator(packet = ClientboundCommandsPacket.class)
 public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommandsPacket> {
@@ -54,7 +44,7 @@ public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommands
 
             // Send a mostly empty packet so Bedrock doesn't override /help with its own, built-in help command.
             AvailableCommandsPacket emptyPacket = new AvailableCommandsPacket();
-            emptyPacket.getCommands().add(createFakeHelpCommand());
+            emptyPacket.getCommands().add(CommandTranslator.createFakeHelpCommand());
             session.sendUpstreamPacket(emptyPacket);
             return;
         }
@@ -67,10 +57,5 @@ public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommands
 
         // Finally, send the commands to the client
         session.sendUpstreamPacket(availableCommandsPacket);
-    }
-
-    private static CommandData createFakeHelpCommand() {
-        CommandEnumData aliases = new CommandEnumData("helpAliases", Map.of("help", EnumSet.of(CommandEnumConstraint.ALLOW_ALIASES)), false);
-        return new CommandData("help", "", Set.of(CommandData.Flag.NOT_CHEAT), CommandPermission.ANY, aliases, Collections.emptyList(), new CommandOverloadData[0]);
     }
 }

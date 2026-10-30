@@ -31,7 +31,8 @@ import org.geysermc.geyser.api.event.java.ServerDefineCommandsEvent;
 /**
  * Stores the command description and parameter data for best optimizing the Bedrock commands packet.
  */
-public record BedrockCommandInfo(String name, String description, CommandOverloadData[] paramData) implements
+@SuppressWarnings("removal") // Deprecated event
+record BedrockCommandInfo(String name, String description, CommandOverloadData[] paramData) implements
     org.geysermc.geyser.api.event.downstream.ServerDefineCommandsEvent.CommandInfo,
     ServerDefineCommandsEvent.CommandInfo {
 }

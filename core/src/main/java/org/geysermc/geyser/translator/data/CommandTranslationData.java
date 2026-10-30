@@ -30,6 +30,7 @@ import it.unimi.dsi.fastutil.objects.Reference2ObjectOpenHashMap;
 import lombok.Getter;
 import lombok.experimental.Accessors;
 import net.kyori.adventure.key.Key;
+import org.cloudburstmc.protocol.bedrock.data.command.CommandEnumConstraint;
 import org.cloudburstmc.protocol.bedrock.data.command.CommandEnumData;
 import org.geysermc.geyser.command.CommandRegistry;
 import org.geysermc.geyser.command.GeyserCommandSource;
@@ -39,7 +40,11 @@ import org.geysermc.geyser.session.cache.tags.Tag;
 import org.geysermc.mcprotocollib.protocol.data.game.command.CommandNode;
 
 import java.util.Arrays;
+import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @Accessors(fluent = true)
@@ -80,5 +85,30 @@ public final class CommandTranslationData implements CommonTranslationData.Recor
                 // Prefix tags with a '#'
                 .map(string -> "#" + string), Arrays.stream(getRegistryElements(registry)))
             .toArray(String[]::new));
+    }
+
+    public Optional<String> getSoftEnumName(String name, Map<String, Set<CommandEnumConstraint>> constraints, boolean forceSoft) {
+        forceSoft = forceSoft || needsSoftEnum(name);
+        return forceSoft ? Optional.of(softEnumName(name, constraints)) : Optional.empty();
+    }
+
+    /**
+     * Soft enums are registered globally by name on the client, while hard enum groups elsewhere
+     * may reuse the same first-literal name. Interning the name by the exact value set keeps it
+     * identical across command aliases, so they still deduplicate, and gives every distinct set
+     * its own name. The client only displays the values.
+     */
+    private String softEnumName(String literal, Map<String, Set<CommandEnumConstraint>> constraints) {
+        String signature = constraints.keySet().stream().sorted().collect(Collectors.joining(" "));
+        return softEnumNames.computeIfAbsent(signature, key -> literal + "_" + softEnumNames.size());
+    }
+
+    /**
+     * Bedrock rejects fixed enum values that are not lowercase ("Keywords in commands need to be
+     * lower case"), while soft enum values keep their case. Brigadier literals are case-sensitive,
+     * so the exact spelling has to survive the round trip. Vanilla BDS uses the same split.
+     */
+    private static boolean needsSoftEnum(String name) {
+        return !name.equals(name.toLowerCase(Locale.ROOT));
     }
 }

@@ -26,6 +26,7 @@
 package org.geysermc.geyser.translator.command;
 
 import com.google.common.base.Suppliers;
+import it.unimi.dsi.fastutil.objects.Object2ObjectLinkedOpenHashMap;
 import lombok.Getter;
 import lombok.ToString;
 import net.kyori.adventure.key.Key;
@@ -48,20 +49,21 @@ import org.geysermc.mcprotocollib.protocol.data.game.entity.player.GameMode;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.SwingAnimation;
 import org.geysermc.mcprotocollib.protocol.data.game.level.HeightmapTypes;
 import org.geysermc.mcprotocollib.protocol.data.game.level.particle.ParticleType;
+import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.Supplier;
-import java.util.stream.Collectors;
 
 @Getter
 @ToString
-public class ParamInfo {
+class CommandParamInfo {
     /**
      * Wait until the registries load before getting all the block names.
      */
@@ -95,8 +97,12 @@ public class ParamInfo {
     }
 
     private final CommandNode paramNode;
-    private final CommandParamData paramData;
-    private final List<ParamInfo> children;
+    private final @Nullable CommandParamData paramData;
+    private final List<CommandParamInfo> children;
+
+    CommandParamInfo(CommandNode origin) {
+        this(origin, null);
+    }
 
     /**
      * Create a new parameter info object
@@ -104,10 +110,115 @@ public class ParamInfo {
      * @param paramNode CommandNode the parameter is for
      * @param paramData The existing parameters for the command
      */
-    public ParamInfo(CommandNode paramNode, CommandParamData paramData) {
+    private CommandParamInfo(CommandNode paramNode, @Nullable CommandParamData paramData) {
         this.paramNode = paramNode;
         this.paramData = paramData;
         this.children = new ArrayList<>();
+    }
+
+    /**
+     * Build the array of all the child parameters (recursive)
+     *
+     * @param data the {@link CommandTranslationData}
+     */
+    void buildChildren(CommandTranslationData data) {
+        for (int childIndex : paramNode.getChildIndices()) {
+            CommandNode childNode = data.nodes()[childIndex];
+            if (childNode == this.paramNode) {
+                // Fixes a StackOverflowError when an argument has itself as a child
+                continue;
+            }
+            assert childNode.getName() != null : "command child node must always have a name";
+
+            // No parser -> param is a LITERAL
+            if (childNode.getParser() == null) {
+                // For literal children we try to group them in an enum,
+                // holding all literals for this level - but this means the descending nodes
+                // of the literals all have to be compatible
+
+                boolean foundOtherCompatibleChild = false;
+                for (int i = 0; i < children.size(); i++) {
+                    CommandParamInfo otherChild = children.get(i);
+                    // Check to make sure all descending nodes of this command are compatible,
+                    // otherwise, create a new overload
+                    if (isCompatible(data.nodes(), otherChild.getParamNode(), childNode)) {
+                        foundOtherCompatibleChild = true;
+
+                        CommandParamData otherParamData = Objects.requireNonNull(otherChild.getParamData(), "child parameter must always have param data");
+                        CommandEnumData otherEnumData = otherParamData.getEnumData(); // FIXME this could be null?
+
+                        Map<String, Set<CommandEnumConstraint>> newConstraints = new Object2ObjectLinkedOpenHashMap<>(otherEnumData.getValues());
+                        newConstraints.put(childNode.getName(), Set.of()); // TODO CHECK ME THE CONSTRAINTS
+
+                        children.set(i, new CommandParamInfo(otherChild.getParamNode(),
+                            createEnumParamData(data, otherParamData.getName(), newConstraints, otherEnumData.isSoft(),
+                                paramNode.isExecutable())));
+                        break;
+                    }
+                }
+
+                if (!foundOtherCompatibleChild) {
+                    // Create a new child with just this literal (it can be expanded later if any other compatible childs are found, see above)
+                    Map<String, Set<CommandEnumConstraint>> constraints = new Object2ObjectLinkedOpenHashMap<>();
+                    constraints.put(childNode.getName(), Set.of()); // TODO CHECK ME THE CONSTRAINTS
+
+                    children.add(new CommandParamInfo(childNode,
+                        createEnumParamData(data, childNode.getName(), constraints, false, paramNode.isExecutable())));
+                }
+            } else {
+                // Parser exists -> param is an ARG
+                // Which means we have to try map the parser to bedrock best as we can
+                Object mappedType = mapCommandType(data, childNode);
+
+                CommandEnumData enumData = null;
+                CommandParam type = null;
+                boolean optional = this.paramNode.isExecutable();
+                switch (mappedType) {
+                    // Likely to specify isSoft, to be possibly updated later.
+                    case CommandEnumData commandEnumData -> enumData = commandEnumData;
+                    // Our mappings returned a string array of possible values/suggestions for this argument,
+                    // put these strings in an array
+                    // TODO would this better be suited as a list?
+                    case String[] possibleValues -> {
+                        Map<String, Set<CommandEnumConstraint>> constraints = new Object2ObjectLinkedOpenHashMap<>();
+                        for (String s : possibleValues) {
+                            constraints.put(s, Set.of()); // TODO CHECK ME THE CONSTRAINTS
+                        }
+
+                        enumData = createEnumData(data, getEnumDataName(childNode), constraints, false);
+                    }
+                    // Bedrock has a similar parameter type to this parser, and we mapped it. Yay!
+                    case CommandParam specificParam -> {
+                        type = specificParam;
+
+                        // TODO CHECK ME
+                        // Bedrock throws a fit if an optional message comes after a string or target
+                        // Example vanilla commands: ban-ip, ban, and kick
+                        if (optional && type == CommandParam.MESSAGE && paramData != null && (paramData.getType() == CommandParam.STRING || paramData.getType() == CommandParam.TARGET)) {
+                            optional = false;
+                        }
+                    }
+                    default -> throw new IllegalStateException("mapCommandType returned an unexpected mapped type: " + mappedType.getClass());
+                }
+
+                // TODO executable flag?
+                // IF enumData != null:
+                // In game, this will show up like <paramNode.getName(): enumData.getName()>
+                // So if paramNode.getName() == "value" and enumData.getName() == "bool": <value: bool>
+                CommandParamData commandParamData = new CommandParamData();
+                commandParamData.setName(childNode.getName());
+                commandParamData.setOptional(optional);
+                commandParamData.setEnumData(enumData);
+                commandParamData.setType(type);
+
+                children.add(new CommandParamInfo(childNode, commandParamData));
+            }
+        }
+
+        // Recursively build all the children we just made
+        for (CommandParamInfo child : children) {
+            child.buildChildren(data);
+        }
     }
 
     /**
@@ -176,130 +287,23 @@ public class ParamInfo {
         };
     }
 
-    /**
-     * Build the array of all the child parameters (recursive)
-     *
-     * @param data the {@link CommandTranslationData}
-     */
-    public void buildChildren(CommandTranslationData data) {
-        for (int paramID : paramNode.getChildIndices()) {
-            CommandNode paramNode = data.nodes()[paramID];
-
-            if (paramNode == this.paramNode) {
-                // Fixes a StackOverflowError when an argument has itself as a child
-                continue;
-            }
-
-            if (paramNode.getParser() == null) {
-                boolean foundCompatible = false;
-                for (int i = 0; i < children.size(); i++) {
-                    ParamInfo enumParamInfo = children.get(i);
-                    // Check to make sure all descending nodes of this command are compatible - otherwise, create a new overload
-                    if (isCompatible(data.nodes(), enumParamInfo.getParamNode(), paramNode)) {
-                        foundCompatible = true;
-                        // TODO: Check this
-                        // Extend the current list of enum values
-                        // String[] enumOptions = Arrays.copyOf(enumParamInfo.getParamData().getEnumData().getValues(), enumParamInfo.getParamData().getEnumData().getValues().size() + 1);
-                        // enumOptions[enumOptions.length - 1] = paramNode.getName();
-
-                        Map<String, Set<CommandEnumConstraint>> values = new LinkedHashMap<>(enumParamInfo.getParamData().getEnumData().getValues());
-                        values.put(paramNode.getName(), Set.of());
-
-                        // Re-create the command using the updated values
-                        boolean soft = enumParamInfo.getParamData().getEnumData().isSoft() || needsSoftEnum(paramNode.getName());
-                        String enumName = soft
-                            ? softEnumName(data, enumParamInfo.getParamData().getName(), values)
-                            : enumParamInfo.getParamData().getEnumData().getName();
-                        CommandEnumData enumData = new CommandEnumData(enumName, values, soft);
-                        CommandParamData commandParamData = new CommandParamData();
-                        commandParamData.setName(enumParamInfo.getParamData().getName());
-                        commandParamData.setOptional(this.paramNode.isExecutable());
-                        commandParamData.setEnumData(enumData);
-
-                        children.set(i, new ParamInfo(enumParamInfo.getParamNode(), commandParamData));
-                        break;
-                    }
-                }
-
-                if (!foundCompatible) {
-                    // Create a new subcommand with this exact type
-                    LinkedHashMap<String, Set<CommandEnumConstraint>> map = new LinkedHashMap<>();
-                    map.put(paramNode.getName(), Set.of());
-                    boolean soft = needsSoftEnum(paramNode.getName());
-                    CommandEnumData enumData = new CommandEnumData(
-                        soft ? softEnumName(data, paramNode.getName(), map) : paramNode.getName(), map, soft);
-
-                    // On setting optional:
-                    // isExecutable is defined as a node "constitutes a valid command."
-                    // Therefore, any children of the parameter must simply be optional.
-                    CommandParamData commandParamData = new CommandParamData();
-                    commandParamData.setName(paramNode.getName());
-                    commandParamData.setOptional(this.paramNode.isExecutable());
-                    commandParamData.setEnumData(enumData);
-
-                    children.add(new ParamInfo(paramNode, commandParamData));
-                }
-            } else {
-                // Put the non-enum param into the list
-                Object mappedType = mapCommandType(data, paramNode);
-                CommandEnumData enumData = null;
-                CommandParam type = null;
-                boolean optional = this.paramNode.isExecutable();
-                if (mappedType instanceof CommandEnumData) {
-                    // Likely to specify isSoft, to be possibly updated later.
-                    enumData = (CommandEnumData) mappedType;
-                } else if (mappedType instanceof String[]) {
-                    LinkedHashMap<String, Set<CommandEnumConstraint>> map = new LinkedHashMap<>();
-                    for (String s : (String[]) mappedType) {
-                        map.put(s, Set.of());
-                    }
-
-                    enumData = new CommandEnumData(getEnumDataName(paramNode).toLowerCase(Locale.ROOT), map, false);
-                } else {
-                    type = (CommandParam) mappedType;
-                    // Bedrock throws a fit if an optional message comes after a string or target
-                    // Example vanilla commands: ban-ip, ban, and kick
-                    if (optional && type == CommandParam.MESSAGE && paramData != null && (paramData.getType() == CommandParam.STRING || paramData.getType() == CommandParam.TARGET)) {
-                        optional = false;
-                    }
-                }
-                // IF enumData != null:
-                // In game, this will show up like <paramNode.getName(): enumData.getName()>
-                // So if paramNode.getName() == "value" and enumData.getName() == "bool": <value: bool>
-                CommandParamData commandParamData = new CommandParamData();
-                commandParamData.setName(paramNode.getName());
-                commandParamData.setOptional(optional);
-                commandParamData.setEnumData(enumData);
-                commandParamData.setType(type);
-
-                children.add(new ParamInfo(paramNode, commandParamData));
-            }
-        }
-
-        // Recursively build all child options
-        for (ParamInfo child : children) {
-            child.buildChildren(data);
-        }
+    private static CommandEnumData createEnumData(CommandTranslationData data, String name, Map<String, Set<CommandEnumConstraint>> constraints,
+                                                  boolean forceSoft) {
+        Optional<String> softName = data.getSoftEnumName(name, constraints, forceSoft);
+        return new CommandEnumData(softName.orElse(name), constraints, softName.isPresent());
     }
 
-    /**
-     * Bedrock rejects fixed enum values that are not lowercase ("Keywords in commands need to be
-     * lower case"), while soft enum values keep their case. Brigadier literals are case-sensitive,
-     * so the exact spelling has to survive the round trip. Vanilla BDS uses the same split.
-     */
-    private static boolean needsSoftEnum(String literal) {
-        return !literal.equals(literal.toLowerCase(Locale.ROOT));
-    }
-
-    /**
-     * Soft enums are registered globally by name on the client, while hard enum groups elsewhere
-     * may reuse the same first-literal name. Interning the name by the exact value set keeps it
-     * identical across command aliases, so they still deduplicate, and gives every distinct set
-     * its own name. The client only displays the values.
-     */
-    private static String softEnumName(CommandTranslationData data, String literal, Map<String, Set<CommandEnumConstraint>> values) {
-        String signature = values.keySet().stream().sorted().collect(Collectors.joining(" "));
-        return data.softEnumNames().computeIfAbsent(signature, key -> literal + "_" + data.softEnumNames().size());
+    private static CommandParamData createEnumParamData(CommandTranslationData data, String name, Map<String, Set<CommandEnumConstraint>> constraints,
+                                                        boolean forceSoft, boolean executable) {
+        CommandEnumData enumData = createEnumData(data, name, constraints, forceSoft);
+        CommandParamData commandParamData = new CommandParamData();
+        commandParamData.setName(name);
+        // On setting optional:
+        // isExecutable is defined as a node "constitutes a valid command."
+        // Therefore, any children of the parameter must simply be optional. TODO is this right?
+        commandParamData.setOptional(executable);
+        commandParamData.setEnumData(enumData);
+        return commandParamData;
     }
 
     /**
@@ -348,17 +352,23 @@ public class ParamInfo {
      *
      * @return if these two can be merged into one overload.
      */
-    private boolean isCompatible(CommandNode[] allNodes, CommandNode a, CommandNode b) {
-        if (a == b) return true;
-        if (a.getParser() != b.getParser()) return false;
-        if (a.getChildIndices().length != b.getChildIndices().length) return false;
+    private boolean isCompatible(CommandNode[] allNodes, CommandNode first, CommandNode second) {
+        if (first == second) {
+            return true;
+        } else if (first.getParser() != second.getParser()) {
+            return false;
+        } else if (first.getChildIndices().length != second.getChildIndices().length) {
+            return false;
+        }
 
-        for (int i = 0; i < a.getChildIndices().length; i++) {
+        for (int childOfFirstIndex : first.getChildIndices()) {
             boolean hasSimilarity = false;
-            CommandNode a1 = allNodes[a.getChildIndices()[i]];
+            CommandNode childOfFirst = allNodes[childOfFirstIndex];
+
+            // TODO this doesn't seem entirely right...
             // Search "b" until we find a child that matches this one
-            for (int j = 0; j < b.getChildIndices().length; j++) {
-                if (isCompatible(allNodes, a1, allNodes[b.getChildIndices()[j]])) {
+            for (int childOfSecondIndex : second.getChildIndices()) {
+                if (isCompatible(allNodes, childOfFirst, allNodes[childOfSecondIndex])) {
                     hasSimilarity = true;
                     break;
                 }
@@ -368,6 +378,7 @@ public class ParamInfo {
                 return false;
             }
         }
+
         return true;
     }
 
@@ -379,23 +390,23 @@ public class ParamInfo {
     public List<CommandOverloadData> getTree() {
         List<CommandOverloadData> treeParamData = new ArrayList<>();
 
-        for (ParamInfo child : children) {
+        for (CommandParamInfo child : children) {
             // Get the tree from the child
             List<CommandOverloadData> childTree = child.getTree();
 
-            // Un-pack the tree append the child node to it and push into the list
-            for (CommandOverloadData subChildData : childTree) {
-                CommandParamData[] subChild = subChildData.getOverloads();
-                CommandParamData[] tmpTree = new CommandParamData[subChild.length + 1];
-                tmpTree[0] = child.getParamData();
-                System.arraycopy(subChild, 0, tmpTree, 1, subChild.length);
-
-                treeParamData.add(new CommandOverloadData(false, tmpTree));
-            }
-
-            // If we have no more child parameters just the child
-            if (childTree.size() == 0) {
+            if (childTree.isEmpty()) {
+                // If we have no more child parameters just the child
                 treeParamData.add(new CommandOverloadData(false, new CommandParamData[]{child.getParamData()}));
+            } else {
+                // Un-pack the tree append the child node to it and push into the list
+                for (CommandOverloadData childOfChildData : childTree) {
+                    CommandParamData[] childOfChild = childOfChildData.getOverloads();
+                    CommandParamData[] tmpTree = new CommandParamData[childOfChild.length + 1];
+                    tmpTree[0] = child.getParamData();
+                    System.arraycopy(childOfChild, 0, tmpTree, 1, childOfChild.length);
+
+                    treeParamData.add(new CommandOverloadData(false, tmpTree));
+                }
             }
         }
 

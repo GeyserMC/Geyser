@@ -26,6 +26,7 @@
 package org.geysermc.geyser.translator.command;
 
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import org.cloudburstmc.protocol.bedrock.data.command.CommandData;
 import org.cloudburstmc.protocol.bedrock.data.command.CommandEnumConstraint;
 import org.cloudburstmc.protocol.bedrock.data.command.CommandEnumData;
@@ -40,7 +41,6 @@ import org.geysermc.mcprotocollib.protocol.data.game.command.CommandType;
 
 import java.util.Collections;
 import java.util.EnumSet;
-import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
@@ -56,17 +56,16 @@ public final class CommandTranslator {
         BedrockCommandData bedrockData = new BedrockCommandData();
 
         CommandNode rootNode = data.nodes()[data.firstNodeIndex()];
-
         for (int nodeIndex : rootNode.getChildIndices()) {
-            CommandNode node = data.nodes()[nodeIndex];
+            CommandNode command = data.nodes()[nodeIndex];
 
-            BedrockCommandInfo translated = translate(data, node);
-            bedrockData.commands.computeIfAbsent(translated, $ -> new HashSet<>()).add(translated.name());
+            BedrockCommandInfo translated = translate(data, command);
+            bedrockData.commands.computeIfAbsent(translated, $ -> new ObjectOpenHashSet<>()).add(translated.name());
 
             // Add the command to the command lists - we have to use the Java name here as this is used to compare to Java commands.
-            bedrockData.knownCommands.add(node.getName());
-            if (node.isAllowsRestricted()) { // Name is a bit confusing - this is what we want
-                bedrockData.restrictedCommands.add(node.getName());
+            bedrockData.knownCommands.add(command.getName());
+            if (command.isAllowsRestricted()) { // Name is a bit confusing - this is what we want
+                bedrockData.restrictedCommands.add(command.getName());
             }
         }
 
@@ -138,14 +137,15 @@ public final class CommandTranslator {
         return bedrockCommands;
     }
 
-    private static BedrockCommandInfo translate(CommandTranslationData data, CommandNode node) {
-        assert node.getType() == CommandType.LITERAL : "origin command node must be literal";
+    private static BedrockCommandInfo translate(CommandTranslationData data, CommandNode command) {
+        assert command.getType() == CommandType.LITERAL : "origin command node must be literal";
+        assert command.getName() != null; // Because type == LITERAL
 
         // Get and parse all params
-        CommandOverloadData[] params = getParams(data, node);
+        CommandOverloadData[] params = getParams(data, command);
 
         // Insert the alias name into the command list
-        String name = node.getName().toLowerCase(Locale.ROOT);
+        String name = command.getName().toLowerCase(Locale.ROOT);
         String description = data.commandRegistry().description(name, data.locale());
 
         return new BedrockCommandInfo(name, description, params);
@@ -155,32 +155,32 @@ public final class CommandTranslator {
      * Build the command parameter array for the given command
      *
      * @param data the {@link CommandTranslationData}
-     * @param commandNode The command to build the parameters for
+     * @param command The command to build the parameters for
      * @return An array of parameter option arrays
      */
-    private static CommandOverloadData[] getParams(CommandTranslationData data, CommandNode commandNode) {
+    private static CommandOverloadData[] getParams(CommandTranslationData data, CommandNode command) {
         // Check if the command is an alias and redirect it
-        if (commandNode.getRedirectIndex().isPresent()) {
-            int redirectIndex = commandNode.getRedirectIndex().getAsInt();
+        if (command.getRedirectIndex().isPresent()) {
+            int redirectIndex = command.getRedirectIndex().getAsInt();
             // FIXME perf
-            GeyserImpl.getInstance().getLogger().debug("Redirecting command " + commandNode.getName() + " to " + data.nodes()[redirectIndex].getName());
-            commandNode = data.nodes()[redirectIndex];
+            GeyserImpl.getInstance().getLogger().debug("Redirecting command " + command.getName() + " to " + data.nodes()[redirectIndex].getName());
+            command = data.nodes()[redirectIndex];
         }
 
-        if (commandNode.getChildIndices().length >= 1) {
-            // Create the root param node and build all the children
-            ParamInfo rootParam = new ParamInfo(commandNode, null);
+        // This command has children -> extra args can be given
+        if (command.getChildIndices().length > 0) {
+            // Create the root param node and build all the children (args)
+            CommandParamInfo rootParam = new CommandParamInfo(command);
             rootParam.buildChildren(data);
 
-            List<CommandOverloadData> treeData = rootParam.getTree();
-
-            return treeData.toArray(new CommandOverloadData[0]);
+            // TODO why are we returning an array?
+            return rootParam.getTree().toArray(new CommandOverloadData[0]);
         }
 
         return new CommandOverloadData[0];
     }
 
-    private static CommandData createFakeHelpCommand() {
+    public static CommandData createFakeHelpCommand() {
         CommandEnumData aliases = new CommandEnumData("helpAliases", Map.of("help", EnumSet.of(CommandEnumConstraint.ALLOW_ALIASES)), false);
         return new CommandData("help", "", Set.of(CommandData.Flag.NOT_CHEAT), CommandPermission.ANY, aliases, Collections.emptyList(), new CommandOverloadData[0]);
     }
