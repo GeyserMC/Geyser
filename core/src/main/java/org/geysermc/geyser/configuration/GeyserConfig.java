@@ -162,11 +162,28 @@ public interface GeyserConfig {
 
         @Comment("""
             Finds this server's public address through STUN when "advertise-addresses" is empty.
-            Built-in signaling asks public STUN servers, and the external signaling service asks its own.""")
+            Built-in signaling asks public STUN servers, and the external signaling service asks its own.
+            Many firewalls drop the UDP replies STUN needs, and players then cannot connect no matter how often they retry.
+            If that happens, set this to false and "ip-discovery" to true: the public address is then looked up over HTTPS,
+            which such firewalls usually let through.
+            Hosting providers can choose either without editing the config, with "-DgeyserDiscoveryMethod=stun" or
+            "-DgeyserDiscoveryMethod=ip" on the command line.""")
         @DefaultBoolean(true)
         boolean stunDiscovery();
 
         void stunDiscovery(boolean stunDiscovery);
+
+        @Comment("""
+            Finds this server's public IPv4 address by asking a web API when "advertise-addresses" is empty and
+            "stun-discovery" is off, then advertises "<public-ip>:<port>" to connecting players, where "port" is the
+            NetherNet UDP port. Several APIs are asked in rotation, so one of them being blocked or down does not stop
+            discovery. The answer is cached in "nethernet/public-ip.json" for 6 hours, so restarts do not ask again.
+            Use this when outbound UDP is blocked and STUN cannot work, or set "-DgeyserDiscoveryMethod=ip" to choose it
+            without editing the config.""")
+        @DefaultBoolean(true)
+        boolean ipDiscovery();
+
+        void ipDiscovery(boolean ipDiscovery);
 
         @Comment("Settings for built-in signaling. Only used in the \"builtin\" and \"hybrid\" modes.")
         BuiltinConfig builtin();

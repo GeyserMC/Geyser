@@ -377,7 +377,8 @@ public class DumpInfo {
         }
 
         /**
-         * @param advertised the configured addresses. When empty, this machine's own addresses and {@code discovered}
+         * @param advertised the addresses sent to players: those in the config, or the one ip-discovery found. When
+         *                   empty, this machine's own addresses and {@code discovered}
          */
         public record Builtin(List<String> advertised, boolean stunDiscovery, List<String> discovered) {
         }

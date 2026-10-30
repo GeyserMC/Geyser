@@ -455,6 +455,30 @@ public class GeyserImpl implements GeyserApi, EventRegistrar {
             }
         }
 
+        // A hosting provider can switch how the public address is found at startup, without editing the config
+        String discoveryMethodProperty = System.getProperty("geyserDiscoveryMethod", "").trim();
+        if (!discoveryMethodProperty.isEmpty()) {
+            String method = discoveryMethodProperty.toLowerCase(Locale.ROOT);
+            if (!method.equals("default") && !stunDiscoveryProperty.isEmpty()) {
+                logger.warning("-DgeyserStunDiscovery is ignored, as -DgeyserDiscoveryMethod is set");
+            }
+            switch (method) {
+                case "default" -> logger.info("Discovery method set from system property: default, using the config");
+                case "ip", "ip-discovery" -> {
+                    config.bedrock().signaling().stunDiscovery(false);
+                    config.bedrock().signaling().ipDiscovery(true);
+                    logger.info("Discovery method set from system property: ip, so the public address is found through a web API");
+                }
+                case "stun", "stun-discovery" -> {
+                    config.bedrock().signaling().stunDiscovery(true);
+                    config.bedrock().signaling().ipDiscovery(false);
+                    logger.info("Discovery method set from system property: stun, so the public address is found through STUN");
+                }
+                default -> logger.error("Invalid discovery method from system property: " + discoveryMethodProperty
+                    + "! Use \"default\", \"ip\" or \"stun\". Defaulting to the configured discovery method.");
+            }
+        }
+
         // The explicit WebRTC port property always wins. Without it, and with only NetherNet, WebRTC is the only
         // UDP service, so it follows the UDP port property; with "both", RakNet keeps that port.
         int webrtcPort = portProperty("geyserWebrtcPort", "NetherNet (WebRTC)", logger);
