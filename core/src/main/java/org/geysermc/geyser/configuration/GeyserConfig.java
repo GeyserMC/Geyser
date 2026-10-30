@@ -531,8 +531,8 @@ public interface GeyserConfig {
         @Comment("""
                 The HAPROXY protocol speaking proxies in front of your Geyser instance, as IP addresses or subnets.
                 Listing one turns HAPROXY protocol on, so leave this empty unless you run such a proxy.
-                RakNet: only these proxies may connect, and each connection has to start with a HAPROXY header.
-                Built-in signaling: HAPROXY headers are read from these proxies. Their connections without one are still accepted.
+                Built-in signaling reads HAPROXY headers from these proxies, and still accepts their connections without one.
+                With the "both" transport, RakNet only accepts these proxies, and each connection has to start with a HAPROXY header.
                 Proxies in this list are also not affected by built-in signaling's per-address connection limit.
                 IP addresses, subnets, and links to plain text files are supported.
                 IF YOU DON'T KNOW WHAT THIS IS, DON'T TOUCH IT!""")
@@ -559,7 +559,7 @@ public interface GeyserConfig {
                 player's address, as IP addresses or subnets. Leave this empty unless you run such a relay.
                 While set, players can only reach the media port through these relays, so "advertise-addresses" under
                 "bedrock.signaling" has to name the relays, or NetherNet does not start.
-                This is separate from the two lists above, which only cover RakNet and signaling.
+                This is separate from the two lists above, which only cover signaling, and RakNet with the "both" transport.
                 IP addresses, subnets, and links to plain text files are supported.
                 IF YOU DON'T KNOW WHAT THIS IS, DON'T TOUCH IT!""")
         @AsteriskSerializer.Asterisk
