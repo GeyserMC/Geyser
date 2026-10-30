@@ -316,8 +316,8 @@ public class TextDisplayEntity extends DisplayBaseEntity {
 
         float scale = MathUtils.average(new float[]{ sx, sy }) * BEDROCK_SCALE_FACTOR; // sz doesn't affect the java scale, so don't use it
 
-        // Move the bedrock anchor to where it sits within the java text, in the java text's local space
-        int lines = PlainTextComponentSerializer.plainText().serialize(this.text).split("\n").length;
+        // Move the bedrock anchor to where it sits within the java text, in the java text's local space (Added -1 to split to not disregard intentional trailing line breaks)
+        int lines = PlainTextComponentSerializer.plainText().serialize(this.text).split("\n", -1).length;
         Vector4f anchor = Matrix4f.createRotation(getLeftRotation())
             .mul(Matrix4f.createScaling(Vector4f.from(getBaseScale(), 1)))
             .mul(Matrix4f.createRotation(getRightRotation()))
