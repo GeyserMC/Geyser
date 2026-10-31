@@ -30,6 +30,7 @@ import lombok.Setter;
 import net.kyori.adventure.text.Component;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.translator.item.TooltipStyleMarkers;
 import org.geysermc.geyser.translator.text.MessageTranslator;
 import org.geysermc.mcprotocollib.protocol.data.game.inventory.ContainerType;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentTypes;
@@ -71,6 +72,8 @@ public class AnvilContainer extends Container {
      */
     public String checkForRename(GeyserSession session, String rename) {
         String correctRename;
+        // The name field starts as the item's Bedrock name, tooltip style marker included
+        rename = TooltipStyleMarkers.strip(rename);
         newName = rename;
 
         Component originalName = getInput().getComponent(DataComponentTypes.CUSTOM_NAME);

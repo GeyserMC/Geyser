@@ -199,6 +199,16 @@ public final class ItemTranslator {
 
         Rarity rarity = Rarity.fromId(components.getOrDefault(DataComponentTypes.RARITY, 0));
         String customName = getCustomName(session, customComponents, bedrockItem, rarity.getColor(), false, false);
+
+        Key tooltipStyle = components.get(DataComponentTypes.TOOLTIP_STYLE);
+        if (tooltipStyle != null && session.getGeyser().config().gameplay().tooltipStyleMarkers() && !TooltipOptions.hideTooltip(components)) {
+            if (customName == null) {
+                // The marker needs a name to ride on
+                customName = ChatColor.RESET + ChatColor.ESCAPE + rarity.getColor() + MinecraftLocale.getLocaleString(javaItem.translationKey(), session.locale());
+            }
+            customName += TooltipStyleMarkers.marker(tooltipStyle);
+        }
+
         if (customName != null) {
             PotionContents potionContents = components.get(DataComponentTypes.POTION_CONTENTS);
             // Make custom effect information visible when shown in tooltip
