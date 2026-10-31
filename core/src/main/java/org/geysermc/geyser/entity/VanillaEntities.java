@@ -466,7 +466,7 @@ public final class VanillaEntities {
                     .type(EntityType.TEXT_DISPLAY)
                     .bedrockDefinition(BedrockEntityDefinitions.ARMOR_STAND)
                     .addTranslator(MetadataTypes.COMPONENT, TextDisplayEntity::setTextMetadata)
-                    .addTranslator(null) // Line width
+                    .addTranslator(MetadataTypes.INT, TextDisplayEntity::setLineWidth) // Line width
                     .addTranslator(MetadataTypes.INT, TextDisplayEntity::setBackgroundColor) // Background color
                     .addTranslator(MetadataTypes.BYTE, TextDisplayEntity::setTextOpacity) // Text opacity
                     .addTranslator(MetadataTypes.BYTE, TextDisplayEntity::setStyleFlags) // Bit mask

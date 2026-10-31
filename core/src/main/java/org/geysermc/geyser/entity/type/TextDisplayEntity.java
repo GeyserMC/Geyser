@@ -26,9 +26,7 @@
 package org.geysermc.geyser.entity.type;
 
 import lombok.Getter;
-import lombok.extern.slf4j.Slf4j;
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.cloudburstmc.math.imaginary.Quaternionf;
 import org.cloudburstmc.math.matrix.Matrix4f;
@@ -44,9 +42,11 @@ import org.geysermc.geyser.GeyserLogger;
 import org.geysermc.geyser.entity.VanillaEntities;
 import org.geysermc.geyser.entity.spawn.EntitySpawnContext;
 import org.geysermc.geyser.entity.type.living.ArmorStandEntity;
+import org.geysermc.geyser.text.ChatColor;
 import org.geysermc.geyser.translator.text.MessageTranslator;
 import org.geysermc.geyser.util.ColorUtils;
 import org.geysermc.geyser.util.MathUtils;
+import org.geysermc.geyser.util.SignUtils;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.EntityMetadata;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.BooleanEntityMetadata;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.ByteEntityMetadata;
@@ -54,11 +54,12 @@ import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.IntEnt
 import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
 // Note: 1.19.4 requires that the billboard is set to something in order to show, on Java Edition
-@Slf4j
 @Getter
 public class TextDisplayEntity extends DisplayBaseEntity {
 
@@ -75,10 +76,10 @@ public class TextDisplayEntity extends DisplayBaseEntity {
     private static final float BEDROCK_SCALE_FACTOR = JAVA_LINE_HEIGHT / BEDROCK_LINE_HEIGHT;
 
     /**
-     * Java anchors the text display at the bottom of its background, whereas Bedrock anchors primitive text
+     * Java anchors the text display at the bottom of its background, whereas Bedrock anchors the first line of primitive text
      * 10% of its height below the top and scales from there.
      */
-    private static final float BEDROCK_ANCHOR_HEIGHT = JAVA_LINE_HEIGHT * 0.65f;
+    private static final float BEDROCK_ANCHOR_OFFSET = JAVA_LINE_HEIGHT * 0.1f;
 
     private static final boolean DEBUG = Boolean.getBoolean("Geyser.Debug.TextDisplay");
 
@@ -91,7 +92,16 @@ public class TextDisplayEntity extends DisplayBaseEntity {
     private boolean sendUpdates = false;
 
     @Getter
-    private @NonNull Component text = Component.empty();
+    private @NonNull String unprocessedText = "";
+
+    @Getter
+    private @NonNull String text = "";
+
+    @Getter
+    private Color color = null;
+
+    @Getter
+    private int lineWidth = 200;
 
     @Getter
     private @NonNull Color backgroundColor = new Color(0, 0, 0, 40);
@@ -172,9 +182,30 @@ public class TextDisplayEntity extends DisplayBaseEntity {
     }
 
     public void setTextMetadata(EntityMetadata<Component, ?> metadata) {
-        this.text = metadata.getValue();
+        Component text = metadata.getValue();
 
+        String message;
+        Color color = null;
+
+        Set<Color> colors = ColorUtils.extractAllColors(text);
+
+        if (colors.size() < 2) {
+            message = MessageTranslator.convertNoColorMessage(text, session.locale());
+            color = colors.isEmpty() ? null : colors.iterator().next();
+        } else {
+            message = MessageTranslator.convertMessage(text, session.locale());
+        }
+
+        this.unprocessedText = message;
+        this.color = color;
+
+        processText();
         updatePrimitiveText();
+    }
+
+    public void setLineWidth(IntEntityMetadata metadata) {
+        this.lineWidth = metadata.getPrimitiveValue();
+        processText();
     }
 
     public void setBackgroundColor(IntEntityMetadata metadata) {
@@ -204,6 +235,10 @@ public class TextDisplayEntity extends DisplayBaseEntity {
         this.seeThrough = ((flags >> 2) & 0x01) == 1;
 
         updatePrimitiveText();
+    }
+
+    private void processText() {
+        this.text = postProcessText(this.unprocessedText);
     }
 
     @Override
@@ -269,21 +304,8 @@ public class TextDisplayEntity extends DisplayBaseEntity {
 
     public void updatePrimitiveText() {
         if (!sendUpdates) return;
-        // Find the message and color
-        String message;
-        Color color = null;
-
-        Set<Color> colors = ColorUtils.extractAllColors(text);
-
-        if (colors.size() < 2) {
-            message = MessageTranslator.convertNoColorMessage(text, session.locale());
-            color = colors.isEmpty() ? null : colors.iterator().next();
-        } else {
-            message = MessageTranslator.convertMessage(text, session.locale());
-        }
 
         // Calculate a matrix then extract components
-
         Matrix4f matrix = Matrix4f.IDENTITY.translate(getBaseTranslation())
             .rotate(getLeftRotation())
             .scale(Vector4f.from(getBaseScale(), 1))
@@ -316,20 +338,26 @@ public class TextDisplayEntity extends DisplayBaseEntity {
 
         float scale = MathUtils.average(new float[]{ sx, sy }) * BEDROCK_SCALE_FACTOR; // sz doesn't affect the java scale, so don't use it
 
-        // Move the bedrock anchor to where it sits within the java text, in the java text's local space (Added -1 to split to not disregard intentional trailing line breaks)
-        int lines = PlainTextComponentSerializer.plainText().serialize(this.text).split("\n", -1).length;
-        Vector4f anchor = Matrix4f.createRotation(getLeftRotation())
+        // Move the bedrock anchor to where the top line sits within the java text, in the java text's local space
+        int lines = text.split("\n", -1).length;
+        Matrix4f transform = Matrix4f.createRotation(getLeftRotation())
             .mul(Matrix4f.createScaling(Vector4f.from(getBaseScale(), 1)))
-            .mul(Matrix4f.createRotation(getRightRotation()))
-            .transform(0, BEDROCK_ANCHOR_HEIGHT * lines, 0, 1);
+            .mul(Matrix4f.createRotation(getRightRotation()));
+        Vector4f anchor = transform.transform(0, JAVA_LINE_HEIGHT * lines - BEDROCK_ANCHOR_OFFSET, 0, 1);
         translation = translation.add(anchor.getX(), anchor.getY(), anchor.getZ());
+
+        // Bedrock moves the text up by half of an unscaled line for every extra line, so undo that along the text's up axis
+        if (lines > 1) {
+            Vector4f up = transform.transform(0, 1, 0, 0).normalize().mul(BEDROCK_LINE_HEIGHT * (lines - 1) / 2);
+            translation = translation.sub(up.getX(), up.getY(), up.getZ());
+        }
 
         // I'm not even gonna pretend I know why x needs to be negative, but it does, and it works
         Vector3f rotation = Vector3f.from(-Math.toDegrees(x), Math.toDegrees(y), Math.toDegrees(z));
 
         DebugText text = new DebugText();
         text.setId(geyserId);
-        text.setText(DEBUG ? String.valueOf(geyserId) : message);
+        text.setText(DEBUG ? String.valueOf(geyserId) : this.text);
         text.setColor(
             color == null ? null :
                 new Color(
@@ -414,5 +442,77 @@ public class TextDisplayEntity extends DisplayBaseEntity {
         secondEntity.getMetadata().put(EntityDataTypes.WIDTH, 0.0f);
         secondEntity.getMetadata().put(EntityDataTypes.HEIGHT, 0.0f);
         secondEntity.getMetadata().put(EntityDataTypes.HITBOX, NbtMap.EMPTY);
+    }
+
+    private String postProcessText(String text) {
+        List<String> lines = new ArrayList<>();
+        for (String line : text.split("\n")) {
+            if (line.length() == 2 && line.startsWith(String.valueOf(ChatColor.ESCAPE))) {
+                lines.add("\u00a0");
+                continue;
+            }
+            wrapLine(line, lines);
+        }
+
+        return String.join("\n", lines);
+    }
+
+    private void wrapLine(String line, List<String> lines) {
+        String prefix = "";
+        String formatting = "";
+        boolean bold = false;
+        int start = 0;
+        int width = 0;
+
+        int lastSpace = -1;
+        String formattingAtSpace = "";
+        boolean boldAtSpace = false;
+
+        for (int i = 0; i < line.length(); i++) {
+            char c = line.charAt(i);
+            if (c == ChatColor.ESCAPE && i + 1 < line.length()) {
+                char code = Character.toLowerCase(line.charAt(++i));
+                if (code == 'r') {
+                    formatting = "";
+                    bold = false;
+                } else if (Character.digit(code, 16) != -1) {
+                    // Colors reset any other formatting
+                    formatting = ChatColor.ESCAPE + String.valueOf(code);
+                    bold = false;
+                } else {
+                    formatting += ChatColor.ESCAPE + String.valueOf(code);
+                    bold |= code == 'l';
+                }
+                continue;
+            }
+
+            if (c == ' ') {
+                lastSpace = i;
+                formattingAtSpace = formatting;
+                boldAtSpace = bold;
+            }
+
+            int charWidth = SignUtils.getCharacterWidth(c) + (bold ? 1 : 0);
+            if (width > 0 && width + charWidth > lineWidth) {
+                if (lastSpace > start) {
+                    // Break at the last space, which Java drops
+                    lines.add(prefix + line.substring(start, lastSpace));
+                    start = lastSpace + 1;
+                    formatting = formattingAtSpace;
+                    bold = boldAtSpace;
+                } else {
+                    lines.add(prefix + line.substring(start, i));
+                    start = i;
+                }
+                prefix = formatting;
+                width = 0;
+                lastSpace = -1;
+                // Rescan from the start of the new line
+                i = start - 1;
+                continue;
+            }
+            width += charWidth;
+        }
+        lines.add(prefix + line.substring(start));
     }
 }
