@@ -79,10 +79,7 @@ public class TextDisplayEntity extends DisplayBaseEntity {
      * Java anchors the text display at the bottom of its background, whereas Bedrock anchors the first line of primitive text
      * 10% of its height below the top and scales from there.
      */
-    // The vanilla Bedrock anchor offset, plus a fixed world-space correction applied
-    // through a scale-adjusted multiplier so different text scales align consistently.
-    private static final float BEDROCK_ANCHOR_BASE_MULTIPLIER = 0.1f;
-    private static final float BEDROCK_VERTICAL_CORRECTION = Float.parseFloat(System.getProperty("geyser.textDisplay.anchorMultiplier", "0.15"));;
+    private static final float BEDROCK_ANCHOR_OFFSET = JAVA_LINE_HEIGHT * 0.1f;
 
     private static final boolean DEBUG = Boolean.getBoolean("Geyser.Debug.TextDisplay");
 
@@ -346,11 +343,7 @@ public class TextDisplayEntity extends DisplayBaseEntity {
         Matrix4f transform = Matrix4f.createRotation(getLeftRotation())
             .mul(Matrix4f.createScaling(Vector4f.from(getBaseScale(), 1)))
             .mul(Matrix4f.createRotation(getRightRotation()));
-        // Compensate for the Java display's Y scale so the world-space correction
-        // remains the same at different text sizes (for example 1.2 and 1.5).
-        float yScale = Math.max(0.001f, Math.abs(getBaseScale().getY()));
-        float anchorMultiplier = BEDROCK_ANCHOR_BASE_MULTIPLIER - BEDROCK_VERTICAL_CORRECTION / (JAVA_LINE_HEIGHT * yScale);
-        Vector4f anchor = transform.transform(0, JAVA_LINE_HEIGHT * lines - JAVA_LINE_HEIGHT * anchorMultiplier, 0, 1);
+        Vector4f anchor = transform.transform(0, JAVA_LINE_HEIGHT * lines - BEDROCK_ANCHOR_OFFSET, 0, 1);
         translation = translation.add(anchor.getX(), anchor.getY(), anchor.getZ());
 
         // Bedrock moves the text up by half of an unscaled line for every extra line, so undo that along the text's up axis
@@ -453,7 +446,7 @@ public class TextDisplayEntity extends DisplayBaseEntity {
 
     private String postProcessText(String text) {
         List<String> lines = new ArrayList<>();
-        for (String line : text.split("\n")) {
+        for (String line : text.split("\n", -1)) {
             if (line.length() == 2 && line.startsWith(String.valueOf(ChatColor.ESCAPE))) {
                 lines.add("\u00a0");
                 continue;
