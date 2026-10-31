@@ -30,19 +30,44 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.api.event.lifecycle.GeyserDefineCustomMappingsEvent;
+import org.geysermc.geyser.event.type.GeyserDefineCustomMappingsEventImpl;
+import org.geysermc.geyser.util.WebUtils;
 import org.jetbrains.annotations.VisibleForTesting;
 
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStream;
+import java.net.HttpURLConnection;
+import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
+import java.util.List;
 import java.util.Optional;
 import java.util.function.BiConsumer;
 import java.util.stream.Stream;
 
 public final class MappingsConfigReader {
+    /**
+     * Mappings files from outside the custom_mappings folder, registered through {@link GeyserDefineCustomMappingsEvent}.
+     */
+    private static List<Path> registeredMappingsFiles = List.of();
 
     private MappingsConfigReader() {}
+
+    /**
+     * Collects the mappings files from the custom-mappings-urls config option and {@link GeyserDefineCustomMappingsEvent}.
+     * Must be called before custom mappings are first read.
+     */
+    public static void defineCustomMappings(GeyserImpl geyser) {
+        GeyserDefineCustomMappingsEventImpl event = new GeyserDefineCustomMappingsEventImpl();
+        for (String url : geyser.config().advanced().customMappingsUrls()) {
+            event.registerUrl(url);
+        }
+        geyser.eventBus().fire(event);
+        registeredMappingsFiles = List.copyOf(event.mappingsFiles());
+    }
 
     public static <K, V> void loadCustomMappingsFromJson(MappingsType<K, V> type, BiConsumer<K, V> consumer) {
         getCustomMappingsDirectoryAndEnsureItExists().ifPresent(customMappingsDirectory -> {
@@ -51,6 +76,55 @@ public final class MappingsConfigReader {
                 readCustomMappings(type, mappingsFile, consumer);
             }
         });
+        for (Path mappingsFile : registeredMappingsFiles) {
+            readCustomMappings(type, mappingsFile, consumer);
+        }
+    }
+
+    /**
+     * Downloads a mappings file into the remote mappings cache. The cached copy is only replaced by a download
+     * that is a mappings file, so it stays usable when the url is down or serves something else.
+     *
+     * @param url the url of the mappings file
+     * @return the cached copy, or null if the download failed and there is no cached copy
+     */
+    public static @Nullable Path downloadCustomMappings(String url) {
+        Path cacheDirectory = GeyserImpl.getInstance().getBootstrap().getConfigFolder().resolve("cache").resolve("remote_mappings");
+        Path cached = cacheDirectory.resolve(url.hashCode() + ".json");
+        Path download = cacheDirectory.resolve(url.hashCode() + ".json.download");
+        try {
+            Files.createDirectories(cacheDirectory);
+            HttpURLConnection con = (HttpURLConnection) URI.create(url).toURL().openConnection();
+            con.setConnectTimeout(10000);
+            con.setReadTimeout(10000);
+            con.setRequestProperty("User-Agent", WebUtils.getUserAgent());
+
+            int responseCode = con.getResponseCode();
+            if (responseCode >= 400) {
+                throw new IOException("Invalid response code " + responseCode);
+            }
+
+            try (InputStream in = con.getInputStream()) {
+                Files.copy(in, download, StandardCopyOption.REPLACE_EXISTING);
+            }
+            if (getMappingsRoot(download) == null) {
+                throw new IOException("Not a mappings file");
+            }
+            Files.move(download, cached, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
+            return cached;
+        } catch (IOException | RuntimeException e) {
+            try {
+                Files.deleteIfExists(download);
+            } catch (IOException ignored) {
+            }
+
+            if (Files.exists(cached)) {
+                GeyserImpl.getInstance().getLogger().warning("Failed to download custom mappings from " + url + " (" + e.getMessage() + "), using the last downloaded copy");
+                return cached;
+            }
+            GeyserImpl.getInstance().getLogger().error("Failed to download custom mappings from " + url, e);
+            return null;
+        }
     }
 
     public static Optional<Path> getCustomMappingsDirectoryAndEnsureItExists() {

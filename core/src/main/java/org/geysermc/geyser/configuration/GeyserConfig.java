@@ -703,6 +703,14 @@ public interface GeyserConfig {
             return Collections.emptyList();
         }
 
+        @Comment("""
+            A list of remote custom mappings file urls, read alongside the files in the custom_mappings folder.
+            They are downloaded on startup only. If a download fails, the last downloaded copy is used.
+            """)
+        default List<String> customMappingsUrls() {
+            return Collections.emptyList();
+        }
+
         // Cannot be type File yet because we may want to hide it in plugin instances.
         @Comment("""
             Floodgate uses encryption to ensure use from authorized sources.
