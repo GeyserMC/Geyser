@@ -67,6 +67,7 @@ import org.geysermc.geyser.registry.type.GeyserMappingItem;
 import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.registry.type.NonVanillaItemRegistration;
 import org.geysermc.geyser.util.MinecraftKey;
+import org.geysermc.geyser.util.SoundUtils;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.AttackRange;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.Consumable;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentTypes;
@@ -97,7 +98,7 @@ public class CustomItemRegistryPopulator {
         Consumable.ItemUseAnimation.DRINK, 2,
         Consumable.ItemUseAnimation.BLOCK, 3,
         Consumable.ItemUseAnimation.BOW, 4,
-        Consumable.ItemUseAnimation.SPEAR, 6,
+        Consumable.ItemUseAnimation.TRIDENT, 6,
         Consumable.ItemUseAnimation.CROSSBOW, 9,
         Consumable.ItemUseAnimation.SPYGLASS, 10,
         Consumable.ItemUseAnimation.BRUSH, 12
@@ -401,10 +402,11 @@ public class CustomItemRegistryPopulator {
         }
 
         // Bedrock doesn't really use these otherwise
-        if (throwable != null || chargeable != null || consumableComponent.isPresent()) {
+        if (throwable != null || chargeable != null || consumableComponent.isPresent() || kineticWeapon != null) {
             computeUseEffectsProperties(itemProperties, componentBuilder,
                 context.components().getOrDefault(DataComponentTypes.USE_EFFECTS, DEFAULT_USE_EFFECTS),
-                consumableComponent.map(Consumable::consumeSeconds));
+                consumableComponent.map(Consumable::consumeSeconds),
+                kineticWeapon == null || kineticWeapon.sound() == null ? null : SoundUtils.translatePlaySound(kineticWeapon.sound().getName()));
         }
 
         Unit entityPlacer = context.vanillaMapping()
@@ -709,9 +711,14 @@ public class CustomItemRegistryPopulator {
             .putFloat("damage_multiplier", 1.0F);
 
         addAttackRangeProperties(component, attackRange);
+        addKineticConditionMap(component, "damage_conditions", weapon.damageConditions());
+        addKineticConditionMap(component, "knockback_conditions", weapon.knockbackConditions());
         addKineticConditionMap(component, "dismount_conditions", weapon.dismountConditions());
 
-        componentBuilder.putCompound("minecraft:kinetic_weapon", component.build());
+        // BDS sends these nested in a second minecraft:kinetic_weapon tag, the client reads everything as 0 when they're not
+        componentBuilder.putCompound("minecraft:kinetic_weapon", NbtMap.builder()
+            .putCompound("minecraft:kinetic_weapon", component.build())
+            .build());
     }
 
     private static void computePiercingWeaponProperties(NbtMapBuilder componentBuilder, AttackRange attackRange) {
@@ -725,16 +732,19 @@ public class CustomItemRegistryPopulator {
     }
 
     private static void computeUseEffectsProperties(NbtMapBuilder itemProperties, NbtMapBuilder componentBuilder,
-                                                    UseEffects effects, Optional<Float> setUseDuration) {
+                                                    UseEffects effects, Optional<Float> setUseDuration, @Nullable String startSound) {
         float useDuration = setUseDuration.orElse(DEFAULT_ITEM_USE_DURATION);
 
         // this is the duration of the use animation in ticks; note that in behavior packs this is set as a float in seconds, but over the network it is an int in ticks
         itemProperties.putInt("use_duration", (int) (useDuration * 20));
 
-        componentBuilder.putCompound("minecraft:use_modifiers", NbtMap.builder()
+        NbtMapBuilder useModifiers = NbtMap.builder()
             .putFloat("movement_modifier", effects.speedMultiplier()) // TODO: test if this is 1-to-1 with Java, it probably isn't
-            .putFloat("use_duration", useDuration)
-            .build());
+            .putFloat("use_duration", useDuration);
+        if (startSound != null) {
+            useModifiers.putString("start_sound", startSound);
+        }
+        componentBuilder.putCompound("minecraft:use_modifiers", useModifiers.build());
     }
 
     private static NbtMapBuilder addAttackRangeProperties(NbtMapBuilder component, AttackRange attackRange) {
