@@ -465,7 +465,8 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource, Jav
     @Setter
     private Key worldName = null;
     /**
-     * As of Java 1.19.3, the client only uses these for commands.
+     * As of Java 1.19.3, the client only uses these for commands. To be fully compliant with vanilla we have to use these instead of simply
+     * grabbing the values from {@link JavaRegistries#DIMENSION_TYPE}.
      */
     @Setter
     private String[] levels;

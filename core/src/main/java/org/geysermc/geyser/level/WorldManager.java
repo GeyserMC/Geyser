@@ -26,7 +26,6 @@
 package org.geysermc.geyser.level;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
-import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.geysermc.erosion.util.BlockPositionIterator;
 import org.geysermc.geyser.level.block.type.BlockState;
@@ -133,13 +132,6 @@ public abstract class WorldManager {
      */
     public void setDifficulty(GeyserSession session, Difficulty difficulty) {
         session.sendCommandPacket("difficulty " + difficulty.name().toLowerCase(Locale.ROOT));
-    }
-
-    /**
-     * Returns a list of biome identifiers available on the server.
-     */
-    public String @Nullable [] getBiomeIdentifiers(boolean withTags) {
-        return null;
     }
 
     /**
