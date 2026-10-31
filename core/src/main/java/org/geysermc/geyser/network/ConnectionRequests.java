@@ -74,7 +74,7 @@ public final class ConnectionRequests {
             return false;
         }
 
-        String via = proxyAddress == null ? "" : "via " + (logIps ? proxyAddress : "<IP address withheld>");
+        String via = proxyAddress == null ? "" : "via " + (logIps ? proxyAddress : "<Proxy IP address withheld>");
         String detail = String.join(" ", source == null ? "" : source, via).trim();
         geyser.getLogger().debug(GeyserLocale.getLocaleStringLog("geyser.network.attempt_connect", ip)
                 + (detail.isEmpty() ? "" : " (" + detail + ")"));
