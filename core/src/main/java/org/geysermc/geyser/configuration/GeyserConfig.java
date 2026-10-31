@@ -556,6 +556,17 @@ public interface GeyserConfig {
         }
 
         @Comment("""
+                Whether to also read HAPROXY protocol v2 headers on built-in signaling's NetherNet (WebRTC) traffic, from the
+                proxies listed in "haproxy-protocol-whitelisted-ips". Needs "use-haproxy-protocol", and "advertise-addresses"
+                set to the address players reach your proxy at.
+                Enable this only if your proxy relays NetherNet traffic and adds a header to it. Players who join through a
+                signaling relay, such as Xbox friend joins, then keep their own address.
+                While enabled, NetherNet connections are only accepted through those proxies.
+                IF YOU DON'T KNOW WHAT THIS IS, DON'T TOUCH IT!""")
+        @DefaultBoolean
+        boolean useHaproxyProtocolWebrtc();
+
+        @Comment("""
                 A list of reverse proxy addresses (for example, an HTTP load balancer) in front of built-in signaling.
                 Built-in signaling reads the player's real address from the "X-Forwarded-For" header, and does not apply
                 its per-address connection limit to them for all listed proxies. This is separate from HAPROXY protocol.
