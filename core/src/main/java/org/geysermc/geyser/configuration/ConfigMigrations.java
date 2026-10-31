@@ -228,7 +228,23 @@ public class ConfigMigrations {
                     new Object[]{ "bedrock", "signaling", "stun-discovery" })
                 .build())
             // Listing HAProxy proxies turns the protocol on, so its switch is gone
-            .addVersion(12, ConfigurationTransformation.builder()
+            .addVersion(12, ConfigurationTransformation.chain(ConfigurationTransformation.builder()
+                // Built-in signaling's proxies used to always give the player's address due to a bug, so configs with one keep that.
+                // Runs before the switch is folded into the list, as it reads the switch.
+                .addAction(path("advanced", "bedrock"), (path, value) -> {
+                    ConfigurationNode prefer = value.node("prefer-signaling-proxy-address");
+                    if (!prefer.virtual()) {
+                        return null;
+                    }
+                    boolean haproxy = value.node("use-haproxy-protocol").getBoolean(false)
+                        && !value.node("haproxy-protocol-whitelisted-ips").getList(String.class, List.of()).isEmpty();
+                    boolean trusted = !value.node("signaling-trusted-proxies").getList(String.class, List.of()).isEmpty();
+                    if (haproxy || trusted) {
+                        prefer.set(true);
+                    }
+                    return null;
+                })
+                .build(), ConfigurationTransformation.builder()
                 .addAction(path("advanced", "bedrock", "use-haproxy-protocol"), (path, value) -> {
                     ConfigurationNode proxies = value.parent().node("haproxy-protocol-whitelisted-ips");
                     // A comment naming the removed switch is stale, so the current one is written instead.
@@ -262,7 +278,7 @@ public class ConfigMigrations {
                     // The value itself is moved by the config loader, which also sees overrides
                     return null;
                 })
-                .build())
+                .build()))
         .build();
 
     /**

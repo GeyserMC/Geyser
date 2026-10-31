@@ -37,6 +37,7 @@ import java.io.StringReader;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.contains;
@@ -94,5 +95,34 @@ class ConfigMigrationsTest {
         assertTrue(bedrock.node("use-haproxy-protocol").virtual());
         assertEquals(List.of(), proxies(bedrock));
         verify(logger).warning(contains("\"use-haproxy-protocol\" has been removed"));
+    }
+
+    private static boolean prefersProxyAddress(ConfigurationNode bedrock) {
+        return bedrock.node("prefer-signaling-proxy-address").getBoolean(false);
+    }
+
+    @Test
+    void haproxyProxiesKeepTheirAddress() throws Exception {
+        ConfigurationNode bedrock = bedrock("    use-haproxy-protocol: true\n    haproxy-protocol-whitelisted-ips:\n    - 10.0.0.0/8\n");
+        assertTrue(prefersProxyAddress(bedrock));
+    }
+
+    @Test
+    void trustedProxiesKeepTheirAddress() throws Exception {
+        ConfigurationNode bedrock = bedrock("    signaling-trusted-proxies:\n    - 10.0.0.1\n");
+        assertTrue(prefersProxyAddress(bedrock));
+    }
+
+    @Test
+    void ignoredOrMissingProxiesDoNotPreferTheirAddress() throws Exception {
+        assertFalse(prefersProxyAddress(bedrock("    use-haproxy-protocol: false\n    haproxy-protocol-whitelisted-ips:\n    - 10.0.0.0/8\n")));
+        assertFalse(prefersProxyAddress(bedrock("    use-haproxy-protocol: true\n")));
+        assertFalse(prefersProxyAddress(bedrock("    compression-level: 6\n")));
+    }
+
+    @Test
+    void anExplicitChoiceStays() throws Exception {
+        ConfigurationNode bedrock = bedrock("    signaling-trusted-proxies:\n    - 10.0.0.1\n    prefer-signaling-proxy-address: false\n");
+        assertFalse(prefersProxyAddress(bedrock));
     }
 }
