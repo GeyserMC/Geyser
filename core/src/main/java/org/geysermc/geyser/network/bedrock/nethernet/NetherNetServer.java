@@ -43,7 +43,6 @@ import org.cloudburstmc.netty.signaling.ServerStatus;
 import org.cloudburstmc.netty.signaling.provider.NativeProviderHostFactory;
 import org.cloudburstmc.netty.signaling.provider.ProviderRuntimeConfiguration;
 import org.cloudburstmc.netty.signaling.provider.ProviderShutdown;
-import org.cloudburstmc.netty.util.nethernet.IpRangeSet;
 import org.cloudburstmc.netty.util.nethernet.NetherNetLogging;
 import org.cloudburstmc.netty.util.nethernet.OperatorIdentity;
 import org.cloudburstmc.netty.util.nethernet.SecretValue;
@@ -76,7 +75,9 @@ import java.nio.file.Path;
 import java.nio.file.attribute.PosixFilePermissions;
 import java.time.Instant;
 import java.util.Arrays;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Random;
@@ -87,6 +88,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.function.Supplier;
+import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
 /**
@@ -102,6 +104,14 @@ public final class NetherNetServer implements EventRegistrar {
      */
     private static final List<String> DEFAULT_STUN_SERVERS =
         List.of("stun:stun.cloudflare.com:3478", "stun:stun.l.google.com:19302");
+    /**
+     * Comma separated "Name: value" headers that built-in signaling adds to every response. A part that does not
+     * start with a header name and a colon carries on the value before it, as in "Cache-Control: no-cache, no-store",
+     * and a name given twice joins its values. Environment only, as only hosts set it.
+     */
+    public static final String ADDITIONAL_HEADERS_ENV = "GEYSER_ADDITIONAL_HEADERS";
+    /** The characters a header name may have, so a colon inside a value does not start one. */
+    private static final Pattern HEADER_NAME = Pattern.compile("[!#$%&'*+.^_`|~0-9A-Za-z-]+");
     /**
      * Holds the provider's link for the operator, in the data folder.
      */
@@ -201,7 +211,8 @@ public final class NetherNetServer implements EventRegistrar {
             LibDataChannelArchDetect.initialize();
         } catch (LinkageError e) {
             logger().error("NetherNet is not available on " + System.getProperty("os.name") + " (" + System.getProperty("os.arch") + "). " +
-                "Bedrock players can still join over RakNet: set \"transport\" in the \"bedrock\" section of the config to \"raknet\".", e);
+                "Bedrock players can still join over RakNet: set \"transport\" in the \"bedrock\" section of the config to \"both\", " +
+                "with \"webrtc-port\" set to a port of its own.", e);
             return;
         }
 
@@ -218,26 +229,53 @@ public final class NetherNetServer implements EventRegistrar {
         geyser.eventBus().subscribe(this, SessionJoinEvent.class, this::onSessionJoin);
         geyser.eventBus().subscribe(this, SessionDisconnectEventImpl.class, event -> refreshProviderStatus());
 
-        // TODO TEST hybrid: both use UDP on the WebRTC port. They should share it through libjuice's in-process ICE mux,
-        //  where the provider's listener takes unknown requests and inbuilt connections attach as agents; this relies on both
-        //  binding the same address (inbuilt ICE leaves a wildcard address unset, the provider passes it explicitly).
         List<String> advertised = advertisedAddresses();
+        // A front can rewrite built-in signaling's answers to name the relays, which network warns about when it
+        // binds, but nothing can for NXS
+        if (provider && advertised.isEmpty() && !geyser.config().advanced().bedrock().webrtcProxyProtocolRelays().isEmpty()) {
+            // Without built-in signaling, nothing else is left to start
+            logger().error((inbuilt ? "External signaling" : "NetherNet") + " will not start! \"webrtc-proxy-protocol-relays\" is set, "
+                + "so \"advertise-addresses\" under \"bedrock.signaling\" has to name the relays players reach this server through.");
+            provider = false;
+        }
+        warnIfBuiltinSettingsUnused(inbuilt);
         if (inbuilt) startInbuilt(advertised);
         if (provider) startProvider(advertised);
     }
 
+    /** Settings only built-in signaling uses, the proxy address one also needing a proxy in one of its lists. */
+    private void warnIfBuiltinSettingsUnused(boolean inbuilt) {
+        String additionalHeaders = System.getenv(ADDITIONAL_HEADERS_ENV);
+        if (!inbuilt && additionalHeaders != null && !additionalHeaders.isBlank()) {
+            logger().warning(ADDITIONAL_HEADERS_ENV + " is ignored, as built-in signaling is not running.");
+        }
+        GeyserConfig.AdvancedBedrockConfig advanced = geyser.config().advanced().bedrock();
+        if (!advanced.preferSignalingProxyAddress()) {
+            return;
+        }
+        if (!inbuilt) {
+            logger().warning("\"prefer-signaling-proxy-address\" does nothing, as built-in signaling is not running.");
+        } else if (advanced.haproxyProtocolWhitelistedIps().isEmpty() && advanced.signalingTrustedProxies().isEmpty()) {
+            logger().warning("\"prefer-signaling-proxy-address\" does nothing, as neither \"haproxy-protocol-whitelisted-ips\" "
+                + "nor \"signaling-trusted-proxies\" lists a proxy in front of built-in signaling.");
+        }
+    }
+
     private void startInbuilt(List<String> advertised) {
         GeyserConfig.SignalingConfig.BuiltinConfig builtin = config.builtin();
+        GeyserConfig.AdvancedBedrockConfig advanced = geyser.config().advanced().bedrock();
         NetherNetHTTPServerSignaling.Builder signalingBuilder = new NetherNetHTTPServerSignaling.Builder();
         try {
-            // Configured addresses already say what STUN would find, and network refuses both
-            boolean stun = advertised.isEmpty() && config.stunDiscovery();
+            // Configured addresses already say what STUN would find, and network refuses both. Behind relays,
+            // STUN and the bound address name this host, which players cannot reach
+            boolean relayed = !advanced.webrtcProxyProtocolRelays().isEmpty();
+            boolean stun = advertised.isEmpty() && config.stunDiscovery() && !relayed;
             if (!stun && System.getProperty("geyserStunServers") != null) {
-                logger().warning("-DgeyserStunServers is ignored, as "
-                    + (config.stunDiscovery() ? "\"advertise-addresses\" is set" : "\"stun-discovery\" is off"));
+                logger().warning("-DgeyserStunServers is ignored, as " + (!config.stunDiscovery() ? "\"stun-discovery\" is off"
+                    : !advertised.isEmpty() ? "\"advertise-addresses\" is set" : "\"webrtc-proxy-protocol-relays\" is set"));
             }
             List<String> stunServers = stun ? stunServers() : List.of();
-            if (advertised.isEmpty() && stunServers.isEmpty()) {
+            if (advertised.isEmpty() && stunServers.isEmpty() && !relayed) {
                 advertised = boundAddress(geyser.config().bedrock());
             }
             signalingBuilder.setAdvertisedAddresses(advertised);
@@ -247,6 +285,19 @@ public final class NetherNetServer implements EventRegistrar {
                 throw new IllegalArgumentException("Invalid entry in -DgeyserStunServers: " + e.getMessage(), e);
             }
             builtinStun = !stunServers.isEmpty();
+            String additionalHeaders = System.getenv(ADDITIONAL_HEADERS_ENV);
+            if (additionalHeaders != null) {
+                try {
+                    Map<String, String> headers = responseHeaders(additionalHeaders);
+                    signalingBuilder.setResponseHeaders(headers);
+                    if (!headers.isEmpty()) {
+                        logger().info("Signaling response headers set from environment variable " + ADDITIONAL_HEADERS_ENV + ": "
+                            + String.join(", ", headers.keySet()));
+                    }
+                } catch (IllegalArgumentException e) {
+                    throw new IllegalArgumentException("Invalid entry in " + ADDITIONAL_HEADERS_ENV + ": " + e.getMessage(), e);
+                }
+            }
         } catch (IllegalArgumentException e) {
             logger().error("Built-in signaling will not start! " + e.getMessage());
             return;
@@ -269,10 +320,8 @@ public final class NetherNetServer implements EventRegistrar {
             signalingBuilder
                     .setIdentity(identity)
                     .setForwardedForProxies(TrustedProxies.parse(geyser.config().advanced().bedrock().signalingTrustedProxies()))
-                    // The same HAProxy settings RakNet uses, applied to the TCP listener
-                    .setProxyProtocolProxies(geyser.config().advanced().bedrock().useHaproxyProtocol()
-                            ? TrustedProxies.parse(geyser.config().advanced().bedrock().haproxyProtocolWhitelistedIps())
-                            : IpRangeSet.empty())
+                    // The same HAProxy proxies RakNet takes, applied to the TCP listener
+                    .setProxyProtocolProxies(TrustedProxies.parse(geyser.config().advanced().bedrock().haproxyProtocolWhitelistedIps()))
                     // Behind a proxy the peer is the proxy, signing its own assertion. The same
                     // setting already accepts the login chain it forwards
                     .setTokenTrust(geyser.config().advanced().bedrock().validateBedrockLogin()
@@ -319,6 +368,9 @@ public final class NetherNetServer implements EventRegistrar {
             ServerBootstrap b = new ServerBootstrap();
             b.group(inbuiltEventLoopGroup)
                     .channelFactory(NetherNetChannelFactory.server(signaling))
+                    .option(NetherChannelOption.NETHER_SERVER_PROXY_PROTOCOL,
+                            TrustedProxies.parse(geyser.config().advanced().bedrock().webrtcProxyProtocolRelays()))
+                    .option(NetherChannelOption.NETHER_SERVER_PREFER_PROXIED_ADDRESS, advanced.preferSignalingProxyAddress())
                     .childHandler(inbuiltInitialiser);
             if (separateIcePort) {
                 b.option(NetherChannelOption.NETHER_SERVER_ICE_ADDRESS, new InetSocketAddress(listener.address(), webrtcPort));
@@ -415,13 +467,35 @@ public final class NetherNetServer implements EventRegistrar {
         return entries.map(String::trim).filter(address -> !address.isEmpty()).distinct().toList();
     }
 
+    /** Parses {@link #ADDITIONAL_HEADERS_ENV}. Network validates the names and values. */
+    static Map<String, String> responseHeaders(String entries) {
+        Map<String, String> headers = new LinkedHashMap<>();
+        String name = null;
+        for (String entry : entries.split(",")) {
+            if (entry.isBlank()) {
+                continue;
+            }
+            int colon = entry.indexOf(':');
+            String value = entry;
+            if (colon >= 0 && HEADER_NAME.matcher(entry.substring(0, colon).trim()).matches()) {
+                name = entry.substring(0, colon).trim();
+                value = entry.substring(colon + 1);
+            } else if (name == null) {
+                throw new IllegalArgumentException("\"" + entry.trim() + "\" is not \"Name: value\"");
+            }
+            headers.merge(name, value.trim(), (joined, more) -> joined.isEmpty() ? more : joined + ", " + more);
+        }
+        return headers;
+    }
+
     private void startProvider(List<String> advertised) {
         providerStart = CompletableFuture.runAsync(() -> {
             ProviderStateStore store = null;
             ProviderTransport initializingTransport = null;
             try {
                 BedrockListener listener = geyser.config().bedrock();
-                ProviderRuntimeConfiguration runtime = ProviderRuntimeConfiguration.resolve(providerSettings(config, advertised, geyser.config().advanced().nxs()),
+                ProviderRuntimeConfiguration runtime = ProviderRuntimeConfiguration.resolve(providerSettings(config, advertised, geyser.config().advanced().nxs(),
+                    geyser.config().advanced().bedrock().webrtcProxyProtocolRelays()),
                     dataFolder, listener.address(), webrtcPort, collectServerStatus().maxPlayerCount());
                 URI origin = runtime.origin();
                 var statePath = runtime.stateDirectory();
@@ -498,7 +572,8 @@ public final class NetherNetServer implements EventRegistrar {
      */
     public static ProviderRuntimeConfiguration.Settings providerSettings(GeyserConfig.SignalingConfig signaling,
                                                                          List<String> advertised,
-                                                                         GeyserConfig.AdvancedNxsConfig advanced) throws IOException {
+                                                                         GeyserConfig.AdvancedNxsConfig advanced,
+                                                                         List<String> webrtcRelays) throws IOException {
         GeyserConfig.SignalingConfig.NxsConfig nxs = signaling.nxs();
         ProviderClient.Location location;
         try {
@@ -516,6 +591,7 @@ public final class NetherNetServer implements EventRegistrar {
             .location(location)
             .bedrockProtocols(bedrockProtocols())
             .gameOutcomes(true)
+            .proxyProtocolRelays(TrustedProxies.parse(webrtcRelays))
             .build();
     }
 

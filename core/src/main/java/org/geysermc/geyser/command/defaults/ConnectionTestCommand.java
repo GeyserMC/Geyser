@@ -150,10 +150,16 @@ public class ConnectionTestCommand extends GeyserCommand {
             source.sendMessage("The address specified in `bedrock` `address` is not \"0.0.0.0\" - this may cause issues unless this is deliberate and intentional.");
         }
 
-        // Issue: did someone turn on enable-proxy-protocol, and they didn't mean it?
-        if (config.advanced().bedrock().useHaproxyProtocol()) {
-            source.sendMessage("You have the `use-haproxy-protocol` setting enabled. " +
-                    "Unless you're deliberately using additional software that REQUIRES this setting, you may not need it enabled.");
+        // Issue: did someone list HAProxy proxies, and they didn't mean it?
+        if (!config.advanced().bedrock().haproxyProtocolWhitelistedIps().isEmpty()) {
+            source.sendMessage("You have proxies listed in the `haproxy-protocol-whitelisted-ips` setting, which turns HAProxy protocol on. " +
+                    "Unless you're deliberately using additional software that REQUIRES this setting, you may not need it.");
+        }
+
+        // Issue: did someone list WebRTC relays, and they didn't mean it?
+        if (!config.advanced().bedrock().webrtcProxyProtocolRelays().isEmpty()) {
+            source.sendMessage("You have relays listed in the `webrtc-proxy-protocol-relays` setting, so players can only reach NetherNet through them. " +
+                    "Unless you're deliberately using additional software that REQUIRES this setting, you may not need it.");
         }
 
         CompletableFuture.runAsync(() -> {
