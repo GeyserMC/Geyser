@@ -25,6 +25,7 @@
 
 package org.geysermc.geyser.translator.command;
 
+import it.unimi.dsi.fastutil.objects.Object2ObjectLinkedOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import org.cloudburstmc.protocol.bedrock.data.command.CommandData;
@@ -41,7 +42,6 @@ import org.geysermc.mcprotocollib.protocol.data.game.command.CommandType;
 
 import java.util.Collections;
 import java.util.EnumSet;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -58,15 +58,7 @@ public final class CommandTranslator {
         CommandNode rootNode = data.nodes()[data.firstNodeIndex()];
         for (int nodeIndex : rootNode.getChildIndices()) {
             CommandNode command = data.nodes()[nodeIndex];
-
-            BedrockCommandInfo translated = translate(data, command);
-            bedrockData.commands.computeIfAbsent(translated, $ -> new ObjectOpenHashSet<>()).add(translated.name());
-
-            // Add the command to the command lists - we have to use the Java name here as this is used to compare to Java commands.
-            bedrockData.knownCommands.add(command.getName());
-            if (command.isAllowsRestricted()) { // Name is a bit confusing - this is what we want
-                bedrockData.restrictedCommands.add(command.getName());
-            }
+            translate(data, bedrockData, command);
         }
 
         ServerDefineCommandsEvent event = data.fireConnectionEvent(connection -> new ServerDefineCommandsEvent(connection, bedrockData.commands.keySet()));
@@ -87,21 +79,27 @@ public final class CommandTranslator {
         // These are the final commands sent to bedrock
         List<CommandData> bedrockCommands = new ObjectArrayList<>();
 
-        // Loop through all the found commands
-        for (Map.Entry<BedrockCommandInfo, Set<String>> entry : bedrockData.commands.entrySet()) {
-            String commandName = entry.getValue().iterator().next(); // We know this has a value
+        // Loop through all the found commands, constructing a CommandData entry for each of them
+        // These are the final entries sent to bedrock
+        for (Map.Entry<BedrockCommandInfo, Set<String>> translation : bedrockData.commands.entrySet()) {
+            BedrockCommandInfo commandInfo = translation.getKey();
+            Set<String> aliasNames = translation.getValue();
 
-            LinkedHashMap<String, Set<CommandEnumConstraint>> values = new LinkedHashMap<>();
-            // Is this right?
-            for (String s : entry.getValue()) {
-                values.put(s, EnumSet.of(CommandEnumConstraint.ALLOW_ALIASES));
-            }
+            String commandName = commandInfo.name();
 
-            // Create a basic alias
-            CommandEnumData aliases = new CommandEnumData(commandName + "Aliases", values, false);
+            Map<String, Set<CommandEnumConstraint>> aliasConstraints = new Object2ObjectLinkedOpenHashMap<>();
+            // Command name itself has to be an alias too, the first presumably
+            aliasConstraints.put(commandName, Set.of());
+            // Register all the similar commands we found as alias
+            aliasNames.forEach(alias -> aliasConstraints.put(alias, Set.of()));
+            // Finally, also add Java's explicit redirects as alias, if there were any
+            bedrockData.redirects.getOrDefault(commandName, Set.of()).forEach(redirect -> aliasConstraints.put(redirect, Set.of()));
+
+            // Create the aliases enum
+            CommandEnumData aliases = new CommandEnumData(commandName + "Aliases", aliasConstraints, false);
 
             // Fetch command description
-            String description = entry.getKey().description();
+            String description = commandInfo.description();
 
             // Command suggestion list is illegible if a command description contains line breaks
             int lineBreak = description.indexOf('\n');
@@ -117,7 +115,7 @@ public final class CommandTranslator {
             }
 
             // Build the completed command and add it to the final list
-            CommandData bedrockCommand = new CommandData(commandName, description, flags, CommandPermission.ANY, aliases, Collections.emptyList(), entry.getKey().paramData());
+            CommandData bedrockCommand = new CommandData(commandName, description, flags, CommandPermission.ANY, aliases, Collections.emptyList(), commandInfo.paramData());
             bedrockCommands.add(bedrockCommand);
 
             if (commandName.equals("help")) {
@@ -137,18 +135,32 @@ public final class CommandTranslator {
         return bedrockCommands;
     }
 
-    private static BedrockCommandInfo translate(CommandTranslationData data, CommandNode command) {
+    private static void translate(CommandTranslationData data, BedrockCommandData bedrockData, CommandNode command) {
         assert command.getType() == CommandType.LITERAL : "origin command node must be literal";
         assert command.getName() != null; // Because type == LITERAL
 
-        // Get and parse all params
+        // Add the command to the command lists - we have to use the Java name here as this is used to compare to Java commands.
+        bedrockData.knownCommands.add(command.getName());
+        if (command.isAllowsRestricted()) { // Name is a bit confusing - this is what we want
+            bedrockData.restrictedCommands.add(command.getName());
+        }
+
+        String bedrockName = command.getName().toLowerCase(Locale.ROOT);
+        String description = data.commandRegistry().description(bedrockName, data.locale());
+
+        // Redirect origin node -> this command is an alias of another command
+        if (command.getRedirectIndex().isPresent()) {
+            // TODO this will break if the redirect isn't to another origin
+            CommandNode destination = data.nodes()[command.getRedirectIndex().orElseThrow()];
+            assert destination.getName() != null : "redirect destination node must have a name";
+            // destination name to lower case as for all bedrock command names
+            bedrockData.redirects.computeIfAbsent(destination.getName().toLowerCase(Locale.ROOT), $ -> new ObjectOpenHashSet<>()).add(bedrockName);
+            return;
+        }
+
         CommandOverloadData[] params = getParams(data, command);
-
-        // Insert the alias name into the command list
-        String name = command.getName().toLowerCase(Locale.ROOT);
-        String description = data.commandRegistry().description(name, data.locale());
-
-        return new BedrockCommandInfo(name, description, params);
+        BedrockCommandInfo bedrockCommandInfo = new BedrockCommandInfo(bedrockName, description, params);
+        bedrockData.commands.computeIfAbsent(bedrockCommandInfo, $ -> new ObjectOpenHashSet<>()).add(bedrockName);
     }
 
     /**
@@ -161,10 +173,12 @@ public final class CommandTranslator {
     private static CommandOverloadData[] getParams(CommandTranslationData data, CommandNode command) {
         // Check if the command is an alias and redirect it
         if (command.getRedirectIndex().isPresent()) {
-            int redirectIndex = command.getRedirectIndex().getAsInt();
+            throw new IllegalStateException("Can't translate a redirect");
+            // FIXME can be removed?
+            /*int redirectIndex = command.getRedirectIndex().getAsInt();
             // FIXME perf
             GeyserImpl.getInstance().getLogger().debug("Redirecting command " + command.getName() + " to " + data.nodes()[redirectIndex].getName());
-            command = data.nodes()[redirectIndex];
+            command = data.nodes()[redirectIndex];*/
         }
 
         // This command has children -> extra args can be given

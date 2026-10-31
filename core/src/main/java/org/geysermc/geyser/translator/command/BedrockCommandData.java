@@ -27,6 +27,7 @@ package org.geysermc.geyser.translator.command;
 
 import it.unimi.dsi.fastutil.Hash;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenCustomHashMap;
+import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import org.cloudburstmc.protocol.bedrock.data.command.CommandParamData;
 
@@ -55,6 +56,9 @@ final class BedrockCommandData {
                 // https://github.com/GeyserMC/Geyser/issues/2573
                 return false;
             }
+            // Only aliases of one command may merge. Without this, Spigot's description-less
+            // plugin commands all merge with each other on their shared <args: string> overload
+            // if (!a.aliasKey().equals(b.aliasKey())) return false; // FIXME
             if (!a.description().equals(b.description())) return false;
             if (a.paramData().length != b.paramData().length) return false;
             for (int i = 0; i < a.paramData().length; i++) {
@@ -71,6 +75,8 @@ final class BedrockCommandData {
     };
 
     final Map<BedrockCommandInfo, Set<String>> commands = new Object2ObjectOpenCustomHashMap<>(PARAM_STRATEGY);
+    // Java aliases
+    final Map<String, Set<String>> redirects = new Object2ObjectOpenHashMap<>();
 
     // These 2 are technically Java properties, but they're in this context as they're registered post-translation
     final Set<String> knownCommands = new ObjectOpenHashSet<>();
