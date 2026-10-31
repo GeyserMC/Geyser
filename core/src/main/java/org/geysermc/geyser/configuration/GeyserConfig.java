@@ -529,7 +529,7 @@ public interface GeyserConfig {
         int compressionLevel();
 
         @Comment("""
-                The HAPROXY protocol speaking proxies in front of your Geyser instance, as IP addresses or subnets.
+                A list of HAPROXY protocol speaking proxies in front of your Geyser instance.
                 Listing one turns HAPROXY protocol on, so leave this empty unless you run such a proxy.
                 Built-in signaling reads HAPROXY headers from these proxies, and still accepts their connections without one.
                 With the "both" transport, RakNet only accepts these proxies, and each connection has to start with a HAPROXY header.

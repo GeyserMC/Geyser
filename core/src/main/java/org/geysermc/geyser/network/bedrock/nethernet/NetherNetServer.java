@@ -210,9 +210,9 @@ public final class NetherNetServer implements EventRegistrar {
             // Picks this platform's WebRTC library out of the ones bundled for every platform
             LibDataChannelArchDetect.initialize();
         } catch (LinkageError e) {
-            logger().error("NetherNet is not available on " + System.getProperty("os.name") + " (" + System.getProperty("os.arch") + "). " +
-                "Bedrock players can still join over RakNet: set \"transport\" in the \"bedrock\" section of the config to \"both\", " +
-                "with \"webrtc-port\" set to a port of its own.", e);
+            logger().error("NetherNet will not start! Could not load its WebRTC native library on " + System.getProperty("os.name")
+                + " (" + System.getProperty("os.arch") + "): " + e.getMessage() + ". This usually means a system library it depends on "
+                + "is not installed, or that it is not built for this platform.", e);
             return;
         }
 
