@@ -82,7 +82,7 @@ public class TextDisplayEntity extends DisplayBaseEntity {
     // The vanilla Bedrock anchor offset, plus a fixed world-space correction applied
     // through a scale-adjusted multiplier so different text scales align consistently.
     private static final float BEDROCK_ANCHOR_BASE_MULTIPLIER = 0.1f;
-    private static final float BEDROCK_VERTICAL_CORRECTION = 0.1575f;
+    private static final float BEDROCK_VERTICAL_CORRECTION = Float.parseFloat(System.getProperty("geyser.textDisplay.anchorMultiplier", "0.15"));;
 
     private static final boolean DEBUG = Boolean.getBoolean("Geyser.Debug.TextDisplay");
 
