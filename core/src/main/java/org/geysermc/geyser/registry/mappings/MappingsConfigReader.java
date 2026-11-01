@@ -27,6 +27,7 @@ package org.geysermc.geyser.registry.mappings;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonParseException;
 import com.google.gson.JsonParser;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.GeyserImpl;
@@ -102,7 +103,13 @@ public final class MappingsConfigReader {
         }
 
         // getMappingsRoot makes sure format_version exists
-        int formatVersion = mappingsRoot.get("format_version").getAsInt();
+        int formatVersion;
+        try {
+            formatVersion = mappingsRoot.get("format_version").getAsInt();
+        } catch (RuntimeException e) {
+            GeyserImpl.getInstance().getLogger().error("Mappings file " + file + " has an invalid format version (" + mappingsRoot.get("format_version") + ")");
+            return;
+        }
         MappingsReader<K, V> reader = type.readers().getOrDefault(formatVersion, null);
         if (reader == null) {
             GeyserImpl.getInstance().getLogger().error("Mappings file " + file + " has an unsupported format version (" + formatVersion + ") for " + type.name() + " mappings");
@@ -112,14 +119,20 @@ public final class MappingsConfigReader {
     }
 
     private static @Nullable JsonObject getMappingsRoot(Path file) {
-        JsonObject mappingsRoot;
+        JsonElement root;
         try (FileReader reader = new FileReader(file.toFile())) {
-            mappingsRoot = (JsonObject) new JsonParser().parse(reader);
-        } catch (IOException e) {
+            root = new JsonParser().parse(reader);
+        } catch (IOException | JsonParseException e) {
             GeyserImpl.getInstance().getLogger().error("Failed to read custom mapping file: " + file, e);
             return null;
         }
 
+        if (!root.isJsonObject()) {
+            GeyserImpl.getInstance().getLogger().error("Mappings file " + file + " is not a JSON object!");
+            return null;
+        }
+
+        JsonObject mappingsRoot = root.getAsJsonObject();
         if (!mappingsRoot.has("format_version")) {
             GeyserImpl.getInstance().getLogger().error("Mappings file " + file + " is missing the format version field!");
             return null;
