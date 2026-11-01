@@ -68,7 +68,7 @@ public class CustomBiomeRegistryPopulatorTest {
             GeyserConfig.GameplayConfig gameplay = context.mock(GeyserConfig.GameplayConfig.class);
             when(context.mockOrSpy(GeyserConfig.class).gameplay()).thenReturn(gameplay);
             when(gameplay.enableCustomContent()).thenReturn(true);
-            GeyserEventBus eventBus = (GeyserEventBus) geyser.eventBus();
+            GeyserEventBus eventBus = geyser.eventBus();
             when(geyser.getEventBus()).thenReturn(eventBus);
 
             GeyserDefineCustomBiomesEvent[] captured = new GeyserDefineCustomBiomesEvent[1];

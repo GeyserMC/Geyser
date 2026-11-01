@@ -54,8 +54,8 @@ import java.util.Optional;
 public class BiomeTranslator {
 
     /**
-     * Marks a Java biome with no vanilla Bedrock equivalent. A custom biome the session applied
-     * to it takes its place; otherwise a dimension-appropriate fallback is selected in
+     * Marks a Java biome with no vanilla Bedrock equivalent. A custom biome mapped for the
+     * session takes precedence; otherwise a dimension-appropriate fallback is selected in
      * {@link #bedrockBiomeId(GeyserSession, JavaRegistryLookup, int)}.
      */
     private static final int UNKNOWN_BIOME = -1;
@@ -74,13 +74,17 @@ public class BiomeTranslator {
      */
     private static int bedrockBiomeId(GeyserSession session, JavaRegistryLookup<JavaBiome> biomeTranslations, int javaId) {
         Optional<JavaBiome> biome = javaId < 0 ? Optional.empty() : biomeTranslations.get(javaId);
-        int bedrockId = biome.isPresent()
-            ? session.getCustomBiomeCache().bedrockBiomeId(javaId, biome.get().bedrockId())
-            : UNKNOWN_BIOME;
-        if (bedrockId == UNKNOWN_BIOME) {
+        if (biome.isEmpty()) {
             return fallbackBiomeId(session.getDimensionType());
         }
-        return bedrockId;
+        int customId = session.getCustomBiomeCache().bedrockId(javaId);
+        if (customId != UNKNOWN_BIOME) {
+            return customId;
+        }
+        if (biome.get().bedrockId() == UNKNOWN_BIOME) {
+            return fallbackBiomeId(session.getDimensionType());
+        }
+        return biome.get().bedrockId();
     }
 
     private static int fallbackBiomeId(@Nullable JavaDimension dimension) {

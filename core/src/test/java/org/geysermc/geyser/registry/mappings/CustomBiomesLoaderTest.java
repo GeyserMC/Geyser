@@ -96,7 +96,7 @@ public class CustomBiomesLoaderTest {
         assertNull(biomes.get(Identifier.of("example:bad_color")));
         assertNull(biomes.get(Identifier.of("example:not_object")));
 
-        // A bare bedrock_identifier lands in the geyser_custom namespace, like item mappings
+        // A bare bedrock_identifier ends up in the geyser_custom namespace, like item mappings
         CustomBiomeDefinition bare = biomes.get(Identifier.of("example:bare_identifier"));
         assertNotNull(bare);
         assertEquals(Identifier.of("geyser_custom:bare_biome"), bare.bedrockIdentifier());

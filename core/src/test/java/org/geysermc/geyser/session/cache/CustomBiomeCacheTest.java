@@ -39,7 +39,6 @@ import org.geysermc.geyser.level.JavaBiome;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.registry.java.JavaRegistries;
 import org.geysermc.geyser.registry.java.JavaRegistryProvider;
-import org.geysermc.geyser.registry.java.RegistryEntryData;
 import org.geysermc.geyser.registry.java.SimpleJavaRegistry;
 import org.geysermc.geyser.registry.java.reader.RegistryEntryContext;
 import org.geysermc.geyser.scoreboard.network.util.GeyserMockContext;
@@ -52,10 +51,8 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -124,7 +121,7 @@ public class CustomBiomeCacheTest {
             BiomeDefinitionData data = definitions.getDefinitions().get("test:bedrock_biome");
             assertNotNull(data);
             int id = session.biomeValue("test:java_biome");
-            assertTrue(id >= 30000 && id <= 32767);
+            assertTrue(id >= 30000 && id <= 65534);
             assertEquals(id, data.getId());
             // Climate comes from the Java biome the server sent; the test values match no
             // vanilla definition, so a copied vanilla reference would fail here
@@ -166,7 +163,7 @@ public class CustomBiomeCacheTest {
 
             // Starting a new configuration phase discards the candidate; a form can spawn
             // the client before the phase ends, and the commit must not send the stale one
-            session.cache.discardRegistryState();
+            session.cache.discardPending();
             session.spawned.set(true);
             assertNull(session.cache.loginDefinitions().getDefinitions().get("test:bedrock_biome"));
 
@@ -237,46 +234,6 @@ public class CustomBiomeCacheTest {
         });
     }
 
-    @Test
-    void definitionsOverTheStringPoolCapFallBack() {
-        GeyserMockContext.mockContext(() -> {
-            Map<String, BiomeDefinitionData> vanilla = Registries.BIOMES.get().getDefinitions();
-            Set<String> vanillaPool = new HashSet<>();
-            vanilla.forEach((name, data) -> {
-                vanillaPool.add(name);
-                if (data.getTags() != null) {
-                    vanillaPool.addAll(data.getTags());
-                }
-            });
-            // Admission stops when the 1024-entry string pool is full; every definition
-            // pools its name, so this bounds the definition count too
-            int fits = 1024 - vanillaPool.size();
-
-            Map<Identifier, CustomBiomeDefinition> catalogue = new Object2ObjectOpenHashMap<>();
-            String[] javaIdentifiers = new String[fits + 1];
-            for (int i = 0; i < fits + 1; i++) {
-                javaIdentifiers[i] = "test:java_%04d".formatted(i);
-                catalogue.put(Identifier.of(javaIdentifiers[i]), definition("test:bedrock_%04d".formatted(i)));
-            }
-            Registries.CUSTOM_BIOMES.set(catalogue);
-
-            TestSession session = new TestSession(javaIdentifiers);
-            session.spawned.set(true);
-            session.cache.reconcile();
-
-            int applied = 0;
-            for (String javaIdentifier : javaIdentifiers) {
-                if (session.biomeValue(javaIdentifier) != UNKNOWN_BIOME) {
-                    applied++;
-                }
-            }
-            assertEquals(fits, applied);
-
-            BiomeDefinitions sent = ((BiomeDefinitionListPacket) session.packets.getFirst()).getBiomes();
-            assertEquals(vanilla.size() + fits, sent.getDefinitions().size());
-        });
-    }
-
     private static void catalogue(Map<String, String> javaToBedrock) {
         Map<Identifier, CustomBiomeDefinition> catalogue = new Object2ObjectOpenHashMap<>();
         javaToBedrock.forEach((javaIdentifier, bedrockIdentifier) ->
@@ -294,15 +251,16 @@ public class CustomBiomeCacheTest {
      */
     private static class TestSession {
         private final GeyserSession session = mock(GeyserSession.class);
-        private final SimpleJavaRegistry<JavaBiome> registry = new SimpleJavaRegistry<>(JavaRegistries.BIOME);
+        private SimpleJavaRegistry<JavaBiome> registry;
         private final List<BedrockPacket> packets = new ArrayList<>();
         private final AtomicBoolean spawned = new AtomicBoolean();
         private final CustomBiomeCache cache;
 
         TestSession(String... javaIdentifiers) {
-            JavaRegistryProvider registries = mock(JavaRegistryProvider.class);
-            when(session.javaRegistries()).thenReturn(registries);
-            when(registries.registry(JavaRegistries.BIOME)).thenReturn(registry);
+            reset(javaIdentifiers);
+            JavaRegistryProvider javaRegistries = mock(JavaRegistryProvider.class);
+            when(session.javaRegistries()).thenReturn(javaRegistries);
+            when(javaRegistries.registry(JavaRegistries.BIOME)).thenAnswer(invocation -> registry);
             when(session.isSentSpawnPacket()).thenAnswer(invocation -> spawned.get());
             GeyserImpl geyser = GeyserImpl.getInstance();
             when(session.getGeyser()).thenReturn(geyser);
@@ -311,7 +269,6 @@ public class CustomBiomeCacheTest {
                 return null;
             }).when(session).sendUpstreamPacket(any());
             this.cache = new CustomBiomeCache(session);
-            reset(javaIdentifiers);
         }
 
         /**
@@ -324,19 +281,20 @@ public class CustomBiomeCacheTest {
         }
 
         void reset(JavaBiome data, String... javaIdentifiers) {
-            // Starting a configuration phase clears the registry and what was built against it
-            cache.discardRegistryState();
-            registry.clear();
+            registry = new SimpleJavaRegistry<>(JavaRegistries.BIOME);
             for (int i = 0; i < javaIdentifiers.length; i++) {
                 registry.register(i, MinecraftKey.key(javaIdentifiers[i]), data);
             }
             registry.freeze();
         }
 
+        /**
+         * The custom Bedrock id chunks of this Java biome currently translate to, or -1.
+         */
         int biomeValue(String javaIdentifier) {
-            RegistryEntryData<JavaBiome> entry = registry.getByKey(MinecraftKey.key(javaIdentifier))
+            int javaId = registry.getId(MinecraftKey.key(javaIdentifier))
                 .orElseThrow(() -> new IllegalArgumentException(javaIdentifier + " is not in the registry"));
-            return cache.bedrockBiomeId(entry.id(), entry.data().bedrockId());
+            return cache.bedrockId(javaId);
         }
     }
 }

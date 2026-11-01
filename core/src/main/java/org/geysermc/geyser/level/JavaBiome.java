@@ -28,8 +28,8 @@ package org.geysermc.geyser.level;
 /**
  * Represents the information we store from a Java biome.
  *
- * @param bedrockId the ID of the vanilla Bedrock biome this biome maps to, or -1 when there is none.
- * A custom biome the session applied to this biome takes precedence when translating chunks.
+ * @param bedrockId the vanilla Bedrock biome ID of this biome, or -1 when there is none. A
+ *                  custom biome mapped for the session takes precedence over it.
  * @param temperature the biome's base temperature.
  * @param downfall the biome's base downfall.
  * @param hasPrecipitation whether rain or snow falls in this biome.

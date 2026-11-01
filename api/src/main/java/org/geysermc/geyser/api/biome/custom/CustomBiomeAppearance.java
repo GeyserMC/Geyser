@@ -58,7 +58,7 @@ public interface CustomBiomeAppearance {
     /**
      * The color of the distance fog in air, or null to use the client's default. Rain
      * shows it darkened, matching Java's full-rain fog. The Vibrant Visuals renderer
-     * does not apply this value as of Bedrock 1.26.44.
+     * does not apply this value as of Bedrock 1.26.52.
      *
      * @return the fog color
      * @since 2.12.0
@@ -78,7 +78,7 @@ public interface CustomBiomeAppearance {
     /**
      * The opacity of the water surface, between {@code 0.0} and {@code 1.0} inclusive, or
      * null to use the client's default. The Vibrant Visuals renderer does not apply
-     * this value as of Bedrock 1.26.44.
+     * this value as of Bedrock 1.26.52.
      *
      * @return the water surface opacity
      * @since 2.12.0
@@ -87,7 +87,7 @@ public interface CustomBiomeAppearance {
 
     /**
      * The color of the fog seen underwater, or null when not set. The Vibrant Visuals
-     * renderer does not apply it to the underwater haze as of Bedrock 1.26.44, though
+     * renderer does not apply it to the underwater haze as of Bedrock 1.26.52, though
      * nearby submerged surfaces still pick up the tint.
      *
      * @return the underwater fog color

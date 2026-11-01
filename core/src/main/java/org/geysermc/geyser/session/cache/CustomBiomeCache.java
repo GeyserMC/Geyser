@@ -28,7 +28,6 @@ package org.geysermc.geyser.session.cache;
 import it.unimi.dsi.fastutil.ints.Int2IntMap;
 import it.unimi.dsi.fastutil.ints.Int2IntOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
-import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.protocol.bedrock.data.biome.BiomeDefinitionData;
 import org.cloudburstmc.protocol.bedrock.data.biome.BiomeDefinitions;
@@ -45,7 +44,6 @@ import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 /**
  * Tracks the custom biome definitions and numeric ids this session has sent to the client.
@@ -59,20 +57,16 @@ import java.util.Set;
  * backend switches: the client may still have chunks loaded that reference them.</p>
  */
 public final class CustomBiomeCache {
-    // Where Bedrock custom biome ids start; the string-pool cap bounds the definition
-    // count, keeping ids well below the wire format's signed-short maximum
+    // The client only accepts custom biome ids in this range and disconnects on any other
     private static final int FIRST_CUSTOM_ID = 30000;
-    // gophertunnel-based proxies reject definition lists and string pools over 1024 entries
-    private static final int MAX_LIST_ENTRIES = 1024;
+    private static final int LAST_CUSTOM_ID = 65534;
     // The vanilla definition that custom entries copy their wire-only values from
     private static final String REFERENCE_BIOME = "minecraft:plains";
 
     private final GeyserSession session;
 
     private final Map<Identifier, SentBiome> sent = new Object2ObjectOpenHashMap<>();
-    // The custom biome id applied to each Java biome network id of the current registry
-    private final Int2IntMap applied = new Int2IntOpenHashMap();
-    private @Nullable Set<String> pooledStrings;
+    private Int2IntMap bedrockIds = newIdMap();
     private @Nullable PendingCatalogue pending;
 
     public CustomBiomeCache(GeyserSession session) {
@@ -80,18 +74,18 @@ public final class CustomBiomeCache {
     }
 
     /**
-     * The Bedrock biome id chunks use for a Java biome of the current registry: the custom
-     * biome applied to it, or the given vanilla id when none is.
+     * The custom Bedrock biome id for a Java biome network id of the current registry, or -1
+     * when that Java biome has no custom definition on this session.
      */
-    public int bedrockBiomeId(int javaId, int vanillaId) {
-        return applied.getOrDefault(javaId, vanillaId);
+    public int bedrockId(int javaId) {
+        return bedrockIds.get(javaId);
     }
 
     /**
      * The biome definitions to send during login. When {@link #reconcile()} prepared a
-     * pending candidate, returning it also commits it: the candidate's ids are applied to
-     * the session's Java biomes in the same call, so the mapping and the definition send
-     * cannot be interleaved by chunk translation.
+     * pending candidate, returning it also commits it: the candidate's Java id mapping takes
+     * effect in the same call, so the mapping and the definition send cannot be interleaved
+     * by chunk translation.
      */
     public BiomeDefinitions loginDefinitions() {
         if (pending == null) {
@@ -101,24 +95,25 @@ public final class CustomBiomeCache {
     }
 
     /**
-     * Discards what was built against the session's Java biome registry: the pending login
-     * candidate and the applied custom biome ids. Called when the Java server starts a new
-     * configuration phase, which clears that registry; forms can spawn the client before
-     * the new phase provides a replacement candidate.
+     * Discards the pending login candidate. Called when the Java server starts a new
+     * configuration phase: the candidate was built against the previous phase's registry,
+     * and forms can spawn the client before the new phase provides a replacement.
      */
-    public void discardRegistryState() {
+    public void discardPending() {
         pending = null;
-        applied.clear();
     }
 
     /**
      * Matches the registered custom biomes against the session's current Java biome registry.
      * Called at the end of each configuration phase. Before the client has spawned, this
      * replaces the pending login candidate; afterwards (backend switches, and login paths
-     * that spawn the client before the Java registry arrives) it resends the complete
+     * that spawn the client before configuration finishes) it resends the complete
      * definition list when new definitions were added.
      */
     public void reconcile() {
+        // The previous mapping used the previous registry's network ids
+        bedrockIds = newIdMap();
+
         // Nothing can have been sent when the catalogue is empty; it is frozen at startup
         Map<Identifier, CustomBiomeDefinition> catalogue = Registries.CUSTOM_BIOMES.get();
         if (catalogue.isEmpty()) {
@@ -138,17 +133,6 @@ public final class CustomBiomeCache {
         // Sorted by Bedrock identifier so id allocation doesn't depend on the registry's order
         claims.sort(Comparator.comparing(claim -> claim.definition().bedrockIdentifier().toString()));
 
-        if (pooledStrings == null) {
-            pooledStrings = new ObjectOpenHashSet<>();
-            Registries.BIOMES.get().getDefinitions().forEach((name, data) -> {
-                pooledStrings.add(name);
-                List<String> tags = data.getTags();
-                if (tags != null) {
-                    pooledStrings.addAll(tags);
-                }
-            });
-        }
-
         if (!session.isSentSpawnPacket()) {
             prepareLoginCandidate(claims);
         } else {
@@ -158,23 +142,21 @@ public final class CustomBiomeCache {
 
     /**
      * Builds the login candidate. Nothing is considered sent until {@link #commitPending()}
-     * runs; a discarded candidate leaves no trace in the id space or the string pool. The
-     * spawn packet precedes the commit, so {@link #sent} is always empty here and every
-     * claim is new.
+     * runs; a discarded candidate leaves no trace in the id space. The spawn packet precedes
+     * the commit, so {@link #sent} is always empty here and every claim is new.
      */
     private void prepareLoginCandidate(List<Claim> claims) {
         Map<Identifier, SentBiome> union = new Object2ObjectOpenHashMap<>();
-        Set<String> pool = new ObjectOpenHashSet<>(pooledStrings);
-        Int2IntMap claimed = new Int2IntOpenHashMap();
+        Int2IntMap ids = newIdMap();
         int skipped = 0;
         for (Claim claim : claims) {
-            if (admit(claim, union, pool)) {
-                claimed.put(claim.javaId(), union.get(claim.definition().bedrockIdentifier()).id());
+            if (admit(claim, union)) {
+                ids.put(claim.javaId(), union.get(claim.definition().bedrockIdentifier()).id());
             } else {
                 skipped++;
             }
         }
-        pending = new PendingCatalogue(buildDefinitions(union), union, pool, claimed);
+        pending = new PendingCatalogue(buildDefinitions(union), union, ids);
         warnSkipped(skipped);
     }
 
@@ -182,8 +164,7 @@ public final class CustomBiomeCache {
         PendingCatalogue pending = this.pending;
         this.pending = null;
         sent.putAll(pending.union());
-        pooledStrings = pending.pool();
-        applied.putAll(pending.claims());
+        bedrockIds = pending.bedrockIds();
         return pending.definitions();
     }
 
@@ -191,7 +172,7 @@ public final class CustomBiomeCache {
         boolean unionGrew = false;
         for (Claim claim : claims) {
             if (!sent.containsKey(claim.definition().bedrockIdentifier())) {
-                unionGrew |= admit(claim, sent, pooledStrings);
+                unionGrew |= admit(claim, sent);
             }
         }
 
@@ -202,7 +183,8 @@ public final class CustomBiomeCache {
             session.sendUpstreamPacket(packet);
         }
 
-        // Apply the ids only after the definition list is queued
+        // Map the Java ids only after the definition list is queued
+        Int2IntMap ids = newIdMap();
         int skipped = 0;
         for (Claim claim : claims) {
             SentBiome sentBiome = sent.get(claim.definition().bedrockIdentifier());
@@ -212,32 +194,24 @@ public final class CustomBiomeCache {
                 skipped++;
                 continue;
             }
-            applied.put(claim.javaId(), sentBiome.id());
+            ids.put(claim.javaId(), sentBiome.id());
         }
+        bedrockIds = ids;
         warnSkipped(skipped);
     }
 
-    private boolean admit(Claim claim, Map<Identifier, SentBiome> union, Set<String> pool) {
-        CustomBiomeDefinition definition = claim.definition();
+    private boolean admit(Claim claim, Map<Identifier, SentBiome> union) {
         // A malformed backend could send non-finite climate values; keep them off the wire
         if (!Float.isFinite(claim.biome().temperature()) || !Float.isFinite(claim.biome().downfall())) {
             return false;
         }
 
-        Set<String> newStrings = new ObjectOpenHashSet<>();
-        newStrings.add(definition.bedrockIdentifier().toString());
-        newStrings.addAll(definition.tags());
-        newStrings.removeAll(pool);
-
-        // Every definition pools its unique name, so this also caps the definition count
-        if (pool.size() + newStrings.size() > MAX_LIST_ENTRIES) {
-            return false;
-        }
-
         // Ids are never reused within a session, so the next slot after the union is always free
         int id = FIRST_CUSTOM_ID + union.size();
-        pool.addAll(newStrings);
-        union.put(definition.bedrockIdentifier(), new SentBiome(id, toData(id, claim)));
+        if (id > LAST_CUSTOM_ID) {
+            return false;
+        }
+        union.put(claim.definition().bedrockIdentifier(), new SentBiome(id, toData(id, claim)));
         return true;
     }
 
@@ -283,6 +257,12 @@ public final class CustomBiomeCache {
         }
     }
 
+    private static Int2IntMap newIdMap() {
+        Int2IntMap ids = new Int2IntOpenHashMap();
+        ids.defaultReturnValue(-1);
+        return ids;
+    }
+
     private record Claim(int javaId, CustomBiomeDefinition definition, JavaBiome biome) {
     }
 
@@ -290,6 +270,6 @@ public final class CustomBiomeCache {
     }
 
     private record PendingCatalogue(BiomeDefinitions definitions, Map<Identifier, SentBiome> union,
-                                    Set<String> pool, Int2IntMap claims) {
+                                    Int2IntMap bedrockIds) {
     }
 }
