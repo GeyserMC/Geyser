@@ -37,6 +37,7 @@ import org.cloudburstmc.protocol.bedrock.data.AttributeData;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerId;
+import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
 import org.cloudburstmc.protocol.bedrock.packet.MobArmorEquipmentPacket;
 import org.cloudburstmc.protocol.bedrock.packet.MobEquipmentPacket;
 import org.cloudburstmc.protocol.bedrock.packet.MoveEntityDeltaPacket;
@@ -575,12 +576,16 @@ public class LivingEntity extends Entity implements Tickable {
         MobArmorEquipmentPacket armorEquipmentPacket = new MobArmorEquipmentPacket();
         armorEquipmentPacket.setRuntimeEntityId(geyserId);
         armorEquipmentPacket.setHelmet(ItemTranslator.translateToBedrock(session, helmet));
-        armorEquipmentPacket.setChestplate(ItemTranslator.translateToBedrock(session, chestplate));
+        armorEquipmentPacket.setChestplate(translateChestplate(chestplate));
         armorEquipmentPacket.setLeggings(ItemTranslator.translateToBedrock(session, getItemInSlot(EquipmentSlot.LEGGINGS)));
         armorEquipmentPacket.setBoots(ItemTranslator.translateToBedrock(session, getItemInSlot(EquipmentSlot.BOOTS)));
         armorEquipmentPacket.setBody(ItemTranslator.translateToBedrock(session, getItemInSlot(EquipmentSlot.BODY)));
 
         session.sendUpstreamPacket(armorEquipmentPacket);
+    }
+
+    protected ItemData translateChestplate(GeyserItemStack chestplate) {
+        return ItemTranslator.translateToBedrock(session, chestplate);
     }
 
     public void updateMainHand() {
