@@ -479,6 +479,12 @@ public interface GeyserConfig {
         boolean forceResourcePacks();
 
         @Comment("""
+            Whether items with a Java tooltip style get a marker at the end of their Bedrock name, so a resource pack can draw
+            that style's tooltip. Only enable this with a resource pack that does: without one, the markers show as unknown characters.""")
+        @DefaultBoolean(false)
+        boolean tooltipStyleMarkers();
+
+        @Comment("""
             Whether to automatically serve a resource pack that is required for some Geyser features to all connecting Bedrock players.
             If enabled, force-resource-packs will be enabled.""")
         @DefaultBoolean(true)
