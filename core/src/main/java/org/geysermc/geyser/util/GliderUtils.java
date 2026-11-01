@@ -73,7 +73,4 @@ public final class GliderUtils {
         }
         return builder.build();
     }
-
-    private GliderUtils() {
-    }
 }
