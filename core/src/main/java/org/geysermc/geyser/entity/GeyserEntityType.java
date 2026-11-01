@@ -31,7 +31,7 @@ import org.geysermc.geyser.Constants;
 import org.geysermc.geyser.api.entity.definition.GeyserEntityDefinition;
 import org.geysermc.geyser.api.entity.definition.JavaEntityType;
 import org.geysermc.geyser.api.util.Identifier;
-import org.geysermc.geyser.registry.Registries;
+import org.geysermc.geyser.registry.java.BuiltInJavaRegistries;
 import org.geysermc.geyser.util.MinecraftKey;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.type.EntityType;
 
@@ -59,29 +59,21 @@ public record GeyserEntityType(Identifier identifier, EntityType mcpl) implement
 
     @Override
     public float width() {
-        var definition = Registries.JAVA_ENTITY_TYPES.get(this);
-        if (definition == null) {
-            throw new IllegalStateException("No entity definition registered for " + this);
-        }
-        return definition.width();
+        return definition().width();
     }
 
     @Override
     public float height() {
-        var definition = Registries.JAVA_ENTITY_TYPES.get(this);
-        if (definition == null) {
-            throw new IllegalStateException("No entity definition registered for " + this);
-        }
-        return definition.height();
+        return definition().height();
     }
 
     @Override
     public @Nullable GeyserEntityDefinition defaultBedrockDefinition() {
-        var definition = Registries.JAVA_ENTITY_TYPES.get(this);
-        if (definition == null) {
-            throw new IllegalStateException("No entity definition registered for " + this);
-        }
-        return definition.defaultBedrockDefinition();
+        return definition().defaultBedrockDefinition();
+    }
+
+    public EntityTypeDefinition<?> definition() {
+        return BuiltInJavaRegistries.ENTITY_TYPE.getOrThrow(mcpl.ordinal());
     }
 
     public boolean is(EntityType type) {
