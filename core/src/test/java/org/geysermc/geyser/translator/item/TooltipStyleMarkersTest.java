@@ -35,17 +35,19 @@ class TooltipStyleMarkersTest {
     // Worked out independently of this class (Python zlib.crc32), so a resource pack built from the same rule matches
     @Test
     void markerIsTheCrcOfTheStyleId() {
-        assertEquals("", TooltipStyleMarkers.marker(Key.key("minecraft:epic")));
-        assertEquals("", TooltipStyleMarkers.marker(Key.key("minecraft:juggernaut_animated")));
-        assertEquals("", TooltipStyleMarkers.marker(Key.key("minecraft:legendary")));
-        assertEquals("", TooltipStyleMarkers.marker(Key.key("minecraft:common")));
+        assertEquals("\uEF00\uEF73\uEFB8\uEFE8", TooltipStyleMarkers.marker(Key.key("minecraft:epic")));
+        assertEquals("\uEF00\uEF60\uEFA7\uEFDB", TooltipStyleMarkers.marker(Key.key("minecraft:juggernaut_animated")));
+        assertEquals("\uEF00\uEF7A\uEF9D\uEFF7", TooltipStyleMarkers.marker(Key.key("minecraft:legendary")));
+        assertEquals("\uEF00\uEF71\uEF8F\uEFCD", TooltipStyleMarkers.marker(Key.key("minecraft:common")));
     }
 
     @Test
-    void stripRemovesMarkersOnly() {
-        String name = "§r§6Spooky Key" + TooltipStyleMarkers.marker(Key.key("minecraft:spooky_animated"));
-        assertEquals("§r§6Spooky Key", TooltipStyleMarkers.strip(name));
+    void stripRemovesMarkerCharactersOnly() {
+        String name = "\u00a7r\u00a76Spooky Key" + TooltipStyleMarkers.marker(Key.key("minecraft:spooky_animated"));
+        assertEquals("\u00a7r\u00a76Spooky Key", TooltipStyleMarkers.strip(name));
+        // an anvil rename that deleted the marker's first character along with the old name
+        assertEquals("nogard", TooltipStyleMarkers.strip("nogard\uEF60\uEFA7\uEFDB"));
         // other private use characters, such as a server's own font glyphs, stay
-        assertEquals(" Key", TooltipStyleMarkers.strip(" Key"));
+        assertEquals("\uE001 Key\uEF01", TooltipStyleMarkers.strip("\uE001 Key\uEF01"));
     }
 }

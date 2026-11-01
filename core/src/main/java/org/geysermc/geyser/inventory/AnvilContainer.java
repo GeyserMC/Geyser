@@ -73,7 +73,9 @@ public class AnvilContainer extends Container {
     public String checkForRename(GeyserSession session, String rename) {
         String correctRename;
         // The name field starts as the item's Bedrock name, tooltip style marker included
-        rename = TooltipStyleMarkers.strip(rename);
+        if (session.getGeyser().config().gameplay().tooltipStyleMarkers()) {
+            rename = TooltipStyleMarkers.strip(rename);
+        }
         newName = rename;
 
         Component originalName = getInput().getComponent(DataComponentTypes.CUSTOM_NAME);

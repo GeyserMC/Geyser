@@ -40,7 +40,7 @@ import java.util.zip.CRC32;
  * at U+EFC0. A pack can work out each style's marker from the id alone.
  */
 public final class TooltipStyleMarkers {
-    private static final Pattern MARKER = Pattern.compile("[-][-][-]");
+    private static final Pattern MARKER_CHARACTERS = Pattern.compile("[\uEF00\uEF40-\uEFFF]");
 
     private TooltipStyleMarkers() {
     }
@@ -50,7 +50,7 @@ public final class TooltipStyleMarkers {
         crc.update(style.asString().getBytes(StandardCharsets.UTF_8));
         long hash = crc.getValue();
         return new String(new char[] {
-            '',
+            '\uEF00',
             (char) (0xEF40 + ((hash >> 12) & 63)),
             (char) (0xEF80 + ((hash >> 6) & 63)),
             (char) (0xEFC0 + (hash & 63))
@@ -58,9 +58,11 @@ public final class TooltipStyleMarkers {
     }
 
     /**
-     * Removes markers from text a Bedrock player typed, such as a name in an anvil that started as an item's name.
+     * Removes every character a marker is made of from text a Bedrock player typed, such as a name in an anvil that
+     * started as an item's name. The pack draws them invisible, so the text cursor can stop between them and an edit
+     * can keep part of a marker.
      */
     public static String strip(String text) {
-        return MARKER.matcher(text).replaceAll("");
+        return MARKER_CHARACTERS.matcher(text).replaceAll("");
     }
 }
