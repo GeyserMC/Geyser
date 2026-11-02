@@ -48,6 +48,8 @@ import org.geysermc.mcprotocollib.protocol.data.game.entity.object.WardenData;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.type.EntityType;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.entity.ClientboundAddEntityPacket;
 
+import java.util.Optional;
+
 @Translator(packet = ClientboundAddEntityPacket.class)
 public class JavaAddEntityTranslator extends PacketTranslator<ClientboundAddEntityPacket> {
 
@@ -61,14 +63,18 @@ public class JavaAddEntityTranslator extends PacketTranslator<ClientboundAddEnti
             return;
         }
 
-        EntityTypeDefinition<?> definition = type.definition();
+        Optional<EntityTypeDefinition<?>> definition = type.definition();
+        if (definition.isEmpty()) {
+            session.getGeyser().getLogger().debug("Could not find an entity definition for add entity packet " + packet);
+            return;
+        }
 
         Integer removedPlayerVehicleId = session.getPlayerEntity().getRemovedPlayerVehicleId();
         if (removedPlayerVehicleId != null && removedPlayerVehicleId == packet.getEntityId()) {
             session.getPlayerEntity().setRemovedPlayerVehicleId(null);
         }
 
-        EntitySpawnContext context = EntitySpawnContext.fromPacket(session, definition, packet);
+        EntitySpawnContext context = EntitySpawnContext.fromPacket(session, definition.get(), packet);
         if (type.is(EntityType.PLAYER)) {
             PlayerEntity entity;
             if (packet.getUuid().equals(session.getPlayerEntity().uuid())) {
@@ -119,7 +125,7 @@ public class JavaAddEntityTranslator extends PacketTranslator<ClientboundAddEnti
                 return;
             }
         } else {
-            entity = definition.factory().create(context);
+            entity = definition.get().factory().create(context);
 
             // This is done over entity metadata in modern versions, but is still sent over network in the spawn packet
             if (entity instanceof HangingEntity hanging) {

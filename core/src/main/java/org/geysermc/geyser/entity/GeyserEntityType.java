@@ -38,6 +38,7 @@ import org.geysermc.mcprotocollib.protocol.data.game.entity.type.EntityType;
 import java.util.EnumMap;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
 
 public record GeyserEntityType(Identifier identifier, EntityType mcpl) implements JavaEntityType {
     private static final Identifier UNREGISTERED = Identifier.of(Constants.GEYSER_CUSTOM_NAMESPACE, "unregistered_sadface");
@@ -59,20 +60,24 @@ public record GeyserEntityType(Identifier identifier, EntityType mcpl) implement
 
     @Override
     public float width() {
-        return definition().width();
+        return definitionOrThrow().width();
     }
 
     @Override
     public float height() {
-        return definition().height();
+        return definitionOrThrow().height();
     }
 
     @Override
     public @Nullable GeyserEntityDefinition defaultBedrockDefinition() {
-        return definition().defaultBedrockDefinition();
+        return definitionOrThrow().defaultBedrockDefinition();
     }
 
-    public EntityTypeDefinition<?> definition() {
+    public Optional<EntityTypeDefinition<?>> definition() {
+        return BuiltInJavaRegistries.ENTITY_TYPE.get(mcpl.ordinal());
+    }
+
+    private EntityTypeDefinition<?> definitionOrThrow() {
         return BuiltInJavaRegistries.ENTITY_TYPE.getOrThrow(mcpl.ordinal());
     }
 
