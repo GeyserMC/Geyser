@@ -48,6 +48,7 @@ import org.geysermc.geyser.item.TooltipOptions;
 import org.geysermc.geyser.item.components.Rarity;
 import org.geysermc.geyser.item.type.Item;
 import org.geysermc.geyser.item.type.PotionItem;
+import org.geysermc.geyser.item.type.TippedArrowItem;
 import org.geysermc.geyser.level.block.type.Block;
 import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.registry.java.BuiltInJavaRegistries;
@@ -435,14 +436,14 @@ public final class ItemTranslator {
         return finalText.toString();
     }
 
-    public static String getPotionName(PotionContents contents, ItemMapping mapping, String language) {
+    public static String getPotionName(PotionContents contents, ItemMapping mapping, boolean includeDefault, String language) {
         String customPotionName = contents.getCustomName();
-
         if (customPotionName != null) {
             // "custom_name" tag in "potion_contents" component
             return MinecraftLocale.getLocaleString(mapping.getJavaItem().translationKey() + ".effect." + customPotionName, language);
         }
-        if (!contents.getCustomEffects().isEmpty()) {
+
+        if (includeDefault) {
             // Make a name when has custom effects
             // The custom effect information is displayed in the second line of the name.
             // If a name is not set, the custom effect information will not be displayed.
@@ -598,10 +599,14 @@ public final class ItemTranslator {
             }
 
             if (!customNameOnly) {
-                if (mapping.getJavaItem() instanceof PotionItem) {
+                if (mapping.getJavaItem() instanceof PotionItem || mapping.getJavaItem() instanceof TippedArrowItem) {
                     PotionContents potionContents = components.get(DataComponentTypes.POTION_CONTENTS);
                     if (potionContents != null) {
-                        String potionName = getPotionName(potionContents, mapping, session.locale()); // TODO also test this
+                        String potionName = getPotionName(potionContents, mapping,
+                            !potionContents.getCustomEffects().isEmpty() &&
+                                TooltipOptions.fromComponents(components).showInTooltip(DataComponentTypes.POTION_CONTENTS) ||
+                                potionContents.getPotionId() == -1, // "Uncraftable ..."
+                            session.locale()); // TODO also test this
                         if (potionName != null) {
                             return ChatColor.RESET + ChatColor.ESCAPE + translationColor + potionName;
                         }
