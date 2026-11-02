@@ -27,7 +27,6 @@ package org.geysermc.geyser.dump;
 
 import com.google.common.hash.Hashing;
 import com.google.common.io.ByteSource;
-import com.google.common.io.Files;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonNull;
@@ -68,6 +67,7 @@ import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.UnknownHostException;
 import java.nio.charset.Charset;
+import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
@@ -133,7 +133,7 @@ public class DumpInfo {
         try {
             // https://stackoverflow.com/questions/320542/how-to-get-the-path-of-a-running-jar-file
             File file = new File(DumpInfo.class.getProtectionDomain().getCodeSource().getLocation().toURI());
-            ByteSource byteSource = Files.asByteSource(file);
+            ByteSource byteSource = com.google.common.io.Files.asByteSource(file);
             //noinspection UnstableApiUsage
             sha256Hash = byteSource.hash(Hashing.sha256()).toString();
         } catch (Exception e) {
@@ -240,7 +240,7 @@ public class DumpInfo {
         }
 
         /**
-         * On Linux, returns the distro name and version (e.g. "Ubuntu 24.04") instead of just "Linux".
+         * On Linux, includes the distro name and version (e.g. "Linux (Ubuntu 24.04)").
          */
         private static String resolveOperatingSystemName() {
             String osName = System.getProperty("os.name");
@@ -257,7 +257,7 @@ public class DumpInfo {
                     String name = null;
                     String versionId = null;
                     String prettyName = null;
-                    for (String line : java.nio.file.Files.readAllLines(file.toPath())) {
+                    for (String line : Files.readAllLines(file.toPath())) {
                         int split = line.indexOf('=');
                         if (split < 0) {
                             continue;
@@ -276,10 +276,11 @@ public class DumpInfo {
                         }
                     }
                     if (name != null && !name.isEmpty()) {
-                        return versionId != null && !versionId.isEmpty() ? name + " " + versionId : name;
+                        String distro = versionId != null && !versionId.isEmpty() ? name + " " + versionId : name;
+                        return "Linux (" + distro + ")";
                     }
                     if (prettyName != null && !prettyName.isEmpty()) {
-                        return prettyName;
+                        return "Linux (" + prettyName + ")";
                     }
                 } catch (IOException | RuntimeException ignored) {
                     // Fall back to the generic name
@@ -321,7 +322,7 @@ public class DumpInfo {
             try {
                 String OS = System.getProperty("os.name").toLowerCase();
                 if (OS.contains("nix") || OS.contains("nux") || OS.indexOf("aix") > 0) {
-                    String output = new String(java.nio.file.Files.readAllBytes(Paths.get("/proc/1/cgroup")));
+                    String output = new String(Files.readAllBytes(Paths.get("/proc/1/cgroup")));
 
                     if (output.contains("docker")) {
                         return true;
