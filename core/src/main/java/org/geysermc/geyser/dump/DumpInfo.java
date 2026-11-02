@@ -27,6 +27,7 @@ package org.geysermc.geyser.dump;
 
 import com.google.common.hash.Hashing;
 import com.google.common.io.ByteSource;
+import com.google.common.io.MoreFiles;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonNull;
@@ -133,7 +134,7 @@ public class DumpInfo {
         try {
             // https://stackoverflow.com/questions/320542/how-to-get-the-path-of-a-running-jar-file
             File file = new File(DumpInfo.class.getProtectionDomain().getCodeSource().getLocation().toURI());
-            ByteSource byteSource = com.google.common.io.Files.asByteSource(file);
+            ByteSource byteSource = MoreFiles.asByteSource(file.toPath());
             //noinspection UnstableApiUsage
             sha256Hash = byteSource.hash(Hashing.sha256()).toString();
         } catch (Exception e) {
