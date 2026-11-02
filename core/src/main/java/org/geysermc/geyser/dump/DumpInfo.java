@@ -232,11 +232,60 @@ public class DumpInfo {
             this.javaVersion = ManagementFactory.getRuntimeMXBean().getVmVersion(); // Gives a little more to the version we can use over the system property
             // Usually gives Java architecture but still may be helpful.
             this.architecture = System.getProperty("os.arch");
-            this.operatingSystem = System.getProperty("os.name");
+            this.operatingSystem = resolveOperatingSystemName();
             this.operatingSystemVersion = System.getProperty("os.version");
 
             this.network = new NetworkInfo();
             this.mcInfo = new MCInfo();
+        }
+
+        /**
+         * On Linux, returns the distro name and version (e.g. "Ubuntu 24.04") instead of just "Linux".
+         */
+        private static String resolveOperatingSystemName() {
+            String osName = System.getProperty("os.name");
+            if (osName == null || !osName.toLowerCase().contains("linux")) {
+                return osName;
+            }
+
+            for (String path : new String[]{"/etc/os-release", "/usr/lib/os-release"}) {
+                File file = new File(path);
+                if (!file.canRead()) {
+                    continue;
+                }
+                try {
+                    String name = null;
+                    String versionId = null;
+                    String prettyName = null;
+                    for (String line : java.nio.file.Files.readAllLines(file.toPath())) {
+                        int split = line.indexOf('=');
+                        if (split < 0) {
+                            continue;
+                        }
+                        String key = line.substring(0, split).trim();
+                        String value = line.substring(split + 1).trim();
+                        if (value.length() >= 2 && (value.startsWith("\"") && value.endsWith("\"")
+                                || value.startsWith("'") && value.endsWith("'"))) {
+                            value = value.substring(1, value.length() - 1);
+                        }
+                        switch (key) {
+                            case "NAME" -> name = value;
+                            case "VERSION_ID" -> versionId = value;
+                            case "PRETTY_NAME" -> prettyName = value;
+                            default -> { }
+                        }
+                    }
+                    if (name != null && !name.isEmpty()) {
+                        return versionId != null && !versionId.isEmpty() ? name + " " + versionId : name;
+                    }
+                    if (prettyName != null && !prettyName.isEmpty()) {
+                        return prettyName;
+                    }
+                } catch (IOException | RuntimeException ignored) {
+                    // Fall back to the generic name
+                }
+            }
+            return osName;
         }
     }
 
