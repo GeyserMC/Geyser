@@ -224,7 +224,7 @@ public final class ItemTranslator {
             if (potionContents != null && tooltip.showInTooltip(DataComponentTypes.POTION_CONTENTS)) {
                 // Add to the name (use '\n' to wrap lines) instead of the lore
                 // to make it show in HUD like the effect information of vanilla Bedrock potion
-                customName += getPotionEffectInfo(potionContents, session.locale());
+                customName += getPotionEffectInfo(potionContents, components.getOrDefault(DataComponentTypes.POTION_DURATION_SCALE, 1f), session.locale());
             }
 
             nbtBuilder.setCustomName(customName);
@@ -391,7 +391,7 @@ public final class ItemTranslator {
         return MessageTranslator.convertMessage(attributeComponent, language);
     }
 
-    public static String getPotionEffectInfo(PotionContents contents, String language) {
+    public static String getPotionEffectInfo(PotionContents contents, float durationScale, String language) {
         StringBuilder finalText = new StringBuilder();
         List<MobEffectInstance> effectInstanceList = contents.getCustomEffects();
         for (MobEffectInstance effectInstance : effectInstanceList) {
@@ -406,7 +406,8 @@ public final class ItemTranslator {
                     Component.translatable("potion.potency." + amplifier));
             }
             if (duration > 20) {
-                int seconds = duration / 20;
+                int scaledDuration = (int) (duration * durationScale);
+                int seconds = scaledDuration / 20;
                 int secondsFormat = seconds % 60;
                 int minutes = seconds / 60;
                 int minutesFormat = minutes % 60;
