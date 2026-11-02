@@ -42,6 +42,7 @@ import java.util.Map;
 public class StoredItemMappings {
     private final ItemMapping barrier;
     private final ItemMapping compass;
+    private final ItemMapping elytra;
     private final ItemMapping glassBottle;
     private final ItemMapping milkBucket;
     private final ItemMapping powderSnowBucket;
@@ -54,6 +55,7 @@ public class StoredItemMappings {
     public StoredItemMappings(Map<Item, ItemMapping> itemMappings) {
         this.barrier = load(itemMappings, Items.BARRIER);
         this.compass = load(itemMappings, Items.COMPASS);
+        this.elytra = load(itemMappings, Items.ELYTRA);
         this.glassBottle = load(itemMappings, Items.GLASS_BOTTLE);
         this.milkBucket = load(itemMappings, Items.MILK_BUCKET);
         this.powderSnowBucket = load(itemMappings, Items.POWDER_SNOW_BUCKET);

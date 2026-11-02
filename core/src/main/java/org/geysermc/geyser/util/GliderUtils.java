@@ -29,7 +29,6 @@ import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.protocol.bedrock.data.definitions.ItemDefinition;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
 import org.geysermc.geyser.inventory.GeyserItemStack;
-import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.EquipmentSlot;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentTypes;
@@ -43,6 +42,11 @@ public final class GliderUtils {
 
     private static final int ELYTRA_DURABILITY = 432;
 
+    /**
+     * Whether the stack is a glider worn in the chest slot. Java lets a glider glide from any slot its equippable
+     * component names (see {@code LivingEntity#canGlideUsing}), but Bedrock only glides with an elytra in the chest
+     * slot, so gliders configured for any other slot are left as they are.
+     */
     public static boolean isGlider(GeyserItemStack stack) {
         if (stack.isEmpty() || stack.getComponent(DataComponentTypes.GLIDER) == null) {
             return false;
@@ -58,7 +62,7 @@ public final class GliderUtils {
         if (!isGlider(stack)) {
             return item;
         }
-        ItemDefinition elytra = session.getItemMappings().getMapping(Items.ELYTRA).getBedrockDefinition();
+        ItemDefinition elytra = session.getItemMappings().getStoredItems().elytra().getBedrockDefinition();
         if (item.getDefinition().getRuntimeId() == elytra.getRuntimeId()) {
             return item;
         }
