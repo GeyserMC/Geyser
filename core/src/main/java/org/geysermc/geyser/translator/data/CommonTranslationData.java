@@ -64,7 +64,12 @@ public interface CommonTranslationData extends JavaRegistryProvider.Provider, Te
     }
 
     @FunctionalInterface
-    interface RecordBased extends CommonTranslationData {
+    interface Provider {
+
+        CommonTranslationData commonData();
+    }
+
+    interface RecordBased extends CommonTranslationData, CommonTranslationData.Provider {
 
         @Override
         default PlatformType platformType() {
@@ -85,7 +90,5 @@ public interface CommonTranslationData extends JavaRegistryProvider.Provider, Te
         default String locale() {
             return commonData().locale();
         }
-
-        CommonTranslationData commonData();
     }
 }

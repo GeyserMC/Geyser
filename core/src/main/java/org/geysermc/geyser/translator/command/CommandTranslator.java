@@ -72,7 +72,7 @@ public final class CommandTranslator {
         }
 
         // The command flags, set to NOT_CHEAT so known commands can be used while achievements are enabled.
-        Set<CommandData.Flag> flags = Set.of(CommandData.Flag.NOT_CHEAT);
+        Set<CommandData.Flag> flags = Set.of();
 
         boolean helpAdded = false;
 
@@ -129,7 +129,7 @@ public final class CommandTranslator {
         }
 
         if (data.platformType() == PlatformType.STANDALONE) {
-            data.commandRegistry().export(data.commandSource(), bedrockCommands, bedrockData.knownCommands);
+            //data.commandRegistry().export(data.commandSource(), bedrockCommands, bedrockData.knownCommands);
         }
 
         return bedrockCommands;
@@ -196,6 +196,6 @@ public final class CommandTranslator {
 
     public static CommandData createFakeHelpCommand() {
         CommandEnumData aliases = new CommandEnumData("helpAliases", Map.of("help", EnumSet.of(CommandEnumConstraint.ALLOW_ALIASES)), false);
-        return new CommandData("help", "", Set.of(CommandData.Flag.NOT_CHEAT), CommandPermission.ANY, aliases, Collections.emptyList(), new CommandOverloadData[0]);
+        return new CommandData("help", "", Set.of(), CommandPermission.ANY, aliases, Collections.emptyList(), new CommandOverloadData[0]);
     }
 }
