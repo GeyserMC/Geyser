@@ -27,6 +27,7 @@ package org.geysermc.geyser.command.defaults;
 
 import org.cloudburstmc.netty.signaling.ProviderClient;
 import org.geysermc.geyser.network.bedrock.nethernet.NetherNetServer.Advertised.Builtin;
+import org.geysermc.geyser.network.bedrock.nethernet.NetherNetStats;
 import org.junit.jupiter.api.Test;
 
 import java.net.InetSocketAddress;
@@ -65,5 +66,18 @@ class NetherNetCommandTest {
             NetherNetCommand.nxsPublished(new ProviderClient.PublishedEndpoints(List.of(), Set.of())));
         assertEquals("External signaling has no addresses confirmed by the service right now.",
             NetherNetCommand.nxsPublished(null));
+    }
+
+    @Test
+    void statsSummaryShowsTheBacklog() {
+        NetherNetStats.Snapshot snapshot = new NetherNetStats.Snapshot(60, "CONNECTED", "COMPLETED", null, "host -> srflx",
+            130, 132, 410, 4380, 1048576, 87, 3, 2, false, 4, 1500, 20,
+            25600, 41, 600, 3100, 20,
+            1_000_000, 2_000, 10, 30_000, 100_000, 1_000, 0, 0,
+            14.6, 0.25);
+        assertEquals("Steve: rtt 132 ms (rto 410 ms) | out 25.0 KiB/s, 41 msg/s, 600 pkt/s | in 3.0 KiB/s"
+                + " | cwnd 4.3 KiB, peer rwnd 1.00 MiB | pending 87, unacked 3 chunks | timeouts 2"
+                + " | UNWRITABLE for 1500 ms (4x) | 14.6 pkt/msg, 25% compressed size | host -> srflx",
+            NetherNetCommand.summary("Steve", snapshot));
     }
 }
