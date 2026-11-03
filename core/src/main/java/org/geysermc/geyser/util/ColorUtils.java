@@ -26,6 +26,7 @@
 package org.geysermc.geyser.util;
 
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.TextColor;
 import net.kyori.adventure.util.HSVLike;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.inventory.item.DyeColor;
@@ -136,14 +137,19 @@ public final class ColorUtils {
     public static Set<Color> extractAllColors(Component component) {
         Set<Color> colors = new HashSet<>();
 
-        if (component.color() != null) {
-            colors.add(new Color(component.color().value()));
+        collectColors(component, colors);
+
+        return Collections.unmodifiableSet(colors);
+    }
+
+    public static void collectColors(Component component, Set<Color> colors) {
+        TextColor color = component.color();
+        if (color != null) {
+            colors.add(new Color(color.value()));
         }
 
         for (Component child : component.children()) {
-            colors.addAll(extractAllColors(child));
+            collectColors(child, colors);
         }
-
-        return Collections.unmodifiableSet(colors);
     }
 }
