@@ -44,11 +44,11 @@ fun Project.relocate(pattern: String) {
     }
 }
 
-// Excludes all dependencies from a module - except one
-fun Project.exclude(group: String, lib: Provider<MinimalExternalModuleDependency>) {
+// Excludes all dependencies from a module - except the given ones
+fun Project.exclude(group: String, vararg kept: Provider<MinimalExternalModuleDependency>) {
     tasks.named<ShadowJar>("shadowJar") {
         dependencies {
-            exclude { it.moduleGroup == group && it.moduleName != lib.get().module.name }
+            exclude { dep -> dep.moduleGroup == group && kept.none { it.get().module.name == dep.moduleName } }
         }
     }
 }

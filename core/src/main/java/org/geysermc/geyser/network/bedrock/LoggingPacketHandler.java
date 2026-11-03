@@ -25,10 +25,12 @@
 
 package org.geysermc.geyser.network.bedrock;
 
+import org.cloudburstmc.protocol.bedrock.BedrockDisconnectReasons;
 import org.cloudburstmc.protocol.bedrock.packet.*;
 import org.cloudburstmc.protocol.common.PacketSignal;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.text.GeyserLocale;
 
 /**
  * Bare bones implementation of BedrockPacketHandler suitable for extension.
@@ -48,6 +50,17 @@ public class LoggingPacketHandler implements BedrockPacketHandler {
     PacketSignal defaultHandler(BedrockPacket packet) {
         geyser.getLogger().debug("Handled packet: " + packet.getClass().getSimpleName());
         return PacketSignal.HANDLED;
+    }
+
+    @Override
+    public void onDisconnect(CharSequence reason) {
+        // Use our own disconnect messages for these reasons
+        if (BedrockDisconnectReasons.CLOSED.contentEquals(reason)) {
+            this.session.getUpstream().getSession().setDisconnectReason(GeyserLocale.getLocaleStringLog("geyser.network.disconnect.closed_by_remote_peer"));
+        } else if (BedrockDisconnectReasons.TIMEOUT.contentEquals(reason)) {
+            this.session.getUpstream().getSession().setDisconnectReason(GeyserLocale.getLocaleStringLog("geyser.network.disconnect.timed_out"));
+        }
+        this.session.disconnect(this.session.getUpstream().getSession().getDisconnectReason().toString());
     }
 
     @Override

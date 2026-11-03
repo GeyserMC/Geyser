@@ -27,6 +27,8 @@ package org.geysermc.geyser.registry.populator.conversion;
 
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
+import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.registry.populator.BlockRegistryPopulator;
 
 // A variety of methods to help with re-mapping blocks and items to older versions.
 public class ConversionHelper {

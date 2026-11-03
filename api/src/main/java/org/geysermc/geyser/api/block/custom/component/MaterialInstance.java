@@ -63,10 +63,12 @@ public interface MaterialInstance {
     /**
      * Gets if the block should have ambient occlusion
      *
+     * <p>This method is deprecated for removal and will be removed in Geyser 2.13.0.</p>
+     *
      * @return If the block should have ambient occlusion.
-     * @deprecated Use {@link #ambientOcclusionExponent()} instead
+     * @deprecated since 2.11.3: use {@link #ambientOcclusionExponent()} instead
      */
-    @Deprecated(since = "2.11.3")
+    @Deprecated(since = "2.11.3", forRemoval = true)
     boolean ambientOcclusion();
 
     /**
@@ -105,9 +107,11 @@ public interface MaterialInstance {
         Builder faceDimming(boolean faceDimming);
 
         /**
-         * @deprecated Use {@link #ambientOcclusionExponent(float)} instead
+         * This method is deprecated for removal and will be removed in Geyser 2.13.0.
+         *
+         * @deprecated since 2.11.3: Use {@link #ambientOcclusionExponent(float)} instead
          */
-        @Deprecated(since = "2.11.3")
+        @Deprecated(since = "2.11.3", forRemoval = true)
         Builder ambientOcclusion(boolean ambientOcclusion);
 
         /**

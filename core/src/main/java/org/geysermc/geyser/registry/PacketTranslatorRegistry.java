@@ -71,6 +71,10 @@ import java.util.Set;
 
 public class PacketTranslatorRegistry<T> extends AbstractMappedRegistry<Class<? extends T>, PacketTranslator<? extends T>, IdentityHashMap<Class<? extends T>, PacketTranslator<? extends T>>> {
     private static final Set<Class<?>> IGNORED_PACKETS = Collections.newSetFromMap(new IdentityHashMap<>());
+    /**
+     * Failures logged in full per session
+     */
+    private static final int LOGGED_FAILURES_PER_SESSION = 5;
 
     static {
         //// Java clientbound
@@ -168,8 +172,10 @@ public class PacketTranslatorRegistry<T> extends AbstractMappedRegistry<Class<? 
         } catch (ErosionCancellationException ex) {
             GeyserImpl.getInstance().getLogger().debug("Caught ErosionCancellationException");
         } catch (Throwable ex) {
-            GeyserImpl.getInstance().getLogger().error(GeyserLocale.getLocaleStringLog("geyser.network.translator.packet.failed", packet.getClass().getSimpleName()), ex);
-            ex.printStackTrace();
+            String message = GeyserLocale.getLocaleStringLog("geyser.network.translator.packet.failed", packet.getClass().getSimpleName());
+            if (session.incrementTranslatorFailures() <= LOGGED_FAILURES_PER_SESSION || GeyserImpl.getInstance().config().debugMode()) {
+                GeyserImpl.getInstance().getLogger().error(message, ex);
+            }
         }
     }
 

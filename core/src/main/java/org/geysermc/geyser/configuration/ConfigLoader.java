@@ -156,6 +156,9 @@ public final class ConfigLoader {
         int currentVersion = migrations.version(node);
         migrations.apply(node);
         int newVersion = migrations.version(node);
+        // At any version, as a file edited after upgrading can still name it
+        ConfigMigrations.moveRakNetOnly(node.node("bedrock", "transport"),
+            bootstrap == null ? null : bootstrap.getGeyserLogger());
 
         T config = node.get(configClass);
 
@@ -188,6 +191,9 @@ public final class ConfigLoader {
             transformer.accept(newRoot);
             modified = true;
         }
+        // An override or a command line argument can name it as well
+        ConfigMigrations.moveRakNetOnly(newRoot.node("bedrock", "transport"),
+            bootstrap == null ? null : bootstrap.getGeyserLogger());
 
         if (modified) {
             config = newRoot.get(configClass);

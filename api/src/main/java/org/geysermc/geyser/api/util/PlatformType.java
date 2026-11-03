@@ -30,14 +30,20 @@ package org.geysermc.geyser.api.util;
  */
 public record PlatformType(String platformName) {
 
-    @Deprecated
+    /**
+     * This field is deprecated for removal and will be removed in Geyser 2.13.0.
+     */
+    @Deprecated(since = "2.2.0", forRemoval = true)
     public static final PlatformType ANDROID = new PlatformType("Android");
     public static final PlatformType BUNGEECORD = new PlatformType("BungeeCord");
     public static final PlatformType FABRIC = new PlatformType("Fabric");
     public static final PlatformType NEOFORGE = new PlatformType("NeoForge");
     public static final PlatformType SPIGOT = new PlatformType("Spigot");
 
-    @Deprecated
+    /**
+     * This field is deprecated for removal and will be removed in Geyser 2.13.0.
+     */
+    @Deprecated(since = "2.2.0", forRemoval = true)
     public static final PlatformType SPONGE = new PlatformType("Sponge");
     public static final PlatformType STANDALONE = new PlatformType("Standalone");
     public static final PlatformType VELOCITY = new PlatformType("Velocity");

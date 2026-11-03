@@ -45,7 +45,6 @@ import org.geysermc.geyser.inventory.recipe.GeyserShapelessRecipe;
 import org.geysermc.geyser.inventory.recipe.GeyserStonecutterData;
 import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.item.type.Item;
-import org.geysermc.geyser.network.bedrock.GameProtocol;
 import org.geysermc.geyser.registry.java.JavaRegistries;
 import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.registry.type.ItemMappings;
@@ -104,21 +103,13 @@ public class JavaUpdateRecipesTranslator extends PacketTranslator<ClientboundUpd
         // See JavaFinishConfigurationTranslator - avoid re-sending base recipe data in quick succession
         if (session.isCleanRecipesRequired()) {
             craftingDataPacket.setCleanRecipes(true);
-            if (GameProtocol.is26_40orHigher(session.protocolVersion())) {
-                craftingDataPacket.getMultiData().addAll(CARTOGRAPHY_RECIPES);
-            } else {
-                craftingDataPacket.getCraftingData().addAll(CARTOGRAPHY_RECIPES);
-            }
+            craftingDataPacket.getMultiData().addAll(CARTOGRAPHY_RECIPES);
 
             for (GeyserRecipe recipe : session.getCraftingRecipes().values()) {
-                if (GameProtocol.is26_40orHigher(session.protocolVersion())) {
-                    if (recipe instanceof GeyserShapedRecipe shapedRecipe) {
-                        craftingDataPacket.getShapedData().addAll(shapedRecipe.asRecipeData(session));
-                    } else if (recipe instanceof GeyserShapelessRecipe shapelessRecipe) {
-                        craftingDataPacket.getShapelessData().addAll(shapelessRecipe.asRecipeData(session));
-                    }
-                } else {
-                    craftingDataPacket.getCraftingData().addAll(recipe.asRecipeData(session));
+                if (recipe instanceof GeyserShapedRecipe shapedRecipe) {
+                    craftingDataPacket.getShapedData().addAll(shapedRecipe.asRecipeData(session));
+                } else if (recipe instanceof GeyserShapelessRecipe shapelessRecipe) {
+                    craftingDataPacket.getShapelessData().addAll(shapelessRecipe.asRecipeData(session));
                 }
             }
             session.getTrimRecipes().addAllSmithingRecipes(session, craftingDataPacket);
@@ -147,11 +138,7 @@ public class JavaUpdateRecipesTranslator extends PacketTranslator<ClientboundUpd
                     "smithing_table",
                     netId++);
 
-                if (GameProtocol.is26_40orHigher(session.protocolVersion())) {
-                    craftingDataPacket.getSmithingTransformData().add(recipe);
-                } else {
-                    craftingDataPacket.getCraftingData().add(recipe);
-                }
+                craftingDataPacket.getSmithingTransformData().add(recipe);
             }
         } else {
             oldSmithingTable = false;
@@ -212,11 +199,7 @@ public class JavaUpdateRecipesTranslator extends PacketTranslator<ClientboundUpd
                 // (Implementation note: recipe ID creates the order which stonecutting recipes are shown in stonecutter)
                 ShapelessRecipeData stonecutterRecipe = ShapelessRecipeData.shapeless("stonecutter_" + javaInput + "_" + buttonId,
                     Collections.singletonList(descriptor), Collections.singletonList(output), uuid, "stonecutter", 0, recipeNetId, RecipeUnlockingRequirement.INVALID);
-                if (GameProtocol.is26_40orHigher(session.protocolVersion())) {
-                    craftingDataPacket.getShapelessData().add(stonecutterRecipe);
-                } else {
-                    craftingDataPacket.getCraftingData().add(stonecutterRecipe);
-                }
+                craftingDataPacket.getShapelessData().add(stonecutterRecipe);
 
                 // Save the recipe list for reference when crafting
                 // Add the net ID as the key and the button required + output for the value

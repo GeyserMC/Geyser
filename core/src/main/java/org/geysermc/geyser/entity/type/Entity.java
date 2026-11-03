@@ -377,6 +377,8 @@ public class Entity implements GeyserEntity {
                 moveEntityPacket.setHeadYaw(headYaw);
                 moveEntityPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_HEAD_YAW);
             }
+            // Since 26.40 the ground state is its own field instead of that flag
+            moveEntityPacket.setOnGround(isOnGround);
             if (isOnGround) {
                 moveEntityPacket.getFlags().add(MoveEntityDeltaPacket.Flag.ON_GROUND);
             }

@@ -83,10 +83,11 @@ public class SkinProvider {
             .expireAfterAccess(1, TimeUnit.HOURS)
             .build();
 
-    private static final Cache<String, Cape> CACHED_BEDROCK_CAPES = CacheBuilder.newBuilder()
+    // Keyed by player
+    private static final Cache<UUID, Cape> CACHED_BEDROCK_CAPES = CacheBuilder.newBuilder()
             .expireAfterAccess(1, TimeUnit.HOURS)
             .build();
-    private static final Cache<String, Skin> CACHED_BEDROCK_SKINS = CacheBuilder.newBuilder()
+    private static final Cache<UUID, Skin> CACHED_BEDROCK_SKINS = CacheBuilder.newBuilder()
             .expireAfterAccess(1, TimeUnit.HOURS)
             .build();
 
@@ -222,10 +223,8 @@ public class SkinProvider {
             // Let's see if this player is a Bedrock player, and if so, let's pull their skin.
             GeyserSession session = GeyserImpl.getInstance().connectionByUuid(uuid);
             if (session != null) {
-                String skinId = session.getClientData().getSkinId();
-                skin = CACHED_BEDROCK_SKINS.getIfPresent(skinId);
-                String capeId = session.getClientData().getCapeId();
-                cape = CACHED_BEDROCK_CAPES.getIfPresent(capeId);
+                skin = CACHED_BEDROCK_SKINS.getIfPresent(uuid);
+                cape = CACHED_BEDROCK_CAPES.getIfPresent(uuid);
                 geometry = cachedGeometry.getOrDefault(uuid, geometry);
             }
         }
@@ -251,8 +250,7 @@ public class SkinProvider {
     private static Cape getCachedBedrockCape(UUID uuid) {
         GeyserSession session = GeyserImpl.getInstance().connectionByUuid(uuid);
         if (session != null) {
-            String capeId = session.getClientData().getCapeId();
-            Cape bedrockCape = CACHED_BEDROCK_CAPES.getIfPresent(capeId);
+            Cape bedrockCape = CACHED_BEDROCK_CAPES.getIfPresent(uuid);
             if (bedrockCape != null) {
                 return bedrockCape;
             }
@@ -397,13 +395,17 @@ public class SkinProvider {
     }
 
     static void storeBedrockSkin(UUID playerID, String skinId, byte[] skinData) {
-        Skin skin = new Skin(skinId, skinData);
-        CACHED_BEDROCK_SKINS.put(skin.textureUrl(), skin);
+        CACHED_BEDROCK_SKINS.put(playerID, new Skin(skinId, skinData));
     }
 
-    static void storeBedrockCape(String capeId, byte[] capeData) {
-        Cape cape = new Cape(capeId, capeId, capeData);
-        CACHED_BEDROCK_CAPES.put(capeId, cape);
+    static void storeBedrockCape(UUID playerID, String capeId, byte[] capeData) {
+        CACHED_BEDROCK_CAPES.put(playerID, new Cape(capeId, capeId, capeData));
+    }
+
+    public static void removeBedrockSkin(UUID playerID) {
+        CACHED_BEDROCK_SKINS.invalidate(playerID);
+        CACHED_BEDROCK_CAPES.invalidate(playerID);
+        cachedGeometry.remove(playerID);
     }
 
     static void storeBedrockGeometry(UUID playerID, byte[] geometryName, byte[] geometryData) {

@@ -46,7 +46,7 @@ public class BedrockServerSettingsRequestTranslator extends PacketTranslator<Ser
     @Override
     public void translate(GeyserSession session, ServerSettingsRequestPacket packet) {
         // UUID is null when we're not logged in, which causes the hasPermission check to fail
-        if (!session.isLoggedIn()) {
+        if (!session.isLoggedIn() || !session.getFormCache().allowSettingsRequest()) {
             return;
         }
 

@@ -59,18 +59,21 @@ import java.util.function.BiConsumer;
 public class LoginEncryptionUtils {
     private static boolean HAS_SENT_ENCRYPTION_MESSAGE = false;
 
-    public static void encryptPlayerConnection(GeyserSession session, LoginPacket loginPacket) {
-        encryptConnectionWithCert(session, loginPacket.getAuthPayload(), loginPacket.getClientJwt());
+    /**
+     * @return whether the client must answer the encryption handshake before its login can be trusted
+     */
+    public static boolean encryptPlayerConnection(GeyserSession session, LoginPacket loginPacket) {
+        return encryptConnectionWithCert(session, loginPacket.getAuthPayload(), loginPacket.getClientJwt());
     }
 
-    private static void encryptConnectionWithCert(GeyserSession session, AuthPayload authPayload, String jwt) {
+    private static boolean encryptConnectionWithCert(GeyserSession session, AuthPayload authPayload, String jwt) {
         try {
             GeyserImpl geyser = session.getGeyser();
 
             // Regardless of auth type, we don't support guest type accounts used for splitscreen
             if (authPayload.getAuthType() == AuthType.GUEST) {
                 session.disconnect(GeyserLocale.getLocaleStringLog("geyser.network.remote.invalid_xbox_account"));
-                return;
+                return false;
             }
 
             ChainValidationResult result = EncryptionUtils.validatePayload(authPayload);
@@ -78,7 +81,7 @@ public class LoginEncryptionUtils {
             geyser.getLogger().debug("Is player data signed? %s", result.signed());
             if (!result.signed() && session.getGeyser().config().advanced().bedrock().validateBedrockLogin()) {
                 session.disconnect(GeyserLocale.getLocaleStringLog("geyser.network.remote.invalid_xbox_account"));
-                return;
+                return false;
             }
 
             // Should always be present, but hey, why not make it safe :D
@@ -110,7 +113,7 @@ public class LoginEncryptionUtils {
                     && session.getUpstream().getSession().getPeer() instanceof NetherNetPeer) {
                 if (refusedByBinding(geyser, session, TransportIdentityBinding.mismatch(
                         session.getUpstream().getSession().getPeer().getChannel(), identityPublicKey))) {
-                    return;
+                    return false;
                 }
             }
 
@@ -124,14 +127,14 @@ public class LoginEncryptionUtils {
                     session.getUpstream().setInetAddress(new InetSocketAddress(waterdogIp, 0));
                 } else {
                     session.disconnect("Did not receive IP and xuid forwarded from the proxy!");
-                    return;
+                    return false;
                 }
                 // The proxy authenticated this player, so there is no key of theirs to compare.
                 // Spending the binding is what stops the admission expiring under a live session,
                 // and it only happens once the forwarded fields above have been accepted.
                 if (refusedByBinding(geyser, session, TransportIdentityBinding.acceptForwardedIdentity(
                         session.getUpstream().getSession().getPeer().getChannel()))) {
-                    return;
+                    return false;
                 }
             }
             session.setAuthData(new AuthData(extraData.displayName, extraData.identity, xuid, issuedAt, extraData.minecraftId));
@@ -140,7 +143,7 @@ public class LoginEncryptionUtils {
             CodecProcessor.updateCodec(session.getUpstream(), data.getGameVersion());
 
             try {
-                startEncryptionHandshake(session, identityPublicKey);
+                return startEncryptionHandshake(session, identityPublicKey);
             } catch (Throwable e) {
                 // An error can be thrown on older Java 8 versions about an invalid key
                 if (geyser.config().debugMode()) {
@@ -148,6 +151,8 @@ public class LoginEncryptionUtils {
                 }
 
                 sendEncryptionFailedMessage(geyser);
+                session.disconnect("disconnectionScreen.internalError.cantConnect");
+                return false;
             }
         } catch (Exception ex) {
             session.disconnect("disconnectionScreen.internalError.cantConnect");
@@ -155,11 +160,14 @@ public class LoginEncryptionUtils {
         }
     }
 
-    private static void startEncryptionHandshake(GeyserSession session, PublicKey key) throws Exception {
+    /**
+     * @return whether a handshake was sent that the client has to answer
+     */
+    private static boolean startEncryptionHandshake(GeyserSession session, PublicKey key) throws Exception {
         if (session.getUpstream().getSession().getPeer() instanceof NetherNetPeer) {
             // The data channel is already encrypted by DTLS, so the peer ignores an encryption key.
             // Sending the handshake anyway would have the client encrypt what the server cannot read.
-            return;
+            return false;
         }
 
         KeyPair serverKeyPair = EncryptionUtils.createKeyPair();
@@ -171,6 +179,7 @@ public class LoginEncryptionUtils {
 
         SecretKey encryptionKey = EncryptionUtils.getSecretKey(serverKeyPair.getPrivate(), key, token);
         session.getUpstream().getSession().enableEncryption(encryptionKey);
+        return true;
     }
 
     /**
