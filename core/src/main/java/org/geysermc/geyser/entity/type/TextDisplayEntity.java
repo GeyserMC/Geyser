@@ -234,7 +234,7 @@ public class TextDisplayEntity extends DisplayBaseEntity {
     }
 
     private void processText() {
-        this.text = postProcessText(this.unprocessedText);
+        this.text = MessageTranslator.wrapLines(this.unprocessedText, this.lineWidth);
     }
 
     @Override
@@ -301,6 +301,30 @@ public class TextDisplayEntity extends DisplayBaseEntity {
     public void updatePrimitiveText() {
         if (!sendUpdates) return;
 
+        DebugText text = new DebugText();
+        text.setId(geyserId);
+        text.setText(this.text);
+        text.setColor(
+            color == null ? null :
+                new Color(
+                    color.getRed(),
+                    color.getGreen(),
+                    color.getBlue(),
+                    textOpacity < 0 ? (textOpacity + 256) : textOpacity
+                )
+        );
+        text.setAttachedToEntityId(geyserId);
+        text.setUseRotation(!getBillboard().equals(Billboard.CENTER));
+        text.setMaximumRenderDistance(getViewDistance());
+        text.setBackgroundColor(backgroundColor);
+        text.setDepthTest(!seeThrough);
+        text.setDimension(session.getBedrockDimension().bedrockId());
+        DebugDrawerPacket packet = new DebugDrawerPacket();
+        packet.getShapes().add(text);
+        session.sendUpstreamPacket(packet);
+    }
+
+    private void applyTransformation(DebugText text) {
         // Calculate a matrix then extract components
         Matrix4f matrix = Matrix4f.IDENTITY.translate(getBaseTranslation())
             .rotate(getLeftRotation())
@@ -335,7 +359,7 @@ public class TextDisplayEntity extends DisplayBaseEntity {
         float scale = MathUtils.average(new float[]{ sx, sy }) * BEDROCK_SCALE_FACTOR; // sz doesn't affect the java scale, so don't use it
 
         // Move the bedrock anchor to where the top line sits within the java text, in the java text's local space
-        int lines = text.split("\n", -1).length;
+        int lines = this.text.split("\n", -1).length;
         Matrix4f transform = Matrix4f.createRotation(getLeftRotation())
             .mul(Matrix4f.createScaling(Vector4f.from(getBaseScale(), 1)))
             .mul(Matrix4f.createRotation(getRightRotation()));
@@ -351,20 +375,7 @@ public class TextDisplayEntity extends DisplayBaseEntity {
         // I'm not even gonna pretend I know why x needs to be negative, but it does, and it works
         Vector3f rotation = Vector3f.from(-Math.toDegrees(x), Math.toDegrees(y), Math.toDegrees(z));
 
-        DebugText text = new DebugText();
-        text.setId(geyserId);
-        text.setText(this.text);
-        text.setColor(
-            color == null ? null :
-                new Color(
-                    color.getRed(),
-                    color.getGreen(),
-                    color.getBlue(),
-                    textOpacity < 0 ? (textOpacity + 256) : textOpacity
-                )
-        );
         text.setPosition(translation);
-        text.setAttachedToEntityId(geyserId);
 
         Vector3f outputRotation = Vector3f.from(
             0, (-getYaw()) + 180, 0
@@ -374,15 +385,8 @@ public class TextDisplayEntity extends DisplayBaseEntity {
         outputRotation = outputRotation.add(rotation);
 
         text.setRotation(outputRotation);
-        text.setUseRotation(!getBillboard().equals(Billboard.CENTER));
-        text.setMaximumRenderDistance(getViewDistance());
-        text.setBackgroundColor(backgroundColor);
-        text.setDepthTest(!seeThrough);
-        text.setDimension(session.getBedrockDimension().bedrockId());
+
         text.setScale(scale);
-        DebugDrawerPacket packet = new DebugDrawerPacket();
-        packet.getShapes().add(text);
-        session.sendUpstreamPacket(packet);
     }
 
     public void updateNameTag() {
@@ -406,77 +410,5 @@ public class TextDisplayEntity extends DisplayBaseEntity {
         secondEntity.getMetadata().put(EntityDataTypes.WIDTH, 0.0f);
         secondEntity.getMetadata().put(EntityDataTypes.HEIGHT, 0.0f);
         secondEntity.getMetadata().put(EntityDataTypes.HITBOX, NbtMap.EMPTY);
-    }
-
-    private String postProcessText(String text) {
-        List<String> lines = new ArrayList<>();
-        for (String line : text.split("\n", -1)) {
-            if (line.length() == 2 && line.startsWith(String.valueOf(ChatColor.ESCAPE))) {
-                lines.add("\u00a0");
-                continue;
-            }
-            wrapLine(line, lines);
-        }
-
-        return String.join("\n", lines);
-    }
-
-    private void wrapLine(String line, List<String> lines) {
-        String prefix = "";
-        String formatting = "";
-        boolean bold = false;
-        int start = 0;
-        int width = 0;
-
-        int lastSpace = -1;
-        String formattingAtSpace = "";
-        boolean boldAtSpace = false;
-
-        for (int i = 0; i < line.length(); i++) {
-            char c = line.charAt(i);
-            if (c == ChatColor.ESCAPE && i + 1 < line.length()) {
-                char code = Character.toLowerCase(line.charAt(++i));
-                if (code == 'r') {
-                    formatting = "";
-                    bold = false;
-                } else if (Character.digit(code, 16) != -1) {
-                    // Colors reset any other formatting
-                    formatting = ChatColor.ESCAPE + String.valueOf(code);
-                    bold = false;
-                } else {
-                    formatting += ChatColor.ESCAPE + String.valueOf(code);
-                    bold |= code == 'l';
-                }
-                continue;
-            }
-
-            if (c == ' ') {
-                lastSpace = i;
-                formattingAtSpace = formatting;
-                boldAtSpace = bold;
-            }
-
-            int charWidth = SignUtils.getCharacterWidth(c) + (bold ? 1 : 0);
-            if (width > 0 && width + charWidth > lineWidth) {
-                if (lastSpace > start) {
-                    // Break at the last space, which Java drops
-                    lines.add(prefix + line.substring(start, lastSpace));
-                    start = lastSpace + 1;
-                    formatting = formattingAtSpace;
-                    bold = boldAtSpace;
-                } else {
-                    lines.add(prefix + line.substring(start, i));
-                    start = i;
-                }
-                prefix = formatting;
-                width = 0;
-                lastSpace = -1;
-                // Rescan from the start of the new line
-                i = start - 1;
-                continue;
-            }
-            width += charWidth;
-        }
-        lines.add(prefix + line.substring(start));
     }
 }

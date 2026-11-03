@@ -49,6 +49,7 @@ import org.geysermc.geyser.text.ChatColor;
 import org.geysermc.geyser.text.ChatDecoration;
 import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.text.MinecraftTranslationRegistry;
+import org.geysermc.geyser.util.SignUtils;
 import org.geysermc.mcprotocollib.protocol.data.DefaultComponentSerializer;
 import org.geysermc.mcprotocollib.protocol.data.game.Holder;
 import org.geysermc.mcprotocollib.protocol.data.game.chat.ChatType;
@@ -541,6 +542,90 @@ public class MessageTranslator {
     }
 
     /* ===== Utility methods ===== */
+
+    public static String wrapLines(String text, int width) {
+        List<String> lines = new ArrayList<>();
+        // Bedrock only keeps colors across new lines, so carry the formatting over and reapply it to every line
+        String formatting = "";
+        for (String line : text.split("\n", -1)) {
+            formatting = wrapLine(formatting, line, width, lines);
+        }
+
+        return String.join("\n", lines);
+    }
+
+    /**
+     * @return the formatting active at the end of the line
+     */
+    private static String wrapLine(String prefix, String line, int width, List<String> lines) {
+        String formatting = prefix;
+        boolean bold = prefix.contains(ChatColor.BOLD);
+        int start = 0;
+        int lineWidth = 0;
+
+        int lastSpace = -1;
+        String formattingAtSpace = "";
+        boolean boldAtSpace = false;
+
+        for (int i = 0; i < line.length(); i++) {
+            char c = line.charAt(i);
+            if (c == ChatColor.ESCAPE && i + 1 < line.length()) {
+                char code = Character.toLowerCase(line.charAt(++i));
+                if (code == 'r') {
+                    formatting = "";
+                    bold = false;
+                } else if (Character.digit(code, 16) != -1) {
+                    // Colors reset any other formatting
+                    formatting = ChatColor.ESCAPE + String.valueOf(code);
+                    bold = false;
+                } else {
+                    formatting += ChatColor.ESCAPE + String.valueOf(code);
+                    bold |= code == 'l';
+                }
+                continue;
+            }
+
+            if (c == ' ') {
+                lastSpace = i;
+                formattingAtSpace = formatting;
+                boldAtSpace = bold;
+            }
+
+            int charWidth = SignUtils.getCharacterWidth(c) + (bold ? 1 : 0);
+            if (lineWidth > 0 && lineWidth + charWidth > width) {
+                if (lastSpace > start) {
+                    // Break at the last space, which Java drops
+                    addLine(prefix + line.substring(start, lastSpace), lines);
+                    start = lastSpace + 1;
+                    formatting = formattingAtSpace;
+                    bold = boldAtSpace;
+                } else {
+                    addLine(prefix + line.substring(start, i), lines);
+                    start = i;
+                }
+                prefix = formatting;
+                lineWidth = 0;
+                lastSpace = -1;
+                // Rescan from the start of the new line
+                i = start - 1;
+                continue;
+            }
+            lineWidth += charWidth;
+        }
+        addLine(prefix + line.substring(start), lines);
+        return formatting;
+    }
+
+    private static void addLine(String line, List<String> lines) {
+        // Lines with only formatting codes don't render, so give them something to show
+        for (int i = 0; i < line.length(); i++) {
+            if (line.charAt(i) != ChatColor.ESCAPE || ++i >= line.length()) {
+                lines.add(line);
+                return;
+            }
+        }
+        lines.add(line.isEmpty() ? line : line + " ");
+    }
 
     public static void handleChatPacket(GeyserSession session, Component message, Holder<ChatType> chatTypeHolder, Component targetName, Component sender, @Nullable UUID senderUuid) {
         TextPacket textPacket = new TextPacket();
