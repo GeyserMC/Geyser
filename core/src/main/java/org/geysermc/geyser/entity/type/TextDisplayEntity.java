@@ -302,6 +302,7 @@ public class TextDisplayEntity extends DisplayBaseEntity {
         if (!sendUpdates) return;
 
         DebugText text = new DebugText();
+        applyTransformation(text);
         text.setId(geyserId);
         text.setText(this.text);
         text.setColor(
