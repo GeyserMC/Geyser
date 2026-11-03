@@ -180,14 +180,6 @@ public class MessageTranslator {
         }
     }
 
-    public static String convertNoColorMessage(Component message, String locale) {
-        // Translate the component
-        message = RENDERER.render(message, locale);
-
-        // Wait what, color? Yes! LegacyComponentSerializer NSEEs with no colors present, so we add white and remove!
-        return NO_COLOR_SERIALIZER.serialize(message).replace("" + LegacyComponentSerializer.SECTION_CHAR + CharacterAndFormat.WHITE.character(), "");
-    }
-
     /* ===== Java -> Bedrock conversion ===== */
 
     private static String convertMessage(Component message, String locale, boolean addLeadingResetFormat) {
@@ -260,6 +252,14 @@ public class MessageTranslator {
 
             return "";
         }
+    }
+
+    public static String convertNoColorMessage(Component message, String locale) {
+        // Translate the component
+        message = RENDERER.render(message, locale);
+
+        // Wait what, color? Yes! LegacyComponentSerializer NoSuchElementExceptions with no colors present, so we add white and remove!
+        return NO_COLOR_SERIALIZER.serialize(message).replace("" + LegacyComponentSerializer.SECTION_CHAR + CharacterAndFormat.WHITE.character(), "");
     }
 
     /**
