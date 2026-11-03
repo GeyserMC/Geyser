@@ -39,24 +39,19 @@ import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.FloatE
 
 import java.util.Objects;
 
+@Getter
 public class DisplayBaseEntity extends Entity {
 
-    @Getter
     private @NonNull Vector3f baseTranslation = Vector3f.ZERO;
 
-    @Getter
     private @NonNull Vector3f baseScale = Vector3f.ONE;
 
-    @Getter
     private @NonNull Quaternionf leftRotation = Quaternionf.IDENTITY;
 
-    @Getter
     private @NonNull Quaternionf rightRotation = Quaternionf.IDENTITY;
 
-    @Getter
     private @NonNull Billboard billboard = Billboard.FIXED;
 
-    @Getter
     private float viewDistance = -1;
 
     public DisplayBaseEntity(EntitySpawnContext context) {

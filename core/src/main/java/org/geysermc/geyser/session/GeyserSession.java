@@ -836,6 +836,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource, Jav
     /**
      * Stores cookies sent by the Java server.
      */
+    @Setter
     private Map<String, byte[]> cookies = new Object2ObjectOpenHashMap<>();
 
     private final GeyserCameraData cameraData;

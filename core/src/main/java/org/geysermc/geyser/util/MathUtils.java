@@ -220,7 +220,7 @@ public class MathUtils {
      * Gets an average of all the items
      *
      * @param items numbers
-     * @return rounded result
+     * @return average result
      */
     public static float average(float[] items) {
         float added = 0;
