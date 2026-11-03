@@ -247,7 +247,7 @@ public final class WorldCache {
     public void setCooldown(Key cooldownGroup, int ticks) {
         if (ticks == 0) {
             // As of Java 1.21
-            this.activeCooldowns.removeInt(cooldownGroup.asString());
+            this.activeCooldowns.removeInt(cooldownGroup);
             return;
         }
         this.activeCooldowns.put(cooldownGroup, session.getTicks() + ticks);

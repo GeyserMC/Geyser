@@ -111,6 +111,29 @@ public class EnvironmentOverridesTest {
     }
 
     @Test
+    void testSignalingProxyOverrides() throws Exception {
+        // Hosts set these per server, so their names are what hosts are told
+        File file = tempDirectory.resolve("signaling-proxy.yml").toFile();
+        GeyserConfig config = new ConfigLoader(file, PlatformType.STANDALONE)
+            .environment(Map.of(
+                "GEYSER_ADVANCED_BEDROCK_PREFER_SIGNALING_PROXY_ADDRESS", "true"
+            ))
+            .load0(GeyserRemoteConfig.class);
+
+        assertTrue(config.advanced().bedrock().preferSignalingProxyAddress());
+    }
+
+    @Test
+    void testRemovedRaknetTransportOverride() throws Exception {
+        // Overrides apply after migrations, so the removed value has to be moved there too, in any case
+        GeyserConfig config = new ConfigLoader(tempDirectory.resolve("raknet.yml").toFile(), PlatformType.STANDALONE)
+            .environment(Map.of("GEYSER_BEDROCK_TRANSPORT", "RakNet"))
+            .load0(GeyserRemoteConfig.class);
+
+        assertEquals(GeyserConfig.BedrockConfig.Transport.NETHERNET, config.bedrock().transport());
+    }
+
+    @Test
     void testEmptyListOverrideClearsList() throws Exception {
         File file = tempDirectory.resolve("clear.yml").toFile();
         new ConfigLoader(file, PlatformType.STANDALONE)
@@ -134,6 +157,7 @@ public class EnvironmentOverridesTest {
             "GEYSER_BEDROCK", "section",
             "GEYSER_CONFIG_VERSION", "1",
             "NOT_GEYSER_BEDROCK_PORT", "1",
+            "GEYSER_ADDITIONAL_HEADERS", "X-Example: yes",
             // Moved to bedrock.signaling in config version 11
             "GEYSER_BEDROCK_SIGNALING_NXS_ADVERTISE_ADDRESSES", "198.51.100.1"
         ), logger);
@@ -145,6 +169,7 @@ public class EnvironmentOverridesTest {
         verify(logger).warning(contains("GEYSER_BEDROCK_SIGNALING_NXS_ADVERTISE_ADDRESSES"));
         verify(logger).warning(contains("config version cannot be set"));
         verify(logger, never()).warning(contains("NOT_GEYSER_BEDROCK_PORT"));
+        verify(logger, never()).warning(contains("GEYSER_ADDITIONAL_HEADERS"));
         verify(logger, never()).info(anyString());
     }
 

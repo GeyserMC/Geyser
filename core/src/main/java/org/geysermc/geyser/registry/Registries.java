@@ -29,7 +29,6 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
-import it.unimi.dsi.fastutil.objects.Reference2ObjectOpenHashMap;
 import net.kyori.adventure.key.Key;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
@@ -39,8 +38,6 @@ import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.util.Identifier;
 import org.geysermc.geyser.api.waypoint.CustomWaypointStyle;
 import org.geysermc.geyser.entity.BedrockEntityDefinition;
-import org.geysermc.geyser.entity.EntityTypeDefinition;
-import org.geysermc.geyser.entity.GeyserEntityType;
 import org.geysermc.geyser.item.components.resolvable.ResolvableComponent;
 import org.geysermc.geyser.level.gamerule.GameRule;
 import org.geysermc.geyser.level.gamerule.GameRules;
@@ -130,12 +127,6 @@ public final class Registries {
      */
     public static final SimpleMappedDeferredRegistry<BlockEntityType, BlockEntityTranslator> BLOCK_ENTITIES = SimpleMappedDeferredRegistry.create("org.geysermc.geyser.translator.level.block.entity.BlockEntity", BlockEntityRegistryLoader::new);
 
-    /**
-     * A map containing all entity types and their respective Geyser definitions
-     */
-    // Is a Reference2ObjectMap since GeyserEntityType, the implementation of JavaEntityType, only ever keeps one instance per registered entity type
-    public static final SimpleMappedRegistry<GeyserEntityType, EntityTypeDefinition<?>> JAVA_ENTITY_TYPES = SimpleMappedRegistry.create(RegistryLoaders.empty(Reference2ObjectOpenHashMap::new));
-
     public static final SimpleMappedRegistry<Identifier, BedrockEntityDefinition> BEDROCK_ENTITY_DEFINITIONS = SimpleMappedRegistry.create(RegistryLoaders.empty(Object2ObjectOpenHashMap::new));
 
     /**
@@ -166,7 +157,7 @@ public final class Registries {
     /**
      * A mapped registry holding {@link ResourcePackHolder}'s with the pack uuid as keys.
      */
-    public static final SimpleMappedDeferredRegistry<UUID, ResourcePackHolder> RESOURCE_PACKS = SimpleMappedDeferredRegistry.create(GeyserImpl.getInstance().packDirectory(), RegistryLoaders.RESOURCE_PACKS);
+    public static final SimpleMappedDeferredRegistry<UUID, ResourcePackHolder> RESOURCE_PACKS = SimpleMappedDeferredRegistry.createFromLazyInput(() -> GeyserImpl.getInstance().packDirectory(), RegistryLoaders.RESOURCE_PACKS);
 
     /**
      * A versioned registry holding most Bedrock tags, with the Java item list (sorted) being the key, and the tag name as the value.
@@ -227,7 +218,7 @@ public final class Registries {
         // (by using the Items or Blocks class, which loads all the blocks)
 
         // Bootstrap registries holding hardcoded (built-in) Java Edition content
-        DataComponentRegistryPopulator.load();
+        DataComponentRegistryPopulator.load(GeyserImpl.getInstance().getBootstrap());
         BuiltInJavaRegistries.bootstrap();
 
         BEDROCK_ENTITY_IDENTIFIERS.load();

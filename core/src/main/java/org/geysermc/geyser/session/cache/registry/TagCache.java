@@ -35,6 +35,8 @@ import org.geysermc.geyser.GeyserLogger;
 import org.geysermc.geyser.registry.java.JavaRegistries;
 import org.geysermc.geyser.registry.java.JavaRegistryKey;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.cache.tags.BlockTag;
+import org.geysermc.geyser.session.cache.tags.ItemTag;
 import org.geysermc.geyser.session.cache.tags.Tag;
 import org.geysermc.geyser.util.MinecraftKey;
 import org.geysermc.mcprotocollib.protocol.packet.common.clientbound.ClientboundUpdateTagsPacket;
@@ -49,6 +51,8 @@ import java.util.Optional;
  * Only tags from registries in {@link JavaRegistries} are stored. Read {@link JavaRegistryKey} for more information.
  */
 public final class TagCache {
+    private static final Key LEGACY_CONVERTABLE_TO_MUD = MinecraftKey.key("convertable_to_mud");
+
     private final Map<Tag<?>, IntList> tags = new Object2ObjectOpenHashMap<>();
 
     TagCache() {}
@@ -71,15 +75,19 @@ public final class TagCache {
             if (session.isPresent()) {
                 if (registry == JavaRegistries.BLOCK) {
                     // Hack btw
-                    int[] convertableToMud = registryTags.get(MinecraftKey.key("convertable_to_mud"));
-                    boolean emulatePost1_18Logic = convertableToMud != null && convertableToMud.length != 0;
+                    int[] convertibleToMud = registryTags.get(BlockTag.CONVERTIBLE_TO_MUD.tag());
+                    if (convertibleToMud == null) {
+                        // Renamed from convertable_to_mud in 26.3; older backends behind ViaVersion may still send the old name
+                        convertibleToMud = registryTags.get(LEGACY_CONVERTABLE_TO_MUD);
+                    }
+                    boolean emulatePost1_18Logic = convertibleToMud != null && convertibleToMud.length != 0;
                     session.get().setEmulatePost1_18Logic(emulatePost1_18Logic);
                     if (logger.isDebug()) {
                         logger.debug("Emulating post 1.18 block predication logic for " + session.get().bedrockUsername() + "? " + emulatePost1_18Logic);
                     }
                 } else if (registry == JavaRegistries.ITEM) {
                     // Hack btw
-                    int[] signs = registryTags.get(MinecraftKey.key("signs"));
+                    int[] signs = registryTags.get(ItemTag.SIGNS.tag());
                     boolean emulatePost1_13Logic = signs != null && signs.length > 1;
                     session.get().setEmulatePost1_13Logic(emulatePost1_13Logic);
                     if (logger.isDebug()) {
