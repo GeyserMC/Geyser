@@ -34,6 +34,13 @@ dependencies {
     implementation(libs.gson.record.factory) {
         isTransitive = false
     }
+
+    // Older Paper versions still bundle Netty 4.1, so we need to shade the 4.1 http codec here
+    implementation(libs.netty.legacy.codec.http) {
+        version {
+            strictly(libs.versions.netty.legacy.get())
+        }
+    }
 }
 
 platformRelocate("it.unimi.dsi.fastutil")
