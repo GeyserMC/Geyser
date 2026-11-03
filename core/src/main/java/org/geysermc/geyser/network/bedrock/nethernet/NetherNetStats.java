@@ -176,6 +176,7 @@ public final class NetherNetStats implements NetherChannelMetrics {
             sctp == null ? -1 : sctp.pendingChunks(),
             sctp == null ? -1 : sctp.unackedChunks(),
             sctp == null ? -1 : sctp.dataTimeouts(),
+            NetherNetQueue.queuedBytes(channel),
             channel.isWritable(),
             unwritableEvents.sum(),
             unwritableSince == 0 ? 0 : TimeUnit.NANOSECONDS.toMillis(now - unwritableSince),
@@ -196,6 +197,8 @@ public final class NetherNetStats implements NetherChannelMetrics {
      * @param pendingChunks chunks queued locally that SCTP has not sent yet: the send backlog
      * @param unackedChunks chunks in flight
      * @param dataTimeouts retransmission timeouts so far, which indicate loss
+     * @param queuedBytes bytes waiting in the data channels for SCTP to take them, -1 if unknown. SCTP's own send
+     *                    buffer comes on top, and only {@code pendingChunks} hints at that
      * @param unwritableMillis how long the channel has been over its write buffer high watermark, 0 if it is not
      * @param averageBatchSize Bedrock packets per NetherNet message
      * @param compressionRatio compressed size over uncompressed size of what was sent
@@ -214,6 +217,7 @@ public final class NetherNetStats implements NetherChannelMetrics {
         long pendingChunks,
         long unackedChunks,
         long dataTimeouts,
+        long queuedBytes,
         boolean writable,
         long unwritableEvents,
         long unwritableMillis,

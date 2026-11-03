@@ -122,7 +122,7 @@ public class NetherNetStatsHandler extends ChannelDuplexHandler {
 
         geyser.getLogger().debug("[NetherNet] " + name(channel) + " is falling behind: "
             + (snapshot.writable() ? "" : "unwritable for " + snapshot.unwritableMillis() + " ms, ")
-            + "pending " + snapshot.pendingChunks() + " chunks, unacked " + snapshot.unackedChunks()
+            + "queued " + snapshot.queuedBytes() + " B, pending " + snapshot.pendingChunks() + " chunks, unacked " + snapshot.unackedChunks()
             + ", cwnd " + snapshot.congestionWindow() + " B, peer rwnd " + snapshot.peerReceiveWindow() + " B"
             + ", rtt " + snapshot.sctpRtt() + " ms, rto " + snapshot.sctpRto() + " ms"
             + ", out " + snapshot.bytesOutPerSecond() + " B/s in " + snapshot.messagesOutPerSecond() + " msg/s"

@@ -94,6 +94,7 @@ public class NetherNetChannelInitialiser extends GeyserServerInitializer {
             channel.attr(NetherNetStats.ATTRIBUTE).set(stats);
             channel.pipeline().addAfter(NetherNetFrameCodec.NAME, NetherNetStatsHandler.NAME, new NetherNetStatsHandler(geyser, stats));
         }
+        channel.pipeline().addAfter(NetherNetFrameCodec.NAME, NetherNetWritabilityHandler.NAME, new NetherNetWritabilityHandler());
     }
 
     @Override
