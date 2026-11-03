@@ -32,7 +32,6 @@ import io.netty.util.NetUtil;
 import io.netty.util.concurrent.DefaultThreadFactory;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.netty.channel.nethernet.NetherNetChannelFactory;
-import org.cloudburstmc.netty.channel.nethernet.NetherNetNative;
 import org.cloudburstmc.netty.channel.nethernet.config.NetherChannelOption;
 import org.cloudburstmc.netty.channel.nethernet.signaling.NetherNetHTTPServerSignaling;
 import org.cloudburstmc.netty.channel.nethernet.signaling.PongData;
@@ -64,9 +63,7 @@ import org.geysermc.geyser.network.bedrock.nethernet.signaling.provider.GameOutc
 import org.geysermc.geyser.network.bedrock.nethernet.signaling.provider.GeyserStatusCollector;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.mcprotocollib.network.helper.TransportHelper;
-import tel.schich.libdatachannel.LibDataChannel;
 import tel.schich.libdatachannel.LibDataChannelArchDetect;
-import tel.schich.libdatachannel.SctpSettings;
 
 import java.io.IOException;
 import java.net.InetAddress;
@@ -101,15 +98,6 @@ import java.util.stream.Stream;
  */
 public final class NetherNetServer implements EventRegistrar {
     private static final long GUID = new Random().nextLong();
-    /**
-     * Cloudburst's settings (a 400 ms minimum RTO, matching the client and BDS), plus a smaller SCTP send buffer.
-     * Data waiting in that buffer is invisible to bufferedAmount, so with the 1 MiB default a connection only reports
-     * itself unwritable once seconds of backlog have built up. libdatachannel keeps at least its 256 KiB max message size.
-     */
-    private static final SctpSettings SCTP_SETTINGS = SctpSettings.builder()
-        .minRetransmitTimeoutMs(400)
-        .sendBufferSize(Integer.getInteger("Geyser.NetherNetSctpSendBuffer", 256 << 10))
-        .build();
     /**
      * Asked for this machine's public address unless {@code -DgeyserStunServers} says otherwise. Two operators, as
      * either may be blocked where a server runs.
@@ -221,9 +209,6 @@ public final class NetherNetServer implements EventRegistrar {
         try {
             // Picks this platform's WebRTC library out of the ones bundled for every platform
             LibDataChannelArchDetect.initialize();
-            // Cloudburst applies its own SCTP settings on init, so ours go after
-            NetherNetNative.initialize();
-            LibDataChannel.setSctpSettings(SCTP_SETTINGS);
         } catch (LinkageError e) {
             logger().error("NetherNet will not start! Could not load its WebRTC native library on " + System.getProperty("os.name")
                 + " (" + System.getProperty("os.arch") + "): " + e.getMessage() + ". This usually means a system library it depends on "
