@@ -46,8 +46,6 @@ public class NetherNetStatsHandler extends ChannelDuplexHandler {
     public static final String NAME = "geyser-nethernet-stats";
 
     private static final long CHECK_INTERVAL_SECONDS = 5;
-    /** Chunks waiting in SCTP's send queue that are worth a log line; a chunk carries up to about 1.2 KB */
-    private static final long PENDING_CHUNKS_WARNING = 256;
 
     private final GeyserImpl geyser;
     private final NetherNetStats stats;
@@ -116,13 +114,15 @@ public class NetherNetStatsHandler extends ChannelDuplexHandler {
         NetherNetStats.Snapshot snapshot = stats.snapshot(channel, false);
         long newTimeouts = snapshot.dataTimeouts() - lastDataTimeouts;
         lastDataTimeouts = Math.max(lastDataTimeouts, snapshot.dataTimeouts());
-        if (snapshot.writable() && snapshot.pendingChunks() < PENDING_CHUNKS_WARNING && newTimeouts <= 0) {
+        // Queued bytes only appear once SCTP's own send buffer is full, so any at all means a real backlog
+        if (snapshot.writable() && snapshot.queuedBytes() <= 0 && newTimeouts <= 0) {
             return;
         }
 
         geyser.getLogger().debug("[NetherNet] " + name(channel) + " is falling behind: "
             + (snapshot.writable() ? "" : "unwritable for " + snapshot.unwritableMillis() + " ms, ")
-            + "queued " + snapshot.queuedBytes() + " B, pending " + snapshot.pendingChunks() + " chunks, unacked " + snapshot.unackedChunks()
+            + "queued " + snapshot.queuedBytes() + " B, unacked " + snapshot.unackedChunks() + " chunks"
+            + ", receive queue " + snapshot.receiveQueueChunks() + " chunks"
             + ", cwnd " + snapshot.congestionWindow() + " B, peer rwnd " + snapshot.peerReceiveWindow() + " B"
             + ", rtt " + snapshot.sctpRtt() + " ms, rto " + snapshot.sctpRto() + " ms"
             + ", out " + snapshot.bytesOutPerSecond() + " B/s in " + snapshot.messagesOutPerSecond() + " msg/s"

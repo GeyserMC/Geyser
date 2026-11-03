@@ -230,7 +230,8 @@ public class NetherNetCommand extends GeyserCommand {
             + " | out " + bytes(snapshot.bytesOutPerSecond()) + "/s, " + snapshot.messagesOutPerSecond() + " msg/s, "
             + snapshot.packetsOutPerSecond() + " pkt/s | in " + bytes(snapshot.bytesInPerSecond()) + "/s"
             + " | cwnd " + bytes(snapshot.congestionWindow()) + ", peer rwnd " + bytes(snapshot.peerReceiveWindow())
-            + " | queued " + bytes(snapshot.queuedBytes()) + ", pending " + snapshot.pendingChunks() + ", unacked " + snapshot.unackedChunks() + " chunks"
+            + " | queued " + bytes(snapshot.queuedBytes()) + ", unacked " + snapshot.unackedChunks() + " chunks"
+            + " | receive queue " + snapshot.receiveQueueChunks() + " chunks"
             + " | timeouts " + snapshot.dataTimeouts()
             + " | " + (snapshot.writable() ? "writable" : "UNWRITABLE for " + snapshot.unwritableMillis() + " ms")
             + " (" + snapshot.unwritableEvents() + "x)"

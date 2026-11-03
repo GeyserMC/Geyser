@@ -173,10 +173,10 @@ public final class NetherNetStats implements NetherChannelMetrics {
             sctp == null ? -1 : sctp.rto().toMillis(),
             sctp == null ? -1 : sctp.congestionWindow(),
             sctp == null ? -1 : sctp.peerReceiveWindow(),
-            sctp == null ? -1 : sctp.pendingChunks(),
             sctp == null ? -1 : sctp.unackedChunks(),
             sctp == null ? -1 : sctp.dataTimeouts(),
             NetherNetQueue.queuedBytes(channel),
+            sctp == null ? -1 : sctp.pendingChunks(),
             channel.isWritable(),
             unwritableEvents.sum(),
             unwritableSince == 0 ? 0 : TimeUnit.NANOSECONDS.toMillis(now - unwritableSince),
@@ -194,11 +194,12 @@ public final class NetherNetStats implements NetherChannelMetrics {
      * @param ping the peer connection's round trip time in milliseconds, 0 if unknown
      * @param sctpRtt SCTP's smoothed round trip time in milliseconds, -1 if unknown (as for all SCTP fields)
      * @param congestionWindow bytes SCTP may have in flight; one that stays near its initial size caps throughput
-     * @param pendingChunks chunks queued locally that SCTP has not sent yet: the send backlog
-     * @param unackedChunks chunks in flight
+     * @param unackedChunks chunks sent but not yet acknowledged, so at most about a congestion window's worth
      * @param dataTimeouts retransmission timeouts so far, which indicate loss
-     * @param queuedBytes bytes waiting in the data channels for SCTP to take them, -1 if unknown. SCTP's own send
-     *                    buffer comes on top, and only {@code pendingChunks} hints at that
+     * @param queuedBytes bytes waiting in the data channels for SCTP to take them, -1 if unknown. This only grows once
+     *                    SCTP's own send buffer (1 MiB) is full, and what that buffer holds can't be read yet
+     * @param receiveQueueChunks chunks received from the client that SCTP holds for reassembly or until they are read
+     *                           (usrsctp's sstat_penddata). Not the send backlog
      * @param unwritableMillis how long the channel has been over its write buffer high watermark, 0 if it is not
      * @param averageBatchSize Bedrock packets per NetherNet message
      * @param compressionRatio compressed size over uncompressed size of what was sent
@@ -214,10 +215,10 @@ public final class NetherNetStats implements NetherChannelMetrics {
         long sctpRto,
         long congestionWindow,
         long peerReceiveWindow,
-        long pendingChunks,
         long unackedChunks,
         long dataTimeouts,
         long queuedBytes,
+        long receiveQueueChunks,
         boolean writable,
         long unwritableEvents,
         long unwritableMillis,
