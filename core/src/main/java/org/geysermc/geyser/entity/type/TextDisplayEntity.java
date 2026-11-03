@@ -37,8 +37,6 @@ import org.cloudburstmc.protocol.bedrock.data.debugshape.DebugShape;
 import org.cloudburstmc.protocol.bedrock.data.debugshape.DebugText;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.cloudburstmc.protocol.bedrock.packet.DebugDrawerPacket;
-import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.GeyserLogger;
 import org.geysermc.geyser.entity.VanillaEntities;
 import org.geysermc.geyser.entity.spawn.EntitySpawnContext;
 import org.geysermc.geyser.entity.type.living.ArmorStandEntity;
@@ -80,8 +78,6 @@ public class TextDisplayEntity extends DisplayBaseEntity {
      * 10% of its height below the top and scales from there.
      */
     private static final float BEDROCK_ANCHOR_OFFSET = JAVA_LINE_HEIGHT * 0.1f;
-
-    private static final boolean DEBUG = Boolean.getBoolean("Geyser.Debug.TextDisplay");
 
     /**
      * On Java Edition, armor stands can have a custom name shown additionally to
@@ -357,7 +353,7 @@ public class TextDisplayEntity extends DisplayBaseEntity {
 
         DebugText text = new DebugText();
         text.setId(geyserId);
-        text.setText(DEBUG ? String.valueOf(geyserId) : this.text);
+        text.setText(this.text);
         text.setColor(
             color == null ? null :
                 new Color(
@@ -370,50 +366,18 @@ public class TextDisplayEntity extends DisplayBaseEntity {
         text.setPosition(translation);
         text.setAttachedToEntityId(geyserId);
 
-        GeyserLogger log = GeyserImpl.getInstance().getLogger();
-
         Vector3f outputRotation = Vector3f.from(
             0, (-getYaw()) + 180, 0
         );
 
-        if (DEBUG) {
-            log.info("Text Display Debug Update (" + geyserId + "):");
-            log.info("- Rotation:");
-            log.info("  - Yaw: " + outputRotation);
-        }
-
-//        Vector3f leftRotation = toVector(this.getLeftRotation());
-//
-//        if (DEBUG) {
-//            log.info("  - Left Rotation: " + leftRotation);
-//        }
-//
-//        // Add left rotation
-//        outputRotation = outputRotation.add(leftRotation);
-//
-//        if (DEBUG) {
-//            log.info("  - Yaw + Left Rotation: " + outputRotation);
-//        }
-
-        if (DEBUG) {
-            log.info("  - Rotation: " + rotation);
-        }
-
         // Add rotation
         outputRotation = outputRotation.add(rotation);
-
-        if (DEBUG) {
-            log.info("  - Yaw + Rotation: " + outputRotation);
-        }
 
         text.setRotation(outputRotation);
         text.setUseRotation(!getBillboard().equals(Billboard.CENTER));
         text.setMaximumRenderDistance(getViewDistance());
         text.setBackgroundColor(backgroundColor);
         text.setDepthTest(!seeThrough);
-        //text.setLineGapHeight();
-        //text.setShowBackface();
-        //text.setShowTextBackface();
         text.setDimension(session.getBedrockDimension().bedrockId());
         text.setScale(scale);
         DebugDrawerPacket packet = new DebugDrawerPacket();
@@ -446,7 +410,7 @@ public class TextDisplayEntity extends DisplayBaseEntity {
 
     private String postProcessText(String text) {
         List<String> lines = new ArrayList<>();
-        for (String line : text.split("\n")) {
+        for (String line : text.split("\n", -1)) {
             if (line.length() == 2 && line.startsWith(String.valueOf(ChatColor.ESCAPE))) {
                 lines.add("\u00a0");
                 continue;
