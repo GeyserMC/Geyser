@@ -578,7 +578,7 @@ public final class ItemTranslator {
             // ItemStack#getHoverName as of 1.20.5
             Component customName = components.get(DataComponentTypes.CUSTOM_NAME);
             if (customName != null) {
-                return MessageTranslator.convertMessage(customName, session.locale());
+                return MessageTranslator.convertMessageRaw(customName, session.locale());
             }
 
             if (!customNameOnly) {
@@ -604,7 +604,7 @@ public final class ItemTranslator {
                 if (customName != null) {
                     // Get the translated name and prefix it with a reset char to prevent italics - matches Java Edition
                     // behavior as of 1.21
-                    return ChatColor.RESET + ChatColor.ESCAPE + translationColor + MessageTranslator.convertMessage(customName, session.locale());
+                    return ChatColor.RESET + ChatColor.ESCAPE + translationColor + MessageTranslator.convertMessageRaw(customName, session.locale());
                 }
             }
         }
