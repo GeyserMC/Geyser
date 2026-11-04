@@ -334,7 +334,7 @@ public final class VanillaEntities {
     /**
      * Is not sent over the network
      */
-    public static final VanillaEntityType<EnderDragonPartEntity> ENDER_DRAGON_PART;
+    public static final UntypedEntityType<EnderDragonPartEntity> ENDER_DRAGON_PART;
 
     public static final float PLAYER_ENTITY_OFFSET;
 
@@ -1158,9 +1158,9 @@ public final class VanillaEntities {
                     .addTranslator(null) // From bucket
                     .build();
 
-            VanillaEntityType<AbstractMerchantEntity> abstractVillagerEntityBase = VanillaEntityType.inherited(AbstractMerchantEntity::new, ageableEntityBase)
+            EntityTypeBase<AbstractMerchantEntity> abstractVillagerEntityBase = EntityTypeBase.baseInherited(AbstractMerchantEntity.class, ageableEntityBase)
                     .addTranslator(null) // Unhappy ticks
-                    .build(false);
+                    .build();
             VILLAGER = VanillaEntityType.inherited(VillagerEntity::new, abstractVillagerEntityBase)
                     .type(EntityType.VILLAGER)
                     .height(1.8f).width(0.6f)
@@ -1168,7 +1168,7 @@ public final class VanillaEntities {
                     .addTranslator(MetadataTypes.VILLAGER_DATA, VillagerEntity::setVillagerData)
                     .addTranslator(null) // Villager data finalized
                     .build();
-            WANDERING_TRADER = VanillaEntityType.inherited(abstractVillagerEntityBase.factory(), abstractVillagerEntityBase)
+            WANDERING_TRADER = VanillaEntityType.inherited(AbstractMerchantEntity::new, abstractVillagerEntityBase)
                     .type(EntityType.WANDERING_TRADER)
                     .height(1.8f).width(0.6f)
                     .build();
@@ -1292,9 +1292,7 @@ public final class VanillaEntities {
                 .build();
 
         // As of 1.18 these don't track entity data at all
-        ENDER_DRAGON_PART = VanillaEntityType.<EnderDragonPartEntity>builder(null)
-                .bedrockDefinition(BedrockEntityDefinitions.ARMOR_STAND) // Emulated
-                .build(false); // Never sent over the network
+        ENDER_DRAGON_PART = new UntypedEntityType<>(BedrockEntityDefinitions.ARMOR_STAND); // Emulated
 
         PLAYER_ENTITY_OFFSET = PLAYER.offset();
     }

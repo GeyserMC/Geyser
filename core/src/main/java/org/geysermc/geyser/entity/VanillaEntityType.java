@@ -30,7 +30,6 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
 import lombok.experimental.Accessors;
-import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.api.util.Identifier;
 import org.geysermc.geyser.entity.factory.EntityFactory;
 import org.geysermc.geyser.entity.properties.type.PropertyType;
@@ -52,16 +51,16 @@ import java.util.function.BiConsumer;
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
 public class VanillaEntityType<T extends Entity> extends EntityTypeDefinition<T> {
-    private final @Nullable GeyserEntityType entityType;
+    private final GeyserEntityType entityType;
 
-    public VanillaEntityType(EntityFactory<T> factory, @Nullable GeyserEntityType entityType, float width, float height, float offset, BedrockEntityDefinition bedrockDefinition, List<EntityMetadataTranslator<? super T, ?, ?>> translators) {
+    public VanillaEntityType(EntityFactory<T> factory, GeyserEntityType entityType, float width, float height, float offset, BedrockEntityDefinition bedrockDefinition, List<EntityMetadataTranslator<? super T, ?, ?>> translators) {
         super(factory, entityType, width, height, offset, bedrockDefinition, translators);
         this.entityType = entityType;
     }
 
     @Override
     public boolean is(EntityType builtin) {
-        return entityType != null && entityType.is(builtin);
+        return entityType.is(builtin);
     }
 
     public static <T extends Entity> Builder<T> builder(EntityFactory<T> factory) {
@@ -140,37 +139,25 @@ public class VanillaEntityType<T extends Entity> extends EntityTypeDefinition<T>
 
         @Override
         public VanillaEntityType<T> build() {
-            return build(true);
-        }
+            if (type == null) {
+                throw new IllegalStateException("Missing entity type!");
+            }
 
-        /**
-         * @param register whether to register this entity in the Registries for entity types. Generally this should be
-         * set to false if we're not expecting this entity to spawn from the network.
-         */
-        public VanillaEntityType<T> build(boolean register) {
-            if (register) {
-                if (type == null) {
-                    throw new IllegalStateException("Missing entity type!");
+            if (bedrockDefinition == null) {
+                Identifier identifier = bedrockIdentifier == null ? type.identifier() : IdentifierImpl.parse(bedrockIdentifier);
+                if (Registries.BEDROCK_ENTITY_DEFINITIONS.get().containsKey(identifier)) {
+                    throw new IllegalStateException("Duplicate bedrock identifier: " + bedrockIdentifier);
                 }
 
-                if (bedrockDefinition == null) {
-                    Identifier identifier = bedrockIdentifier == null ? type.identifier() : IdentifierImpl.parse(bedrockIdentifier);
-                    if (Registries.BEDROCK_ENTITY_DEFINITIONS.get().containsKey(identifier)) {
-                        throw new IllegalStateException("Duplicate bedrock identifier: " + bedrockIdentifier);
-                    }
-
-                    bedrockDefinition = BedrockEntityDefinition.builder()
-                        .properties(propertiesBuilder)
-                        .identifier(identifier)
-                        .build();
-                    Registries.BEDROCK_ENTITY_DEFINITIONS.register(identifier, bedrockDefinition);
-                }
+                bedrockDefinition = BedrockEntityDefinition.builder()
+                    .properties(propertiesBuilder)
+                    .identifier(identifier)
+                    .build();
+                Registries.BEDROCK_ENTITY_DEFINITIONS.register(identifier, bedrockDefinition);
             }
 
             VanillaEntityType<T> definition = new VanillaEntityType<>(factory, type, width, height, offset, bedrockDefinition, translators);
-            if (register && type != null) {
-                BuiltInJavaRegistries.ENTITY_TYPE.register(type.mcpl().ordinal(), MinecraftKey.identifierToKey(type.identifier()), definition);
-            }
+            BuiltInJavaRegistries.ENTITY_TYPE.register(type.mcpl().ordinal(), MinecraftKey.identifierToKey(type.identifier()), definition);
             return definition;
         }
     }
