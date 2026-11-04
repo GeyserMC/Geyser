@@ -392,7 +392,7 @@ public final class ItemTranslator {
         return MessageTranslator.convertMessage(attributeComponent, language);
     }
 
-    public static String getPotionEffectInfo(PotionContents contents, float durationScale, String language) {
+    private static String getPotionEffectInfo(PotionContents contents, float durationScale, String language) {
         StringBuilder finalText = new StringBuilder();
         List<MobEffectInstance> effectInstanceList = contents.getCustomEffects();
         for (MobEffectInstance effectInstance : effectInstanceList) {
@@ -436,7 +436,7 @@ public final class ItemTranslator {
         return finalText.toString();
     }
 
-    public static String getPotionName(PotionContents contents, ItemMapping mapping, boolean includeDefault, String language) {
+    private static String getPotionName(PotionContents contents, ItemMapping mapping, boolean includeDefault, String language) {
         String customPotionName = contents.getCustomName();
         if (customPotionName != null) {
             // "custom_name" tag in "potion_contents" component
