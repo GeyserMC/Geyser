@@ -98,6 +98,7 @@ public class CustomItemRegistryPopulator {
         Consumable.ItemUseAnimation.BLOCK, 3,
         Consumable.ItemUseAnimation.BOW, 4,
         Consumable.ItemUseAnimation.TRIDENT, 6,
+        Consumable.ItemUseAnimation.SPEAR, 6,
         Consumable.ItemUseAnimation.CROSSBOW, 9,
         Consumable.ItemUseAnimation.SPYGLASS, 10,
         Consumable.ItemUseAnimation.BRUSH, 12
@@ -626,7 +627,7 @@ public class CustomItemRegistryPopulator {
 
     private static void computeConsumableProperties(Consumable consumable, @Nullable FoodProperties foodProperties, NbtMapBuilder itemProperties, NbtMapBuilder componentBuilder) {
         String animationName = switch (consumable.animation()) {
-            case TRIDENT -> "spear"; // SPEAR is not supported in bedrock and not in the BEDROCK_ANIMATIONS map, so it'll be skipped
+            case TRIDENT -> "spear"; // Bedrock's name for the trident's use animation
             default -> consumable.animation().toString().toLowerCase();
         };
         Integer animationId = BEDROCK_ANIMATIONS.get(consumable.animation());
