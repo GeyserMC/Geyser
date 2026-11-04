@@ -37,12 +37,14 @@ import org.cloudburstmc.protocol.bedrock.data.debugshape.DebugShape;
 import org.cloudburstmc.protocol.bedrock.data.debugshape.DebugText;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.cloudburstmc.protocol.bedrock.packet.DebugDrawerPacket;
+import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.entity.VanillaEntities;
 import org.geysermc.geyser.entity.spawn.EntitySpawnContext;
 import org.geysermc.geyser.entity.type.living.ArmorStandEntity;
 import org.geysermc.geyser.text.ChatColor;
 import org.geysermc.geyser.translator.text.MessageTranslator;
 import org.geysermc.geyser.util.ColorUtils;
+import org.geysermc.geyser.util.EntityUtils;
 import org.geysermc.geyser.util.MathUtils;
 import org.geysermc.geyser.util.SignUtils;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.EntityMetadata;
@@ -52,8 +54,6 @@ import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.IntEnt
 import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
@@ -298,13 +298,26 @@ public class TextDisplayEntity extends DisplayBaseEntity {
         }
     }
 
+    @Override
+    public Vector3f bedrockPosition() {
+        // This *needs* to be handled differently for text displays, otherwise riding is messed up
+        return super.bedrockPosition().sub(getBaseTranslation());
+    }
+
+    @Override
+    public void setVehicle(Entity vehicle) {
+        super.setVehicle(vehicle);
+        // This is important, any vehicle update *needs* to update the text, since the offset
+        // applied may have changed due to a different hitbox
+        updatePrimitiveText();
+    }
+
     public void updatePrimitiveText() {
         if (!sendUpdates) return;
 
         DebugText text = new DebugText();
         applyTransformation(text);
         text.setId(geyserId);
-        text.setText(this.text);
         text.setColor(
             color == null ? null :
                 new Color(
@@ -314,12 +327,26 @@ public class TextDisplayEntity extends DisplayBaseEntity {
                     textOpacity < 0 ? (textOpacity + 256) : textOpacity
                 )
         );
-        text.setAttachedToEntityId(geyserId);
+        if (getVehicle() != null) {
+            text.setAttachedToEntityId(getVehicle().geyserId);
+            text.setPosition(text.getPosition().clone().add(0, getVehicle().getBoundingBoxHeight() - 0.2f, 0));
+        } else {
+            text.setAttachedToEntityId(geyserId);
+        }
         text.setUseRotation(!getBillboard().equals(Billboard.CENTER));
         text.setMaximumRenderDistance(getViewDistance());
         text.setBackgroundColor(backgroundColor);
         text.setDepthTest(!seeThrough);
         text.setDimension(session.getBedrockDimension().bedrockId());
+
+        if (Boolean.getBoolean("Geyser.DebugTextDisplays")) {
+            Vector3f position = bedrockPosition();
+            Vector3f offset = text.getPosition();
+            text.setText("ID: " + geyserId + ", Pos: " + position.getX() + ", " + position.getY() + ", " + position.getZ() + ", Off: " + offset.getX() + ", " + offset.getY() + ", " + offset.getZ());
+        } else {
+            text.setText(this.text);
+        }
+
         DebugDrawerPacket packet = new DebugDrawerPacket();
         packet.getShapes().add(text);
         session.sendUpstreamPacket(packet);
@@ -373,10 +400,10 @@ public class TextDisplayEntity extends DisplayBaseEntity {
             translation = translation.sub(up.getX(), up.getY(), up.getZ());
         }
 
+        text.setPosition(translation.add(getBaseTranslation()));
+
         // I'm not even gonna pretend I know why x needs to be negative, but it does, and it works
         Vector3f rotation = Vector3f.from(-Math.toDegrees(x), Math.toDegrees(y), Math.toDegrees(z));
-
-        text.setPosition(translation);
 
         Vector3f outputRotation = Vector3f.from(
             0, (-getYaw()) + 180, 0
