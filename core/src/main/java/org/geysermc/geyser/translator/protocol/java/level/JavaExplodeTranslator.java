@@ -33,7 +33,7 @@ import org.cloudburstmc.protocol.bedrock.packet.LevelEventGenericPacket;
 import org.cloudburstmc.protocol.bedrock.packet.SetEntityMotionPacket;
 import org.geysermc.geyser.entity.type.player.SessionPlayerEntity;
 import org.geysermc.geyser.registry.Registries;
-import org.geysermc.geyser.registry.type.ParticleMapping;
+import org.geysermc.geyser.level.particle.ParticleMapping;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;

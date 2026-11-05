@@ -29,7 +29,7 @@ import org.geysermc.mcprotocollib.protocol.data.game.level.particle.Particle;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.level.ClientboundLevelParticlesPacket;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.geysermc.geyser.registry.Registries;
-import org.geysermc.geyser.registry.type.ParticleMapping;
+import org.geysermc.geyser.level.particle.ParticleMapping;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;

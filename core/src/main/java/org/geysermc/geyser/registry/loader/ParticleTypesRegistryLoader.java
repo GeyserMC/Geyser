@@ -30,7 +30,7 @@ import com.google.gson.JsonObject;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import org.cloudburstmc.protocol.bedrock.data.LevelEvent;
 import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.registry.type.ParticleMapping;
+import org.geysermc.geyser.level.particle.ParticleMapping;
 import org.geysermc.geyser.util.MinecraftKey;
 import org.geysermc.mcprotocollib.protocol.data.game.level.particle.ParticleType;
 

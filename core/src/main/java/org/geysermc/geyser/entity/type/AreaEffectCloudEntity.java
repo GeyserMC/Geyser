@@ -31,7 +31,7 @@ import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.geysermc.geyser.entity.spawn.EntitySpawnContext;
 import org.geysermc.geyser.registry.Registries;
-import org.geysermc.geyser.registry.type.ParticleMapping;
+import org.geysermc.geyser.level.particle.ParticleMapping;
 import org.geysermc.geyser.util.MathUtils;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.EntityMetadata;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.FloatEntityMetadata;

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2026 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,7 +23,7 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.registry.type;
+package org.geysermc.geyser.level.particle;
 
 import com.google.gson.JsonElement;
 import org.checkerframework.checker.nullness.qual.Nullable;
@@ -37,7 +37,6 @@ import org.cloudburstmc.protocol.bedrock.packet.LevelEventGenericPacket;
 import org.cloudburstmc.protocol.bedrock.packet.LevelEventPacket;
 import org.cloudburstmc.protocol.bedrock.packet.SpawnParticleEffectPacket;
 import org.geysermc.geyser.entity.type.Entity;
-import org.geysermc.geyser.level.particle.ParticleHelper;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.item.ItemTranslator;
 import org.geysermc.geyser.util.DimensionUtils;
@@ -103,6 +102,7 @@ public interface ParticleMapping {
                     ParticleHelper.createVariable("variable.active_time", ParticleHelper.FLOAT, lifetime)
                 )));
             };
+            // FIXME broken - uses the wrong colours
             case FALLING_DUST -> (session, position, data) -> {
                 int blockState = session.getBlockMappings().getBedrockBlockId(((BlockParticleData) data).getBlockState());
 
@@ -125,7 +125,8 @@ public interface ParticleMapping {
                 packet.setPosition(position);
                 return packet;
             };
-            case DUST, DUST_COLOR_TRANSITION -> (session, position, data) -> { // TODO
+            // TODO transition particle, might not be possible on bedrock
+            case DUST, DUST_COLOR_TRANSITION -> (session, position, data) -> {
                 int rgbData = ((DustParticleData) data).getColor();
 
                 LevelEventPacket packet = new LevelEventPacket();
@@ -135,6 +136,7 @@ public interface ParticleMapping {
                 return packet;
             };
             // power option might not be possible?
+            // INSTANT_EFFECT doesn't exist on bedrock, EFFECT comes closest
             case EFFECT, INSTANT_EFFECT -> (session, position, data)
                 -> createParticleEffectPacket(session, "minecraft:mobspell_emitter", position, ParticleHelper.serializeColor(((SpellParticleData) data).getColor()));
             case VIBRATION -> (session, position, particleData) -> {
@@ -144,6 +146,7 @@ public interface ParticleMapping {
                 if (data.getPositionSource() instanceof BlockPositionSource blockPositionSource) {
                     target = blockPositionSource.getPosition().toFloat().add(0.5f, 0.5f, 0.5f);
                 } else if (data.getPositionSource() instanceof EntityPositionSource entityPositionSource) {
+                    // As of Java 26.3, vanilla at least doesn't seem to allow entity sources, but we do them anyway
                     Entity entity = session.getEntityCache().getEntityByJavaId(entityPositionSource.getEntityId());
                     if (entity != null) {
                         target = entity.bedrockPosition().up(entityPositionSource.getYOffset());
@@ -168,7 +171,6 @@ public interface ParticleMapping {
                 );
                 return packet;
             };
-            // TODO proper colour?
             case FIREWORK -> (session, position, data)
                 -> createParticleEffectPacket(session, "minecraft:sparkler_emitter", position, ParticleHelper.serializeColor(0xFFFFFF));
             case TINTED_LEAVES -> (session, position, data)
@@ -177,7 +179,7 @@ public interface ParticleMapping {
                 // See https://mcsrc.dev/2/26.3/net/minecraft/client/particle/GlowParticle#L88-92
                 int colour = ThreadLocalRandom.current().nextBoolean() ? 0x99FFCC : 0x146666;
                 return createParticleEffectPacket(session, "minecraft:glow_particle", position, ParticleHelper.serializeColor(colour));
-            };
+            }; // TODO broken wants xyz vars?
             // See https://mcsrc.dev/2/26.3/net/minecraft/client/particle/GlowParticle#L188
             case WAX_ON -> (session, position, data)
                 -> createParticleEffectPacket(session, "minecraft:wax_particle", position, ParticleHelper.serializeColor(0xE88C14));
