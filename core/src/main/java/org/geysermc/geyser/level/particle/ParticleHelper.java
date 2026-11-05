@@ -29,6 +29,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
+import org.cloudburstmc.math.vector.Vector3f;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -46,8 +47,14 @@ public final class ParticleHelper {
         return List.of(
             createVariable(".r", FLOAT, red),
             createVariable(".g", FLOAT, green),
-            createVariable(".b", FLOAT, blue));
+            createVariable(".b", FLOAT, blue),
+            createVariable(".a", FLOAT, 1.0F));
     });
+    public static final ValueSerializer<Vector3f> VECTOR3F = MEMBER_ARRAY.compose(vector -> List.of(
+        createVariable(".x", FLOAT, vector.getX()),
+        createVariable(".y", FLOAT, vector.getY()),
+        createVariable(".z", FLOAT, vector.getZ())
+    ));
 
     private static <T> ValueSerializer<T> createSerializer(String name, Function<T, ? extends JsonElement> serializer) {
         return new ValueSerializer<T>() {
