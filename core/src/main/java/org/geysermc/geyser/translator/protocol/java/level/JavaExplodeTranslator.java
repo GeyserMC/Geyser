@@ -59,7 +59,7 @@ public class JavaExplodeTranslator extends PacketTranslator<ClientboundExplodePa
         // Not sure if the packet does anything - sending it just in case, because BDS still sends it.
         ParticleMapping particleMapping = Registries.PARTICLES.get(packet.getExplosionParticle().getType());
         if (particleMapping != null) {
-            session.sendUpstreamPacket(particleMapping.createPacket(session, vector, packet.getExplosionParticle().getData()));
+            session.sendUpstreamPacket(particleMapping.mapParticle(session, packet.getExplosionParticle().getData()).apply(vector));
         }
 
         levelEventPacket.setTag(builder.build());

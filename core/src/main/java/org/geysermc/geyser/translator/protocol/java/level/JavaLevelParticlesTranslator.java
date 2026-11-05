@@ -25,6 +25,7 @@
 
 package org.geysermc.geyser.translator.protocol.java.level;
 
+import org.cloudburstmc.protocol.bedrock.packet.BedrockPacket;
 import org.geysermc.mcprotocollib.protocol.data.game.level.particle.Particle;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.level.ClientboundLevelParticlesPacket;
 import org.cloudburstmc.math.vector.Vector3f;
@@ -36,6 +37,7 @@ import org.geysermc.geyser.translator.protocol.Translator;
 
 import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.function.Function;
 
 @Translator(packet = ClientboundLevelParticlesPacket.class)
 public class JavaLevelParticlesTranslator extends PacketTranslator<ClientboundLevelParticlesPacket> {
@@ -47,10 +49,11 @@ public class JavaLevelParticlesTranslator extends PacketTranslator<ClientboundLe
         ParticleMapping particleMapping = Registries.PARTICLES.get(particle.getType());
 
         if (particleMapping != null) {
+            Function<Vector3f, BedrockPacket> packetConstructor = particleMapping.mapParticle(session, particle.getData());
             if (packet.getAmount() == 0) {
                 // 0 means don't apply the offset
                 Vector3f position = Vector3f.from(packet.getX(), packet.getY(), packet.getZ());
-                session.sendUpstreamPacket(particleMapping.createPacket(session, position, particle.getData()));
+                session.sendUpstreamPacket(packetConstructor.apply(position));
             } else {
                 Random random = ThreadLocalRandom.current();
                 int amount = Math.min(MAX_PARTICLES, packet.getAmount());
@@ -60,7 +63,7 @@ public class JavaLevelParticlesTranslator extends PacketTranslator<ClientboundLe
                     double offsetZ = random.nextGaussian() * (double) packet.getOffsetZ();
                     Vector3f position = Vector3f.from(packet.getX() + offsetX, packet.getY() + offsetY, packet.getZ() + offsetZ);
 
-                    session.sendUpstreamPacket(particleMapping.createPacket(session, position, particle.getData()));
+                    session.sendUpstreamPacket(packetConstructor.apply(position));
                 }
             }
         } else {

@@ -59,12 +59,13 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.function.Function;
 
 public sealed interface ParticleMapping {
 
     Optional<ParticleType> particleType();
 
-    BedrockPacket createPacket(GeyserSession session, Vector3f position, @Nullable ParticleData particleData);
+    Function<Vector3f, BedrockPacket> mapParticle(GeyserSession session, @Nullable ParticleData particleData);
 
     record IdentifierBased(Key identifier) implements ParticleMapping {
 
@@ -79,8 +80,8 @@ public sealed interface ParticleMapping {
         }
 
         @Override
-        public BedrockPacket createPacket(GeyserSession session, Vector3f position, @Nullable ParticleData particleData) {
-            return ParticleMapping.createParticleEffectPacket(session, identifier.toString(), position);
+        public Function<Vector3f, BedrockPacket> mapParticle(GeyserSession session, @Nullable ParticleData particleData) {
+            return position -> ParticleMapping.createParticleEffectPacket(session, identifier.toString(), position);
         }
     }
 
@@ -95,11 +96,13 @@ public sealed interface ParticleMapping {
         }
 
         @Override
-        public BedrockPacket createPacket(GeyserSession session, Vector3f position, @Nullable ParticleData particleData) {
-            LevelEventPacket packet = new LevelEventPacket();
-            packet.setType(event);
-            packet.setPosition(position);
-            return packet;
+        public Function<Vector3f, BedrockPacket> mapParticle(GeyserSession session, @Nullable ParticleData particleData) {
+            return position -> {
+                LevelEventPacket packet = new LevelEventPacket();
+                packet.setType(event);
+                packet.setPosition(position);
+                return packet;
+            };
         }
     }
 
@@ -122,16 +125,18 @@ public sealed interface ParticleMapping {
 
     static BuiltIn builtIn(org.geysermc.mcprotocollib.protocol.data.game.level.particle.ParticleType type) {
         return switch (type) {
-            case BLOCK -> (session, position, data) -> {
+            case BLOCK -> (session, data) -> {
                 int blockState = session.getBlockMappings().getBedrockBlockId(((BlockParticleData) data).getBlockState());
 
-                LevelEventPacket packet = new LevelEventPacket();
-                packet.setType(LevelEvent.PARTICLE_CRACK_BLOCK);
-                packet.setPosition(position);
-                packet.setData(blockState);
-                return packet;
+                return position -> {
+                    LevelEventPacket packet = new LevelEventPacket();
+                    packet.setType(LevelEvent.PARTICLE_CRACK_BLOCK);
+                    packet.setPosition(position);
+                    packet.setData(blockState);
+                    return packet;
+                };
             };
-            case GEYSER, GEYSER_BASE, GEYSER_PLUME, GEYSER_POOF -> (session, position, particleData) -> {
+            case GEYSER, GEYSER_BASE, GEYSER_PLUME, GEYSER_POOF -> (session, particleData) -> {
                 // This isn't a perfect translation - GEYSER_PLUME only displays the plume on Java, but does the full Geyser on bedrock, for example
 
                 float waterBlocks = 0.0F;
@@ -143,51 +148,56 @@ public sealed interface ParticleMapping {
 
                 // See https://mcsrc.dev/2/26.3/net/minecraft/client/particle/GeyserPlumeParticle#L42-45
                 float plumeHeight = 5.0F * Math.max(1.0F, waterBlocks);
-                float lifetime = waterBlocks * 5.0F;
+                // Is in seconds
+                float lifetime = waterBlocks * 5.0F / 20.0F;
 
-                return createParticleEffectPacket(session, geyserParticle(type), position, ParticleHelper.serializeVariables(List.of(
+                return position -> createParticleEffectPacket(session, geyserParticle(type), position, ParticleHelper.serializeVariables(List.of(
                     ParticleHelper.createVariable("variable.plume_height", ParticleHelper.FLOAT, plumeHeight),
                     ParticleHelper.createVariable("variable.active_time", ParticleHelper.FLOAT, lifetime)
                 )));
             };
-            // FIXME broken - uses the wrong colours
-            case FALLING_DUST -> (session, position, data) -> {
+            // FIXME broken - uses the wrong colours, see https://github.com/GeyserMC/Geyser/issues/4803
+            case FALLING_DUST -> (session, data) -> {
                 int blockState = session.getBlockMappings().getBedrockBlockId(((BlockParticleData) data).getBlockState());
 
-                LevelEventPacket packet = new LevelEventPacket();
-                // In fact, FallingDustParticle should have data like DustParticle,
-                // but in MCProtocol, its data is BlockState(1).
-                packet.setType(org.cloudburstmc.protocol.bedrock.data.ParticleType.FALLING_DUST);
-                packet.setData(blockState);
-                packet.setPosition(position);
-                return packet;
+                return position -> {
+                    LevelEventPacket packet = new LevelEventPacket();
+                    packet.setType(org.cloudburstmc.protocol.bedrock.data.ParticleType.FALLING_DUST);
+                    packet.setData(blockState);
+                    packet.setPosition(position);
+                    return packet;
+                };
             };
-            case ITEM -> (session, position, particleData) -> {
+            case ITEM -> (session, particleData) -> {
                 ItemStack javaItem = ((ItemParticleData) particleData).getItemStack();
                 ItemData bedrockItem = ItemTranslator.translateToBedrock(session, javaItem);
                 int data = bedrockItem.getDefinition().getRuntimeId() << 16 | bedrockItem.getDamage();
 
-                LevelEventPacket packet = new LevelEventPacket();
-                packet.setType(org.cloudburstmc.protocol.bedrock.data.ParticleType.ICON_CRACK);
-                packet.setData(data);
-                packet.setPosition(position);
-                return packet;
+                return position -> {
+                    LevelEventPacket packet = new LevelEventPacket();
+                    packet.setType(org.cloudburstmc.protocol.bedrock.data.ParticleType.ICON_CRACK);
+                    packet.setData(data);
+                    packet.setPosition(position);
+                    return packet;
+                };
             };
             // TODO transition particle, might not be possible on bedrock
-            case DUST, DUST_COLOR_TRANSITION -> (session, position, data) -> {
+            case DUST, DUST_COLOR_TRANSITION -> (session, data) -> {
                 int rgbData = ((DustParticleData) data).getColor();
 
-                LevelEventPacket packet = new LevelEventPacket();
-                packet.setType(org.cloudburstmc.protocol.bedrock.data.ParticleType.FALLING_DUST);
-                packet.setData(rgbData);
-                packet.setPosition(position);
-                return packet;
+                return position -> {
+                    LevelEventPacket packet = new LevelEventPacket();
+                    packet.setType(org.cloudburstmc.protocol.bedrock.data.ParticleType.FALLING_DUST);
+                    packet.setData(rgbData);
+                    packet.setPosition(position);
+                    return packet;
+                };
             };
             // power option might not be possible?
             // INSTANT_EFFECT doesn't exist on bedrock, EFFECT comes closest
-            case EFFECT, INSTANT_EFFECT -> (session, position, data)
+            case EFFECT, INSTANT_EFFECT -> (session, data) -> position
                 -> createParticleEffectPacket(session, "minecraft:mobspell_emitter", position, ParticleHelper.serializeColor(((SpellParticleData) data).getColor()));
-            case VIBRATION -> (session, position, particleData) -> {
+            case VIBRATION -> (session, particleData) -> {
                 VibrationParticleData data = (VibrationParticleData) particleData;
 
                 Vector3f target;
@@ -199,54 +209,59 @@ public sealed interface ParticleMapping {
                     throw new IllegalStateException("Received invalid position source for VIBRATION particle: " + data.getPositionSource().getType());
                 }
 
-                LevelEventGenericPacket packet = new LevelEventGenericPacket();
-                packet.setType(LevelEvent.PARTICLE_VIBRATION_SIGNAL);
-                packet.setTag(
-                    NbtMap.builder()
-                        .putCompound("origin", buildVec3PositionTag(position))
-                        .putCompound("target", buildVec3PositionTag(target)) // There is a way to target an entity but that takes an attachPos instead of a y offset
-                        .putFloat("speed", 20f)
-                        .putFloat("timeToLive", data.getArrivalTicks() / 20f)
-                        .build()
-                );
-                return packet;
+                return position -> {
+                    LevelEventGenericPacket packet = new LevelEventGenericPacket();
+                    packet.setType(LevelEvent.PARTICLE_VIBRATION_SIGNAL);
+                    packet.setTag(
+                        NbtMap.builder()
+                            .putCompound("origin", buildVec3PositionTag(position))
+                            .putCompound("target", buildVec3PositionTag(target)) // There is a way to target an entity but that takes an attachPos instead of a y offset
+                            .putFloat("speed", 20f)
+                            .putFloat("timeToLive", data.getArrivalTicks() / 20f)
+                            .build()
+                    );
+                    return packet;
+                };
             };
-            case FIREWORK -> (session, position, data)
+            case FIREWORK -> (session, data) -> position
                 -> createParticleEffectPacket(session, "minecraft:sparkler_emitter", position, ParticleHelper.serializeColor(0xFFFFFF));
-            case TINTED_LEAVES -> (session, position, data)
+            case TINTED_LEAVES -> (session, data) -> position
                 -> createParticleEffectPacket(session, "minecraft:biome_tinted_leaves_particle", position, ParticleHelper.serializeColor(((ColorParticleData) data).getColor()));
-            case GLOW -> (session, position, data) -> {
+            case GLOW -> (session, data) -> {
                 // See https://mcsrc.dev/2/26.3/net/minecraft/client/particle/GlowParticle#L88-92
+                // TODO bedrock reports it wants xyz vars, but the particle shows anyways
                 int colour = ThreadLocalRandom.current().nextBoolean() ? 0x99FFCC : 0x146666;
-                return createParticleEffectPacket(session, "minecraft:glow_particle", position, ParticleHelper.serializeColor(colour));
-            }; // TODO broken wants xyz vars?
+                return position -> createParticleEffectPacket(session, "minecraft:glow_particle", position, ParticleHelper.serializeColor(colour));
+            };
             // See https://mcsrc.dev/2/26.3/net/minecraft/client/particle/GlowParticle#L188
-            case WAX_ON -> (session, position, data)
+            case WAX_ON -> (session, data) -> position
                 -> createParticleEffectPacket(session, "minecraft:wax_particle", position, ParticleHelper.serializeColor(0xE88C14));
             // See https://mcsrc.dev/2/26.3/net/minecraft/client/particle/GlowParticle#L159
-            case WAX_OFF -> (session, position, data)
+            case WAX_OFF -> (session, data) -> position
                 -> createParticleEffectPacket(session, "minecraft:wax_particle", position, ParticleHelper.serializeColor(0xFFE5FF));
-            case SCRAPE -> (session, position, data) -> {
+            case SCRAPE -> (session, data) -> {
                 // See https://mcsrc.dev/2/26.3/net/minecraft/client/particle/GlowParticle#L125-129
                 int colour = ThreadLocalRandom.current().nextBoolean() ? 0x499382 : 0x6DC49E;
-                return createParticleEffectPacket(session, "minecraft:wax_particle", position, ParticleHelper.serializeColor(colour));
+                return position -> createParticleEffectPacket(session, "minecraft:wax_particle", position, ParticleHelper.serializeColor(colour));
             };
-            case TRAIL -> (session, position, particleData) -> {
+            case TRAIL -> (session, particleData) -> {
                 TrailParticleData data = (TrailParticleData) particleData;
                 Vector3f target = data.target().toFloat();
                 int rgb = data.color();
                 float lifetime = Math.max(data.duration(), 1) / 20f;
 
-                Vector3f direction = target.sub(position);
-                float distance = direction.length();
-                Vector3f normalized = distance > 0 ? direction.div(distance) : Vector3f.ZERO;
+                return position -> {
+                    Vector3f direction = target.sub(position);
+                    float distance = direction.length();
+                    Vector3f normalized = distance > 0 ? direction.div(distance) : Vector3f.ZERO;
 
-                return createParticleEffectPacket(session, "minecraft:creaking_heart_trail", position, ParticleHelper.serializeVariables(List.of(
-                    ParticleHelper.createVariable("variable.direction", ParticleHelper.VECTOR3F, normalized),
-                    ParticleHelper.createVariable("variable.color", ParticleHelper.RGB_COLOR, rgb),
-                    ParticleHelper.createVariable("variable.max_lifetime", ParticleHelper.FLOAT, lifetime),
-                    ParticleHelper.createVariable("variable.particle_initial_speed", ParticleHelper.FLOAT, distance / lifetime)
-                )));
+                    return createParticleEffectPacket(session, "minecraft:creaking_heart_trail", position, ParticleHelper.serializeVariables(List.of(
+                        ParticleHelper.createVariable("variable.direction", ParticleHelper.VECTOR3F, normalized),
+                        ParticleHelper.createVariable("variable.color", ParticleHelper.RGB_COLOR, rgb),
+                        ParticleHelper.createVariable("variable.max_lifetime", ParticleHelper.FLOAT, lifetime),
+                        ParticleHelper.createVariable("variable.particle_initial_speed", ParticleHelper.FLOAT, distance / lifetime)
+                    )));
+                };
             };
             default -> throw new AssertionError("No built-in mapping exists for particle: " + type);
         };
