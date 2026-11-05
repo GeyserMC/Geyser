@@ -32,6 +32,8 @@ import org.cloudburstmc.protocol.bedrock.data.LevelEvent;
 import org.cloudburstmc.protocol.bedrock.packet.LevelEventGenericPacket;
 import org.cloudburstmc.protocol.bedrock.packet.SetEntityMotionPacket;
 import org.geysermc.geyser.entity.type.player.SessionPlayerEntity;
+import org.geysermc.geyser.registry.Registries;
+import org.geysermc.geyser.level.particle.ParticleMapping;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
@@ -55,10 +57,9 @@ public class JavaExplodeTranslator extends PacketTranslator<ClientboundExplodePa
 
         // As of Bedrock 1.21 - particles will only be created by the above packet if there are blocks to blow up?
         // Not sure if the packet does anything - sending it just in case, because BDS still sends it.
-        // TODO move out of packet translator class
-        var particleCreator = JavaLevelParticlesTranslator.createParticle(session, packet.getExplosionParticle());
-        if (particleCreator != null) {
-            session.sendUpstreamPacket(particleCreator.apply(vector));
+        ParticleMapping particleMapping = Registries.PARTICLES.get(packet.getExplosionParticle().getType());
+        if (particleMapping != null) {
+            session.sendUpstreamPacket(particleMapping.mapParticle(session, packet.getExplosionParticle().getData()).apply(vector));
         }
 
         levelEventPacket.setTag(builder.build());
