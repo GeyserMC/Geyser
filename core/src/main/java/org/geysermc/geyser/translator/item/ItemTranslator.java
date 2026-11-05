@@ -225,7 +225,8 @@ public final class ItemTranslator {
             if (potionContents != null && tooltip.showInTooltip(DataComponentTypes.POTION_CONTENTS)) {
                 // Add to the name (use '\n' to wrap lines) instead of the lore
                 // to make it show in HUD like the effect information of vanilla Bedrock potion
-                customName += getPotionEffectInfo(potionContents, components.getOrDefault(DataComponentTypes.POTION_DURATION_SCALE, 1f), session.locale());
+                customName += getPotionEffectInfo(potionContents,
+                    components.getOrDefault(DataComponentTypes.POTION_DURATION_SCALE, 1f), 1000.0f / session.getMillisecondsPerTick(), session.locale());
             }
 
             nbtBuilder.setCustomName(customName);
@@ -392,7 +393,7 @@ public final class ItemTranslator {
         return MessageTranslator.convertMessage(attributeComponent, language);
     }
 
-    private static String getPotionEffectInfo(PotionContents contents, float durationScale, String language) {
+    private static String getPotionEffectInfo(PotionContents contents, float durationScale, float tickrate, String language) {
         StringBuilder finalText = new StringBuilder();
         List<MobEffectInstance> effectInstanceList = contents.getCustomEffects();
         for (MobEffectInstance effectInstance : effectInstanceList) {
@@ -407,13 +408,12 @@ public final class ItemTranslator {
                     Component.translatable("potion.potency." + amplifier));
             }
             if (duration > 20) {
-                int scaledDuration = (int) (duration * durationScale);
-                int seconds = scaledDuration / 20;
-                int secondsFormat = seconds % 60;
+                int seconds = (int) ((int) (duration * durationScale) / tickrate); // Match Java Edition calculation
                 int minutes = seconds / 60;
-                int minutesFormat = minutes % 60;
+                seconds %= 60;
                 int hours = minutes / 60;
-                String text = ((minutesFormat > 9) ? "" : "0") + minutesFormat + ":" + ((secondsFormat > 9) ? "" : "0") + secondsFormat;
+                minutes %= 60;
+                String text = ((minutes > 9) ? "" : "0") + minutes + ":" + ((seconds > 9) ? "" : "0") + seconds;
                 if (minutes >= 60) {
                     text = ((hours > 9) ? "" : "0") + hours + ":" + text;
                 }
