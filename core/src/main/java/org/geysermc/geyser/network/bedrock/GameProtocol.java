@@ -85,7 +85,7 @@ public final class GameProtocol {
         register(Bedrock_v2168_hotfix4.CODEC, "26.40", "26.41", "26.42", "26.43", "26.44");
         register(Bedrock_v2169.CODEC, "26.45");
         register(Bedrock_v2193.CODEC, "26.50", "26.51", "26.52");
-        register(Bedrock_v2225.CODEC, "26.60");
+        register(Bedrock_v2225.CODEC, "26.60", "26.61", "26.62");
 
         MinecraftVersion latestBedrock = SUPPORTED_BEDROCK_VERSIONS.getLast();
         DEFAULT_BEDROCK_VERSION = latestBedrock.versionString();
