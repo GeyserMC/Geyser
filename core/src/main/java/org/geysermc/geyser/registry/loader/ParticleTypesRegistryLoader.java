@@ -54,8 +54,9 @@ public class ParticleTypesRegistryLoader extends EffectRegistryLoader<Map<Partic
 
                 particles.put(javaType, parseParticleMapping(javaType, entry.getValue().getAsJsonObject()));
             }
-        } catch (Exception exception) {
+        } catch (RuntimeException exception) {
             GeyserImpl.getInstance().getLogger().error("Failed to load particle mappings!", exception);
+            throw exception;
         }
         return particles;
     }

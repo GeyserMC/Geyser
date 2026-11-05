@@ -25,13 +25,11 @@
 
 package org.geysermc.geyser.entity.type;
 
-import org.cloudburstmc.protocol.bedrock.data.LevelEventType;
-import org.cloudburstmc.protocol.bedrock.data.ParticleType;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.geysermc.geyser.entity.spawn.EntitySpawnContext;
-import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.level.particle.ParticleMapping;
+import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.util.MathUtils;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.EntityMetadata;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.FloatEntityMetadata;
@@ -68,11 +66,8 @@ public class AreaEffectCloudEntity extends Entity {
 
     public void setParticle(EntityMetadata<Particle, ?> entityMetadata) {
         Particle particle = entityMetadata.getValue();
-        Registries.PARTICLES.map(particle.getType(),
-            p -> p instanceof ParticleMapping.LevelEventTypeBased(LevelEventType event)
-                && event instanceof ParticleType particleType ? particleType : null).ifPresent(type ->
-            metadata.put(EntityDataTypes.AREA_EFFECT_CLOUD_PARTICLE, type)
-        );
+        Registries.PARTICLES.flatMap(particle.getType(), ParticleMapping::particleType)
+            .ifPresent(type -> metadata.put(EntityDataTypes.AREA_EFFECT_CLOUD_PARTICLE, type));
 
         if (particle.getData() instanceof ColorParticleData effectParticleData) {
             metadata.put(EntityDataTypes.EFFECT_COLOR, effectParticleData.getColor());

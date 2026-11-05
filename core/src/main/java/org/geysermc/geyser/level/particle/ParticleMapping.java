@@ -26,20 +26,22 @@
 package org.geysermc.geyser.level.particle;
 
 import com.google.gson.JsonElement;
+import net.kyori.adventure.key.Key;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.protocol.bedrock.data.LevelEvent;
 import org.cloudburstmc.protocol.bedrock.data.LevelEventType;
+import org.cloudburstmc.protocol.bedrock.data.ParticleType;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
 import org.cloudburstmc.protocol.bedrock.packet.BedrockPacket;
 import org.cloudburstmc.protocol.bedrock.packet.LevelEventGenericPacket;
 import org.cloudburstmc.protocol.bedrock.packet.LevelEventPacket;
 import org.cloudburstmc.protocol.bedrock.packet.SpawnParticleEffectPacket;
-import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.item.ItemTranslator;
 import org.geysermc.geyser.util.DimensionUtils;
+import org.geysermc.geyser.util.MinecraftKey;
 import org.geysermc.mcprotocollib.protocol.data.game.item.ItemStack;
 import org.geysermc.mcprotocollib.protocol.data.game.level.particle.BlockParticleData;
 import org.geysermc.mcprotocollib.protocol.data.game.level.particle.ColorParticleData;
@@ -48,31 +50,77 @@ import org.geysermc.mcprotocollib.protocol.data.game.level.particle.GeyserBasePa
 import org.geysermc.mcprotocollib.protocol.data.game.level.particle.GeyserParticleData;
 import org.geysermc.mcprotocollib.protocol.data.game.level.particle.ItemParticleData;
 import org.geysermc.mcprotocollib.protocol.data.game.level.particle.ParticleData;
-import org.geysermc.mcprotocollib.protocol.data.game.level.particle.ParticleType;
 import org.geysermc.mcprotocollib.protocol.data.game.level.particle.SpellParticleData;
 import org.geysermc.mcprotocollib.protocol.data.game.level.particle.TrailParticleData;
 import org.geysermc.mcprotocollib.protocol.data.game.level.particle.VibrationParticleData;
 import org.geysermc.mcprotocollib.protocol.data.game.level.particle.positionsource.BlockPositionSource;
-import org.geysermc.mcprotocollib.protocol.data.game.level.particle.positionsource.EntityPositionSource;
 
 import java.util.List;
+import java.util.Locale;
 import java.util.Optional;
 import java.util.concurrent.ThreadLocalRandom;
 
-@FunctionalInterface
-public interface ParticleMapping {
+public sealed interface ParticleMapping {
+
+    Optional<ParticleType> particleType();
 
     BedrockPacket createPacket(GeyserSession session, Vector3f position, @Nullable ParticleData particleData);
 
+    record IdentifierBased(Key identifier) implements ParticleMapping {
+
+        @Override
+        public Optional<ParticleType> particleType() {
+            try {
+                // Most particle types should match
+                return Optional.of(ParticleType.valueOf(identifier.value().toUpperCase(Locale.ROOT)));
+            } catch (IllegalArgumentException exception) {
+                return Optional.empty();
+            }
+        }
+
+        @Override
+        public BedrockPacket createPacket(GeyserSession session, Vector3f position, @Nullable ParticleData particleData) {
+            return ParticleMapping.createParticleEffectPacket(session, identifier.toString(), position);
+        }
+    }
+
+    record LevelEventTypeBased(LevelEventType event) implements ParticleMapping {
+
+        @Override
+        public Optional<ParticleType> particleType() {
+            if (event instanceof ParticleType type) {
+                return Optional.of(type);
+            }
+            return Optional.empty();
+        }
+
+        @Override
+        public BedrockPacket createPacket(GeyserSession session, Vector3f position, @Nullable ParticleData particleData) {
+            LevelEventPacket packet = new LevelEventPacket();
+            packet.setType(event);
+            packet.setPosition(position);
+            return packet;
+        }
+    }
+
+    @FunctionalInterface
+    non-sealed interface BuiltIn extends ParticleMapping {
+
+        @Override
+        default Optional<ParticleType> particleType() {
+            return Optional.empty();
+        }
+    }
+
     static ParticleMapping ofIdentifier(String identifier) {
-        return (session, position, data) -> createParticleEffectPacket(session, identifier, position);
+        return new IdentifierBased(MinecraftKey.key(identifier));
     }
 
     static ParticleMapping ofEvent(LevelEventType event) {
         return new LevelEventTypeBased(event);
     }
 
-    static ParticleMapping builtIn(ParticleType type) {
+    static BuiltIn builtIn(org.geysermc.mcprotocollib.protocol.data.game.level.particle.ParticleType type) {
         return switch (type) {
             case BLOCK -> (session, position, data) -> {
                 int blockState = session.getBlockMappings().getBedrockBlockId(((BlockParticleData) data).getBlockState());
@@ -143,20 +191,12 @@ public interface ParticleMapping {
                 VibrationParticleData data = (VibrationParticleData) particleData;
 
                 Vector3f target;
+                // As of Java 26.3, there are only 2 position sources: block and entity.
+                // Entity is not allowed, see https://mcsrc.dev/2/26.3/net/minecraft/core/particles/VibrationParticleOption#L14-15
                 if (data.getPositionSource() instanceof BlockPositionSource blockPositionSource) {
                     target = blockPositionSource.getPosition().toFloat().add(0.5f, 0.5f, 0.5f);
-                } else if (data.getPositionSource() instanceof EntityPositionSource entityPositionSource) {
-                    // As of Java 26.3, vanilla at least doesn't seem to allow entity sources, but we do them anyway
-                    Entity entity = session.getEntityCache().getEntityByJavaId(entityPositionSource.getEntityId());
-                    if (entity != null) {
-                        target = entity.bedrockPosition().up(entityPositionSource.getYOffset());
-                    } else {
-                        session.getGeyser().getLogger().debug("Unable to find entity with Java Id: " + entityPositionSource.getEntityId() + " for vibration particle.");
-                        return null;
-                    }
                 } else {
-                    session.getGeyser().getLogger().debug("Unknown position source " + data.getPositionSource() + " for vibration particle.");
-                    return null;
+                    throw new IllegalStateException("Received invalid position source for VIBRATION particle: " + data.getPositionSource().getType());
                 }
 
                 LevelEventGenericPacket packet = new LevelEventGenericPacket();
@@ -212,18 +252,6 @@ public interface ParticleMapping {
         };
     }
 
-    // Have to make a record impl for some shit bedrock does with AEC, see the code there
-    record LevelEventTypeBased(LevelEventType event) implements ParticleMapping {
-
-        @Override
-        public BedrockPacket createPacket(GeyserSession session, Vector3f position, @Nullable ParticleData particleData) {
-            LevelEventPacket packet = new LevelEventPacket();
-            packet.setType(event);
-            packet.setPosition(position);
-            return packet;
-        }
-    }
-
     private static int dimensionId(GeyserSession session) {
         return DimensionUtils.javaToBedrock(session);
     }
@@ -247,10 +275,10 @@ public interface ParticleMapping {
         return packet;
     }
 
-    private static String geyserParticle(ParticleType type) {
+    private static String geyserParticle(org.geysermc.mcprotocollib.protocol.data.game.level.particle.ParticleType type) {
         return switch (type) {
             case GEYSER_BASE -> "minecraft:geyser_base";
-            case GEYSER_PLUME -> "minecraft:geyser_plume";
+            case GEYSER, GEYSER_PLUME -> "minecraft:geyser_plume";
             case GEYSER_POOF -> "minecraft:geyser_poof";
             default -> throw new AssertionError(type + " is not a geyser particle");
         };
