@@ -29,7 +29,6 @@ import org.bukkit.Bukkit;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
-import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.adapters.WorldAdapter;
 import org.geysermc.geyser.adapters.paper.PaperAdapters;
 import org.geysermc.geyser.adapters.spigot.SpigotAdapters;
@@ -55,13 +54,5 @@ public class GeyserSpigotNativeWorldManager extends GeyserSpigotWorldManager {
             return Block.JAVA_AIR_ID;
         }
         return adapter.getBlockAt(player.getWorld(), x, y, z);
-    }
-
-    @Nullable
-    @Override
-    public String[] getBiomeIdentifiers(boolean withTags) {
-        // Biome identifiers will basically always be the same for one server, since you have to re-send the
-        // ClientboundLoginPacket to change the registry. Therefore, don't bother caching for each player.
-        return adapter.getBiomeSuggestions(withTags);
     }
 }

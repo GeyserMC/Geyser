@@ -43,6 +43,17 @@ public interface TextTranslator {
     String convertText(Component component);
 
     static TextTranslator forLocale(String locale) {
-        return component -> MessageTranslator.convertMessage(component, locale);
+        return (LocaleBased) () -> locale;
+    }
+
+    @FunctionalInterface
+    interface LocaleBased extends TextTranslator {
+
+        String locale();
+
+        @Override
+        default String convertText(Component component) {
+            return MessageTranslator.convertMessage(component, locale());
+        }
     }
 }

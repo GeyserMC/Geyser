@@ -34,7 +34,9 @@ import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.cache.tags.Tag;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.HolderSet;
 
+import java.util.Collection;
 import java.util.List;
+import java.util.stream.Stream;
 
 /**
  * Provides access to a {@link JavaRegistry} for each registry defined in {@link JavaRegistries}, a well as access to tags for each registry.
@@ -75,6 +77,27 @@ public interface JavaRegistryProvider {
      * @return the list of raw network IDs the tag holds
      */
     IntList rawTag(Tag<?> tag);
+
+    /**
+     * Returns a collection of all currently loaded tags, across all loaded registries.
+     *
+     * @return a collection of all currently loaded tags
+     */
+    Collection<Tag<?>> tags();
+
+    /**
+     * Returns a stream of all currently loaded tags, for the given registry.
+     *
+     * @param registry the registry to look tags up for
+     * @param <T> the type of the registry
+     * @return a stream of all currently loaded tags for that registry
+     */
+    @SuppressWarnings("unchecked")
+    default <T> Stream<Tag<T>> tags(JavaRegistryKey<T> registry) {
+        // A .map() call would be cleaner than this cast but is more expensive
+        return (Stream<Tag<T>>) (Object) tags().stream()
+            .filter(tag -> tag.registry() == registry);
+    }
 
     /**
      * Provides a list of objects for the given {@code tag}. This can be an empty list.
