@@ -29,8 +29,9 @@ provided("io.netty", "netty-common")
 provided("io.netty", "netty-buffer")
 provided("io.netty", "netty-resolver")
 provided("io.netty", "netty-transport")
-provided("io.netty", "netty-codec")
 provided("io.netty", "netty-codec-base")
+provided("io.netty", "netty-codec-compression")
+provided("io.netty", "netty-codec-http")
 provided("org.ow2.asm", "asm")
 
 // cloud-fabric/cloud-neoforge jij's all cloud depends already
