@@ -60,7 +60,7 @@ import org.geysermc.geyser.registry.populator.PacketRegistryPopulator;
 import org.geysermc.geyser.registry.populator.TagRegistryPopulator;
 import org.geysermc.geyser.registry.provider.ProviderSupplier;
 import org.geysermc.geyser.registry.type.ItemMappings;
-import org.geysermc.geyser.registry.type.ParticleMapping;
+import org.geysermc.geyser.level.particle.ParticleMapping;
 import org.geysermc.geyser.registry.type.SoundMapping;
 import org.geysermc.geyser.registry.type.UtilMappings;
 import org.geysermc.geyser.translator.level.block.entity.BlockEntityTranslator;
