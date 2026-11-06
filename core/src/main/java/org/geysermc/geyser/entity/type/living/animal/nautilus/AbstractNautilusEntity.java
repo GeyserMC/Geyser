@@ -167,7 +167,7 @@ public abstract class AbstractNautilusEntity extends TameableEntity implements C
     }
 
     @Override
-    public boolean shouldSimulateMovement() {
+    public boolean canSimulateMovement() {
         return getFlag(EntityFlag.SADDLED) && !this.passengers.isEmpty() && this.passengers.getFirst() == session.getPlayerEntity();
     }
 
