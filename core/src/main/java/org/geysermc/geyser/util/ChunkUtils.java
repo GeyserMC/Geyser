@@ -148,7 +148,9 @@ public class ChunkUtils {
         ItemFrameEntity itemFrameEntity = ItemFrameEntity.getItemFrameEntity(session, position);
         if (itemFrameEntity != null) {
             if (blockState.is(Blocks.AIR)) { // Item frame is still present and no block overrides that; refresh it
-                itemFrameEntity.updateBlock(true);
+                // Pass the new state: the chunk cache is only updated after this call, so the
+                // frame's own world lookup would still see the block that was just broken
+                itemFrameEntity.updateBlock(blockState, true);
                 // Still update the chunk cache with the new block if updateBlock is called
                 return;
             }
