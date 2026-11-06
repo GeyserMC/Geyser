@@ -296,6 +296,24 @@ public class Entity implements GeyserEntity {
     }
 
     /**
+     * Clears this entity's vehicle.
+     */
+    public void stopRiding(Entity previousVehicle) {
+        setVehicle(null);
+
+        // java backends only send rotation data for passengers (excluding pos), so Geyser would just store the pos
+        // of the entity before it started riding... (for all but client authoritative entities this is ok).
+        // For client vehicles (assuming the player is still riding it), geyser simulates the entity but ignores server
+        // position updates... consequently initial movement packets would come from that old previous position,
+        // ... et voila! "moved too quickly" in the logs.
+        // Simple fix here, move the vehicle to the previous vehicle pos and it's fine
+        if (this instanceof ClientVehicle clientVehicle) {
+            setPosition(previousVehicle.position());
+            clientVehicle.getVehicleComponent().moveAbsolute(previousVehicle.position().toDouble());
+        }
+    }
+
+    /**
      * Despawns the entity
      */
     public void despawnEntity() {
@@ -303,7 +321,7 @@ public class Entity implements GeyserEntity {
 
         for (Entity passenger : passengers) { // Make sure all passengers on the despawned entity are updated
             if (passenger == null) continue;
-            passenger.setVehicle(null);
+            passenger.stopRiding(this);
             passenger.setFlag(EntityFlag.RIDING, false);
             passenger.updateBedrockMetadata();
 

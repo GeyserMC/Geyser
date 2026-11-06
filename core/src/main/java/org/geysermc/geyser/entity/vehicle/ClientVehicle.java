@@ -27,6 +27,7 @@ package org.geysermc.geyser.entity.vehicle;
 
 import org.cloudburstmc.math.vector.Vector2f;
 import org.cloudburstmc.math.vector.Vector3f;
+import org.geysermc.geyser.entity.type.Entity;
 
 public interface ClientVehicle {
     VehicleComponent<?> getVehicleComponent();
@@ -37,8 +38,34 @@ public interface ClientVehicle {
     // MojMap LivingEntity#getRiddenSpeed
     float getVehicleSpeed();
 
-    // MojMap Mob#getControllingPassenger
-    boolean shouldSimulateMovement();
+    /**
+     * Whether the session is controlling this vehicle, i.e. riding a (saddled) horse or holding a
+     * carrot on a stick while on a pig (warped fungus on a stick for a strider)
+     * <p>
+     * @see #shouldSimulateMovement() which double-checks that the vehicle is not riding anything itself
+     * <p>
+     * MojMap Mob#getControllingPassenger
+     *
+     * @see #shouldSimulateMovement()
+     */
+    boolean canSimulateMovement();
+
+    Entity getVehicle();
+
+    /**
+     * Whether Geyser should simulate vehicle movement and send it to the backend.
+     * <p>
+     * Java clients only simulate the main controlled vehicle.
+     * MojMap {@code LocalPlayer#tick} only sends a {@code ServerboundMoveVehiclePacket} for {@code getRootVehicle()}.
+     * Likewise, a vehicle that is a passenger, e.g. a pig in a minecart, is controlled by the vehicle it is riding...
+     * See MojMap {@code Entity#rideTick} - if we simulate a vehicle (while it's a passenger), welcome to
+     * "was expecting to be controlling vehicle" galore (Geyser also ignores backend position updates due to this).
+     * <p>
+     * Unlike {@link #canSimulateMovement()}, this double-checks that the vehicle isn't actually a passenger and <i>should</i> be simulated.
+     */
+    default boolean shouldSimulateMovement() {
+        return getVehicle() == null && canSimulateMovement();
+    }
 
     default boolean canWalkOnLava() {
         return false;
