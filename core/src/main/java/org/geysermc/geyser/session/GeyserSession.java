@@ -57,6 +57,7 @@ import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtList;
 import org.cloudburstmc.nbt.NbtMap;
+import org.cloudburstmc.netty.channel.nethernet.NetherNetChannel;
 import org.cloudburstmc.netty.channel.raknet.RakChildChannel;
 import org.cloudburstmc.netty.handler.codec.raknet.common.RakSessionCodec;
 import org.cloudburstmc.protocol.bedrock.BedrockDisconnectReasons;
@@ -2737,9 +2738,13 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource, Jav
             return 0;
         }
 
+        Channel channel = getUpstream().getSession().getPeer().getChannel();
+        if (channel instanceof NetherNetChannel netherNetChannel) {
+            return (int) netherNetChannel.getPing();
+        }
+
         // TODO fixme
-        // TODO NetherNet: expose the WebRTC round trip time
-        if (!(getUpstream().getSession().getPeer().getChannel() instanceof RakChildChannel rakChannel)) {
+        if (!(channel instanceof RakChildChannel rakChannel)) {
             return 0;
         }
 

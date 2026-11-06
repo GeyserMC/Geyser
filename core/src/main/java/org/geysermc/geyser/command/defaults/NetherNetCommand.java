@@ -35,7 +35,10 @@ import org.geysermc.geyser.api.util.TriState;
 import org.geysermc.geyser.command.GeyserCommand;
 import org.geysermc.geyser.command.GeyserCommandSource;
 import org.geysermc.geyser.configuration.GeyserConfig;
+import org.cloudburstmc.netty.channel.nethernet.NetherNetChannel;
 import org.geysermc.geyser.network.bedrock.nethernet.NetherNetServer;
+import org.geysermc.geyser.network.bedrock.nethernet.NetherNetStats;
+import org.geysermc.geyser.session.GeyserSession;
 import org.incendo.cloud.CommandManager;
 import org.incendo.cloud.context.CommandContext;
 
@@ -44,6 +47,7 @@ import java.net.InetSocketAddress;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -69,11 +73,15 @@ public class NetherNetCommand extends GeyserCommand {
         manager.command(baseBuilder(manager).literal("action").handler(this::action));
         manager.command(baseBuilder(manager).literal("diagnostics").handler(this::diagnostics));
         manager.command(baseBuilder(manager).literal("advertised").handler(this::advertised));
+        manager.command(baseBuilder(manager)
+            .literal("stats")
+            .optional(ARGUMENTS, greedyStringParser())
+            .handler(this::stats));
     }
 
     @Override
     public void execute(CommandContext<GeyserCommandSource> context) {
-        context.sender().sendMessage("Usage: " + rootCommand() + " " + name() + " <status | action | diagnostics | advertised>");
+        context.sender().sendMessage("Usage: " + rootCommand() + " " + name() + " <status | action | diagnostics | advertised | stats>");
     }
 
     /**
@@ -184,6 +192,61 @@ public class NetherNetCommand extends GeyserCommand {
         } else if (mode.nxs()) {
             source.sendMessage("External signaling is not running.");
         }
+    }
+
+    /**
+     * Show connection stats of NetherNet players: one line each, or everything for one player
+     */
+    private void stats(CommandContext<GeyserCommandSource> context) {
+        GeyserCommandSource source = context.sender();
+        if (server(source) == null) {
+            return;
+        }
+
+        String player = context.<String>optional(ARGUMENTS).map(String::trim).orElse("");
+        boolean logIps = geyser.config().logPlayerIpAddresses();
+        boolean any = false;
+        for (GeyserSession session : geyser.getSessionManager().getAllSessions()) {
+            if (!(session.getUpstream().getSession().getPeer().getChannel() instanceof NetherNetChannel channel)) {
+                continue;
+            }
+            NetherNetStats stats = channel.attr(NetherNetStats.ATTRIBUTE).get();
+            String name = String.valueOf(session.bedrockUsername());
+            if (stats == null || (!player.isEmpty() && !name.equalsIgnoreCase(player))) {
+                continue;
+            }
+            any = true;
+            NetherNetStats.Snapshot snapshot = stats.snapshot(channel, logIps);
+            source.sendMessage(player.isEmpty() ? summary(name, snapshot) : name + ": " + GeyserImpl.GSON.toJson(snapshot));
+        }
+
+        if (!any) {
+            source.sendMessage(player.isEmpty() ? "No players are connected over NetherNet." : "No NetherNet player named " + player + ".");
+        }
+    }
+
+    static String summary(String name, NetherNetStats.Snapshot snapshot) {
+        return name + ": rtt " + snapshot.sctpRtt() + " ms (rto " + snapshot.sctpRto() + " ms)"
+            + " | out " + bytes(snapshot.bytesOutPerSecond()) + "/s, " + snapshot.messagesOutPerSecond() + " msg/s, "
+            + snapshot.packetsOutPerSecond() + " pkt/s | in " + bytes(snapshot.bytesInPerSecond()) + "/s"
+            + " | cwnd " + bytes(snapshot.congestionWindow()) + ", peer rwnd " + bytes(snapshot.peerReceiveWindow())
+            + " | queued " + bytes(snapshot.queuedBytes()) + ", unacked " + snapshot.unackedChunks() + " chunks"
+            + " | receive queue " + snapshot.receiveQueueChunks() + " chunks"
+            + " | timeouts " + snapshot.dataTimeouts()
+            + " | " + (snapshot.writable() ? "writable" : "UNWRITABLE for " + snapshot.unwritableMillis() + " ms")
+            + " (" + snapshot.unwritableEvents() + "x)"
+            + " | " + String.format(Locale.ROOT, "%.1f pkt/msg, %.0f%% compressed size", snapshot.averageBatchSize(), snapshot.compressionRatio() * 100)
+            + " | " + (snapshot.path() == null ? "no path" : snapshot.path());
+    }
+
+    private static String bytes(long bytes) {
+        if (bytes < 0) {
+            return "?";
+        }
+        if (bytes < 1024) {
+            return bytes + " B";
+        }
+        return String.format(Locale.ROOT, bytes < 1024 * 1024 ? "%.1f KiB" : "%.2f MiB", bytes / (bytes < 1024 * 1024 ? 1024.0 : 1024.0 * 1024));
     }
 
     static String builtinAdvertised(NetherNetServer.Advertised.Builtin builtin) {
