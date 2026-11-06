@@ -34,6 +34,19 @@ dependencies {
     implementation(libs.gson.record.factory) {
         isTransitive = false
     }
+
+    // Servers before 1.21.11 still bundle Netty 4.1, so the codecs we shade must be 4.1 too
+    // HTTP tends to be missing, just like haproxy, so we ship those
+    implementation(libs.netty.legacy.codec.http) {
+        version {
+            strictly(libs.versions.netty.legacy.get())
+        }
+    }
+    implementation(libs.netty.legacy.codec.haproxy) {
+        version {
+            strictly(libs.versions.netty.legacy.get())
+        }
+    }
 }
 
 platformRelocate("it.unimi.dsi.fastutil")
