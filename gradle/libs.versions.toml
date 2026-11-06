@@ -1,7 +1,7 @@
 [versions]
 base-api = "1.0.3"
 bstats = "3.1.0"
-cumulus = "1.1.2"
+cumulus = "2.0.0-SNAPSHOT"
 configurate = "4.2.0-GeyserMC-20251111.004649-11"
 configurate-core = "4.2.0-GeyserMC-20251111.004649-12"
 erosion = "1.1-20240521.000109-3"
