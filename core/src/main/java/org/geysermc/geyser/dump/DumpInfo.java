@@ -105,6 +105,7 @@ public class DumpInfo {
     private final List<PackInfo> packInfo;
     private final MappingInfo mappingInfo;
     private final NetherNetInfo netherNetInfo;
+    private final List<DumpMessage> messages;
 
     public DumpInfo(GeyserImpl geyser, boolean addLog) {
         this.versionInfo = new VersionInfo();
@@ -182,6 +183,18 @@ public class DumpInfo {
 
         NetherNetServer netherNet = geyser.getNetherNetServer();
         this.netherNetInfo = netherNet == null ? null : NetherNetInfo.of(netherNet.advertised());
+
+        this.messages = messages(netherNet == null ? List.of() : List.of(netherNet));
+    }
+
+    /**
+     * Every problem the given parts of Geyser logged, censored for this dump.
+     */
+    static List<DumpMessage> messages(List<? extends DumpMessageSource> sources) {
+        return sources.stream()
+            .flatMap(source -> source.dumpMessages().stream())
+            .map(DumpMessage::censored)
+            .toList();
     }
 
     private JsonElement toGson(ConfigurationNode node) {

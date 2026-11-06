@@ -44,6 +44,8 @@ import java.lang.reflect.Type;
 import java.net.Inet6Address;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class AsteriskSerializer implements JsonSerializer<String> {
     public static final String[] NON_SENSITIVE_ADDRESSES = {"", "0.0.0.0", "localhost", "127.0.0.1", "auto", "unknown"};
@@ -86,6 +88,31 @@ public class AsteriskSerializer implements JsonSerializer<String> {
             return NetUtil.toSocketAddressString(endpoint);
         }
         return (address instanceof Inet6Address ? "[***]:" : "***:") + endpoint.getPort();
+    }
+
+    /** IPv4 addresses, and runs of hex digits and colons that may be IPv6 addresses, each validated before censoring. */
+    private static final Pattern IP_LITERAL = Pattern.compile(
+        // An IPv4 address may have a port after it, a colon inside an IPv6 address never ends it
+        "(?<![\\w.:])(?:\\d{1,3}(?:\\.\\d{1,3}){3}(?![\\w.])|[0-9A-Fa-f]{0,4}(?::[0-9A-Fa-f]{0,4}){2,7}(?![\\w.:]))");
+
+    /**
+     * Free text for a dump, such as a logged message, with each public IP address in it censored the same way as an
+     * {@link Asterisk} value. Host names are left as they are.
+     */
+    public static String censorText(String text) {
+        if (showSensitive) {
+            return text;
+        }
+        Matcher matcher = IP_LITERAL.matcher(text);
+        StringBuilder censored = new StringBuilder();
+        while (matcher.find()) {
+            String literal = matcher.group();
+            InetAddress address = NetUtil.isValidIpV4Address(literal) || NetUtil.isValidIpV6Address(literal)
+                ? NetUtil.createInetAddressFromIpAddressString(literal) : null;
+            matcher.appendReplacement(censored, Matcher.quoteReplacement(address != null && isSensitiveIp(address) ? "***" : literal));
+        }
+        matcher.appendTail(censored);
+        return censored.toString();
     }
 
     /**
