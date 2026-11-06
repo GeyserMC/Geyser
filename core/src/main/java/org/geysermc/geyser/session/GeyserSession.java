@@ -828,6 +828,12 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource, Jav
     private final List<BedrockPacket> queuedImmediatelyPackets = new ArrayList<>();
 
     /**
+     * UUID to use with {@link org.geysermc.geyser.session.shared.SessionSharedCache} instances.
+     */
+    @Accessors(fluent = true)
+    private final UUID sharedCacheUuid = UUID.randomUUID();
+
+    /**
      * Stores the book that is currently being read. Used in {@link org.geysermc.geyser.translator.protocol.java.inventory.JavaOpenBookTranslator}
      */
     @Setter
@@ -889,7 +895,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource, Jav
         this.lodestoneCache = new LodestoneCache();
         this.pistonCache = new PistonCache(this);
         this.preferencesCache = new PreferencesCache(this);
-        this.javaRegistries = new JavaRegistryTagCache();
+        this.javaRegistries = new JavaRegistryTagCache(sharedCacheUuid);
         this.componentCache = new ComponentCache(this.javaRegistries);
         this.skullCache = new SkullCache(this);
         this.structureBlockCache = new StructureBlockCache();
