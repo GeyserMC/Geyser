@@ -56,6 +56,8 @@ import org.geysermc.geyser.api.event.bedrock.SessionJoinEvent;
 import org.geysermc.geyser.api.network.BedrockListener;
 import org.geysermc.geyser.configuration.GeyserConfig;
 import org.geysermc.geyser.configuration.GeyserPluginConfig;
+import org.geysermc.geyser.dump.DumpMessage;
+import org.geysermc.geyser.dump.DumpMessageSource;
 import org.geysermc.geyser.event.type.SessionDisconnectEventImpl;
 import org.geysermc.geyser.network.BedrockPingHandler;
 import org.geysermc.geyser.network.bedrock.GameProtocol;
@@ -66,6 +68,7 @@ import org.geysermc.mcprotocollib.network.helper.TransportHelper;
 import tel.schich.libdatachannel.LibDataChannelArchDetect;
 
 import java.io.IOException;
+import java.net.BindException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.URI;
@@ -77,6 +80,7 @@ import java.time.Instant;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -84,6 +88,7 @@ import java.util.Random;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.CompletionStage;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -96,7 +101,8 @@ import java.util.stream.Stream;
  * all on the Bedrock address, and on the Bedrock port unless "webrtc-port" or -DgeyserSignalingPort move them.
  * Its state (signing identity, provider registration and DTLS identity) lives in the "nethernet" folder next to the config.
  */
-public final class NetherNetServer implements EventRegistrar {
+public final class NetherNetServer implements EventRegistrar, DumpMessageSource {
+    private static final String DUMP_SOURCE = "nethernet";
     private static final long GUID = new Random().nextLong();
     /**
      * Asked for this machine's public address unless {@code -DgeyserStunServers} says otherwise. Two operators, as
@@ -163,6 +169,10 @@ public final class NetherNetServer implements EventRegistrar {
     private EventLoopGroup inbuiltEventLoopGroup;
     private volatile Channel inbuiltChannel;
     private NetherNetChannelInitialiser inbuiltInitialiser;
+    /** What kept NetherNet, or a part of it, from working, for the dump. Added to from the provider's start too. */
+    private final List<DumpMessage> dumpMessages = new CopyOnWriteArrayList<>();
+    /** What holds the built-in signaling port, when that keeps built-in signaling from running. */
+    private volatile @Nullable PortConflict builtinPortConflict;
 
     public NetherNetServer(GeyserImpl geyser) {
         this.geyser = geyser;
@@ -183,12 +193,12 @@ public final class NetherNetServer implements EventRegistrar {
         InetAddress bindAddress = new InetSocketAddress(listener.address(), 0).getAddress();
         if (bindAddress != null && bindAddress.isLoopbackAddress()) {
             // ICE binds to this address too, and clients never offer loopback candidates, so no candidate pair can connect
-            logger().warning("The Bedrock \"address\" " + listener.address() + " is a loopback address which only accepts connections from this machine. NetherNet " +
+            reportWarning("The Bedrock \"address\" " + listener.address() + " is a loopback address which only accepts connections from this machine. NetherNet " +
                 "cannot work that way: every player will time out, including ones on this machine. " +
                 "Set \"address\" in the \"bedrock\" section to 0.0.0.0, or to this machine's local network address.");
         }
         if (listener.transport().raknet() && webrtcPort == listener.raknetPort()) {
-            logger().error("NetherNet will not start! With the \"both\" transport, RakNet and NetherNet each need their own UDP port, " +
+            reportError("NetherNet will not start! With the \"both\" transport, RakNet and NetherNet each need their own UDP port, " +
                 "but both are set to " + webrtcPort + ". Set \"webrtc-port\" in the \"bedrock\" section to a different available port.");
             return;
         }
@@ -196,13 +206,14 @@ public final class NetherNetServer implements EventRegistrar {
         if (inbuilt && geyser.config() instanceof GeyserPluginConfig pluginConfig && signalingPort == pluginConfig.java().port()) {
             // e.g. clone-remote-port: the Java server owns that TCP port
             inbuilt = false;
+            builtinPortConflict = new PortConflict(PortConflict.Holder.JAVA_SERVER, signalingPort);
             String reason = "Built-in signaling cannot use port " + signalingPort + " because the Java server already uses it. ";
             if (!provider) {
                 provider = true;
-                logger().warning(reason + "Bedrock players can still find this server through the external signaling service at "
+                reportWarning(reason + "Bedrock players can still find this server through the external signaling service at "
                     + config.nxs().endpoint() + " instead.");
             } else {
-                logger().warning(reason + "Only the external signaling service will be used.");
+                reportWarning(reason + "Only the external signaling service will be used.");
             }
         }
 
@@ -210,7 +221,7 @@ public final class NetherNetServer implements EventRegistrar {
             // Picks this platform's WebRTC library out of the ones bundled for every platform
             LibDataChannelArchDetect.initialize();
         } catch (LinkageError e) {
-            logger().error("NetherNet will not start! Could not load its WebRTC native library on " + System.getProperty("os.name")
+            reportError("NetherNet will not start! Could not load its WebRTC native library on " + System.getProperty("os.name")
                 + " (" + System.getProperty("os.arch") + "): " + e.getMessage() + ". This usually means a system library it depends on "
                 + "is not installed, or that it is not built for this platform.", e);
             return;
@@ -222,7 +233,7 @@ public final class NetherNetServer implements EventRegistrar {
         try {
             Files.createDirectories(dataFolder);
         } catch (IOException e) {
-            logger().error("NetherNet will not start! Could not create its data folder at " + dataFolder + ".", e);
+            reportError("NetherNet will not start! Could not create its data folder at " + dataFolder + ".", e);
             return;
         }
 
@@ -234,7 +245,7 @@ public final class NetherNetServer implements EventRegistrar {
         // binds, but nothing can for NXS
         if (provider && advertised.isEmpty() && !geyser.config().advanced().bedrock().webrtcProxyProtocolRelays().isEmpty()) {
             // Without built-in signaling, nothing else is left to start
-            logger().error((inbuilt ? "External signaling" : "NetherNet") + " will not start! \"webrtc-proxy-protocol-relays\" is set, "
+            reportError((inbuilt ? "External signaling" : "NetherNet") + " will not start! \"webrtc-proxy-protocol-relays\" is set, "
                 + "so \"advertise-addresses\" under \"bedrock.signaling\" has to name the relays players reach this server through.");
             provider = false;
         }
@@ -299,7 +310,7 @@ public final class NetherNetServer implements EventRegistrar {
                 }
             }
         } catch (IllegalArgumentException e) {
-            logger().error("Built-in signaling will not start! " + e.getMessage());
+            reportError("Built-in signaling will not start! " + e.getMessage());
             return;
         }
 
@@ -309,7 +320,7 @@ public final class NetherNetServer implements EventRegistrar {
             identity = OperatorIdentity.fromPemOrCreate(dataFolder.resolve("identity.pem").toFile(),
                     GeyserImpl.NAME + "-" + geyser.config().gameplay().serverName());
         } catch (Exception e) {
-            logger().error("Built-in signaling will not start! Could not load or create this server's identity file, "
+            reportError("Built-in signaling will not start! Could not load or create this server's identity file, "
                     + dataFolder.resolve("identity.pem") + ". Only delete that file if it cannot be recovered: "
                     + "a new identity means every player has to confirm this server again.", e);
             return;
@@ -385,7 +396,10 @@ public final class NetherNetServer implements EventRegistrar {
         } catch (Throwable e) {
             // Throwable: the WebRTC natives are not available on every platform
             closeInbuiltResources();
-            logger().error("Built-in signaling could not start", e);
+            if (isAddressInUse(e)) {
+                builtinPortConflict = new PortConflict(PortConflict.Holder.OTHER_PROCESS, signalingPort);
+            }
+            reportError("Built-in signaling could not start", e);
         }
     }
 
@@ -511,7 +525,7 @@ public final class NetherNetServer implements EventRegistrar {
                         .toCompletableFuture().get(30, TimeUnit.SECONDS);
                 netherNetChannel = host.channel();
                 transport = host.transport();
-                host.warnings().forEach(message -> logger().warning(message));
+                host.warnings().forEach(message -> reportWarning(message));
                 if (stopping) {
                     providerStopped = transport.close();
                     closeNetworkResources();
@@ -553,7 +567,7 @@ public final class NetherNetServer implements EventRegistrar {
                 if (initializingTransport != null) providerStopped = initializingTransport.close();
                 if (e instanceof IOException && e.getMessage() != null) {
                     // Says what in the settings is wrong
-                    logger().error("Could not start the external signaling service: " + e.getMessage());
+                    reportError("Could not start the external signaling service: " + e.getMessage());
                 } else {
                     logProviderFailure("Could not start the external signaling service", e);
                 }
@@ -648,6 +662,78 @@ public final class NetherNetServer implements EventRegistrar {
                 .toList(), builtinStun, builtin.discoveredEndpoints()),
             client == null ? null : new Advertised.Nxs(client.publishedEndpoints().orElse(null), providerInstanceId,
                 client.clockOffsetMillis()));
+    }
+
+    /**
+     * @return what holds the built-in signaling port, when that keeps built-in signaling from running
+     */
+    public @Nullable PortConflict builtinPortConflict() {
+        return builtinPortConflict;
+    }
+
+    /**
+     * Another component holding the TCP port built-in signaling needs.
+     *
+     * @param holder what holds the port
+     * @param port the built-in signaling port
+     */
+    public record PortConflict(Holder holder, int port) {
+        public enum Holder {
+            /** The Java server listens on the same port, so built-in signaling was not started. */
+            JAVA_SERVER,
+            /** Binding failed as something else on this machine already uses the port. */
+            OTHER_PROCESS
+        }
+    }
+
+    /**
+     * Whether binding failed because the address is already in use. Netty's native transports report this as a plain
+     * {@link IOException}, so the message is checked as well.
+     */
+    static boolean isAddressInUse(Throwable failure) {
+        for (Throwable cause = failure; cause != null; cause = cause.getCause()) {
+            if (cause instanceof BindException) {
+                return true;
+            }
+            String message = cause.getMessage();
+            if (message != null && message.toLowerCase(Locale.ROOT).contains("address already in use")) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * @return the problems that kept NetherNet, or a part of it, from working since it started, oldest first
+     */
+    @Override
+    public List<DumpMessage> dumpMessages() {
+        return List.copyOf(dumpMessages);
+    }
+
+    /**
+     * Logs a warning about something that keeps NetherNet from working for some or all players, and keeps it for
+     * the dump.
+     */
+    private void reportWarning(String message) {
+        logger().warning(message);
+        dumpMessages.add(DumpMessage.warning(DUMP_SOURCE, message));
+    }
+
+    /**
+     * Logs why NetherNet, or one of its signaling modes, could not start, and keeps it for the dump.
+     */
+    private void reportError(String message) {
+        reportError(message, null);
+    }
+
+    private void reportError(String message, @Nullable Throwable cause) {
+        if (cause == null) {
+            logger().error(message);
+        } else {
+            logger().error(message, cause);
+        }
+        dumpMessages.add(DumpMessage.error(DUMP_SOURCE, message, cause));
     }
 
     /**
@@ -768,9 +854,9 @@ public final class NetherNetServer implements EventRegistrar {
     private void logProviderFailure(String what, Throwable failure) {
         Throwable cause = unwrapped(failure);
         if (cause instanceof ProviderClient.ProviderException) {
-            logger().error(what + ": " + cause.getMessage());
+            reportError(what + ": " + cause.getMessage());
         } else {
-            logger().error(what, cause);
+            reportError(what, cause);
         }
     }
 
