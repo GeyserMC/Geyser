@@ -25,6 +25,7 @@
 
 package org.geysermc.geyser.translator.protocol.java;
 
+import org.geysermc.mcprotocollib.protocol.data.game.BossBarColor;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.ClientboundBossEventPacket;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.cache.BossBar;
@@ -40,7 +41,7 @@ public class JavaBossEventTranslator extends PacketTranslator<ClientboundBossEve
         switch (packet.getAction()) {
             case ADD:
                 long entityId = session.getEntityCache().nextEntityId();
-                bossBar = new BossBar(session, entityId, packet.getTitle(), packet.getHealth(), packet.getColor().ordinal(), 1, 0);
+                bossBar = new BossBar(session, entityId, packet.getTitle(), packet.getHealth(), bedrockColor(packet.getColor()), 1, 0);
                 session.getEntityCache().addBossBar(packet.getUuid(), bossBar);
                 break;
             case UPDATE_TITLE:
@@ -53,10 +54,23 @@ public class JavaBossEventTranslator extends PacketTranslator<ClientboundBossEve
                 session.getEntityCache().removeBossBar(packet.getUuid());
                 break;
             case UPDATE_STYLE:
-                if (bossBar != null) bossBar.updateColor(packet.getColor().ordinal());
+                if (bossBar != null) bossBar.updateColor(bedrockColor(packet.getColor()));
                 break;
             case UPDATE_FLAGS:
                 //todo
         }
+    }
+
+    /** Bedrock id 6 is REBECCA_PURPLE, which has no Java equivalent */
+    private static int bedrockColor(BossBarColor color) {
+        return switch (color) {
+            case PINK -> 0;
+            case CYAN -> 1;
+            case RED -> 2;
+            case LIME -> 3;
+            case YELLOW -> 4;
+            case PURPLE -> 5;
+            case WHITE -> 7;
+        };
     }
 }

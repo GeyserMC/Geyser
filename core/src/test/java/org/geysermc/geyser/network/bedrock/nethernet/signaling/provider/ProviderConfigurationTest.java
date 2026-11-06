@@ -70,7 +70,7 @@ class ProviderConfigurationTest {
 
     private static ProviderRuntimeConfiguration.Settings settings(GeyserConfig.SignalingConfig config,
                                                                   GeyserConfig.AdvancedNxsConfig advanced) throws IOException {
-        return NetherNetServer.providerSettings(config, config.advertiseAddresses(), advanced);
+        return NetherNetServer.providerSettings(config, config.advertiseAddresses(), advanced, List.of());
     }
 
     private static ProviderRuntimeConfiguration resolve(GeyserConfig.SignalingConfig config,
