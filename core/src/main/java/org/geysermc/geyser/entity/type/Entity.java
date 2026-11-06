@@ -310,7 +310,7 @@ public class Entity implements GeyserEntity {
         // position updates... consequently initial movement packets would come from that old previous position,
         // ... et voila! "moved too quickly" in the logs.
         // Simple fix here, move the vehicle to the previous vehicle pos and it's fine
-        if (this instanceof ClientVehicle clientVehicle  && clientVehicle.shouldSimulateMovement()) {
+        if (this instanceof ClientVehicle clientVehicle && clientVehicle.shouldSimulateMovement()) {
             setPosition(previousVehicle.position());
             clientVehicle.getVehicleComponent().moveAbsolute(previousVehicle.position().toDouble());
         }
