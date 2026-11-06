@@ -301,13 +301,16 @@ public class Entity implements GeyserEntity {
     public void stopRiding(Entity previousVehicle) {
         setVehicle(null);
 
+        // stopRiding gets called on the entity leaving the vehicle and not the rider
+        // current scenario is a happy ghast dismounting a minecart (e.g. on broken cart or dismount or activator rail),
+        // while being ridden by a player. When the PLAYER dismounts, stopRiding is called on the player.. which isn't a ClientVehicle
         // java backends only send rotation data for passengers (excluding pos), so Geyser would just store the pos
         // of the entity before it started riding... (for all but client authoritative entities this is ok).
         // For client vehicles (assuming the player is still riding it), geyser simulates the entity but ignores server
         // position updates... consequently initial movement packets would come from that old previous position,
         // ... et voila! "moved too quickly" in the logs.
         // Simple fix here, move the vehicle to the previous vehicle pos and it's fine
-        if (this instanceof ClientVehicle clientVehicle) {
+        if (this instanceof ClientVehicle clientVehicle  && clientVehicle.shouldSimulateMovement()) {
             setPosition(previousVehicle.position());
             clientVehicle.getVehicleComponent().moveAbsolute(previousVehicle.position().toDouble());
         }
