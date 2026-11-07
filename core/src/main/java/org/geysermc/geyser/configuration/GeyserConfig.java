@@ -175,6 +175,33 @@ public interface GeyserConfig {
         @Comment("Settings for the external signaling service. Only used in the \"nxs\" and \"hybrid\" modes, or when built-in signaling cannot run.")
         NxsConfig nxs();
 
+        @Comment("Settings for discovery and connections on the local network, independent of builtin or nxs signaling.")
+        LanDiscoveryConfig lanDiscovery();
+
+        @ConfigSerializable
+        interface LanDiscoveryConfig {
+            @Comment("""
+                Answer Bedrock LAN discovery on UDP 7551. Only one process per address may own that port.
+                Disabled by default; enable only on trusted local networks and restrict both UDP ports with a firewall.
+                Xbox compatibility requires signed login data and this server's nonce when the LAN offer has no
+                transport identity. The public server-lifetime nonce does not prevent a live relay or same-lifetime replay.""")
+            @DefaultBoolean(false)
+            boolean enabled();
+
+            @Comment("""
+                Address used for LAN discovery broadcasts. 0.0.0.0 receives broadcasts on all IPv4 interfaces;
+                restrict access to trusted LAN interfaces with a firewall. This is not a public Internet listener.""")
+            @DefaultString("0.0.0.0")
+            String address();
+
+            @Comment("""
+                Fixed UDP port for LAN WebRTC connections, bound on bedrock.address.
+                Must differ from webrtc-port and discovery port 7551. No ephemeral fallback is used.""")
+            @DefaultNumeric(19134)
+            @NumericRange(from = 1, to = 65535)
+            int icePort();
+        }
+
         enum Mode {
             BUILTIN,
             NXS,
