@@ -431,6 +431,9 @@ public class CustomBlockRegistryPopulator {
             if (geometryComponent.culling() != null) {
                 geometryBuilder.putString("culling", geometryComponent.culling());
             }
+            if (geometryComponent.cullingLayer() != null) {
+                geometryBuilder.putString("culling_layer", geometryComponent.cullingLayer());
+            }
             builder.putCompound("minecraft:geometry", geometryBuilder.build());
         }
 

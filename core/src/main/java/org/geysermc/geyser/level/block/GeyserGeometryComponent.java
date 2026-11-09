@@ -37,11 +37,13 @@ public class GeyserGeometryComponent implements GeometryComponent {
     private final String identifier;
     private final Map<String, String> boneVisibility;
     private final String culling;
+    private final String cullingLayer;
 
     GeyserGeometryComponent(Builder builder) {
         this.identifier = builder.identifier;
         this.boneVisibility = builder.boneVisibility;
         this.culling = builder.culling;
+        this.cullingLayer = builder.cullingLayer;
     }
 
     @Override
@@ -59,10 +61,16 @@ public class GeyserGeometryComponent implements GeometryComponent {
         return culling;
     }
 
+    @Override
+    public @Nullable String cullingLayer() {
+        return cullingLayer;
+    }
+
     public static class Builder implements GeometryComponent.Builder {
         private String identifier;
         private Map<String, String> boneVisibility;
         private String culling;
+        private String cullingLayer;
 
         @Override
         public Builder identifier(@NonNull String identifier) {
@@ -79,6 +87,12 @@ public class GeyserGeometryComponent implements GeometryComponent {
         @Override
         public Builder culling(@Nullable String culling) {
             this.culling = culling;
+            return this;
+        }
+
+        @Override
+        public Builder cullingLayer(@Nullable String cullingLayer) {
+            this.cullingLayer = cullingLayer;
             return this;
         }
 

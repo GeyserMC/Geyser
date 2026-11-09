@@ -58,6 +58,14 @@ public interface GeometryComponent {
     @Nullable String culling();
 
     /**
+     * Gets the culling layer, used by block culling rules with the {@code same_culling_layer} condition
+     *
+     * @return The culling layer.
+     * @since 2.12.1
+     */
+    @Nullable String cullingLayer();
+
+    /**
      * Creates a builder for GeometryComponent
      *
      * @return a builder for GeometryComponent.
@@ -75,6 +83,11 @@ public interface GeometryComponent {
          * @since 2.12.1
          */
         Builder culling(@Nullable String culling);
+
+        /**
+         * @since 2.12.1
+         */
+        Builder cullingLayer(@Nullable String cullingLayer);
 
         GeometryComponent build();
     }
