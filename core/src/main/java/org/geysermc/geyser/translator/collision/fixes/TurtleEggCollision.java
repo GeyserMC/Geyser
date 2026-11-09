@@ -26,6 +26,7 @@
 package org.geysermc.geyser.translator.collision.fixes;
 
 import lombok.EqualsAndHashCode;
+import org.geysermc.geyser.level.block.property.Properties;
 import org.geysermc.geyser.level.block.type.BlockState;
 import org.geysermc.geyser.level.physics.BoundingBox;
 import org.geysermc.geyser.level.physics.Direction;
@@ -34,18 +35,32 @@ import org.geysermc.geyser.translator.collision.BlockCollision;
 import org.geysermc.geyser.translator.collision.CollisionRemapper;
 
 @EqualsAndHashCode(callSuper = true)
-@CollisionRemapper(regex = "^turtle_egg$", passDefaultBoxes = true)
+@CollisionRemapper(regex = "^turtle_egg$", usesParams = true, passDefaultBoxes = true)
 public class TurtleEggCollision extends BlockCollision {
+    private final boolean multipleEggs;
+
     public TurtleEggCollision(BlockState state, BoundingBox[] boxes) {
         super(boxes);
+        this.multipleEggs = state.getValue(Properties.EGGS) > 1;
     }
 
     @Override
     protected void correctPosition(GeyserSession session, int x, int y, int z, BoundingBox blockCollision, BoundingBox playerCollision, double ulpX, double ulpZ) {
         // Bedrock's box is narrower than Java's with multiple eggs, so push the player out by the 0.1375 difference.
+        if (!this.multipleEggs) {
+            return;
+        }
+
         blockCollision.pushOutOfBoundingBox(playerCollision, Direction.NORTH, 0.1375 + ulpZ);
         blockCollision.pushOutOfBoundingBox(playerCollision, Direction.SOUTH, 0.1375 + ulpZ);
         blockCollision.pushOutOfBoundingBox(playerCollision, Direction.EAST, 0.1375 + ulpX);
         blockCollision.pushOutOfBoundingBox(playerCollision, Direction.WEST, 0.1375 + ulpX);
+    }
+
+    @Override
+    public double pushUpForTeleport() {
+        // Java's box is 0.4375 tall but Bedrock's is 0.45 regardless of egg count,
+        // so a player teleported onto the eggs would otherwise end up inside the block on Bedrock.
+        return 0.0125;
     }
 }
