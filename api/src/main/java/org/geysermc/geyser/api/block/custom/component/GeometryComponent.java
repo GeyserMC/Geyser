@@ -25,6 +25,7 @@
 
 package org.geysermc.geyser.api.block.custom.component;
 
+import org.checkerframework.common.returnsreceiver.qual.This;
 import org.geysermc.geyser.api.GeyserApi;
 import org.jspecify.annotations.Nullable;
 
@@ -34,18 +35,20 @@ import java.util.Map;
  * This class is used to store data for a geometry component.
  */
 public interface GeometryComponent {
-    
+
     /**
-     * Gets the identifier of the geometry
+     * Gets the identifier of the geometry.
      *
-     * @return The identifier of the geometry.
+     * @return the identifier of the geometry
+     * @since 2.2.0
      */
     String identifier();
 
     /**
-     * Gets the bone visibility of the geometry
+     * Gets the bone visibility of the geometry.
      *
-     * @return The bone visibility of the geometry.
+     * @return the bone visibility of the geometry
+     * @since 2.2.0
      */
     @Nullable Map<String, String> boneVisibility();
 
@@ -66,29 +69,70 @@ public interface GeometryComponent {
     @Nullable String cullingLayer();
 
     /**
-     * Creates a builder for GeometryComponent
+     * Creates a builder for GeometryComponent.
      *
-     * @return a builder for GeometryComponent.
+     * @return a builder for GeometryComponent
      */
     static GeometryComponent.Builder builder() {
         return GeyserApi.api().provider(GeometryComponent.Builder.class);
     }
 
+    /**
+     * A builder for GeometryComponent
+     *
+     * @since 2.2.0
+     */
     interface Builder {
+        /**
+         * Sets the identifier of the geometry.
+         * @see GeometryComponent#identifier()
+         *
+         * @param identifier the identifier of the geometry
+         * @return this builder
+         * @since 2.2.0
+         */
+        @This
         Builder identifier(String identifier);
 
+        /**
+         * Sets the bone visibility of the geometry.
+         * @see GeometryComponent#boneVisibility()
+         *
+         * @param boneVisibility the bone visibility of the geometry
+         * @return this builder
+         * @since 2.2.0
+         */
+        @This
         Builder boneVisibility(@Nullable Map<String, String> boneVisibility);
 
         /**
+         * Sets the identifier of the block culling rules, defined in a resource pack's {@code block_culling} folder.
+         * @see GeometryComponent#culling()
+         *
+         * @param culling the identifier of the block culling rules
+         * @return this builder
          * @since 2.12.2
          */
+        @This
         Builder culling(@Nullable String culling);
 
         /**
+         * Sets the culling layer, used by block culling rules with the {@code same_culling_layer} condition.
+         * @see GeometryComponent#cullingLayer()
+         *
+         * @param cullingLayer the culling layer
+         * @return this builder
          * @since 2.12.2
          */
+        @This
         Builder cullingLayer(@Nullable String cullingLayer);
 
+        /**
+         * Creates the GeometryComponent.
+         *
+         * @return the GeometryComponent
+         * @since 2.2.0
+         */
         GeometryComponent build();
     }
 }
