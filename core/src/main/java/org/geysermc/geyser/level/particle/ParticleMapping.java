@@ -38,6 +38,7 @@ import org.cloudburstmc.protocol.bedrock.packet.BedrockPacket;
 import org.cloudburstmc.protocol.bedrock.packet.LevelEventGenericPacket;
 import org.cloudburstmc.protocol.bedrock.packet.LevelEventPacket;
 import org.cloudburstmc.protocol.bedrock.packet.SpawnParticleEffectPacket;
+import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.item.ItemTranslator;
 import org.geysermc.geyser.util.DimensionUtils;
@@ -54,6 +55,7 @@ import org.geysermc.mcprotocollib.protocol.data.game.level.particle.SpellParticl
 import org.geysermc.mcprotocollib.protocol.data.game.level.particle.TrailParticleData;
 import org.geysermc.mcprotocollib.protocol.data.game.level.particle.VibrationParticleData;
 import org.geysermc.mcprotocollib.protocol.data.game.level.particle.positionsource.BlockPositionSource;
+import org.geysermc.mcprotocollib.protocol.data.game.level.particle.positionsource.EntityPositionSource;
 
 import java.util.List;
 import java.util.Locale;
@@ -202,20 +204,35 @@ public sealed interface ParticleMapping {
 
                 Vector3f target;
                 // As of Java 26.3, there are only 2 position sources: block and entity.
-                // Entity is not allowed, see https://mcsrc.dev/2/26.3/net/minecraft/core/particles/VibrationParticleOption#L14-15
                 if (data.getPositionSource() instanceof BlockPositionSource blockPositionSource) {
                     target = blockPositionSource.getPosition().toFloat().add(0.5f, 0.5f, 0.5f);
+                } else if (data.getPositionSource() instanceof EntityPositionSource entityPositionSource) {
+                    // As of Java 26.3, vanilla at least doesn't seem to allow entity sources, but we do them anyway, as they are allowed over network
+                    // See: https://mcsrc.dev/2/26.3/net/minecraft/core/particles/VibrationParticleOption#L14-15
+                    Entity entity = session.getEntityCache().getEntityByJavaId(entityPositionSource.getEntityId());
+                    if (entity != null) {
+                        target = entity.bedrockPosition().up(entityPositionSource.getYOffset());
+                    } else {
+                        target = null;
+                        session.getGeyser().getLogger().debug("Unable to find entity with Java Id: " + entityPositionSource.getEntityId() + " for vibration particle.");
+                    }
                 } else {
                     throw new IllegalStateException("Received invalid position source for VIBRATION particle: " + data.getPositionSource().getType());
                 }
 
                 return position -> {
+                    Vector3f finalTarget = target;
+                    if (finalTarget == null) {
+                        // Happens when position source was ENTITY and no entity was found
+                        finalTarget = position;
+                    }
+
                     LevelEventGenericPacket packet = new LevelEventGenericPacket();
                     packet.setType(LevelEvent.PARTICLE_VIBRATION_SIGNAL);
                     packet.setTag(
                         NbtMap.builder()
                             .putCompound("origin", buildVec3PositionTag(position))
-                            .putCompound("target", buildVec3PositionTag(target)) // There is a way to target an entity but that takes an attachPos instead of a y offset
+                            .putCompound("target", buildVec3PositionTag(finalTarget)) // There is a way to target an entity but that takes an attachPos instead of a y offset
                             .putFloat("speed", 20f)
                             .putFloat("timeToLive", data.getArrivalTicks() / 20f)
                             .build()
