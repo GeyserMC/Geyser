@@ -232,7 +232,7 @@ public class Item {
         if (loreComponents != null && tooltip.showInTooltip(DataComponentTypes.LORE)) {
             List<String> lore = builder.getOrCreateLore();
             for (Component loreComponent : loreComponents) {
-                lore.add(MessageTranslator.convertMessage(loreComponent, session.locale()));
+                lore.add(MessageTranslator.convertMessageRaw(loreComponent, session.locale()));
             }
         }
 
