@@ -51,8 +51,7 @@ public class BedrockNpcRequestTranslator extends PacketTranslator<NpcRequestPack
             npcDialoguePacket.setUniqueEntityId(session.getNpcId());
             session.sendUpstreamPacket(npcDialoguePacket);
 
-            session.getFormCache().handleResponse(packet); //TODO
-            //GeyserImpl.getInstance().getLogger().debug("Clicked on button " + packet.getActionType());
+            session.getFormCache().handleResponse(packet);
         } else if (packet.getRequestType() == NpcRequestType.EXECUTE_CLOSING_COMMANDS) {
             session.closeForm(); //so ClosedResultHandler runs
         }
