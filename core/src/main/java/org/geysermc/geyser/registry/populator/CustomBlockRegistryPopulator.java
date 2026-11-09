@@ -428,6 +428,9 @@ public class CustomBlockRegistryPopulator {
                 boneVisibility.forEach(boneVisibilityBuilder::putString);
                 geometryBuilder.putCompound("bone_visibility", boneVisibilityBuilder.build());
             }
+            if (geometryComponent.culling() != null) {
+                geometryBuilder.putString("culling", geometryComponent.culling());
+            }
             builder.putCompound("minecraft:geometry", geometryBuilder.build());
         }
 

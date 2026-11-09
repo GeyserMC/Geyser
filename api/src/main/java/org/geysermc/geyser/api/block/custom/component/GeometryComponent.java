@@ -50,6 +50,14 @@ public interface GeometryComponent {
     @Nullable Map<String, String> boneVisibility();
 
     /**
+     * Gets the identifier of the block culling rules, defined in a resource pack's {@code block_culling} folder
+     *
+     * @return The identifier of the block culling rules.
+     * @since 2.12.1
+     */
+    @Nullable String culling();
+
+    /**
      * Creates a builder for GeometryComponent
      *
      * @return a builder for GeometryComponent.
@@ -62,6 +70,11 @@ public interface GeometryComponent {
         Builder identifier(String identifier);
 
         Builder boneVisibility(@Nullable Map<String, String> boneVisibility);
+
+        /**
+         * @since 2.12.1
+         */
+        Builder culling(@Nullable String culling);
 
         GeometryComponent build();
     }

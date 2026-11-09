@@ -36,10 +36,12 @@ import java.util.Map;
 public class GeyserGeometryComponent implements GeometryComponent {
     private final String identifier;
     private final Map<String, String> boneVisibility;
+    private final String culling;
 
     GeyserGeometryComponent(Builder builder) {
         this.identifier = builder.identifier;
         this.boneVisibility = builder.boneVisibility;
+        this.culling = builder.culling;
     }
 
     @Override
@@ -52,9 +54,15 @@ public class GeyserGeometryComponent implements GeometryComponent {
         return boneVisibility;
     }
 
+    @Override
+    public @Nullable String culling() {
+        return culling;
+    }
+
     public static class Builder implements GeometryComponent.Builder {
         private String identifier;
         private Map<String, String> boneVisibility;
+        private String culling;
 
         @Override
         public Builder identifier(@NonNull String identifier) {
@@ -65,6 +73,12 @@ public class GeyserGeometryComponent implements GeometryComponent {
         @Override
         public Builder boneVisibility(@Nullable Map<String, String> boneVisibility) {
             this.boneVisibility = boneVisibility;
+            return this;
+        }
+
+        @Override
+        public Builder culling(@Nullable String culling) {
+            this.culling = culling;
             return this;
         }
 
