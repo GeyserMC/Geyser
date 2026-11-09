@@ -25,13 +25,23 @@
 
 package org.geysermc.geyser.platform.mod.world;
 
+import com.mojang.serialization.DynamicOps;
+import io.netty.buffer.Unpooled;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import net.minecraft.SharedConstants;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.RegistryAccess;
+import net.minecraft.core.RegistrySynchronization;
 import net.minecraft.core.component.DataComponents;
+import net.minecraft.nbt.NbtOps;
+import net.minecraft.nbt.Tag;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.protocol.configuration.ClientboundRegistryDataPacket;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerChunkCache;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.server.packs.repository.KnownPack;
 import net.minecraft.world.item.ItemStackTemplate;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
@@ -47,9 +57,12 @@ import org.geysermc.geyser.network.bedrock.GameProtocol;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.GameMode;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 public class GeyserModWorldManager extends GeyserWorldManager {
 
@@ -128,6 +141,28 @@ public class GeyserModWorldManager extends GeyserWorldManager {
                 apply.accept(toApply);
             }
         });
+    }
+
+    @Override
+    protected Iterable<org.geysermc.mcprotocollib.protocol.packet.configuration.clientbound.ClientboundRegistryDataPacket> encodeRegistryEntries() {
+        RegistryAccess registries = server.registries().compositeAccess();
+        DynamicOps<Tag> ops = registries.createSerializationContext(NbtOps.INSTANCE);
+        Set<KnownPack> knownPacks = server
+            .getResourceManager()
+            .listPacks()
+            .flatMap(packResources -> packResources.location().knownPackInfo().stream())
+            .filter(KnownPack::isVanilla) // Geyser only has vanilla data
+            .collect(Collectors.toUnmodifiableSet());
+
+        List<org.geysermc.mcprotocollib.protocol.packet.configuration.clientbound.ClientboundRegistryDataPacket> registryDataPackets = new ObjectArrayList<>();
+        FriendlyByteBuf buf = new FriendlyByteBuf(Unpooled.buffer());
+
+        RegistrySynchronization.packRegistries(ops, registries, knownPacks, (registry, entries) -> {
+            ClientboundRegistryDataPacket.STREAM_CODEC.encode(buf, new ClientboundRegistryDataPacket(registry, entries));
+            registryDataPackets.add(new org.geysermc.mcprotocollib.protocol.packet.configuration.clientbound.ClientboundRegistryDataPacket(buf));
+        });
+
+        return registryDataPackets;
     }
 
     private static Optional<String> extractPotteryPattern(ItemStackTemplate template) {
