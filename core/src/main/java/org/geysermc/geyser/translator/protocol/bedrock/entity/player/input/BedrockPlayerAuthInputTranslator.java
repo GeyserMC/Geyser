@@ -257,7 +257,9 @@ public final class BedrockPlayerAuthInputTranslator extends PacketTranslator<Pla
             return;
         }
 
-        boolean inClientPredictedVehicle = session.isInClientPredictedVehicle();
+        // java backend doesn't allow pos updates unless it's the root vehicle (don't emit other vehicle pos updates),
+        // just see ClientVehicle#shouldSimulateMovement for a better idea on why this logic is here
+        boolean inClientPredictedVehicle = session.isInClientPredictedVehicle() && vehicle.getVehicle() == null;
         if (vehicle instanceof ClientVehicle) {
             // Classic input mode for boat vehicle send PADDLE_LEFT/RIGHT instead of motion values.
             boolean isMobileAndClassicMovement = packet.getInputMode() == InputMode.TOUCH && packet.getInputInteractionModel() == InputInteractionModel.CLASSIC;
@@ -352,7 +354,7 @@ public final class BedrockPlayerAuthInputTranslator extends PacketTranslator<Pla
             vehicle.setPosition(vehiclePosition);
             ServerboundMoveVehiclePacket moveVehiclePacket = new ServerboundMoveVehiclePacket(
                 vehiclePosition.toDouble(),
-                vehicle instanceof BoatEntity ? vehicleRotation.getY() - 90 : vehicleRotation.getY(), vehiclePosition.getX(),
+                vehicle instanceof BoatEntity ? vehicleRotation.getY() - 90 : vehicleRotation.getY(), vehicleRotation.getX(),
                 vehicle.isOnGround()
             );
             session.sendDownstreamGamePacket(moveVehiclePacket);

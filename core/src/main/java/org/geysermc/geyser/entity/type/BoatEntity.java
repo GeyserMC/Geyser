@@ -237,7 +237,7 @@ public class BoatEntity extends Entity implements Tickable, Leashable, ClientVeh
     }
 
     @Override
-    public boolean shouldSimulateMovement() {
+    public boolean canSimulateMovement() {
         return !session.isInClientPredictedVehicle() && !passengers.isEmpty() && this.session.getPlayerEntity() == passengers.getFirst();
     }
 
