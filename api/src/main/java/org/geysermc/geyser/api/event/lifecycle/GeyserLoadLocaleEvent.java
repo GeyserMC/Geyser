@@ -31,15 +31,24 @@ import java.util.Map;
 
 /**
  * Called when a locale is loaded in Geyser, translations with
- * parameters follow java's parameter system. This event can be
- * used to register translations which can be used by extensions
- * for logging or to include translations from datapacks, plugins
+ * parameters follow Java's parameter system. This event can be
+ * used to register custom translations, which can be used by extensions
+ * for logging or localisation purposes, or to include translations from datapacks, plugins
  * or mods.
  *
  * @since 2.13.0
  */
 public interface GeyserLoadLocaleEvent extends Event {
     /**
+     * Returns the locale this event loads, formatted as {@code language_region}, all lowercase. For example:
+     *
+     * <ul>
+     *  <li>{@code en_gb} for British English.</li>
+     *  <li>{@code en_us} for American English.</li>
+     * </ul>
+     *
+     * <p>Geyser will only ever load locales Java Edition supports.</p>
+     *
      * @return the locale this event loads
      * @since 2.13.0
      */

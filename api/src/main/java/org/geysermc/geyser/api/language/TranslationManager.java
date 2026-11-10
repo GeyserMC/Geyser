@@ -34,7 +34,7 @@ package org.geysermc.geyser.api.language;
 public interface TranslationManager {
     /**
      * Gets the translation string associated with the key from the locale specified
-     * using the parameters specified
+     * using the parameters specified.
      *
      * @param locale the locale to use
      * @param key the key of the translation
@@ -48,7 +48,7 @@ public interface TranslationManager {
 
     /**
      * Gets the translation string associated with the key from the locale specified
-     * using the parameters specified
+     * using the parameters specified.
      *
      * @param locale the locale to use
      * @param key the key of the translation
