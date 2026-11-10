@@ -27,12 +27,18 @@ package org.geysermc.geyser.api.language;
 
 import org.jspecify.annotations.NonNull;
 
+/**
+ * This interfaces allows you to access the java locale translations,
+ * this includes translations added by extensions
+ * @since 2.13.0
+ */
 public interface TranslationManager {
     /**
      * Get's the translation string associated with the key from the locale specified
      * @param locale the locale to use
      * @param key the key of the translation
      * @return the translated message, or the key if there is none
+     * @since 2.13.0
      */
     @NonNull
     default String translationString(@NonNull String locale, @NonNull String key) {
@@ -45,6 +51,7 @@ public interface TranslationManager {
      * @param key the key of the translation
      * @param defaultValue the fallback value for this translation
      * @return the translated message, or the key if there is none
+     * @since 2.13.0
      */
     @NonNull
     String translationStringOrDefault(@NonNull String locale, @NonNull String key, @NonNull String defaultValue);
@@ -56,6 +63,7 @@ public interface TranslationManager {
      * @param key the key of the translation
      * @param parameters the parameters of the translation
      * @return the translated message, or the key if there is none
+     * @since 2.13.0
      */
     @NonNull
     default String translationString(@NonNull String locale, @NonNull String key, @NonNull String... parameters) {
@@ -70,6 +78,7 @@ public interface TranslationManager {
      * @param defaultValue the fallback value for this translation
      * @param parameters the parameters of the translation
      * @return the translated message, or the key if there is none
+     * @since 2.13.0
      */
     @NonNull
     String translationStringOrDefault(@NonNull String locale, @NonNull String key, @NonNull String defaultValue, @NonNull String... parameters);

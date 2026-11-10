@@ -30,12 +30,14 @@ import org.geysermc.event.Event;
 import java.util.Map;
 
 /**
- *
+ * Called when a locale is loaded in Geyser
+ * @since 2.13.0
  */
 public interface GeyserLoadLocaleEvent extends Event {
     /**
      * The locale being loaded
      * @return the locale being loaded
+     * @since 2.13.0
      */
     String locale();
 
@@ -43,24 +45,28 @@ public interface GeyserLoadLocaleEvent extends Event {
      * Registers a single translation into this locale
      * @param key the translation key
      * @param value the translated value
+     * @since 2.13.0
      */
     void registerTranslation(String key, String value);
 
     /**
      * Registers multiple translations into this locale
      * @param translations a map of translation keys and translated values
+     * @since 2.13.0
      */
     void registerTranslations(Map<String, String> translations);
 
     /**
      * Unregisters a translation from this locale
      * @param key the translation key
+     * @since 2.13.0
      */
     void unregisterTranslation(String key);
 
     /**
      * Gets all translations currently in this locale
      * @return a read-only view of translations in this locale
+     * @since 2.13.0
      */
     Map<String, String> getTranslations();
 }
