@@ -152,14 +152,19 @@ public interface GeyserApi extends GeyserApiBase {
     CommandSource consoleCommandSource();
 
     /**
-     * Gets the default locale used within Geyser
+     * Gets the default locale used within Geyser.
+     * 
      * @return the default locale
+     * @since 2.13.0
      */
     String defaultLocale();
 
     /**
-     * Gets the translation manager used by Geyser
-     * @return the translation manager
+     * Gets the translation manager used by Geyser.
+     * 
+     * @see TranslationManager
+     * @return Geyser's translation manager
+     * @since 2.13.0
      */
     TranslationManager translationManager();
 

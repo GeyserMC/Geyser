@@ -79,21 +79,25 @@ public interface CommandSource {
     }
 
     /**
-     * Translates the given message using the key and source's locale then sends the message
-     * using the provided parameters
+     * Translates the given translation key using the source's locale and the provided parameters,
+     * then sends the message.
+     * 
      * @param key the translation key
-     * @param parameters the parameters for the translation
+     * @param parameters the translation parameters, can be empty
+     * @since 2.13.0
      */
     default void sendTranslatedMessage(String key, String... parameters) {
         sendMessage(GeyserApi.api().translationManager().translationString(locale(), key, parameters));
     }
 
     /**
-     * Translates the given message using the key and source's locale then sends the message
-     * using the provided parameters
+     * Translates the given translation key using the source's locale and the provided parameters,
+     * then sends the message.
+     * 
      * @param key the translation key
-     * @param defaultValue the fallback value if the translation does not exist
-     * @param parameters the parameters for the translation
+     * @param defaultValue the value to fallback to if there is no translation for this key
+     * @param parameters the translation parameters, can be empty
+     * @since 2.13.0
      */
     default void sendTranslatedOrDefaultMessage(String key, String defaultValue, String... parameters) {
         sendMessage(GeyserApi.api().translationManager().translationStringOrDefault(locale(), key, defaultValue, parameters));

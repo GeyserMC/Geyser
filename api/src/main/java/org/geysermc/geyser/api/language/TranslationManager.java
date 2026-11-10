@@ -28,8 +28,9 @@ package org.geysermc.geyser.api.language;
 import org.jspecify.annotations.NonNull;
 
 /**
- * This interfaces allows you to access the java locale translations,
- * this includes translations added by extensions
+ * Geyser's translation manager allows access to Java's locale translations,
+ * combined with translations added by extensions or by the user.
+ * 
  * @since 2.13.0
  */
 public interface TranslationManager {
@@ -57,29 +58,29 @@ public interface TranslationManager {
     String translationStringOrDefault(@NonNull String locale, @NonNull String key, @NonNull String defaultValue);
 
     /**
-     * Get's the translation string associated with the key from the locale specified
-     * using the parameters specified
+     * Returns the translation string associated with the key,
+     * translated using the specified locale and parameters.
+     * 
      * @param locale the locale to use
-     * @param key the key of the translation
-     * @param parameters the parameters of the translation
-     * @return the translated message, or the key if there is none
+     * @param key the translation key
+     * @param parameters the translation parameters, can be empty
+     * @return the translated message, or the raw key if there is none
      * @since 2.13.0
      */
-    @NonNull
-    default String translationString(@NonNull String locale, @NonNull String key, @NonNull String... parameters) {
+    default String translationString(String locale, String key, String... parameters) {
         return translationStringOrDefault(locale, key, key, parameters);
     }
 
     /**
-     * Get's the translation string associated with the key from the locale specified
-     * using the parameters specified
+     * Returns the translation string associated with the key,
+     * translated using the specified locale and parameters.
+     * 
      * @param locale the locale to use
-     * @param key the key of the translation
-     * @param defaultValue the fallback value for this translation
-     * @param parameters the parameters of the translation
-     * @return the translated message, or the key if there is none
+     * @param key the translation key
+     * @param defaultValue the value to fallback to if there is no translation for this key
+     * @param parameters the translation parameters, can be empty
+     * @return the translated message, or the given fallback if there is none
      * @since 2.13.0
      */
-    @NonNull
-    String translationStringOrDefault(@NonNull String locale, @NonNull String key, @NonNull String defaultValue, @NonNull String... parameters);
+    String translationStringOrDefault(String locale, String key, String defaultValue, String... parameters);
 }
