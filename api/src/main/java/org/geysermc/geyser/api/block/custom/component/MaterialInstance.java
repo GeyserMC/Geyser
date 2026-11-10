@@ -199,8 +199,8 @@ public interface MaterialInstance {
 
         /**
          * Sets if the block is isotropic, meaning the UVs of its faces are randomly rotated based on the block's position.
-         * @see MaterialInstance#isotropic()
          *
+         * @see MaterialInstance#isotropic()
          * @param isotropic if the block is isotropic
          * @return this builder
          * @since 2.9.1
@@ -210,8 +210,8 @@ public interface MaterialInstance {
 
         /**
          * Sets if the block's texture can use texture variations.
-         * @see MaterialInstance#textureVariation()
          *
+         * @see MaterialInstance#textureVariation()         *
          * @param textureVariation if the block's texture can use texture variations
          * @return this builder
          * @since 2.12.2
@@ -221,8 +221,8 @@ public interface MaterialInstance {
 
         /**
          * Sets if the block's tint is masked by its texture's alpha.
-         * @see MaterialInstance#alphaMaskedTint()
          *
+         * @see MaterialInstance#alphaMaskedTint()
          * @param alphaMaskedTint if the block's tint is masked by its texture's alpha
          * @return this builder
          * @since 2.12.2
