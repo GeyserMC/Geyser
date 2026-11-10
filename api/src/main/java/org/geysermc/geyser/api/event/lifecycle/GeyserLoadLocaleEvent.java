@@ -29,14 +29,38 @@ import org.geysermc.event.Event;
 
 import java.util.Map;
 
+/**
+ *
+ */
 public interface GeyserLoadLocaleEvent extends Event {
+    /**
+     * The locale being loaded
+     * @return the locale being loaded
+     */
     String locale();
 
+    /**
+     * Registers a single translation into this locale
+     * @param key the translation key
+     * @param value the translated value
+     */
     void registerTranslation(String key, String value);
 
-    default void registerTranslations(Map<String, String> translations) {
-        translations.forEach(this::registerTranslation);
-    }
+    /**
+     * Registers multiple translations into this locale
+     * @param translations a map of translation keys and translated values
+     */
+    void registerTranslations(Map<String, String> translations);
 
+    /**
+     * Unregisters a translation from this locale
+     * @param key the translation key
+     */
+    void unregisterTranslation(String key);
+
+    /**
+     * Gets all translations currently in this locale
+     * @return a read-only view of translations in this locale
+     */
     Map<String, String> getTranslations();
 }

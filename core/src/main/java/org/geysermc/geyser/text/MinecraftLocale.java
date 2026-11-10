@@ -43,6 +43,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -211,8 +212,13 @@ public class MinecraftLocale {
             }
 
             @Override
+            public void unregisterTranslation(@NonNull String key) {
+                langMap.remove(key);
+            }
+
+            @Override
             public @NonNull Map<String, String> getTranslations() {
-                return langMap;
+                return Collections.unmodifiableMap(langMap);
             }
         });
 

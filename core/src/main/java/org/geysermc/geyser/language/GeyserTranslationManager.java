@@ -43,7 +43,7 @@ public final class GeyserTranslationManager implements TranslationManager {
         String translation = translationStringOrDefault(locale, key, defaultValue);
         int order = 0;
         for (String parameter : parameters) {
-            translation = translation.replaceFirst("%s", parameter).replace("%" + order + "$s", parameter);
+            translation = translation.replaceFirst("%s", parameter).replace("%" + order++ + "$s", parameter);
         }
 
         return translation;
