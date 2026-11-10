@@ -30,11 +30,13 @@ import com.google.gson.JsonObject;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import org.cloudburstmc.protocol.bedrock.data.LevelEvent;
 import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.level.particle.ParticleColor;
 import org.geysermc.geyser.level.particle.ParticleMapping;
 import org.geysermc.geyser.util.MinecraftKey;
 import org.geysermc.mcprotocollib.protocol.data.game.level.particle.ParticleType;
 
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * Loads particle types from the given resource path.
@@ -54,7 +56,7 @@ public class ParticleTypesRegistryLoader extends EffectRegistryLoader<Map<Partic
 
                 particles.put(javaType, parseParticleMapping(javaType, entry.getValue().getAsJsonObject()));
             }
-        } catch (RuntimeException exception) {
+        } catch (AssertionError | RuntimeException exception) {
             GeyserImpl.getInstance().getLogger().error("Failed to load particle mappings!", exception);
             throw exception;
         }
@@ -64,7 +66,9 @@ public class ParticleTypesRegistryLoader extends EffectRegistryLoader<Map<Partic
     private static ParticleMapping parseParticleMapping(ParticleType type, JsonObject mapping) {
         JsonElement bedrockId = mapping.get("bedrock_id");
         if (bedrockId != null) {
-            return ParticleMapping.ofIdentifier(bedrockId.getAsString());
+            Optional<ParticleColor> color = Optional.ofNullable(mapping.get("color"))
+                .map(ParticleColor::parseColorFromMappings);
+            return ParticleMapping.ofIdentifier(bedrockId.getAsString(), color);
         }
         JsonElement particleType = mapping.get("particle_type");
         if (particleType != null) {
