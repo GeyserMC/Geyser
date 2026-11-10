@@ -66,7 +66,7 @@ public interface CommandSource {
      * @param key the translation key
      */
     default void sendTranslatedMessage(String key) {
-        sendMessage(GeyserApi.api().getTranslationString(locale(), key));
+        sendMessage(GeyserApi.api().translationManager().translationString(locale(), key));
     }
 
     /**
@@ -75,7 +75,7 @@ public interface CommandSource {
      * @param defaultValue the fallback value if the translation does not exist
      */
     default void sendTranslatedOrDefaultMessage(String key, String defaultValue) {
-        sendMessage(GeyserApi.api().getTranslationStringOrDefault(locale(), key, defaultValue));
+        sendMessage(GeyserApi.api().translationManager().translationStringOrDefault(locale(), key, defaultValue));
     }
 
     /**
@@ -85,7 +85,7 @@ public interface CommandSource {
      * @param parameters the parameters for the translation
      */
     default void sendTranslatedMessage(String key, String... parameters) {
-        sendMessage(GeyserApi.api().getTranslationString(locale(), key, parameters));
+        sendMessage(GeyserApi.api().translationManager().translationString(locale(), key, parameters));
     }
 
     /**
@@ -96,7 +96,7 @@ public interface CommandSource {
      * @param parameters the parameters for the translation
      */
     default void sendTranslatedOrDefaultMessage(String key, String defaultValue, String... parameters) {
-        sendMessage(GeyserApi.api().getTranslationStringOrDefault(locale(), key, defaultValue, parameters));
+        sendMessage(GeyserApi.api().translationManager().translationStringOrDefault(locale(), key, defaultValue, parameters));
     }
 
     /**

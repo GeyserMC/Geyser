@@ -27,9 +27,10 @@ package org.geysermc.geyser.text;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.api.language.LocaleManager;
+import org.geysermc.geyser.api.event.lifecycle.GeyserLoadLocaleEvent;
 import org.geysermc.geyser.util.AssetUtils;
 import org.geysermc.geyser.util.FileUtils;
 import org.geysermc.geyser.util.JsonUtils;
@@ -41,7 +42,6 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
-import java.util.Collections;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -194,26 +194,25 @@ public class MinecraftLocale {
             langMap.putAll(parseLangFile(localeOverride, lowercaseLocale));
         }
 
-        // Load locales from extensions (the ultimate override)
-        GeyserImpl.getInstance().getLanguageManager().registerTranslationStrings(new LocaleManager() {
+        GeyserImpl.getInstance().eventBus().fire(new GeyserLoadLocaleEvent() {
             @Override
-            public String localeCode() {
+            public @NonNull String locale() {
                 return locale;
             }
 
             @Override
-            public void registerTranslationString(String key, String value) {
+            public void registerTranslation(@NonNull String key, @NonNull String value) {
                 langMap.put(key, value);
             }
 
             @Override
-            public boolean hasTranslationString(String key) {
-                return langMap.containsKey(key);
+            public void registerTranslations(@NonNull Map<String, String> translations) {
+                langMap.putAll(translations);
             }
 
             @Override
-            public Map<String, String> translationStrings() {
-                return Collections.unmodifiableMap(langMap);
+            public @NonNull Map<String, String> getTranslations() {
+                return langMap;
             }
         });
 

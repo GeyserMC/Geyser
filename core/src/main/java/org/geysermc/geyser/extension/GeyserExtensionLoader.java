@@ -34,6 +34,7 @@ import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.GeyserLogger;
 import org.geysermc.geyser.api.GeyserApi;
 import org.geysermc.geyser.api.event.ExtensionEventBus;
+import org.geysermc.geyser.api.event.lifecycle.GeyserLoadLocaleEvent;
 import org.geysermc.geyser.api.extension.Extension;
 import org.geysermc.geyser.api.extension.ExtensionDescription;
 import org.geysermc.geyser.api.extension.ExtensionLoader;
@@ -41,8 +42,6 @@ import org.geysermc.geyser.api.extension.ExtensionLogger;
 import org.geysermc.geyser.api.extension.ExtensionManager;
 import org.geysermc.geyser.api.extension.exception.InvalidDescriptionException;
 import org.geysermc.geyser.api.extension.exception.InvalidExtensionException;
-import org.geysermc.geyser.api.language.LanguageProvider;
-import org.geysermc.geyser.api.language.LocaleManager;
 import org.geysermc.geyser.extension.event.GeyserExtensionEventBus;
 import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.util.ThrowingBiConsumer;
@@ -142,8 +141,6 @@ public class GeyserExtensionLoader extends ExtensionLoader {
                 JarEntry languagesEntry = jarFile.getJarEntry("languages/");
 
                 if (languagesEntry != null && languagesEntry.isDirectory()) {
-                    Map<String, Map<Object, Object>> translationStrings = new HashMap<>();
-
                     for (JarEntry entry : jarFile.stream().toList()) {
                         if (entry.getName().startsWith("languages/") && entry.getName().endsWith(".properties")) {
                             String localeCode = entry.getName().substring(entry.getName().indexOf('/') + 1, entry.getName().length() - 11).toLowerCase(Locale.ROOT);
@@ -151,25 +148,18 @@ public class GeyserExtensionLoader extends ExtensionLoader {
                             Properties properties = new Properties();
                             properties.load(jarFile.getInputStream(entry));
 
-                            if (!properties.isEmpty())
-                                translationStrings.put(localeCode, new HashMap<>(properties));
+                            Map<String, String> translations = new HashMap<>();
+                            properties.forEach((k, v) -> translations.put(k.toString(), v.toString()));
+
+                            if (!properties.isEmpty()) {
+                                eventBus.subscribe(GeyserLoadLocaleEvent.class, event -> {
+                                    if (!event.locale().equals(localeCode.toLowerCase(Locale.ROOT))) return;
+
+                                    event.registerTranslations(translations);
+                                });
+                            }
                         }
                     }
-
-                    eventBus.subscribe(GeyserDefineCustomTranslationsEvent.class, event -> {
-                        event.register(localeManager -> {
-                            String localeCode = localeManager.getLocaleCode().toLowerCase(Locale.ROOT);
-                            if (translationStrings.containsKey(localeCode)) {
-                                translationStrings.get(localeCode).forEach(
-                                    (key, value) ->
-                                        localeManager.registerTranslationString(
-                                            key.toString(),
-                                            value.toString()
-                                        )
-                                );
-                            }
-                        });
-                    });
                 }
 
                 jarFile.close();

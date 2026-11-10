@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 GeyserMC. http://geysermc.org
+ * Copyright (c) 2026 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,22 +23,29 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.api.event.lifecycle;
+package org.geysermc.geyser.language;
 
-import org.geysermc.event.Event;
-import org.geysermc.geyser.api.language.LanguageProvider;
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.geysermc.geyser.api.language.TranslationManager;
+import org.geysermc.geyser.text.MinecraftLocale;
 
-/**
- * Called when {@link LanguageProvider}s are to be registered within Geyser
- * <p>
- * This event allows you to register a {@link LanguageProvider} to Geyser in
- * order to provide Geyser with translation strings.
- */
-public interface GeyserDefineCustomTranslationsEvent extends Event {
+public final class GeyserTranslationManager implements TranslationManager {
+    @Override
+    public @NonNull String translationStringOrDefault(@NonNull String locale, @NonNull String key, @NonNull String defaultValue) {
+        String translation = MinecraftLocale.getLocaleStringIfPresent(key, locale);
+        if (translation == null) translation = defaultValue;
 
-    /**
-     * Registers the given {@link LanguageProvider} to Geyser.
-     * @param languageProvider the language provider to register
-     */
-    void register(LanguageProvider languageProvider);
+        return translation;
+    }
+
+    @Override
+    public @NonNull String translationStringOrDefault(@NonNull String locale, @NonNull String key, @NonNull String defaultValue, @NonNull String... parameters) {
+        String translation = translationStringOrDefault(locale, key, defaultValue);
+        int order = 0;
+        for (String parameter : parameters) {
+            translation = translation.replaceFirst("%s", parameter).replace("%" + order + "$s", parameter);
+        }
+
+        return translation;
+    }
 }
