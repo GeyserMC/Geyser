@@ -31,16 +31,14 @@ import org.geysermc.geyser.text.MinecraftLocale;
 
 public final class GeyserTranslationManager implements TranslationManager {
     @Override
-    public @NonNull String translationStringOrDefault(@NonNull String locale, @NonNull String key, @NonNull String defaultValue) {
+    public @NonNull String translationStringOrDefault(@NonNull String locale, @NonNull String key, @NonNull String defaultValue, @NonNull String @org.jspecify.annotations.NonNull ... parameters) {
         String translation = MinecraftLocale.getLocaleStringIfPresent(key, locale);
         if (translation == null) translation = defaultValue;
 
-        return translation;
-    }
+        if (parameters.length == 0) {
+            return translation;
+        }
 
-    @Override
-    public @NonNull String translationStringOrDefault(@NonNull String locale, @NonNull String key, @NonNull String defaultValue, @NonNull String... parameters) {
-        String translation = translationStringOrDefault(locale, key, defaultValue);
         int order = 0;
         for (String parameter : parameters) {
             translation = translation.replaceFirst("%s", parameter).replace("%" + order++ + "$s", parameter);

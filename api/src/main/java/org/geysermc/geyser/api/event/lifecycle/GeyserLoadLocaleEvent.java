@@ -30,7 +30,12 @@ import org.geysermc.event.Event;
 import java.util.Map;
 
 /**
- * Called when a locale is loaded in Geyser
+ * Called when a locale is loaded in Geyser, translations with
+ * parameters follow java's parameter system. This event can be
+ * used to register translations which can be used by extensions
+ * for logging or to include translations from datapacks, plugins
+ * or mods.
+ *
  * @since 2.13.0
  */
 public interface GeyserLoadLocaleEvent extends Event {

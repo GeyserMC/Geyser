@@ -25,46 +25,21 @@
 
 package org.geysermc.geyser.api.language;
 
-import org.jspecify.annotations.NonNull;
-
 /**
  * Geyser's translation manager allows access to Java's locale translations,
  * combined with translations added by extensions or by the user.
- * 
+ *
  * @since 2.13.0
  */
 public interface TranslationManager {
     /**
-     * Get's the translation string associated with the key from the locale specified
+     * Gets the translation string associated with the key from the locale specified
+     * using the parameters specified
+     *
      * @param locale the locale to use
      * @param key the key of the translation
-     * @return the translated message, or the key if there is none
-     * @since 2.13.0
-     */
-    @NonNull
-    default String translationString(@NonNull String locale, @NonNull String key) {
-        return translationStringOrDefault(locale, key, key);
-    }
-
-    /**
-     * Get's the translation string associated with the key from the locale specified
-     * @param locale the locale to use
-     * @param key the key of the translation
-     * @param defaultValue the fallback value for this translation
-     * @return the translated message, or the key if there is none
-     * @since 2.13.0
-     */
-    @NonNull
-    String translationStringOrDefault(@NonNull String locale, @NonNull String key, @NonNull String defaultValue);
-
-    /**
-     * Returns the translation string associated with the key,
-     * translated using the specified locale and parameters.
-     * 
-     * @param locale the locale to use
-     * @param key the translation key
      * @param parameters the translation parameters, can be empty
-     * @return the translated message, or the raw key if there is none
+     * @return the translated message, or the key if there is none
      * @since 2.13.0
      */
     default String translationString(String locale, String key, String... parameters) {
@@ -72,14 +47,14 @@ public interface TranslationManager {
     }
 
     /**
-     * Returns the translation string associated with the key,
-     * translated using the specified locale and parameters.
-     * 
+     * Gets the translation string associated with the key from the locale specified
+     * using the parameters specified
+     *
      * @param locale the locale to use
-     * @param key the translation key
-     * @param defaultValue the value to fallback to if there is no translation for this key
+     * @param key the key of the translation
+     * @param defaultValue the fallback value for this translation, parameters are applied to this value
      * @param parameters the translation parameters, can be empty
-     * @return the translated message, or the given fallback if there is none
+     * @return the translated message, or the key if there is none
      * @since 2.13.0
      */
     String translationStringOrDefault(String locale, String key, String defaultValue, String... parameters);
