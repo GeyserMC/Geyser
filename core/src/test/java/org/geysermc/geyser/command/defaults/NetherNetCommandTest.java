@@ -76,7 +76,7 @@ class NetherNetCommandTest {
             1_000_000, 2_000, 10, 30_000, 100_000, 1_000, 0, 0,
             14.6, 0.25);
         assertEquals("Steve: rtt 132 ms (rto 410 ms) | out 25.0 KiB/s, 41 msg/s, 600 pkt/s | in 3.0 KiB/s"
-                + " | cwnd 4.3 KiB, peer rwnd 1.00 MiB | queued 80.0 KiB, unacked 3 chunks | receive queue 87 chunks | timeouts 2"
+                + " | cwnd 4.3 KiB, peer rwnd 1.00 MiB | queued 80.0 KiB, unacked 3 chunks | receive queue 87 chunks | timeouts 2 (2.0/min)"
                 + " | UNWRITABLE for 1500 ms (4x) | 14.6 pkt/msg, 25% compressed size | host -> srflx",
             NetherNetCommand.summary("Steve", snapshot));
     }

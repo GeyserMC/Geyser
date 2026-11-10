@@ -92,7 +92,10 @@ public class NetherNetChannelInitialiser extends GeyserServerInitializer {
             NetherNetStats stats = new NetherNetStats();
             config.setMetrics(stats);
             channel.attr(NetherNetStats.ATTRIBUTE).set(stats);
-            channel.pipeline().addAfter(NetherNetFrameCodec.NAME, NetherNetStatsHandler.NAME, new NetherNetStatsHandler(geyser, stats));
+            channel.pipeline()
+                    .addAfter(NetherNetFrameCodec.NAME, NetherNetStatsHandler.NAME, new NetherNetStatsHandler(geyser, stats))
+                    // Compression is swapped in place later, so this stays ahead of it for outbound batches
+                    .addAfter(CompressionCodec.NAME, NetherNetStatsHandler.BatchCounter.NAME, new NetherNetStatsHandler.BatchCounter(stats));
         }
     }
 

@@ -151,8 +151,6 @@ public final class NetherNetStats implements NetherChannelMetrics {
         NetherNetChannel.@Nullable Path path = channel.isOpen() ? channel.selectedPath() : null;
 
         long batches = batchesOut.sum();
-        long uncompressed = uncompressedOut.sum();
-        long compressed = compressedOut.sum();
         long unwritableSince = unwritableSinceNanos;
 
         String pathDescription = null;
@@ -186,8 +184,16 @@ public final class NetherNetStats implements NetherChannelMetrics {
             bytesOut.total(), messagesOut.total(), fragmentsOut.sum(), packetsOut.total(),
             bytesIn.total(), messagesIn.total(), fragmentsIn.sum(), decodeFailures.sum(),
             batches == 0 ? 0 : (double) packetsOut.total() / batches,
-            uncompressed == 0 ? 0 : (double) compressed / uncompressed
+            compressionRatio()
         );
+    }
+
+    /**
+     * @return compressed size over uncompressed size of the batches Geyser compressed itself, 0 before the first
+     */
+    double compressionRatio() {
+        long uncompressed = uncompressedOut.sum();
+        return uncompressed == 0 ? 0 : (double) compressedOut.sum() / uncompressed;
     }
 
     /**
@@ -202,7 +208,7 @@ public final class NetherNetStats implements NetherChannelMetrics {
      *                           (usrsctp's sstat_penddata). Not the send backlog
      * @param unwritableMillis how long the channel has been over its write buffer high watermark, 0 if it is not
      * @param averageBatchSize Bedrock packets per NetherNet message
-     * @param compressionRatio compressed size over uncompressed size of what was sent
+     * @param compressionRatio compressed size over uncompressed size of the batches Geyser compressed itself
      */
     public record Snapshot(
         long ageSeconds,

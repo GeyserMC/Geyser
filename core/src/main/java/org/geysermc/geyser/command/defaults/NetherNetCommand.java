@@ -36,6 +36,7 @@ import org.geysermc.geyser.command.GeyserCommand;
 import org.geysermc.geyser.command.GeyserCommandSource;
 import org.geysermc.geyser.configuration.GeyserConfig;
 import org.cloudburstmc.netty.channel.nethernet.NetherNetChannel;
+import org.geysermc.geyser.network.bedrock.nethernet.NetherNetRecorder;
 import org.geysermc.geyser.network.bedrock.nethernet.NetherNetServer;
 import org.geysermc.geyser.network.bedrock.nethernet.NetherNetStats;
 import org.geysermc.geyser.session.GeyserSession;
@@ -45,6 +46,9 @@ import org.incendo.cloud.context.CommandContext;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Path;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Base64;
 import java.util.List;
 import java.util.Locale;
@@ -55,6 +59,8 @@ import static org.incendo.cloud.parser.standard.StringParser.greedyStringParser;
 
 public class NetherNetCommand extends GeyserCommand {
     private static final String ARGUMENTS = "arguments";
+
+    private static final int MAX_RECORD_SECONDS = 600;
 
     private final GeyserImpl geyser;
 
@@ -77,11 +83,15 @@ public class NetherNetCommand extends GeyserCommand {
             .literal("stats")
             .optional(ARGUMENTS, greedyStringParser())
             .handler(this::stats));
+        manager.command(baseBuilder(manager)
+            .literal("record")
+            .optional(ARGUMENTS, greedyStringParser())
+            .handler(this::record));
     }
 
     @Override
     public void execute(CommandContext<GeyserCommandSource> context) {
-        context.sender().sendMessage("Usage: " + rootCommand() + " " + name() + " <status | action | diagnostics | advertised | stats>");
+        context.sender().sendMessage("Usage: " + rootCommand() + " " + name() + " <status | action | diagnostics | advertised | stats | record>");
     }
 
     /**
@@ -225,6 +235,67 @@ public class NetherNetCommand extends GeyserCommand {
         }
     }
 
+    /**
+     * Records one player's SCTP state every 20 ms to a CSV file, to show when and why retransmission timeouts happen
+     */
+    private void record(CommandContext<GeyserCommandSource> context) {
+        GeyserCommandSource source = context.sender();
+        if (server(source) == null) {
+            return;
+        }
+        String[] args = context.<String>optional(ARGUMENTS).map(value -> value.trim().split("\\s+")).orElse(new String[0]);
+        int seconds = 60;
+        try {
+            if (args.length == 2) {
+                seconds = Integer.parseInt(args[1]);
+            }
+        } catch (NumberFormatException e) {
+            seconds = -1;
+        }
+        if (args.length < 1 || args.length > 2 || args[0].isEmpty() || seconds < 1 || seconds > MAX_RECORD_SECONDS) {
+            source.sendMessage("Usage: " + rootCommand() + " " + name() + " record <player> [seconds, 1-" + MAX_RECORD_SECONDS + ", default 60]");
+            return;
+        }
+
+        for (GeyserSession session : geyser.getSessionManager().getAllSessions()) {
+            String name = String.valueOf(session.bedrockUsername());
+            if (!name.equalsIgnoreCase(args[0])
+                || !(session.getUpstream().getSession().getPeer().getChannel() instanceof NetherNetChannel channel)) {
+                continue;
+            }
+            String stamp = DateTimeFormatter.ofPattern("yyyyMMdd-HHmmss-SSS", Locale.ROOT).format(LocalDateTime.now());
+            Path file = geyser.configDirectory().resolve("nethernet-records")
+                .resolve(name.replaceAll("[^A-Za-z0-9_-]", "_") + "-" + stamp + ".csv");
+            NetherNetChannel.Path path = channel.selectedPath();
+            List<String> header = List.of(
+                "Geyser " + GeyserImpl.VERSION + ", NetherNet recording every 20 ms",
+                "player " + name + ", " + session.platform() + ", " + session.version()
+                    + ", path " + (path == null ? "unknown" : path.localType() + " -> " + path.remoteType()));
+            try {
+                if (NetherNetRecorder.start(channel, file, header, seconds, source::sendMessage)) {
+                    source.sendMessage("Recording " + name + " for " + seconds + " s to " + file);
+                } else {
+                    source.sendMessage(name + " is already being recorded.");
+                }
+            } catch (IOException e) {
+                source.sendMessage("Could not record to " + file + ": " + e.getMessage());
+            }
+            return;
+        }
+        source.sendMessage("No NetherNet player named " + args[0] + ".");
+    }
+
+    /**
+     * Without the usrsctp T3-rtx fix this runs at one per one or two RTOs while data is in flight (~75/min at a 400 ms
+     * RTO); with it, timeouts only come with real loss. Averaged over the connection's life, so idle time dilutes it.
+     */
+    private static String timeoutsPerMinute(NetherNetStats.Snapshot snapshot) {
+        if (snapshot.dataTimeouts() < 0 || snapshot.ageSeconds() < 60) {
+            return "";
+        }
+        return String.format(Locale.ROOT, " (%.1f/min)", snapshot.dataTimeouts() * 60.0 / snapshot.ageSeconds());
+    }
+
     static String summary(String name, NetherNetStats.Snapshot snapshot) {
         return name + ": rtt " + snapshot.sctpRtt() + " ms (rto " + snapshot.sctpRto() + " ms)"
             + " | out " + bytes(snapshot.bytesOutPerSecond()) + "/s, " + snapshot.messagesOutPerSecond() + " msg/s, "
@@ -232,7 +303,7 @@ public class NetherNetCommand extends GeyserCommand {
             + " | cwnd " + bytes(snapshot.congestionWindow()) + ", peer rwnd " + bytes(snapshot.peerReceiveWindow())
             + " | queued " + bytes(snapshot.queuedBytes()) + ", unacked " + snapshot.unackedChunks() + " chunks"
             + " | receive queue " + snapshot.receiveQueueChunks() + " chunks"
-            + " | timeouts " + snapshot.dataTimeouts()
+            + " | timeouts " + snapshot.dataTimeouts() + timeoutsPerMinute(snapshot)
             + " | " + (snapshot.writable() ? "writable" : "UNWRITABLE for " + snapshot.unwritableMillis() + " ms")
             + " (" + snapshot.unwritableEvents() + "x)"
             + " | " + String.format(Locale.ROOT, "%.1f pkt/msg, %.0f%% compressed size", snapshot.averageBatchSize(), snapshot.compressionRatio() * 100)

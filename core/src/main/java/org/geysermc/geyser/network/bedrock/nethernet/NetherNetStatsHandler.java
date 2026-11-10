@@ -28,6 +28,7 @@ package org.geysermc.geyser.network.bedrock.nethernet;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelDuplexHandler;
 import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.ChannelOutboundHandlerAdapter;
 import io.netty.channel.ChannelPromise;
 import io.netty.util.concurrent.ScheduledFuture;
 import org.checkerframework.checker.nullness.qual.Nullable;
@@ -39,8 +40,9 @@ import org.geysermc.geyser.session.GeyserSession;
 import java.util.concurrent.TimeUnit;
 
 /**
- * Sits between compression and the NetherNet frame codec, where outbound batches carry both their compressed and
- * uncompressed forms. In debug mode, also logs when a connection is falling behind.
+ * Sits between compression and the NetherNet frame codec and counts the compressed size of outbound batches; the
+ * {@link BatchCounter} ahead of compression counts their packets and uncompressed size. In debug mode, also logs when
+ * a connection is falling behind.
  */
 public class NetherNetStatsHandler extends ChannelDuplexHandler {
     public static final String NAME = "geyser-nethernet-stats";
@@ -59,13 +61,10 @@ public class NetherNetStatsHandler extends ChannelDuplexHandler {
 
     @Override
     public void write(ChannelHandlerContext ctx, Object msg, ChannelPromise promise) throws Exception {
-        if (msg instanceof BedrockBatchWrapper batch) {
-            ByteBuf uncompressed = batch.getUncompressed();
-            stats.batchOut(batch.getPackets().size(), uncompressed == null ? 0 : uncompressed.readableBytes());
-            ByteBuf compressed = batch.getCompressed();
-            if (compressed != null) {
-                stats.compressedOut(compressed.readableBytes());
-            }
+        // Only batches the BatchCounter saw uncompressed, so the ratio compares like with like. Their uncompressed
+        // buffer is still set here, but zlib may have read it to the end
+        if (msg instanceof BedrockBatchWrapper batch && batch.getUncompressed() != null && batch.getCompressed() != null) {
+            stats.compressedOut(batch.getCompressed().readableBytes());
         }
         super.write(ctx, msg, promise);
     }
@@ -127,6 +126,30 @@ public class NetherNetStatsHandler extends ChannelDuplexHandler {
             + ", rtt " + snapshot.sctpRtt() + " ms, rto " + snapshot.sctpRto() + " ms"
             + ", out " + snapshot.bytesOutPerSecond() + " B/s in " + snapshot.messagesOutPerSecond() + " msg/s"
             + ", timeouts +" + Math.max(newTimeouts, 0));
+    }
+
+    /**
+     * Counts packets and uncompressed bytes of outbound batches. Goes right after the compression codec in the pipeline,
+     * so it sees batches before they are compressed: zlib copies a multi-packet batch out of its composite buffer, which
+     * leaves nothing readable for a handler behind compression.
+     */
+    public static final class BatchCounter extends ChannelOutboundHandlerAdapter {
+        public static final String NAME = "geyser-nethernet-batch-counter";
+
+        private final NetherNetStats stats;
+
+        public BatchCounter(NetherNetStats stats) {
+            this.stats = stats;
+        }
+
+        @Override
+        public void write(ChannelHandlerContext ctx, Object msg, ChannelPromise promise) throws Exception {
+            if (msg instanceof BedrockBatchWrapper batch) {
+                ByteBuf uncompressed = batch.getUncompressed();
+                stats.batchOut(batch.getPackets().size(), uncompressed == null ? 0 : uncompressed.readableBytes());
+            }
+            super.write(ctx, msg, promise);
+        }
     }
 
     private String name(NetherNetChannel channel) {
