@@ -36,6 +36,7 @@ import org.geysermc.geyser.command.GeyserCommand;
 import org.geysermc.geyser.command.GeyserCommandSource;
 import org.geysermc.geyser.configuration.GeyserConfig;
 import org.cloudburstmc.netty.channel.nethernet.NetherNetChannel;
+import org.geysermc.geyser.network.bedrock.nethernet.NetherNetPacketCapture;
 import org.geysermc.geyser.network.bedrock.nethernet.NetherNetRecorder;
 import org.geysermc.geyser.network.bedrock.nethernet.NetherNetServer;
 import org.geysermc.geyser.network.bedrock.nethernet.NetherNetStats;
@@ -61,6 +62,7 @@ public class NetherNetCommand extends GeyserCommand {
     private static final String ARGUMENTS = "arguments";
 
     private static final int MAX_RECORD_SECONDS = 600;
+    private static final int MAX_CAPTURE_SECONDS = 30;
 
     private final GeyserImpl geyser;
 
@@ -87,11 +89,15 @@ public class NetherNetCommand extends GeyserCommand {
             .literal("record")
             .optional(ARGUMENTS, greedyStringParser())
             .handler(this::record));
+        manager.command(baseBuilder(manager)
+            .literal("packets")
+            .optional(ARGUMENTS, greedyStringParser())
+            .handler(this::packets));
     }
 
     @Override
     public void execute(CommandContext<GeyserCommandSource> context) {
-        context.sender().sendMessage("Usage: " + rootCommand() + " " + name() + " <status | action | diagnostics | advertised | stats | record>");
+        context.sender().sendMessage("Usage: " + rootCommand() + " " + name() + " <status | action | diagnostics | advertised | stats | record | packets>");
     }
 
     /**
@@ -279,6 +285,56 @@ public class NetherNetCommand extends GeyserCommand {
                 }
             } catch (IOException e) {
                 source.sendMessage("Could not record to " + file + ": " + e.getMessage());
+            }
+            return;
+        }
+        source.sendMessage("No NetherNet player named " + args[0] + ".");
+    }
+
+    /**
+     * Writes every Java and Bedrock packet of one player, with contents, to a file for a few seconds
+     */
+    private void packets(CommandContext<GeyserCommandSource> context) {
+        GeyserCommandSource source = context.sender();
+        if (server(source) == null) {
+            return;
+        }
+        String[] args = context.<String>optional(ARGUMENTS).map(value -> value.trim().split("\\s+")).orElse(new String[0]);
+        int seconds = 5;
+        try {
+            if (args.length == 2) {
+                seconds = Integer.parseInt(args[1]);
+            }
+        } catch (NumberFormatException e) {
+            seconds = -1;
+        }
+        if (args.length < 1 || args.length > 2 || args[0].isEmpty() || seconds < 1 || seconds > MAX_CAPTURE_SECONDS) {
+            source.sendMessage("Usage: " + rootCommand() + " " + name() + " packets <player> [seconds, 1-" + MAX_CAPTURE_SECONDS + ", default 5]");
+            return;
+        }
+
+        for (GeyserSession session : geyser.getSessionManager().getAllSessions()) {
+            String name = String.valueOf(session.bedrockUsername());
+            if (!name.equalsIgnoreCase(args[0])
+                || !(session.getUpstream().getSession().getPeer().getChannel() instanceof NetherNetChannel channel)) {
+                continue;
+            }
+            String stamp = DateTimeFormatter.ofPattern("yyyyMMdd-HHmmss-SSS", Locale.ROOT).format(LocalDateTime.now());
+            Path file = geyser.configDirectory().resolve("nethernet-records")
+                .resolve(name.replaceAll("[^A-Za-z0-9_-]", "_") + "-packets-" + stamp + ".tsv");
+            List<String> header = List.of(
+                "Geyser " + GeyserImpl.VERSION + ", every Java and Bedrock packet of " + name + " (" + session.platform() + ", "
+                    + session.version() + ") for " + seconds + " s, contents cut at " + NetherNetPacketCapture.MAX_CONTENT_CHARS + " characters",
+                "JAVA_IN: from the Java server, JAVA_OUT: to it, BEDROCK_IN: from the client, BEDROCK_OUT: to it, before compression");
+            try {
+                if (NetherNetPacketCapture.start(channel, file, header, seconds, source::sendMessage)) {
+                    source.sendMessage("Capturing " + name + "'s packets for " + seconds + " s to " + file
+                        + ". It contains chat, names and skins, so only share it privately.");
+                } else {
+                    source.sendMessage(name + "'s packets are already being captured.");
+                }
+            } catch (IOException e) {
+                source.sendMessage("Could not capture to " + file + ": " + e.getMessage());
             }
             return;
         }

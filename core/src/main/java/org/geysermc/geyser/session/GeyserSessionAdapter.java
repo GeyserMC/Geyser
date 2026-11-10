@@ -31,6 +31,7 @@ import org.geysermc.geyser.Constants;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.network.AuthType;
 import org.geysermc.geyser.api.util.PlatformType;
+import org.geysermc.geyser.network.bedrock.nethernet.NetherNetPacketCapture;
 import org.geysermc.geyser.network.java.LocalSession;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.session.auth.BedrockClientData;
@@ -68,6 +69,7 @@ public class GeyserSessionAdapter extends SessionAdapter {
 
     @Override
     public void packetSending(PacketSendingEvent event) {
+        NetherNetPacketCapture.java(session, NetherNetPacketCapture.Direction.JAVA_OUT, event.getPacket());
         if (event.getPacket() instanceof ClientIntentionPacket intentionPacket) {
             BedrockClientData clientData = session.getClientData();
 
@@ -226,6 +228,7 @@ public class GeyserSessionAdapter extends SessionAdapter {
 
     @Override
     public void packetReceived(Session session, Packet packet) {
+        NetherNetPacketCapture.java(this.session, NetherNetPacketCapture.Direction.JAVA_IN, packet);
         Registries.JAVA_PACKET_TRANSLATORS.translate(packet.getClass(), packet, this.session, true);
     }
 

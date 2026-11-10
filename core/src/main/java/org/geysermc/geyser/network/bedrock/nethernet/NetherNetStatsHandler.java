@@ -150,6 +150,7 @@ public class NetherNetStatsHandler extends ChannelDuplexHandler {
                 ByteBuf uncompressed = batch.getUncompressed();
                 stats.batchOut(batch.getPackets().size(), uncompressed == null ? 0 : uncompressed.readableBytes());
                 for (BedrockPacketWrapper packet : batch.getPackets()) {
+                    NetherNetPacketCapture.bedrockOut(ctx.channel(), packet);
                     stats.packetOut(packet.getPacket() == null ? "id " + packet.getPacketId() : packet.getPacket().getClass().getSimpleName());
                 }
             }
