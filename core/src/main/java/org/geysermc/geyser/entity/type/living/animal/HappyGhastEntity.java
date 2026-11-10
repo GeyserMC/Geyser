@@ -210,7 +210,7 @@ public class HappyGhastEntity extends AnimalEntity implements ClientVehicle {
     }
 
     @Override
-    public boolean shouldSimulateMovement() {
+    public boolean canSimulateMovement() {
         if (!hasBodyArmor() || staysStill) {
             return false;
         }
