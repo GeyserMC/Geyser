@@ -582,11 +582,29 @@ public class BlockMappingsReader_v1 implements MappingsReader<String, CustomBloc
             ambientOcclusion = value.isBoolean() ? (value.getAsBoolean() ? 1.0f : 0.0f) : value.getAsFloat();
         }
 
+        boolean isotropic = false;
+        if (node.has("isotropic")) {
+            isotropic = node.get("isotropic").getAsBoolean();
+        }
+
+        boolean textureVariation = false;
+        if (node.has("texture_variation")) {
+            textureVariation = node.get("texture_variation").getAsBoolean();
+        }
+
+        boolean alphaMaskedTint = false;
+        if (node.has("alpha_masked_tint")) {
+            alphaMaskedTint = node.get("alpha_masked_tint").getAsBoolean();
+        }
+
         return new GeyserMaterialInstance.Builder()
             .texture(texture)
             .renderMethod(renderMethod)
             .faceDimming(faceDimming)
             .ambientOcclusionExponent(ambientOcclusion)
+            .isotropic(isotropic)
+            .textureVariation(textureVariation)
+            .alphaMaskedTint(alphaMaskedTint)
             .build();
     }
 

@@ -391,6 +391,29 @@ public class CustomBlockRegistryPopulator {
     }
 
     /**
+     * Packs the flags of a material instance into its {@code packed_bools} bitset
+     *
+     * @param materialInstance the material instance
+     * @return the packed flags
+     */
+    private static byte packMaterialFlags(MaterialInstance materialInstance) {
+        int flags = 0;
+        if (materialInstance.faceDimming()) {
+            flags |= 1;
+        }
+        if (materialInstance.isotropic()) {
+            flags |= 1 << 1;
+        }
+        if (materialInstance.textureVariation()) {
+            flags |= 1 << 2;
+        }
+        if (materialInstance.alphaMaskedTint()) {
+            flags |= 1 << 3;
+        }
+        return (byte) flags;
+    }
+
+    /**
      * Converts the provided custom block components to an {@link NbtMap} to be sent to the client in the StartGame packet
      *
      * @param components the custom block components to convert
@@ -438,10 +461,7 @@ public class CustomBlockRegistryPopulator {
                 NbtMapBuilder materialBuilder = NbtMap.builder()
                         // Bedrock stopped accepting a byte here in 1.26.20; it must be a float
                         .putFloat("ambient_occlusion", materialInstance.ambientOcclusionExponent())
-                        .putBoolean("isotropic", materialInstance.isotropic());
-
-                // todo this is actually an bitset, we should add the other properties some day
-                materialBuilder.putBoolean("packed_bools", materialInstance.faceDimming());
+                        .putByte("packed_bools", packMaterialFlags(materialInstance));
 
                 if (materialInstance.renderMethod() != null) {
                     materialBuilder.putString("render_method", materialInstance.renderMethod());
