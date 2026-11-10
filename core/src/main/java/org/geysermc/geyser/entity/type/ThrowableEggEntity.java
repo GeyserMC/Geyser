@@ -27,45 +27,46 @@ package org.geysermc.geyser.entity.type;
 
 import lombok.Getter;
 import net.kyori.adventure.key.Key;
-import org.cloudburstmc.math.vector.Vector3f;
-import org.geysermc.geyser.entity.EntityDefinition;
-import org.geysermc.geyser.entity.type.living.animal.farm.TemperatureVariantAnimal;
+import org.geysermc.geyser.entity.spawn.EntitySpawnContext;
+import org.geysermc.geyser.entity.type.living.animal.TemperatureVariantAnimal;
 import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.item.Items;
-import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.geyser.session.cache.registry.JavaRegistries;
-import org.geysermc.mcprotocollib.protocol.data.game.Holder;
+import org.geysermc.geyser.registry.java.JavaRegistries;
+import org.geysermc.geyser.registry.java.JavaRegistryProvider;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.EntityMetadata;
 import org.geysermc.mcprotocollib.protocol.data.game.item.ItemStack;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentTypes;
 
-import java.util.UUID;
+import java.util.Optional;
 
 @Getter
 public class ThrowableEggEntity extends ThrowableItemEntity {
 
     // Used for egg break particles
-    private GeyserItemStack itemStack = GeyserItemStack.of(Items.EGG.javaId(), 1);
+    private GeyserItemStack itemStack;
 
-    public ThrowableEggEntity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
-        super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
+    public ThrowableEggEntity(EntitySpawnContext context) {
+        super(context);
+        itemStack = GeyserItemStack.of(session, Items.EGG.javaId(), 1);
     }
 
     @Override
     public void setItem(EntityMetadata<ItemStack, ?> entityMetadata) {
-        GeyserItemStack stack = GeyserItemStack.from(entityMetadata.getValue());
-        TemperatureVariantAnimal.TEMPERATE_VARIANT_PROPERTY.apply(propertyManager, getVariantOrFallback(session, stack));
+        GeyserItemStack stack = GeyserItemStack.from(session, entityMetadata.getValue());
+        TemperatureVariantAnimal.TEMPERATE_VARIANT_PROPERTY.apply(propertyManager, getVariantOrFallback(session.javaRegistries(), stack));
         updateBedrockEntityProperties();
         this.itemStack = stack;
     }
 
-    private static TemperatureVariantAnimal.BuiltInVariant getVariantOrFallback(GeyserSession session, GeyserItemStack stack) {
-        Holder<Key> holder = stack.getComponent(DataComponentTypes.CHICKEN_VARIANT);
-        if (holder != null) {
-            Key chickenVariant = holder.getOrCompute(id -> JavaRegistries.CHICKEN_VARIANT.key(session, id));
-            for (var variant : TemperatureVariantAnimal.BuiltInVariant.values()) {
-                if (chickenVariant.asMinimalString().equalsIgnoreCase(variant.name())) {
-                    return variant;
+    private static TemperatureVariantAnimal.BuiltInVariant getVariantOrFallback(JavaRegistryProvider registries, GeyserItemStack stack) {
+        Integer id = stack.getComponent(DataComponentTypes.CHICKEN_VARIANT);
+        if (id != null) {
+            Optional<Key> chickenVariant = JavaRegistries.CHICKEN_VARIANT.getKey(registries, id);
+            if (chickenVariant.isPresent()) {
+                for (var variant : TemperatureVariantAnimal.BuiltInVariant.values()) {
+                    if (chickenVariant.get().asMinimalString().equalsIgnoreCase(variant.name())) {
+                        return variant;
+                    }
                 }
             }
         }

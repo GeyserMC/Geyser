@@ -85,7 +85,6 @@ public class SkullBlockEntityTranslator extends BlockEntityTranslator implements
         GameProfile partialOrStatic = new GameProfile(uuid, name);
         partialOrStatic.setProperties(properties);
         // Only if all fields are present, then the profile is a static one
-        // TODO shorthand constructor in MCPL
         return new ResolvableProfile(partialOrStatic);
     }
 
@@ -107,7 +106,7 @@ public class SkullBlockEntityTranslator extends BlockEntityTranslator implements
                 return skull.getBlockDefinition();
             } catch (InterruptedException | ExecutionException e) {
                 session.getGeyser().getLogger().debug("Failed to acquire textures for custom skull: " + blockPosition + " " + javaNbt);
-                if (GeyserImpl.getInstance().getConfig().isDebugMode()) {
+                if (GeyserImpl.getInstance().config().debugMode()) {
                     e.printStackTrace();
                 }
             }
@@ -118,7 +117,7 @@ public class SkullBlockEntityTranslator extends BlockEntityTranslator implements
         resolvedFuture.whenComplete((resolved, throwable) -> {
             if (throwable != null ) {
                 session.getGeyser().getLogger().debug("Failed resolving profile of player head at: " + blockPosition + " " + javaNbt);
-                if (GeyserImpl.getInstance().getConfig().isDebugMode()) {
+                if (GeyserImpl.getInstance().config().debugMode()) {
                     throwable.printStackTrace();
                 }
                 return;

@@ -25,7 +25,9 @@
 
 package org.geysermc.geyser.inventory.item;
 
+import net.kyori.adventure.key.Key;
 import org.checkerframework.checker.nullness.qual.Nullable;
+import org.geysermc.geyser.util.MinecraftKey;
 
 import java.util.Locale;
 
@@ -70,19 +72,22 @@ public enum BedrockEnchantment {
     SWIFT_SNEAK,
     WIND_BURST,
     DENSITY,
-    BREACH;
+    BREACH,
+    LUNGE;
 
     private static final BedrockEnchantment[] VALUES = values();
 
-    private final String javaIdentifier;
+    public static final int INVALID = VALUES.length + 1;
+
+    private final Key javaIdentifier;
 
     BedrockEnchantment() {
-        this.javaIdentifier = "minecraft:" + this.name().toLowerCase(Locale.ENGLISH);
+        this.javaIdentifier = MinecraftKey.key(this.name().toLowerCase(Locale.ROOT));
     }
 
-    public static @Nullable BedrockEnchantment getByJavaIdentifier(String javaIdentifier) {
+    public static @Nullable BedrockEnchantment getByJavaIdentifier(Key javaIdentifier) {
         for (BedrockEnchantment enchantment : VALUES) {
-            if (enchantment.javaIdentifier.equals(javaIdentifier) || enchantment.name().toLowerCase(Locale.ENGLISH).equalsIgnoreCase(javaIdentifier)) {
+            if (enchantment.javaIdentifier.equals(javaIdentifier)) {
                 return enchantment;
             }
         }

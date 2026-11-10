@@ -25,6 +25,7 @@
 
 package org.geysermc.geyser.entity.properties.type;
 
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.protocol.bedrock.data.entity.IntEntityProperty;
 import org.geysermc.geyser.GeyserImpl;
@@ -35,7 +36,7 @@ public record IntProperty(
     Identifier identifier,
     int max,
     int min,
-    Integer defaultValue
+    @Nullable Integer defaultValue
 ) implements PropertyType<Integer, IntEntityProperty>, GeyserIntEntityProperty {
 
     public IntProperty {
@@ -43,7 +44,7 @@ public record IntProperty(
             throw new IllegalArgumentException("Cannot create int entity property (%s) with a minimum value (%s) greater than maximum (%s)!"
                 .formatted(identifier, min, max));
         }
-        if (defaultValue < min || defaultValue > max) {
+        if (defaultValue != null && (defaultValue < min || defaultValue > max)) {
             throw new IllegalArgumentException("Cannot create int entity property (%s) with a default value (%s) outside of the range (%s - %s)!"
                 .formatted(identifier, defaultValue, min, max));
         }

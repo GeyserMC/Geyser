@@ -41,8 +41,10 @@ import org.geysermc.geyser.level.block.property.Property;
 import org.geysermc.geyser.level.physics.PistonBehavior;
 import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.geyser.session.cache.registry.JavaRegistries;
+import org.geysermc.geyser.registry.java.JavaRegistries;
 import org.geysermc.geyser.session.cache.tags.Tag;
+import org.geysermc.geyser.translator.level.block.entity.BedrockChunkWantsBlockEntityTag;
+import org.geysermc.geyser.util.BlockEntityUtils;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.HolderSet;
 import org.geysermc.mcprotocollib.protocol.data.game.level.block.BlockEntityType;
 import org.intellij.lang.annotations.Subst;
@@ -81,45 +83,21 @@ public class Block {
         this.destroyTime = builder.destroyTime;
         this.pushReaction = builder.pushReaction;
 
-        BlockState firstState = builder.build(this).get(0);
+        BlockState firstState = builder.build(this).getFirst();
         this.propertyKeys = builder.propertyKeys; // Ensure this is not null before iterating over states
         this.defaultState = setDefaultState(firstState);
     }
 
+    // JavaSectionBlocksUpdateTranslator only calls updateBlock for specialized blocks,
+    // make sure to also update JavaSectionBlocksUpdateTranslator for general changes.
     public void updateBlock(GeyserSession session, BlockState state, Vector3i position) {
         checkForEmptySkull(session, state, position);
 
         BlockDefinition definition = session.getBlockMappings().getBedrockBlock(state);
         sendBlockUpdatePacket(session, state, definition, position);
 
-        // Extended collision boxes for custom blocks
-        if (!session.getBlockMappings().getExtendedCollisionBoxes().isEmpty()) {
-            int aboveBlock = session.getGeyser().getWorldManager().getBlockAt(session, position.getX(), position.getY() + 1, position.getZ());
-            BlockDefinition aboveBedrockExtendedCollisionDefinition = session.getBlockMappings().getExtendedCollisionBoxes().get(state.javaId());
-            int belowBlock = session.getGeyser().getWorldManager().getBlockAt(session, position.getX(), position.getY() - 1, position.getZ());
-            BlockDefinition belowBedrockExtendedCollisionDefinition = session.getBlockMappings().getExtendedCollisionBoxes().get(belowBlock);
-            if (belowBedrockExtendedCollisionDefinition != null && state.is(Blocks.AIR)) {
-                UpdateBlockPacket updateBlockPacket = new UpdateBlockPacket();
-                updateBlockPacket.setDataLayer(0);
-                updateBlockPacket.setBlockPosition(position);
-                updateBlockPacket.setDefinition(belowBedrockExtendedCollisionDefinition);
-                updateBlockPacket.getFlags().add(UpdateBlockPacket.Flag.NETWORK);
-                session.sendUpstreamPacket(updateBlockPacket);
-            } else if (aboveBedrockExtendedCollisionDefinition != null && aboveBlock == Block.JAVA_AIR_ID) {
-                UpdateBlockPacket updateBlockPacket = new UpdateBlockPacket();
-                updateBlockPacket.setDataLayer(0);
-                updateBlockPacket.setBlockPosition(position.add(0, 1, 0));
-                updateBlockPacket.setDefinition(aboveBedrockExtendedCollisionDefinition);
-                updateBlockPacket.getFlags().add(UpdateBlockPacket.Flag.NETWORK);
-                session.sendUpstreamPacket(updateBlockPacket);
-            } else if (aboveBlock == Block.JAVA_AIR_ID) {
-                UpdateBlockPacket updateBlockPacket = new UpdateBlockPacket();
-                updateBlockPacket.setDataLayer(0);
-                updateBlockPacket.setBlockPosition(position.add(0, 1, 0));
-                updateBlockPacket.setDefinition(session.getBlockMappings().getBedrockAir());
-                updateBlockPacket.getFlags().add(UpdateBlockPacket.Flag.NETWORK);
-                session.sendUpstreamPacket(updateBlockPacket);
-            }
+        if (this instanceof BedrockChunkWantsBlockEntityTag blockEntity) {
+            BlockEntityUtils.updateBlockEntity(session, blockEntity.createTag(session, position, state), position);
         }
     }
 
@@ -208,11 +186,11 @@ public class Block {
     }
 
     public boolean is(GeyserSession session, Tag<Block> tag) {
-        return session.getTagCache().is(tag, javaId);
+        return session.javaRegistries().is(tag, javaId);
     }
 
     public boolean is(GeyserSession session, HolderSet set) {
-        return session.getTagCache().is(set, JavaRegistries.BLOCK, javaId);
+        return session.javaRegistries().is(JavaRegistries.BLOCK, set, javaId);
     }
 
     @Override
@@ -235,7 +213,7 @@ public class Block {
         private final Map<Property<?>, List<Comparable<?>>> states = new LinkedHashMap<>();
         private boolean requiresCorrectToolForDrops = false;
         private BlockEntityType blockEntityType = null;
-        private PistonBehavior pushReaction = PistonBehavior.NORMAL;
+        private PistonBehavior pushReaction = PistonBehavior.PUSH_PULL;
         private float destroyTime;
 
         // We'll use this field after building

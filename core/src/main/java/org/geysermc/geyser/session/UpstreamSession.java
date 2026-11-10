@@ -32,7 +32,7 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.cloudburstmc.protocol.bedrock.BedrockServerSession;
 import org.cloudburstmc.protocol.bedrock.codec.BedrockCodecHelper;
 import org.cloudburstmc.protocol.bedrock.packet.BedrockPacket;
-import org.geysermc.geyser.network.GeyserBedrockPeer;
+import org.geysermc.geyser.network.bedrock.GeyserBedrockPeer;
 
 import java.net.InetSocketAddress;
 import java.util.ArrayDeque;
@@ -87,6 +87,10 @@ public class UpstreamSession {
     public InetSocketAddress getAddress() {
         // Will always be an InetSocketAddress. See ProxyChannel#remoteAddress
         return (InetSocketAddress) ((GeyserBedrockPeer) session.getPeer()).getRealAddress();
+    }
+
+    public void setInetAddress(InetSocketAddress address) {
+        ((GeyserBedrockPeer) session.getPeer()).setProxiedAddress(address);
     }
 
     /**

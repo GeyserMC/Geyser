@@ -54,6 +54,11 @@ import java.util.List;
 import java.util.ListIterator;
 
 public final class ClickPlan {
+    /**
+     * Clicks a session may send to the Java server per tick. Far above what a player does.
+     */
+    public static final int MAX_CLICKS_PER_TICK = 512;
+
     private final List<ClickAction> plan = new ArrayList<>();
     private final Int2ObjectMap<GeyserItemStack> simulatedItems;
     /**
@@ -96,6 +101,8 @@ public final class ClickPlan {
     public void add(Click click, int slot, boolean force) {
         if (executionBegan)
             throw new UnsupportedOperationException("ClickPlan already executed");
+        if (!session.takeInventoryClick())
+            throw new ClickLimitException();
 
         if (click == Click.LEFT_OUTSIDE || click == Click.RIGHT_OUTSIDE) {
             slot = Click.OUTSIDE_SLOT;
@@ -157,13 +164,13 @@ public final class ClickPlan {
             }
 
             ServerboundContainerClickPacket clickPacket = new ServerboundContainerClickPacket(
-                    inventory.getJavaId(),
-                    stateId,
-                    action.slot,
-                    action.click.actionType,
-                    action.click.action,
-                    DataComponentHashers.hashStack(session, clickedItemStack),
-                    changedHashedItems
+                inventory.getJavaId(),
+                stateId,
+                action.slot,
+                action.click.actionType,
+                action.click.action,
+                DataComponentHashers.hashStack(session.javaRegistries(), clickedItemStack),
+                changedHashedItems
             );
 
             session.sendDownstreamGamePacket(clickPacket);
@@ -260,7 +267,7 @@ public final class ClickPlan {
     private void onSlotItemChange(int slot, GeyserItemStack itemStack) {
         if (changedItems != null) {
             changedItems.put(slot, itemStack.getItemStack());
-            changedHashedItems.put(slot, DataComponentHashers.hashStack(session, itemStack.getItemStack()));
+            changedHashedItems.put(slot, DataComponentHashers.hashStack(session.javaRegistries(), itemStack.getItemStack()));
         }
     }
 
@@ -327,7 +334,7 @@ public final class ClickPlan {
                     int amountToAddInBundle = Math.min(BundleInventoryTranslator.capacityForItemStack(bundleWeight, cursor), cursor.getAmount());
                     GeyserItemStack toInsertInBundle = cursor.copy(amountToAddInBundle);
                     if (executionBegan) {
-                        clicked.getBundleData().contents().add(0, toInsertInBundle);
+                        clicked.getBundleData().contents().addFirst(toInsertInBundle);
                         session.getBundleCache().onItemAdded(clicked); // Must be run before onSlotItemChange as the latter exports an ItemStack from the bundle
                     }
                     onSlotItemChange(action.slot, clicked);
@@ -339,7 +346,7 @@ public final class ClickPlan {
                     amountToAddInBundle = Math.min(BundleInventoryTranslator.capacityForItemStack(bundleWeight, clicked), clicked.getAmount());
                     toInsertInBundle = clicked.copy(amountToAddInBundle);
                     if (executionBegan) {
-                        cursor.getBundleData().contents().add(0, toInsertInBundle);
+                        cursor.getBundleData().contents().addFirst(toInsertInBundle);
                         session.getBundleCache().onItemAdded(cursor);
                     }
                     sub(action.slot, clicked, amountToAddInBundle);
@@ -349,7 +356,7 @@ public final class ClickPlan {
                         // Bundle should be in player's hand.
                         GeyserItemStack itemStack = cursor.getBundleData()
                             .contents()
-                            .remove(0);
+                            .removeFirst();
                         if (executionBegan) {
                             session.getBundleCache().onItemRemoved(cursor, 0);
                         }
@@ -397,7 +404,40 @@ public final class ClickPlan {
                     swap(action.slot, inventory.getOffsetForHotbar(8), clicked);
                     break;
                 case LEFT_SHIFT:
-                    //TODO
+                    if (clicked.isEmpty()) {
+                        break;
+                    }
+                    
+                    int remaining = clicked.getAmount();
+                    // are we shift-clicking items from the player inventory, or from the container?
+                    boolean sourceInPlayerInventory = action.slot >= translator.size;
+
+                    if (!sourceInPlayerInventory) {
+                        int hotbarOffset = inventory.getOffsetForHotbar(0);
+                        int mainStart = hotbarOffset - 27;
+                        int mainEnd = hotbarOffset - 1;
+                        int hotbarEnd = hotbarOffset + 8;
+
+                        // from what I understand, java has this priority for shift clicks:
+                        // 1. existing partial stacks in main inventory, top rows first
+                        // 2. existing partial stacks in hotbar
+                        // 3. empty slots in main inventory
+                        // 4. empty slots in hotbar
+                        
+                        // fill partial stacks in main inventory, then opt for hotbar afterwards
+                        remaining = fillPartialStacks(action.slot, clicked, remaining, mainStart, mainEnd);
+                        remaining = fillPartialStacks(action.slot, clicked, remaining, hotbarOffset, hotbarEnd);
+                        
+                        // fill empty slots in main inventory, then opt for hotbar afterwards
+                        remaining = fillEmptySlots(action.slot, clicked, remaining, mainStart, mainEnd);
+                        fillEmptySlots(action.slot, clicked, remaining, hotbarOffset, hotbarEnd); // remaining is no longer used 
+                    } else { // the other way around. the source is the player inventory, and we're shift clicking into the target container
+                        // fill partial stacks in top inventory, then opt for empty slots
+                        // this isn't a player's inventory, so we do not need the hotbar/main-inventory logic and vice versa :P
+                        remaining = fillPartialStacks(action.slot, clicked, remaining, 0, translator.size - 1);
+                        fillEmptySlots(action.slot, clicked, remaining, 0, translator.size - 1);
+                    }
+                    
                     break;
                 case DROP_ONE:
                     if (!clicked.isEmpty()) {
@@ -460,7 +500,7 @@ public final class ClickPlan {
             } else if (action.click.actionType == ContainerActionType.MOVE_TO_HOTBAR_SLOT) {
                 stateIdIncrements = 1;
             } else {
-                if (session.getGeyser().getConfig().isDebugMode()) {
+                if (session.getGeyser().config().debugMode()) {
                     session.getGeyser().getLogger().debug("Not sure how to handle state ID hack in crafting table: " + plan);
                 }
                 stateIdIncrements = 1;
@@ -502,6 +542,47 @@ public final class ClickPlan {
     }
 
     /**
+     * Utility method for LEFT_SHIFT. Java has some specific logic where it will try fill partial stacks first, so this is
+     * just a util method to reduce code duplication.
+     * 
+     * @return The remaining item count
+     */
+    private int fillPartialStacks(int sourceSlot, GeyserItemStack source, int remaining, int rangeStart, int rangeEnd) {
+        if (remaining <= 0) return 0; // we already return early within the underlying loop, this is a sanity check and/or readability to avoid confusion
+        for (int i = rangeStart; i <= rangeEnd && remaining > 0; i++) {
+            if (!canStack(i, source)) continue;
+
+            GeyserItemStack dest = getItem(i);
+            int canAdd = Math.min(remaining, dest.getMaxStackSize() - dest.getAmount());
+            if (canAdd <= 0) continue;
+
+            add(i, dest, canAdd);
+            sub(sourceSlot, source, canAdd);
+            remaining -= canAdd;
+        }
+        return remaining;
+    }
+
+    /**
+     * Utility method for LEFT_SHIFT. Java has some specific logic where it will fill empty slots AFTER attempting to fill partial slots...
+     * 
+     * @return The remaining item count
+     */
+    private int fillEmptySlots(int sourceSlot, GeyserItemStack source, int remaining, int rangeStart, int rangeEnd) {
+        if (remaining <= 0) return 0; // we already return early within the underlying loop, this is a sanity check and/or readability to avoid confusion
+        for (int i = rangeStart; i <= rangeEnd && remaining > 0; i++) {
+            if (!isEmpty(i)) continue;
+
+            int toMove = Math.min(remaining, source.getMaxStackSize());
+
+            setItem(i, source.copy(toMove));
+            sub(sourceSlot, source, toMove);
+            remaining -= toMove;
+        }
+        return remaining;
+    }
+
+    /**
      * @return a new set of all affected slots.
      */
     @Contract("-> new")
@@ -520,5 +601,14 @@ public final class ClickPlan {
     }
 
     private record ClickAction(Click click, int slot, boolean force) {
+    }
+
+    /**
+     * Thrown when a request would send more clicks than the session has left this tick
+     */
+    public static final class ClickLimitException extends RuntimeException {
+        private ClickLimitException() {
+            super("Too many inventory clicks this tick", null, false, false);
+        }
     }
 }

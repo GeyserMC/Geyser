@@ -38,8 +38,8 @@ import net.minecraft.server.network.ServerConnectionListener;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.GeyserBootstrap;
 import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.network.netty.GeyserInjector;
-import org.geysermc.geyser.network.netty.LocalServerChannelWrapper;
+import org.geysermc.geyser.network.java.GeyserInjector;
+import org.geysermc.geyser.network.java.LocalServerChannelWrapper;
 import org.geysermc.geyser.platform.mod.platform.GeyserModPlatform;
 
 import java.lang.reflect.Field;
@@ -96,7 +96,7 @@ public class GeyserModInjector extends GeyserInjector {
                         int index = ch.pipeline().names().indexOf("encoder");
                         String baseName = index != -1 ? "encoder" : "outbound_config";
 
-                        if (bootstrap.getGeyserConfig().isDisableCompression()) {
+                        if (bootstrap.config().advanced().java().disableCompression()) {
                             ch.pipeline().addAfter(baseName, "geyser-compression-disabler", new GeyserModCompressionDisabler());
                         }
                     }
@@ -125,7 +125,7 @@ public class GeyserModInjector extends GeyserInjector {
                 childHandler = (ChannelInitializer<Channel>) childHandlerField.get(handler);
                 break;
             } catch (Exception e) {
-                if (bootstrap.getGeyserConfig().isDebugMode()) {
+                if (bootstrap.config().debugMode()) {
                     bootstrap.getGeyserLogger().debug("The handler " + name + " isn't a ChannelInitializer. THIS ERROR IS SAFE TO IGNORE!");
                     e.printStackTrace();
                 }

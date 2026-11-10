@@ -38,7 +38,7 @@ public class BedrockRespawnTranslator extends PacketTranslator<RespawnPacket> {
     @Override
     public void translate(GeyserSession session, RespawnPacket packet) {
         if (packet.getState() == RespawnPacket.State.CLIENT_READY) {
-            ServerboundClientCommandPacket javaRespawnPacket = new ServerboundClientCommandPacket(ClientCommand.RESPAWN);
+            ServerboundClientCommandPacket javaRespawnPacket = new ServerboundClientCommandPacket(ClientCommand.PERFORM_RESPAWN);
             session.sendDownstreamGamePacket(javaRespawnPacket);
         }
     }

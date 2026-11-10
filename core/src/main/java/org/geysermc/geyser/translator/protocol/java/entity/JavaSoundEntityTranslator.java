@@ -40,6 +40,6 @@ public class JavaSoundEntityTranslator extends PacketTranslator<ClientboundSound
         if (entity == null) {
             return;
         }
-        SoundUtils.playSound(session, packet.getSound(), entity.getPosition(), packet.getVolume(), packet.getPitch());
+        SoundUtils.playSound(session, packet.getSound(), entity.bedrockPosition(), packet.getVolume(), packet.getPitch());
     }
 }

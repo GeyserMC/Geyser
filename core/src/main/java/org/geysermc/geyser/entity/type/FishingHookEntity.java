@@ -30,23 +30,26 @@ import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.cloudburstmc.protocol.bedrock.packet.PlaySoundPacket;
 import org.geysermc.erosion.util.BlockPositionIterator;
-import org.geysermc.geyser.entity.EntityDefinitions;
+import org.geysermc.geyser.entity.spawn.EntitySpawnContext;
 import org.geysermc.geyser.entity.type.player.PlayerEntity;
 import org.geysermc.geyser.level.block.BlockStateValues;
 import org.geysermc.geyser.level.block.type.Block;
 import org.geysermc.geyser.level.physics.BoundingBox;
+import org.geysermc.geyser.level.physics.CollisionManager;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.collision.BlockCollision;
 import org.geysermc.geyser.util.BlockUtils;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.IntEntityMetadata;
 
-import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
 
-public class FishingHookEntity extends ThrowableEntity {
+public class FishingHookEntity extends ProjectileEntity {
 
     private boolean hooked = false;
+    private boolean castByPlayer = false;
     private boolean inWater = false;
+    // Set from the Bedrock packet thread, read on the Java one
+    private volatile boolean retrievedByClient = false;
 
     @Getter
     private final long bedrockOwnerId;
@@ -55,8 +58,8 @@ public class FishingHookEntity extends ThrowableEntity {
 
     private final BoundingBox boundingBox;
 
-    public FishingHookEntity(GeyserSession session, int entityId, long geyserId, UUID uuid, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw, PlayerEntity owner) {
-        super(session, entityId, geyserId, uuid, EntityDefinitions.FISHING_BOBBER, position, motion, yaw, pitch, 0f);
+    public FishingHookEntity(EntitySpawnContext context, PlayerEntity owner) {
+        super(context.headYaw(0));
 
         this.boundingBox = new BoundingBox(0.125, 0.125, 0.125, 0.25, 0.25, 0.25);
 
@@ -65,16 +68,75 @@ public class FishingHookEntity extends ThrowableEntity {
         // so that it can be handled by moveAbsoluteImmediate.
         setBoundingBoxHeight(128);
 
-        this.bedrockOwnerId = owner.getGeyserId();
-        this.dirtyMetadata.put(EntityDataTypes.OWNER_EID, this.bedrockOwnerId);
+        this.bedrockOwnerId = owner.geyserId();
+        this.metadata.put(EntityDataTypes.OWNER_EID, this.bedrockOwnerId);
+
+        if (owner == session.getPlayerEntity()) {
+            session.setFishingHook(this);
+            castByPlayer = true;
+        }
+    }
+
+    @Override
+    public void despawnEntity() {
+        if (castByPlayer) {
+            session.setFishingHook(null);
+        }
+        super.despawnEntity();
+    }
+
+    /**
+     * Called when the Bedrock client uses its rod while this hook is out. The client removes its
+     * own hook right away and assumes the retrieve succeeds. When a plugin cancels the retrieve,
+     * Java keeps the hook and never sends anything that brings it back, so the hook is respawned
+     * on the next movement Java sends for it. A hook at rest only gets Java's periodic position
+     * sync, so that can take up to three seconds. Geyser's own projectile ticking must not trigger
+     * the respawn, since a successful retrieve's removal can still be in flight.
+     */
+    public void markRetrievedByClient() {
+        if (castByPlayer) {
+            retrievedByClient = true;
+        }
+    }
+
+    /**
+     * Spawns this hook again under a fresh Bedrock id, at the position the Java movement just applied.
+     * The client treats the id it reeled in as gone and only links its rod and line to a hook it sees spawn.
+     */
+    private void respawnIfRetrievedByClient() {
+        if (!retrievedByClient) {
+            return;
+        }
+        retrievedByClient = false;
+        geyserId = session.getEntityCache().reassignGeyserId(this);
+        // The spawn packet only carries metadata not sent yet, so put back what the client needs from the
+        // first spawn: the height that silences its splash, the owner the line is drawn to, and the hooked target
+        metadata.put(EntityDataTypes.HEIGHT, getBoundingBoxHeight());
+        metadata.put(EntityDataTypes.OWNER_EID, bedrockOwnerId);
+        if (hooked) {
+            metadata.put(EntityDataTypes.TARGET_EID, bedrockTargetId);
+        }
+        spawnEntity();
+    }
+
+    @Override
+    public void moveRelativeRaw(double relX, double relY, double relZ, float yaw, float pitch, float headYaw, boolean isOnGround) {
+        super.moveRelativeRaw(relX, relY, relZ, yaw, pitch, headYaw, isOnGround);
+        respawnIfRetrievedByClient();
+    }
+
+    @Override
+    public void moveAbsoluteRaw(Vector3f position, float yaw, float pitch, float headYaw, boolean isOnGround, boolean teleported) {
+        super.moveAbsoluteRaw(position, yaw, pitch, headYaw, isOnGround, teleported);
+        respawnIfRetrievedByClient();
     }
 
     public void setHookedEntity(IntEntityMetadata entityMetadata) {
         int hookedEntityId = entityMetadata.getPrimitiveValue() - 1;
         Entity entity = session.getEntityCache().getEntityByJavaId(hookedEntityId);
         if (entity != null) {
-            bedrockTargetId = entity.getGeyserId();
-            dirtyMetadata.put(EntityDataTypes.TARGET_EID, bedrockTargetId);
+            bedrockTargetId = entity.geyserId();
+            metadata.put(EntityDataTypes.TARGET_EID, bedrockTargetId);
             hooked = true;
         } else {
             hooked = false;
@@ -89,7 +151,7 @@ public class FishingHookEntity extends ThrowableEntity {
 
         boolean touchingWater = false;
         boolean collided = false;
-        for (BlockPositionIterator iter = session.getCollisionManager().collidableBlocksIterator(boundingBox); iter.hasNext(); iter.next()) {
+        for (BlockPositionIterator iter = CollisionManager.collidableBlocksIterator(session, boundingBox); iter.hasNext(); iter.next()) {
             int blockID = session.getGeyser().getWorldManager().getBlockAt(session, iter.getX(), iter.getY(), iter.getZ());
             BlockCollision blockCollision = BlockUtils.getCollision(blockID);
             if (blockCollision != null) {
@@ -125,7 +187,7 @@ public class FishingHookEntity extends ThrowableEntity {
             }
             PlaySoundPacket playSoundPacket = new PlaySoundPacket();
             playSoundPacket.setSound("random.splash");
-            playSoundPacket.setPosition(position);
+            playSoundPacket.setPosition(bedrockPosition());
             playSoundPacket.setVolume(volume);
             playSoundPacket.setPitch(1f + ThreadLocalRandom.current().nextFloat() * 0.3f);
             session.sendUpstreamPacket(playSoundPacket);
@@ -134,7 +196,7 @@ public class FishingHookEntity extends ThrowableEntity {
 
     @Override
     public void tick() {
-        if (removedInVoid()) {
+        if (removedInVoid() || vehicle != null) {
             return;
         }
         if (hooked || !isInAir() && !isInWater() || isOnGround()) {

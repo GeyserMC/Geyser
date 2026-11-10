@@ -1,0 +1,16 @@
+{
+  "type": "geyser:component_hash",
+  "component": "minecraft:weapon",
+  "value": [
+    {
+      "item_damage_per_attack": 5,
+      "disable_blocking_for_seconds": 100.0
+    },
+    {
+      "item_damage_per_attack": 2
+    },
+    {
+      "disable_blocking_for_seconds": 50.0
+    }
+  ]
+}

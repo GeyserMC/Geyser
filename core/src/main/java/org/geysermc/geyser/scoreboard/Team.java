@@ -26,16 +26,18 @@
 package org.geysermc.geyser.scoreboard;
 
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
-import java.util.HashSet;
-import java.util.Set;
 import net.kyori.adventure.text.Component;
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.text.ChatColor;
 import org.geysermc.geyser.translator.text.MessageTranslator;
 import org.geysermc.mcprotocollib.protocol.data.game.scoreboard.NameTagVisibility;
 import org.geysermc.mcprotocollib.protocol.data.game.scoreboard.TeamColor;
+
+import java.util.HashSet;
+import java.util.Set;
 
 public final class Team {
     public static final long LAST_UPDATE_DEFAULT = -1;
@@ -46,10 +48,9 @@ public final class Team {
 
     private final Set<String> entities;
     private final Set<Entity> managedEntities;
-    @NonNull private NameTagVisibility nameTagVisibility = NameTagVisibility.ALWAYS;
-    private TeamColor color;
+    private @NonNull NameTagVisibility nameTagVisibility = NameTagVisibility.ALWAYS;
+    private @Nullable TeamColor color;
 
-    private String name;
     private String prefix;
     private String suffix;
     private long lastUpdate;
@@ -58,11 +59,10 @@ public final class Team {
         Scoreboard scoreboard,
         String id,
         String[] players,
-        Component name,
         Component prefix,
         Component suffix,
         NameTagVisibility visibility,
-        TeamColor color
+        @Nullable TeamColor color
     ) {
         this.scoreboard = scoreboard;
         this.id = id;
@@ -71,7 +71,7 @@ public final class Team {
         this.lastUpdate = LAST_UPDATE_DEFAULT;
 
         // doesn't call entity update
-        updateProperties(name, prefix, suffix, visibility, color);
+        updateProperties(prefix, suffix, visibility, color);
         // calls entity update
         addEntities(players);
         lastUpdate = LAST_UPDATE_DEFAULT;
@@ -91,7 +91,7 @@ public final class Team {
                     // Java 1.19.3 Mojmap: Scoreboard#addPlayerToTeam calls #removePlayerFromTeam
                     oldTeam.entities.remove(player);
                     // also remove the managed entity if there is one
-                    removeManagedEntity(player);
+                    oldTeam.removeManagedEntity(player);
                 }
                 return this;
             });
@@ -122,13 +122,9 @@ public final class Team {
     }
 
     public String displayName(String score) {
-        String chatColor = ChatColor.chatColorFor(color);
-        // most sidebar plugins will use the reset color, because they don't want color
-        // skip the unneeded double reset color in that case
-        if (ChatColor.RESET.equals(chatColor)) {
-            chatColor = "";
-        }
-        // also add reset because setting the color does not reset the formatting, unlike Java
+        // Most sidebar plugins will not have a team color, because they don't want one.
+        String chatColor = color == null ? "" : ChatColor.chatColorFor(color);
+        // We should however add a reset because setting the color does not reset the formatting, unlike Java
         return chatColor + prefix + ChatColor.RESET + chatColor + score + ChatColor.RESET + chatColor + suffix;
     }
 
@@ -145,19 +141,17 @@ public final class Team {
         };
     }
 
-    public void updateProperties(Component name, Component prefix, Component suffix, NameTagVisibility visibility, TeamColor color) {
+    public void updateProperties(Component prefix, Component suffix, NameTagVisibility visibility, @Nullable TeamColor color) {
         // this shouldn't happen but hey!
         if (lastUpdate == LAST_UPDATE_REMOVE) {
             return;
         }
 
-        String oldName = this.name;
         String oldPrefix = this.prefix;
         String oldSuffix = this.suffix;
         boolean oldVisible = isVisibleFor(playerName());
         var oldColor = this.color;
 
-        this.name = MessageTranslator.convertMessageRaw(name, session().locale());
         this.prefix = MessageTranslator.convertMessageRaw(prefix, session().locale());
         this.suffix = MessageTranslator.convertMessageRaw(suffix, session().locale());
         // matches vanilla behaviour, the visibility is not reset (to ALWAYS) if it is null.
@@ -167,16 +161,7 @@ public final class Team {
         }
         this.color = color;
 
-        if (lastUpdate == LAST_UPDATE_DEFAULT) {
-            // addEntities is called after the initial updateProperties, so no need to do any entity updates here
-            if (this.color != TeamColor.RESET || !this.prefix.isEmpty() || !this.suffix.isEmpty()) {
-                markChanged();
-            }
-            return;
-        }
-
-        if (!this.name.equals(oldName)
-            || !this.prefix.equals(oldPrefix)
+        if (!this.prefix.equals(oldPrefix)
             || !this.suffix.equals(oldSuffix)
             || color != oldColor) {
             markChanged();
@@ -191,7 +176,7 @@ public final class Team {
         }
     }
 
-    public boolean shouldRemove() {
+    public boolean isRemoved() {
         return lastUpdate == LAST_UPDATE_REMOVE;
     }
 
@@ -199,7 +184,7 @@ public final class Team {
         if (lastUpdate == LAST_UPDATE_REMOVE) {
             return;
         }
-        lastUpdate = System.currentTimeMillis();
+        lastUpdate = scoreboard.nextUpdateId();
     }
 
     public void remove() {
@@ -249,7 +234,7 @@ public final class Team {
         }
         boolean containsSelf = names.contains(playerName());
 
-        for (Entity entity : session().getEntityCache().getEntities().values()) {
+        for (Entity entity : session().getEntityCache().getEntitiesUnsafe().values()) {
             if (names.contains(entity.teamIdentifier())) {
                 managedEntities.add(entity);
                 if (!containsSelf) {
@@ -294,7 +279,7 @@ public final class Team {
     }
 
     private void refreshAllEntities() {
-        for (Entity entity : session().getEntityCache().getEntities().values()) {
+        for (Entity entity : session().getEntityCache().getEntitiesUnsafe().values()) {
             entity.updateNametag(scoreboard.getTeamFor(entity.teamIdentifier()));
             entity.updateBedrockMetadata();
         }
@@ -312,7 +297,7 @@ public final class Team {
         return id;
     }
 
-    public TeamColor color() {
+    public @Nullable TeamColor color() {
         return color;
     }
 

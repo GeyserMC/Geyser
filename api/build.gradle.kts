@@ -8,6 +8,7 @@ plugins {
 dependencies {
     api(libs.base.api)
     api(libs.math)
+    api(libs.jetbrains.annotations)
 }
 
 version = property("version")!!

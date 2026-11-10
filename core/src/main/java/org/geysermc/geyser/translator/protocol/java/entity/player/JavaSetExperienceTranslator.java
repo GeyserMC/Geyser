@@ -49,7 +49,7 @@ public class JavaSetExperienceTranslator extends PacketTranslator<ClientboundSet
         entity.getAttributes().put(GeyserAttributeType.EXPERIENCE_LEVEL, experienceLevel);
 
         UpdateAttributesPacket attributesPacket = new UpdateAttributesPacket();
-        attributesPacket.setRuntimeEntityId(session.getPlayerEntity().getGeyserId());
+        attributesPacket.setRuntimeEntityId(session.getPlayerEntity().geyserId());
         attributesPacket.setAttributes(Arrays.asList(experience, experienceLevel));
         session.sendUpstreamPacket(attributesPacket);
     }

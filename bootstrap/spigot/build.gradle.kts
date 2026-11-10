@@ -4,6 +4,9 @@ plugins {
     alias(libs.plugins.runpaper)
 }
 
+// Kept off the compile classpath: Geyser compiles against an older API, so it keeps working on older servers
+val runServerPaperApi: Configuration by configurations.creating
+
 dependencies {
     api(projects.core)
     api(libs.erosion.bukkit.common) {
@@ -26,22 +29,50 @@ dependencies {
     implementation(libs.cloud.paper)
     implementation(libs.commodore)
 
-    implementation(libs.adventure.text.serializer.bungeecord)
-
     compileOnly(libs.folia.api)
 
     compileOnlyApi(libs.viaversion)
+
+    // For 1.16.5/1.17.1
+    implementation(libs.gson.record.factory) {
+        isTransitive = false
+    }
+
+    // Servers before 1.21.11 still bundle Netty 4.1, so the codecs we shade must be 4.1 too
+    // HTTP tends to be missing, just like haproxy, so we ship those
+    implementation(libs.netty.legacy.codec.http) {
+        version {
+            strictly(libs.versions.netty.legacy.get())
+        }
+    }
+    implementation(libs.netty.legacy.codec.haproxy) {
+        version {
+            strictly(libs.versions.netty.legacy.get())
+        }
+    }
+
+    // Test
+    testImplementation(platform("org.junit:junit-bom:6.0.0"))
+    testImplementation(libs.junit)
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+    testRuntimeOnly(libs.folia.api) // The API Geyser compiles against, to load its classes in tests
+
+    // Latest paper-api build of the runServer version, see PaperApiCompatibilityTest
+    runServerPaperApi("io.papermc.paper:paper-api:${libs.versions.runpaperversion.get()}.build.+")
 }
 
 platformRelocate("it.unimi.dsi.fastutil")
-platformRelocate("com.fasterxml.jackson")
 // Relocate net.kyori but exclude the component logger
 platformRelocate("net.kyori", "net.kyori.adventure.text.logger.slf4j.ComponentLogger")
 platformRelocate("org.objectweb.asm")
 platformRelocate("me.lucko.commodore")
 platformRelocate("org.incendo")
-platformRelocate("io.leangen.geantyref") // provided by cloud, should also be relocated
+platformRelocate("io.leangen.geantyref") // provided by cloud and Configurate, should also be relocated
 platformRelocate("org.yaml") // Broken as of 1.20
+platformRelocate("org.spongepowered")
+platformRelocate("marcono1234.gson")
+platformRelocate("org.bstats")
+
 provided(libs.viaversion)
 
 tasks.withType<Jar> {
@@ -60,8 +91,9 @@ tasks.withType<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar> {
     dependencies {
         exclude(dependency("com.google.*:.*"))
 
-        // Needed because older Spigot builds do not provide the haproxy module
-        exclude("io.netty", libs.netty.codec.haproxy)
+        // Netty is provided by the server, except for the haproxy module (missing on older Spigot builds)
+        // and the http codec (needed for built-in signaling)
+        exclude("io.netty", libs.netty.codec.haproxy, libs.netty.codec.http)
 
         // Commodore includes Brigadier
         exclude(dependency("com.mojang:.*"))
@@ -70,14 +102,25 @@ tasks.withType<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar> {
 
 modrinth {
     uploadFile.set(tasks.getByPath("shadowJar"))
-    gameVersions.addAll("1.16.5", "1.17", "1.17.1", "1.18", "1.18.1", "1.18.2", "1.19",
-        "1.19.1", "1.19.2", "1.19.3", "1.19.4", "1.20", "1.20.1", "1.20.2", "1.20.3", "1.20.4", "1.20.5", "1.20.6",
-        "1.21", "1.21.1", "1.21.2", "1.21.3", "1.21.4", "1.21.5", "1.21.6", "1.21.7", "1.21.8")
+    gameVersions.addAll("1.20.5", "1.20.6", "1.21", "1.21.1", "1.21.2", "1.21.3", "1.21.4",
+        "1.21.5", "1.21.6", "1.21.7", "1.21.8", "1.21.9", "1.21.10", "1.21.11", "26.1", "26.1.1", "26.1.2")
     loaders.addAll("spigot", "paper")
 }
 
 tasks {
     runServer {
         minecraftVersion(libs.versions.runpaperversion.get())
+        jvmArgs("-Dcom.mojang.eula.agree=true")
+    }
+
+    test {
+        useJUnitPlatform()
+        // Recent paper-api builds target a newer Java than Geyser, so the test JVM has to be able to load them
+        javaLauncher = project.javaToolchains.launcherFor { languageVersion = JavaLanguageVersion.of(25) }
+        inputs.files(runServerPaperApi)
+        // Resolved when the test runs, not while configuring
+        jvmArgumentProviders.add(CommandLineArgumentProvider {
+            listOf("-Dgeyser.runServerPaperApi=" + runServerPaperApi.asPath)
+        })
     }
 }

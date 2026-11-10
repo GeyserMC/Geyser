@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2026 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,7 +25,6 @@
 
 package org.geysermc.geyser.api.extension;
 
-import org.checkerframework.checker.nullness.qual.NonNull;
 
 import java.util.List;
 
@@ -39,7 +38,6 @@ public interface ExtensionDescription {
      *
      * @return the extension's id
      */
-    @NonNull
     String id();
 
     /**
@@ -47,7 +45,6 @@ public interface ExtensionDescription {
      *
      * @return the extension's name
      */
-    @NonNull
     String name();
 
     /**
@@ -55,7 +52,6 @@ public interface ExtensionDescription {
      *
      * @return the extension's main class
      */
-    @NonNull
     String main();
 
     /**
@@ -86,10 +82,12 @@ public interface ExtensionDescription {
     int minorApiVersion();
 
     /**
-     * No longer in use. Geyser is now using an adaption of the romantic versioning scheme.
+     * This method is deprecated for removal and will be removed in Geyser 2.13.0.
+     *
+     * @deprecated since 2.4.1: no longer in use. Geyser is now using an adaption of the romantic versioning scheme.
      * See <a href="https://github.com/geysermc/api/blob/master/geyser-versioning.md">here</a> for details.
      */
-    @Deprecated(forRemoval = true)
+    @Deprecated(since = "2.4.1", forRemoval = true)
     default int patchApiVersion() {
         return minorApiVersion();
     }
@@ -106,7 +104,6 @@ public interface ExtensionDescription {
      *
      * @return the extension's description
      */
-    @NonNull
     String version();
 
     /**
@@ -114,6 +111,5 @@ public interface ExtensionDescription {
      *
      * @return the extension's authors
      */
-    @NonNull
     List<String> authors();
 }

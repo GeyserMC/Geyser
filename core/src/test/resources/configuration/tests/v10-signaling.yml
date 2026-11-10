@@ -1,0 +1,17 @@
+bedrock:
+  transport: nethernet
+  signaling:
+    mode: hybrid
+    builtin:
+      advertise-addresses:
+      - 1.1.1.1
+      - ' play.example.com:19133 '
+    nxs:
+      advertise-addresses:
+      - play.example.com:19133
+      - 8.8.8.8:19133
+advanced:
+  nxs:
+    assisted-joins: true
+    stun-discovery: false
+config-version: 10

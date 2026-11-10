@@ -28,21 +28,16 @@ package org.geysermc.geyser.platform.spigot.world.manager;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
 import org.bukkit.block.Block;
-import org.bukkit.block.DecoratedPot;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 import org.cloudburstmc.math.vector.Vector3i;
-import org.geysermc.erosion.bukkit.BukkitUtils;
 import org.geysermc.erosion.bukkit.SchedulerUtils;
-import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.level.GameRule;
 import org.geysermc.geyser.level.WorldManager;
 import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.GameMode;
 
-import java.util.List;
-import java.util.Objects;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 
@@ -86,56 +81,14 @@ public class GeyserSpigotWorldManager extends WorldManager {
         return true;
     }
 
-    public boolean getGameRuleBool(GeyserSession session, GameRule gameRule) {
-        org.bukkit.GameRule<?> bukkitGameRule = org.bukkit.GameRule.getByName(gameRule.getJavaID());
-        if (bukkitGameRule == null) {
-            GeyserImpl.getInstance().getLogger().debug("Unknown game rule " + gameRule.getJavaID());
-            return gameRule.getDefaultBooleanValue();
-        }
-
-        Player bukkitPlayer = Objects.requireNonNull(Bukkit.getPlayer(session.getPlayerEntity().getUuid()));
-        Object value = bukkitPlayer.getWorld().getGameRuleValue(bukkitGameRule);
-        if (value instanceof Boolean booleanValue) {
-            return booleanValue;
-        }
-        GeyserImpl.getInstance().getLogger().debug("Expected a bool for " + gameRule + " but got " + value);
-        return gameRule.getDefaultBooleanValue();
-    }
-
-    @Override
-    public int getGameRuleInt(GeyserSession session, GameRule gameRule) {
-        org.bukkit.GameRule<?> bukkitGameRule = org.bukkit.GameRule.getByName(gameRule.getJavaID());
-        if (bukkitGameRule == null) {
-            GeyserImpl.getInstance().getLogger().debug("Unknown game rule " + gameRule.getJavaID());
-            return gameRule.getDefaultIntValue();
-        }
-        Player bukkitPlayer = Objects.requireNonNull(Bukkit.getPlayer(session.getPlayerEntity().getUuid()));
-        Object value = bukkitPlayer.getWorld().getGameRuleValue(bukkitGameRule);
-        if (value instanceof Integer intValue) {
-            return intValue;
-        }
-        GeyserImpl.getInstance().getLogger().debug("Expected an int for " + gameRule + " but got " + value);
-        return gameRule.getDefaultIntValue();
-    }
-
     @Override
     public GameMode getDefaultGameMode(GeyserSession session) {
         return GameMode.byId(Bukkit.getDefaultGameMode().ordinal());
     }
 
-    public void getDecoratedPotData(GeyserSession session, Vector3i pos, Consumer<List<String>> apply) {
-        Player bukkitPlayer;
-        if ((bukkitPlayer = Bukkit.getPlayer(session.getPlayerEntity().getUuid())) == null) {
-            return;
-        }
-        Block block = bukkitPlayer.getWorld().getBlockAt(pos.getX(), pos.getY(), pos.getZ());
-        SchedulerUtils.runTask(this.plugin, () -> {
-            var state = BukkitUtils.getBlockState(block);
-            if (!(state instanceof DecoratedPot pot)) {
-                return;
-            }
-            apply.accept(pot.getShards().stream().map(material -> material.getKey().toString()).toList());
-        }, block);
+    @Override
+    public void getDecoratedPotData(GeyserSession session, Vector3i pos, Consumer<Map<String, String>> apply) {
+        // FIXME 26.3
     }
 
     /**

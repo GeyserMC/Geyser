@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2024 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2026 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,22 +26,24 @@
 package org.geysermc.geyser.api.item.custom;
 
 import org.checkerframework.checker.index.qual.NonNegative;
-import org.checkerframework.checker.nullness.qual.NonNull;
-import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.api.GeyserApi;
+import org.jspecify.annotations.Nullable;
 
 import java.util.Set;
 
 /**
  * Represents a completely custom item that is not based on an existing vanilla Minecraft item.
+ *
+ * @deprecated since 2.9.3: use the new {@link org.geysermc.geyser.api.item.custom.v2.NonVanillaCustomItemDefinition}
  */
+@Deprecated(since = "2.9.3")
 public interface NonVanillaCustomItemData extends CustomItemData {
     /**
      * Gets the java identifier for this item.
      *
      * @return The java identifier for this item.
      */
-    @NonNull String identifier();
+    String identifier();
 
     /**
      * Gets the java item id of the item.
@@ -80,9 +82,11 @@ public interface NonVanillaCustomItemData extends CustomItemData {
     @Nullable String toolType();
 
     /**
-     * @deprecated no longer used
+     * This method is deprecated for removal and will be removed in Geyser 2.13.0.
+     *
+     * @deprecated since 2.6.0: no longer used
      */
-    @Deprecated(forRemoval = true)
+    @Deprecated(since = "2.6.0", forRemoval = true)
     @Nullable String toolTier();
 
     /**
@@ -107,9 +111,11 @@ public interface NonVanillaCustomItemData extends CustomItemData {
     @Nullable String translationString();
 
     /**
-     * @deprecated No longer used.
+     * This method is deprecated for removal and will be removed in Geyser 2.13.0.
+     *
+     * @deprecated since 2.6.0: no longer used.
      */
-    @Deprecated(forRemoval = true)
+    @Deprecated(since = "2.6.0", forRemoval = true)
     @Nullable Set<String> repairMaterials();
 
     /**
@@ -149,12 +155,14 @@ public interface NonVanillaCustomItemData extends CustomItemData {
     boolean isChargeable();
 
     /**
-     * @deprecated Use {@link #displayHandheld()} instead.
      * Gets if the item is a tool. This is used to set the render type of the item, if the item is handheld.
      *
+     * <p>This method is deprecated for removal and will be removed in Geyser 2.13.0.</p>
+     *
+     * @deprecated since 2.1.0: Use {@link #displayHandheld()} instead.
      * @return if the item is a tool
      */
-    @Deprecated
+    @Deprecated(since = "2.1.0", forRemoval = true)
     default boolean isTool() {
         return displayHandheld();
     }
@@ -172,9 +180,9 @@ public interface NonVanillaCustomItemData extends CustomItemData {
 
     interface Builder extends CustomItemData.Builder {
         @Override
-        Builder name(@NonNull String name);
+        Builder name(String name);
 
-        Builder identifier(@NonNull String identifier);
+        Builder identifier(String identifier);
 
         Builder javaId(@NonNegative int javaId);
 
@@ -186,6 +194,10 @@ public interface NonVanillaCustomItemData extends CustomItemData {
 
         Builder toolType(@Nullable String toolType);
 
+        /**
+         * This method is deprecated for removal and will be removed in Geyser 2.13.0.
+         */
+        @Deprecated(since = "2.6.0", forRemoval = true)
         Builder toolTier(@Nullable String toolTier);
 
         Builder armorType(@Nullable String armorType);
@@ -194,6 +206,10 @@ public interface NonVanillaCustomItemData extends CustomItemData {
 
         Builder translationString(@Nullable String translationString);
 
+        /**
+         * This method is deprecated for removal and will be removed in Geyser 2.13.0.
+         */
+        @Deprecated(since = "2.6.0", forRemoval = true)
         Builder repairMaterials(@Nullable Set<String> repairMaterials);
 
         Builder hat(boolean isHat);
@@ -209,9 +225,11 @@ public interface NonVanillaCustomItemData extends CustomItemData {
         Builder block(String block);
 
         /**
+         * This method is deprecated for removal and will be removed in Geyser 2.13.0.
+         *
          * @deprecated Use {@link #displayHandheld(boolean)} instead.
          */
-        @Deprecated
+        @Deprecated(since = "2.1.0", forRemoval = true)
         default Builder tool(boolean isTool) {
             return displayHandheld(isTool);
         }
@@ -223,13 +241,13 @@ public interface NonVanillaCustomItemData extends CustomItemData {
         Builder creativeGroup(@Nullable String creativeGroup);
 
         @Override
-        Builder customItemOptions(@NonNull CustomItemOptions customItemOptions);
+        Builder customItemOptions(CustomItemOptions customItemOptions);
 
         @Override
-        Builder displayName(@NonNull String displayName);
+        Builder displayName(String displayName);
 
         @Override
-        Builder icon(@NonNull String icon);
+        Builder icon(String icon);
 
         @Override
         Builder allowOffhand(boolean allowOffhand);
@@ -237,9 +255,11 @@ public interface NonVanillaCustomItemData extends CustomItemData {
         @Override
         Builder displayHandheld(boolean displayHandheld);
 
+        @Deprecated(since = "2.9.2")
         @Override
         Builder textureSize(int textureSize);
 
+        @Deprecated(since = "2.9.2")
         @Override
         Builder renderOffsets(@Nullable CustomRenderOffsets renderOffsets);
 

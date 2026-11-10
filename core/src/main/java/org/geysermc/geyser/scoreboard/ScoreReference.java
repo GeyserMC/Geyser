@@ -31,8 +31,10 @@ import org.geysermc.geyser.translator.text.MessageTranslator;
 import org.geysermc.mcprotocollib.protocol.data.game.chat.numbers.NumberFormat;
 
 public final class ScoreReference {
-    public static final long LAST_UPDATE_DEFAULT = -1;
+    private static final long LAST_UPDATE_DEFAULT = -1;
     private static final long LAST_UPDATE_REMOVE = -2;
+
+    private final Scoreboard scoreboard;
 
     private final String name;
     private final boolean hidden;
@@ -43,13 +45,14 @@ public final class ScoreReference {
 
     private long lastUpdate;
 
-    public ScoreReference(
-        Scoreboard scoreboard, String name, int score, Component displayName, NumberFormat format) {
+    public ScoreReference(Scoreboard scoreboard, String name, int score, Component displayName, NumberFormat format) {
+        this.scoreboard = scoreboard;
+
         this.name = name;
         // hidden is a sidebar exclusive feature
         this.hidden = name.startsWith("#");
 
-        updateProperties(scoreboard, score, displayName, format);
+        updateProperties(score, displayName, format);
         this.lastUpdate = LAST_UPDATE_DEFAULT;
     }
 
@@ -65,9 +68,9 @@ public final class ScoreReference {
         return displayName;
     }
 
-    public void displayName(Component displayName, Scoreboard scoreboard) {
+    private void displayName(Component displayName) {
         if (this.displayName != null && displayName != null) {
-            String convertedDisplayName = MessageTranslator.convertMessage(displayName, scoreboard.session().locale());
+            String convertedDisplayName = MessageTranslator.convertMessageRaw(displayName, scoreboard.session().locale());
             if (!this.displayName.equals(convertedDisplayName)) {
                 this.displayName = convertedDisplayName;
                 markChanged();
@@ -76,7 +79,7 @@ public final class ScoreReference {
         }
         // simplified from (this.displayName != null && displayName == null) || (this.displayName == null && displayName != null)
         if (this.displayName != null || displayName != null) {
-            this.displayName = MessageTranslator.convertMessage(displayName, scoreboard.session().locale());
+            this.displayName = MessageTranslator.convertMessageRaw(displayName, scoreboard.session().locale());
             markChanged();
         }
     }
@@ -105,9 +108,9 @@ public final class ScoreReference {
         markChanged();
     }
 
-    public void updateProperties(Scoreboard scoreboard, int score, Component displayName, NumberFormat numberFormat) {
+    public void updateProperties(int score, Component displayName, NumberFormat numberFormat) {
         score(score);
-        displayName(displayName, scoreboard);
+        displayName(displayName);
         numberFormat(numberFormat);
     }
 
@@ -123,10 +126,10 @@ public final class ScoreReference {
         if (lastUpdate == LAST_UPDATE_REMOVE) {
             return;
         }
-        lastUpdate = System.currentTimeMillis();
+        lastUpdate = scoreboard.nextUpdateId();
     }
 
     public void markDeleted() {
-        lastUpdate = -1;
+        lastUpdate = LAST_UPDATE_REMOVE;
     }
 }

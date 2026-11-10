@@ -73,7 +73,7 @@ public final class BlockStateValues {
      * @return true if a piston can break the block
      */
     public static boolean canPistonDestroyBlock(BlockState state)  {
-        return state.block().pushReaction() == PistonBehavior.DESTROY;
+        return state.block().pushReaction() == PistonBehavior.POPPED;
     }
 
     public static boolean canPistonMoveBlock(BlockState state, boolean isPushing) {
@@ -93,8 +93,8 @@ public final class BlockStateValues {
             return false;
         }
         return switch (block.pushReaction()) {
-            case BLOCK, DESTROY -> false;
-            case PUSH_ONLY -> isPushing; // Glazed terracotta can only be pushed
+            case IMMOVEABLE, POPPED -> false;
+            case PUSH -> isPushing; // Glazed terracotta can only be pushed
             default -> !block.hasBlockEntity(); // Pistons can't move block entities
         };
     }

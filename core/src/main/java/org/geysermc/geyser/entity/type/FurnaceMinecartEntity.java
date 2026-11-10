@@ -25,24 +25,20 @@
 
 package org.geysermc.geyser.entity.type;
 
-import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
-import org.geysermc.geyser.entity.EntityDefinition;
+import org.geysermc.geyser.entity.spawn.EntitySpawnContext;
 import org.geysermc.geyser.level.block.Blocks;
 import org.geysermc.geyser.level.block.property.Properties;
 import org.geysermc.geyser.level.block.type.BlockState;
-import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.util.InteractionResult;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.BooleanEntityMetadata;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.Hand;
 
-import java.util.UUID;
-
 public class FurnaceMinecartEntity extends DefaultBlockMinecartEntity {
     private boolean hasFuel = false;
 
-    public FurnaceMinecartEntity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
-        super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
+    public FurnaceMinecartEntity(EntitySpawnContext context) {
+        super(context);
     }
 
     public void setHasFuel(BooleanEntityMetadata entityMetadata) {
@@ -54,8 +50,8 @@ public class FurnaceMinecartEntity extends DefaultBlockMinecartEntity {
     @Override
     public void updateDefaultBlockMetadata() {
         BlockState furnace = Blocks.FURNACE.defaultBlockState().withValue(Properties.LIT, hasFuel);
-        dirtyMetadata.put(EntityDataTypes.DISPLAY_BLOCK_STATE, session.getBlockMappings().getBedrockBlock(furnace));
-        dirtyMetadata.put(EntityDataTypes.DISPLAY_OFFSET, 6);
+        metadata.put(EntityDataTypes.DISPLAY_BLOCK_STATE, session.getBlockMappings().getBedrockBlock(furnace));
+        metadata.put(EntityDataTypes.DISPLAY_OFFSET, 6);
     }
 
     @Override

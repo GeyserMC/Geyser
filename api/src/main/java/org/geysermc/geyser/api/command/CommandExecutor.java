@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2026 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,8 +25,6 @@
 
 package org.geysermc.geyser.api.command;
 
-import org.checkerframework.checker.nullness.qual.NonNull;
-
 /**
  * Handles executing a command.
  *
@@ -41,5 +39,5 @@ public interface CommandExecutor<T extends CommandSource> {
      * @param command the command
      * @param args the arguments
      */
-    void execute(@NonNull T source, @NonNull Command command, @NonNull String[] args);
+    void execute(T source, Command command, String[] args);
 }

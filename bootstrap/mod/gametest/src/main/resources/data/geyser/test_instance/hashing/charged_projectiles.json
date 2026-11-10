@@ -1,0 +1,27 @@
+{
+  "type": "geyser:component_hash",
+  "component": "minecraft:charged_projectiles",
+  "value": [
+    [],
+    [
+      {
+        "id": "minecraft:arrow"
+      }
+    ],
+    [
+      {
+        "id": "minecraft:spectral_arrow",
+        "count": 5
+      }
+    ],
+    [
+      {
+        "id": "minecraft:arrow"
+      },
+      {
+        "id": "minecraft:firework_rocket",
+        "count": 10
+      }
+    ]
+  ]
+}

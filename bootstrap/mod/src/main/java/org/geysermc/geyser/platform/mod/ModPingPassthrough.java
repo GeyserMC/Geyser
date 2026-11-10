@@ -43,6 +43,7 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.GeyserLogger;
 import org.geysermc.geyser.ping.GeyserPingInfo;
 import org.geysermc.geyser.ping.IGeyserPingPassthrough;
+import org.jspecify.annotations.NonNull;
 
 import java.net.InetSocketAddress;
 import java.util.Objects;
@@ -94,9 +95,9 @@ public class ModPingPassthrough implements IGeyserPingPassthrough {
         }
 
         @Override
-        public void send(Packet<?> packet, @Nullable ChannelFutureListener channelFutureListener, boolean bl) {
-            if (packet instanceof ClientboundStatusResponsePacket statusResponse) {
-                status = statusResponse.status();
+        public void send(@NonNull Packet<?> packet, @Nullable ChannelFutureListener channelFutureListener, boolean bl) {
+            if (packet instanceof ClientboundStatusResponsePacket(ServerStatus serverStatus)) {
+                status = serverStatus;
             }
             super.send(packet, channelFutureListener, bl);
         }

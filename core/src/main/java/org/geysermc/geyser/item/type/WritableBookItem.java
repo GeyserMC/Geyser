@@ -59,7 +59,8 @@ public class WritableBookItem extends Item {
         for (Filterable<String> page : bookContent.getPages()) {
             NbtMapBuilder pageBuilder = NbtMap.builder();
             pageBuilder.putString("photoname", "");
-            pageBuilder.putString("text", MessageTranslator.convertMessageLenient(page.getRaw()));
+            // **Writable** books don't contain text components, but their string can contain formatting codes
+            pageBuilder.putString("text", MessageTranslator.convertLegacyMessage(session, page.getRaw()));
             bedrockPages.add(pageBuilder.build());
         }
 

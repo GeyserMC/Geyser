@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2026 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -27,24 +27,24 @@ package org.geysermc.geyser.entity.type;
 
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.packet.AddPaintingPacket;
-import org.geysermc.geyser.entity.EntityDefinition;
+import org.geysermc.geyser.entity.spawn.EntitySpawnContext;
 import org.geysermc.geyser.level.PaintingType;
-import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.geyser.session.cache.registry.JavaRegistries;
+import org.geysermc.geyser.registry.java.JavaRegistries;
 import org.geysermc.mcprotocollib.protocol.data.game.Holder;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.PaintingVariant;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.ObjectEntityMetadata;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.object.Direction;
 
-import java.util.UUID;
+import java.util.Optional;
 
 public class PaintingEntity extends HangingEntity {
-    private static final double OFFSET = -0.46875;
+    private static final double BIG_OFFSET = 31.0 / 32.0;
+    private static final double LITTLE_OFFSET = 1.0 / 32.0;
     private int paintingId = -1; // Ideally this would be the default painting Java uses in their metadata, but seems to depend on the current paintings loaded in the registry
     private Direction direction = Direction.SOUTH; // Default to SOUTH direction, like on Java - entity metadata should correct this when necessary
 
-    public PaintingEntity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
-        super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
+    public PaintingEntity(EntitySpawnContext context) {
+        super(context);
     }
 
     @Override
@@ -73,16 +73,16 @@ public class PaintingEntity extends HangingEntity {
             despawnEntity();
         }
 
-        PaintingType type = session.getRegistryCache().registry(JavaRegistries.PAINTING_VARIANT).byId(paintingId);
-        if (type == null) {
+        Optional<PaintingType> type = JavaRegistries.PAINTING_VARIANT.get(session.javaRegistries(), paintingId);
+        if (type.isEmpty()) {
             return;
         }
 
         AddPaintingPacket addPaintingPacket = new AddPaintingPacket();
         addPaintingPacket.setUniqueEntityId(geyserId);
         addPaintingPacket.setRuntimeEntityId(geyserId);
-        addPaintingPacket.setMotive(type.getBedrockName());
-        addPaintingPacket.setPosition(fixOffset(type));
+        addPaintingPacket.setMotive(type.get().getBedrockName());
+        addPaintingPacket.setPosition(fixOffset(type.get()));
         addPaintingPacket.setDirection(switch (direction) {
             //TODO this doesn't seem right. Why did it work fine before?
             case SOUTH -> 0;
@@ -105,19 +105,23 @@ public class PaintingEntity extends HangingEntity {
 
     private Vector3f fixOffset(PaintingType paintingName) {
         Vector3f position = super.position;
-        // ViaVersion already adds the offset for us on older versions,
-        // so no need to do it then otherwise it will be spaced
-        if (session.isEmulatePost1_18Logic()) {
-            position = position.add(0.5, 0.5, 0.5);
+        // ViaVersion adds a 0.5 offset on pre-1.19 servers
+        // We have to undo this to have it line up correctly
+        if (!session.isEmulatePost1_18Logic()) {
+            position = position.sub(0.5, 0.5, 0.5);
         }
-        double widthOffset = paintingName.getWidth() > 1 && paintingName.getWidth() != 3 ? 0.5 : 0;
-        double heightOffset = paintingName.getHeight() > 1 && paintingName.getHeight() != 3 ? 0.5 : 0;
+
+        // Yeah, I don't know either. I just did a lot of testing for this.
+        boolean widthIsEven = paintingName.getWidth() % 2 == 0;
+        double southXWestZOffset = widthIsEven ? 1.0 : 0.5;
+        double northXEastZOffset = widthIsEven ? 0.0 : 0.5;
+        double heightOffset = paintingName.getHeight() % 2 == 0 ? 1.0 : 0.5;
 
         return switch (direction) {
-            case SOUTH -> position.add(widthOffset, heightOffset, OFFSET);
-            case WEST -> position.add(-OFFSET, heightOffset, widthOffset);
-            case NORTH -> position.add(-widthOffset, heightOffset, -OFFSET);
-            case EAST -> position.add(OFFSET, heightOffset, -widthOffset);
+            case SOUTH -> position.add(southXWestZOffset, heightOffset, LITTLE_OFFSET);
+            case WEST -> position.add(BIG_OFFSET, heightOffset, southXWestZOffset);
+            case NORTH -> position.add(northXEastZOffset, heightOffset, BIG_OFFSET);
+            case EAST -> position.add(LITTLE_OFFSET, heightOffset, northXEastZOffset);
             default -> position;
         };
     }

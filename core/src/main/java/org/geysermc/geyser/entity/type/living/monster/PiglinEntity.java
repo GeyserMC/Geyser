@@ -26,16 +26,14 @@
 package org.geysermc.geyser.entity.type.living.monster;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
-import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerId;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
 import org.cloudburstmc.protocol.bedrock.packet.MobEquipmentPacket;
-import org.geysermc.geyser.entity.EntityDefinition;
+import org.geysermc.geyser.entity.spawn.EntitySpawnContext;
 import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.item.Items;
-import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.cache.tags.ItemTag;
 import org.geysermc.geyser.util.InteractionResult;
 import org.geysermc.geyser.util.InteractiveTag;
@@ -43,12 +41,10 @@ import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.Boolea
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.Hand;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentTypes;
 
-import java.util.UUID;
-
 public class PiglinEntity extends BasePiglinEntity {
 
-    public PiglinEntity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
-        super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
+    public PiglinEntity(EntitySpawnContext context) {
+        super(context);
     }
 
     public void setBaby(BooleanEntityMetadata entityMetadata) {
@@ -62,7 +58,7 @@ public class PiglinEntity extends BasePiglinEntity {
     public void setChargingCrossbow(BooleanEntityMetadata entityMetadata) {
         boolean charging = entityMetadata.getPrimitiveValue();
         setFlag(EntityFlag.CHARGING, charging);
-        dirtyMetadata.put(EntityDataTypes.CHARGE_AMOUNT, charging ? (byte) 64 : (byte) 0); // TODO: gradually increase
+        metadata.put(EntityDataTypes.CHARGE_AMOUNT, charging ? (byte) 64 : (byte) 0); // TODO: gradually increase
     }
 
     public void setDancing(BooleanEntityMetadata entityMetadata) {
@@ -74,8 +70,8 @@ public class PiglinEntity extends BasePiglinEntity {
         boolean toCrossbow = stack != null && stack.is(Items.CROSSBOW);
 
         if (toCrossbow ^ getMainHandItem().is(Items.CROSSBOW)) { // If switching to/from crossbow
-            dirtyMetadata.put(EntityDataTypes.BLOCK, session.getBlockMappings().getDefinition(toCrossbow ? 0 : 1));
-            dirtyMetadata.put(EntityDataTypes.CHARGE_AMOUNT, (byte) 0);
+            metadata.put(EntityDataTypes.BLOCK, session.getBlockMappings().getDefinition(toCrossbow ? 0 : 1));
+            metadata.put(EntityDataTypes.CHARGE_AMOUNT, (byte) 0);
             setFlag(EntityFlag.CHARGED, false);
             setFlag(EntityFlag.USING_ITEM, false);
             updateBedrockMetadata();
@@ -100,12 +96,12 @@ public class PiglinEntity extends BasePiglinEntity {
 
         if (getMainHandItem().is(Items.CROSSBOW)) {
             if (getMainHandItem().getComponent(DataComponentTypes.CHARGED_PROJECTILES) != null) {
-                dirtyMetadata.put(EntityDataTypes.CHARGE_AMOUNT, Byte.MAX_VALUE);
+                metadata.put(EntityDataTypes.CHARGE_AMOUNT, Byte.MAX_VALUE);
                 setFlag(EntityFlag.CHARGING, false);
                 setFlag(EntityFlag.CHARGED, true);
                 setFlag(EntityFlag.USING_ITEM, true);
             } else if (getFlag(EntityFlag.CHARGED)) {
-                dirtyMetadata.put(EntityDataTypes.CHARGE_AMOUNT, (byte) 0);
+                metadata.put(EntityDataTypes.CHARGE_AMOUNT, (byte) 0);
                 setFlag(EntityFlag.CHARGED, false);
                 setFlag(EntityFlag.USING_ITEM, false);
             }

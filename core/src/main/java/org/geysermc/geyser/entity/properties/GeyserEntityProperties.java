@@ -31,7 +31,6 @@ import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import org.checkerframework.checker.nullness.qual.NonNull;
-import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.nbt.NbtType;
@@ -50,13 +49,8 @@ public class GeyserEntityProperties {
 
     private final static Pattern ENTITY_PROPERTY_PATTERN = Pattern.compile("^[a-z0-9_.:-]*:[a-z0-9_.:-]*$");
 
-    private final ObjectArrayList<PropertyType<?, ?>> properties;
-    private final Object2IntMap<String> propertyIndices;
-
-    private GeyserEntityProperties() {
-        this.properties = new ObjectArrayList<>();
-        this.propertyIndices = new Object2IntOpenHashMap<>();
-    }
+    private ObjectArrayList<PropertyType<?, ?>> properties;
+    private Object2IntMap<String> propertyIndices;
 
     public NbtMap toNbtMap(String entityType) {
         NbtMapBuilder mapBuilder = NbtMap.builder();
@@ -73,6 +67,11 @@ public class GeyserEntityProperties {
     public <T> void add(String entityType, @NonNull PropertyType<T, ? extends EntityProperty> property) {
         if (!Registries.BEDROCK_ENTITY_PROPERTIES.get().isEmpty()) {
             throw new IllegalStateException("Cannot add properties outside the GeyserDefineEntityProperties event!");
+        }
+
+        if (properties == null || propertyIndices == null) {
+            this.properties = new ObjectArrayList<>(0);
+            this.propertyIndices = new Object2IntOpenHashMap<>(0);
         }
 
         if (this.properties.size() > 32) {
@@ -94,7 +93,11 @@ public class GeyserEntityProperties {
     }
 
     public @NonNull List<PropertyType<?, ?>> getProperties() {
-        return properties;
+        return properties == null ? List.of() : properties;
+    }
+
+    public boolean isEmpty() {
+        return properties == null || properties.isEmpty();
     }
 
     public int getPropertyIndex(String name) {
@@ -102,7 +105,7 @@ public class GeyserEntityProperties {
     }
 
     public static class Builder {
-        private GeyserEntityProperties properties;
+        private GeyserEntityProperties properties = new GeyserEntityProperties();
         private final String identifier;
 
         public Builder(String identifier) {
@@ -118,7 +121,7 @@ public class GeyserEntityProperties {
             return this;
         }
 
-        public @Nullable GeyserEntityProperties build() {
+        public @NonNull GeyserEntityProperties build() {
             return properties;
         }
     }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2026 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,11 +21,9 @@
  *
  * @author GeyserMC
  * @link https://github.com/GeyserMC/Geyser
-*/
+ */
 
 package org.geysermc.geyser.api.block.custom.component;
-
-import org.checkerframework.checker.nullness.qual.NonNull;
 
 import java.util.LinkedHashMap;
 import java.util.Set;
@@ -36,7 +34,7 @@ import java.util.Set;
  * @param allowedFaces The faces that the block can be placed on
  * @param blockFilters The block filters that control what blocks the block can be placed on
  */
-public record PlacementConditions(@NonNull Set<Face> allowedFaces, @NonNull LinkedHashMap<String, BlockFilterType> blockFilters) {
+public record PlacementConditions(Set<Face> allowedFaces, LinkedHashMap<String, BlockFilterType> blockFilters) {
     public enum Face {
         DOWN,
         UP,

@@ -27,7 +27,6 @@ package org.geysermc.geyser.translator.protocol.java;
 
 import org.geysermc.mcprotocollib.protocol.data.game.advancement.Advancement;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.ClientboundUpdateAdvancementsPacket;
-import org.cloudburstmc.protocol.bedrock.packet.ToastRequestPacket;
 import org.geysermc.geyser.level.GeyserAdvancement;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.cache.AdvancementsCache;
@@ -58,7 +57,11 @@ public class JavaUpdateAdvancementsTranslator extends PacketTranslator<Clientbou
 
         // Adds advancements to the player's stored advancements when advancements are sent
         for (Advancement advancement : packet.getAdvancements()) {
-            if (advancement.getDisplayData() != null && (!advancement.getDisplayData().isHidden() || advancement.getDisplayData().isShowToast())) {
+            // The Java server already evaluates visibility and only syncs advancements the client
+            // should see - a hidden advancement is only sent once it is completed. Filtering hidden
+            // ones out here made completed hidden advancements vanish from the list. Unearned hidden
+            // entries from legacy servers are filtered when the form is built instead.
+            if (advancement.getDisplayData() != null) {
                 GeyserAdvancement geyserAdvancement = GeyserAdvancement.from(advancement);
                 advancementsCache.getStoredAdvancements().put(advancement.getId(), geyserAdvancement);
             } else {
@@ -85,10 +88,7 @@ public class JavaUpdateAdvancementsTranslator extends PacketTranslator<Clientbou
                     String frameTitle = advancement.getDisplayColor() + MinecraftLocale.getLocaleString("advancements.toast." + frameType, session.locale());
                     String advancementName = MessageTranslator.convertMessage(advancement.getDisplayData().getTitle(), session.locale());
 
-                    ToastRequestPacket toastRequestPacket = new ToastRequestPacket();
-                    toastRequestPacket.setTitle(frameTitle);
-                    toastRequestPacket.setContent(advancementName);
-                    session.sendUpstreamPacket(toastRequestPacket);
+                    session.sendToast(frameTitle, advancementName);
                 }
             }
         }

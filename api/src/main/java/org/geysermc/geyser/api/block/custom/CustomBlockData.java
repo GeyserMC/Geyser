@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2026 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,12 +25,11 @@
 
 package org.geysermc.geyser.api.block.custom;
 
-import org.checkerframework.checker.nullness.qual.NonNull;
-import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.api.GeyserApi;
 import org.geysermc.geyser.api.block.custom.component.CustomBlockComponents;
 import org.geysermc.geyser.api.block.custom.property.CustomBlockProperty;
 import org.geysermc.geyser.api.util.CreativeCategory;
+import org.jspecify.annotations.Nullable;
 
 import java.util.List;
 import java.util.Map;
@@ -44,14 +43,14 @@ public interface CustomBlockData {
      *
      * @return The name of the custom block.
      */
-    @NonNull String name();
+    String name();
 
     /**
      * Gets the identifier of the custom block
      *
      * @return The identifier of the custom block.
      */
-    @NonNull String identifier();
+    String identifier();
 
     /**
      * Gets if the custom block is included in the creative inventory
@@ -87,28 +86,28 @@ public interface CustomBlockData {
      *
      * @return The custom block's map of block property names to CustomBlockProperty objects.
      */
-    @NonNull Map<String, CustomBlockProperty<?>> properties();
+    Map<String, CustomBlockProperty<?>> properties();
 
     /**
      * Gets the list of the custom block's permutations
      *
      * @return The permutations of the custom block.
      */
-    @NonNull List<CustomBlockPermutation> permutations();
+    List<CustomBlockPermutation> permutations();
 
     /**
      * Gets the custom block's default block state
      *
      * @return The default block state of the custom block.
      */
-    @NonNull CustomBlockState defaultBlockState();
+    CustomBlockState defaultBlockState();
 
     /**
      * Gets a builder for a custom block state
      *
      * @return The builder for a custom block state.
      */
-    CustomBlockState.@NonNull Builder blockStateBuilder();
+    CustomBlockState.Builder blockStateBuilder();
 
     /**
      * Create a Builder for CustomBlockData
@@ -120,7 +119,7 @@ public interface CustomBlockData {
     }
 
     interface Builder {
-        Builder name(@NonNull String name);
+        Builder name(String name);
 
         Builder includedInCreativeInventory(boolean includedInCreativeInventory);
 
@@ -128,15 +127,15 @@ public interface CustomBlockData {
 
         Builder creativeGroup(@Nullable String creativeGroup);
 
-        Builder components(@NonNull CustomBlockComponents components);
+        Builder components(CustomBlockComponents components);
 
-        Builder booleanProperty(@NonNull String propertyName);
+        Builder booleanProperty(String propertyName);
 
-        Builder intProperty(@NonNull String propertyName, List<Integer> values);
+        Builder intProperty(String propertyName, List<Integer> values);
 
-        Builder stringProperty(@NonNull String propertyName, List<String> values);
+        Builder stringProperty(String propertyName, List<String> values);
 
-        Builder permutations(@NonNull List<CustomBlockPermutation> permutations);
+        Builder permutations(List<CustomBlockPermutation> permutations);
 
         CustomBlockData build();
     }

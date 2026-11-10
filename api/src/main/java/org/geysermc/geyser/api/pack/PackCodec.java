@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2023 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2026 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,7 +25,6 @@
 
 package org.geysermc.geyser.api.pack;
 
-import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.api.GeyserApi;
 
 import java.io.IOException;
@@ -45,7 +44,7 @@ public abstract class PackCodec {
      * @return the hash of the resource pack
      * @since 2.1.1
      */
-    public abstract byte @NonNull [] sha256();
+    public abstract byte[] sha256();
 
     /**
      * Gets the resource pack size.
@@ -56,13 +55,14 @@ public abstract class PackCodec {
     public abstract long size();
 
     /**
-     * @deprecated use {@link #serialize()} instead.
+     * This method is deprecated for removal and will be removed in Geyser 2.13.0.
+     *
+     * @deprecated since 2.6.2: use {@link #serialize()} instead.
      */
-    @Deprecated
-    @NonNull
-    public SeekableByteChannel serialize(@NonNull ResourcePack resourcePack) throws IOException {
+    @Deprecated(since = "2.6.2", forRemoval = true)
+    public SeekableByteChannel serialize(ResourcePack resourcePack) throws IOException {
         return serialize();
-    };
+    }
 
     /**
      * Serializes the given codec into a byte buffer.
@@ -70,7 +70,6 @@ public abstract class PackCodec {
      * @return the serialized resource pack
      * @since 2.6.2
      */
-    @NonNull
     public abstract SeekableByteChannel serialize() throws IOException;
 
     /**
@@ -79,7 +78,6 @@ public abstract class PackCodec {
      * @return the new resource pack
      * @since 2.1.1
      */
-    @NonNull
     protected abstract ResourcePack create();
 
     /**
@@ -88,7 +86,7 @@ public abstract class PackCodec {
      * @return the new resource pack builder
      * @since 2.6.2
      */
-    protected abstract ResourcePack.@NonNull Builder createBuilder();
+    protected abstract ResourcePack.Builder createBuilder();
 
     /**
      * Creates a new pack provider from the given path.
@@ -97,8 +95,7 @@ public abstract class PackCodec {
      * @return the new pack provider
      * @since 2.1.1
      */
-    @NonNull
-    public static PackCodec path(@NonNull Path path) {
+    public static PackCodec path(Path path) {
         return GeyserApi.api().provider(PathPackCodec.class, path);
     }
 
@@ -109,8 +106,7 @@ public abstract class PackCodec {
      * @return the new pack provider
      * @since 2.6.2
      */
-    @NonNull
-    public static PackCodec url(@NonNull String url) {
+    public static PackCodec url(String url) {
         return GeyserApi.api().provider(UrlPackCodec.class, url);
     }
 }

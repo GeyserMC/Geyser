@@ -1,0 +1,37 @@
+{
+  "type": "geyser:component_hash",
+  "component": "minecraft:use_remainder",
+  "value": [
+    {
+      "id": "minecraft:bowl",
+      "count": 1
+    },
+    {
+      "id": "minecraft:stick",
+      "count": 15
+    },
+    {
+      "id": "minecraft:diamond",
+      "count": 1,
+      "components": {}
+    },
+    {
+      "id": "minecraft:emerald",
+      "count": 5,
+      "components": {
+        "minecraft:enchantment_glint_override": true,
+        "minecraft:item_name": {
+          "text": "A very cool diamond, sponsored by Geyser!",
+          "color": "#00ff0a"
+        }
+      }
+    },
+    {
+      "id": "minecraft:enchanted_golden_apple",
+      "count": 64,
+      "components": {
+        "!minecraft:enchantment_glint_override": {}
+      }
+    }
+  ]
+}

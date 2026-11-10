@@ -25,18 +25,31 @@
 
 package org.geysermc.geyser.entity.type.living.monster;
 
-import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
-import org.geysermc.geyser.entity.EntityDefinition;
-import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.entity.spawn.EntitySpawnContext;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.ByteEntityMetadata;
 
-import java.util.UUID;
+import java.util.EnumMap;
 
 public class SpiderEntity extends MonsterEntity {
 
-    public SpiderEntity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
-        super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
+    public SpiderEntity(EntitySpawnContext context) {
+        super(context);
+    }
+
+    @Override
+    protected void initializeMetadata() {
+        super.initializeMetadata();
+        // Allow red eyes to show when invisible
+        setFlag(EntityFlag.RENDER_WHEN_INVISIBLE, true);
+    }
+
+    @Override
+    protected EnumMap<EntityFlag, Boolean> spectateHiddenFlags() {
+        // The red eyes use RENDER_WHEN_INVISIBLE, so hide them too while this spider is being spectated
+        EnumMap<EntityFlag, Boolean> overridden = super.spectateHiddenFlags();
+        overridden.put(EntityFlag.RENDER_WHEN_INVISIBLE, false);
+        return overridden;
     }
 
     public void setSpiderFlags(ByteEntityMetadata entityMetadata) {

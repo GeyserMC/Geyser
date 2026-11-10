@@ -27,21 +27,37 @@ package org.geysermc.geyser.registry.populator.conversion;
 
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
+import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.registry.populator.BlockRegistryPopulator;
 
 // A variety of methods to help with re-mapping blocks and items to older versions.
 public class ConversionHelper {
 
     static NbtMap withName(NbtMap tag, String name) {
+        return withId(tag, "minecraft:" + name);
+    }
+
+    static NbtMap withId(NbtMap tag, String id) {
         NbtMapBuilder builder = tag.toBuilder();
-        builder.replace("name", "minecraft:" + name);
+        builder.replace("name", id);
         return builder.build();
     }
 
-    static NbtMap withoutStates(String name) {
+    static NbtMap withoutStates(String id) {
         NbtMapBuilder tagBuilder = NbtMap.builder();
-        tagBuilder.putString("name", "minecraft:" + name);
+        tagBuilder.putString("name", id);
         tagBuilder.putCompound("states", NbtMap.EMPTY);
         return tagBuilder.build();
     }
 
+    static NbtMap removeStates(NbtMap map, String firstState, String... otherStates) {
+        NbtMapBuilder builder = map.toBuilder();
+        NbtMapBuilder states = map.getCompound("states").toBuilder();
+        states.remove(firstState);
+        for (String otherState : otherStates) {
+            states.remove(otherState);
+        }
+        builder.putCompound("states", states.build());
+        return builder.build();
+    }
 }

@@ -33,16 +33,17 @@ import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenCustomHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectIntPair;
-import org.cloudburstmc.protocol.bedrock.codec.v818.Bedrock_v818;
-import org.cloudburstmc.protocol.bedrock.codec.v819.Bedrock_v819;
-import org.cloudburstmc.protocol.bedrock.codec.v827.Bedrock_v827;
-import org.cloudburstmc.protocol.bedrock.codec.v844.Bedrock_v844;
+import org.cloudburstmc.protocol.bedrock.codec.v2168.Bedrock_v2168;
+import org.cloudburstmc.protocol.bedrock.codec.v2193.Bedrock_v2193;
+import org.cloudburstmc.protocol.bedrock.codec.v2225.Bedrock_v2225;
 import org.geysermc.geyser.GeyserBootstrap;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.item.type.Item;
 import org.geysermc.geyser.registry.Registries;
+import org.geysermc.geyser.registry.java.BuiltInJavaRegistries;
 import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.registry.type.ItemMappings;
+import org.geysermc.geyser.util.MinecraftKey;
 
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -50,6 +51,7 @@ import java.lang.reflect.Type;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 public final class TagRegistryPopulator {
     private static final Gson GSON = new GsonBuilder().create(); // temporary
@@ -69,11 +71,9 @@ public final class TagRegistryPopulator {
         };
 
         List<ObjectIntPair<String>> paletteVersions = List.of(
-            ObjectIntPair.of("1_21_90", Bedrock_v818.CODEC.getProtocolVersion()),
-            // Not a typo, it's the same file
-            ObjectIntPair.of("1_21_90", Bedrock_v819.CODEC.getProtocolVersion()),
-            ObjectIntPair.of("1_21_100", Bedrock_v827.CODEC.getProtocolVersion()),
-            ObjectIntPair.of("1_21_110", Bedrock_v844.CODEC.getProtocolVersion())
+            ObjectIntPair.of("26_30", Bedrock_v2168.CODEC.getProtocolVersion()),
+            ObjectIntPair.of("26_30", Bedrock_v2193.CODEC.getProtocolVersion()),
+            ObjectIntPair.of("26_30", Bedrock_v2225.CODEC.getProtocolVersion())
         );
         Type type = new TypeToken<Map<String, List<String>>>() {}.getType();
 
@@ -103,22 +103,22 @@ public final class TagRegistryPopulator {
                 IntList javaNetworkIds = new IntArrayList(value.size());
                 for (int i = 0; i < value.size(); i++) {
                     String bedrockIdentifier = value.get(i);
-                    Item javaItem = Registries.JAVA_ITEM_IDENTIFIERS.get(bedrockIdentifier);
-                    if (javaItem == null) {
+                    Optional<Item> javaItem = BuiltInJavaRegistries.ITEM.get(MinecraftKey.key(bedrockIdentifier));
+                    if (javaItem.isEmpty()) {
                         // Time to search the long way around.
                         for (ItemMapping mapping : mappings.getItems()) {
                             if (mapping.getBedrockIdentifier().equals(bedrockIdentifier)) {
-                                javaItem = mapping.getJavaItem();
+                                javaItem = Optional.of(mapping.getJavaItem());
                                 break;
                             }
                         }
                     }
-                    if (javaItem == null) {
+                    if (javaItem.isEmpty()) {
                         // Triggers for Bedrock-only spawn eggs. We don't care.
                         continue;
                     }
 
-                    javaNetworkIds.add(javaItem.javaId());
+                    javaNetworkIds.add(javaItem.get().javaId());
                 }
 
                 int[] javaNetworkIdArray = javaNetworkIds.toIntArray();

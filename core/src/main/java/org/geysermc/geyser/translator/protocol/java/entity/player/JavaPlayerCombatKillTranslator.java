@@ -42,7 +42,7 @@ public class JavaPlayerCombatKillTranslator extends PacketTranslator<Clientbound
             Component deathMessage = packet.getMessage();
             // TODO - could inject score in, but as of 1.19.10 newlines don't center and start at the left of the first text
             DeathInfoPacket deathInfoPacket = new DeathInfoPacket();
-            deathInfoPacket.setCauseAttackName(MessageTranslator.convertMessage(deathMessage, session.locale()));
+            deathInfoPacket.setCauseAttackName(MessageTranslator.convertMessage(deathMessage, session.locale()).replace("%", "%%"));
             session.sendUpstreamPacket(deathInfoPacket);
         }
     }

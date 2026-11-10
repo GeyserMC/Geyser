@@ -1,0 +1,38 @@
+{
+  "type": "geyser:component_hash",
+  "component": "minecraft:firework_explosion",
+  "value": [
+    {
+      "shape": "small_ball"
+    },
+    {
+      "shape": "large_ball"
+    },
+    {
+      "shape": "star"
+    },
+    {
+      "shape": "creeper"
+    },
+    {
+      "shape": "burst"
+    },
+    {
+      "shape": "creeper",
+      "colors": [
+        434345,
+        457645,
+        678564,
+        134256
+      ],
+      "fade_colors": [
+        534665,
+        457465,
+        345345,
+        123135
+      ],
+      "has_trail": true,
+      "has_twinkle": true
+    }
+  ]
+}

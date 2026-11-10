@@ -48,6 +48,7 @@ import org.geysermc.geyser.command.defaults.ConnectionTestCommand;
 import org.geysermc.geyser.command.defaults.CustomOptionsCommand;
 import org.geysermc.geyser.command.defaults.DumpCommand;
 import org.geysermc.geyser.command.defaults.ExtensionsCommand;
+import org.geysermc.geyser.command.defaults.GameruleCommand;
 import org.geysermc.geyser.command.defaults.HelpCommand;
 import org.geysermc.geyser.command.defaults.ListCommand;
 import org.geysermc.geyser.command.defaults.OffhandCommand;
@@ -60,6 +61,7 @@ import org.geysermc.geyser.command.defaults.StopCommand;
 import org.geysermc.geyser.command.defaults.VersionCommand;
 import org.geysermc.geyser.event.type.GeyserDefineCommandsEventImpl;
 import org.geysermc.geyser.extension.command.GeyserExtensionCommand;
+import org.geysermc.geyser.command.defaults.NetherNetCommand;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.text.GeyserLocale;
 import org.incendo.cloud.Command.Builder;
@@ -99,8 +101,8 @@ public class CommandRegistry implements EventRegistrar {
 
     private static final String GEYSER_ROOT_PERMISSION = "geyser.command";
 
-    public final static boolean STANDALONE_COMMAND_MANAGER = GeyserImpl.getInstance().getPlatformType() == PlatformType.STANDALONE ||
-        GeyserImpl.getInstance().getPlatformType() == PlatformType.VIAPROXY;
+    public final static boolean STANDALONE_COMMAND_MANAGER = GeyserImpl.getInstance().platformType() == PlatformType.STANDALONE ||
+        GeyserImpl.getInstance().platformType() == PlatformType.VIAPROXY;
 
     protected final GeyserImpl geyser;
     private final CommandManager<GeyserCommandSource> cloud;
@@ -170,8 +172,10 @@ public class CommandRegistry implements EventRegistrar {
         registerBuiltInCommand(new PingCommand("ping", "geyser.commands.ping.desc", "geyser.command.ping"));
         registerBuiltInCommand(new CustomOptionsCommand("options", "geyser.commands.options.desc", "geyser.command.options"));
         registerBuiltInCommand(new QuickActionsCommand("quickactions", "geyser.commands.quickactions.desc", "geyser.command.quickactions"));
+        registerBuiltInCommand(new GameruleCommand("gamerules", "geyser.commands.gamerules.desc", "geyser.command.gamerules"));
+        registerBuiltInCommand(new NetherNetCommand(geyser, "nethernet", "Shows NetherNet signaling status and diagnostics", "geyser.command.nethernet"));
 
-        if (this.geyser.getPlatformType() == PlatformType.STANDALONE) {
+        if (this.geyser.platformType() == PlatformType.STANDALONE) {
             registerBuiltInCommand(new StopCommand(geyser, "stop", "geyser.commands.stop.desc", "geyser.command.stop"));
         }
 
@@ -415,7 +419,7 @@ public class CommandRegistry implements EventRegistrar {
         for (var child : children) {
             collectiveData.addAll(createParamData(session, child));
         }
-        collectiveData.forEach(list -> list.add(0, data));
+        collectiveData.forEach(list -> list.addFirst(data));
         return collectiveData;
     }
 }

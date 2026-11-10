@@ -27,19 +27,20 @@ package org.geysermc.geyser.session.cache;
 
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
-import it.unimi.dsi.fastutil.ints.IntArrayList;
-import it.unimi.dsi.fastutil.ints.IntList;
 import lombok.RequiredArgsConstructor;
+import org.cloudburstmc.protocol.bedrock.data.AttributeData;
 import org.cloudburstmc.protocol.bedrock.packet.ClientboundCloseFormPacket;
 import org.cloudburstmc.protocol.bedrock.packet.ModalFormRequestPacket;
 import org.cloudburstmc.protocol.bedrock.packet.ModalFormResponsePacket;
-import org.cloudburstmc.protocol.bedrock.packet.NetworkStackLatencyPacket;
+import org.cloudburstmc.protocol.bedrock.packet.UpdateAttributesPacket;
 import org.geysermc.cumulus.form.Form;
 import org.geysermc.cumulus.form.SimpleForm;
 import org.geysermc.cumulus.form.impl.FormDefinitions;
 import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.entity.attribute.GeyserAttributeType;
 import org.geysermc.geyser.session.GeyserSession;
 
+import java.util.Collections;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -50,19 +51,25 @@ public class FormCache {
      * BedrockNetworkStackLatencyTranslator can detect the hack.
      */
     private static final long MAGIC_FORM_IMAGE_HACK_TIMESTAMP = -1234567890L;
+    /**
+     * Shortest intervals between settings form builds and container close resends
+     */
+    private static final long SETTINGS_REQUEST_COOLDOWN_MILLIS = 1000;
+    private static final long CONTAINER_CLOSE_RESEND_COOLDOWN_MILLIS = 500;
 
     private final FormDefinitions formDefinitions = FormDefinitions.instance();
     private final AtomicInteger formIdCounter = new AtomicInteger(0);
     private final Int2ObjectMap<Form> forms = new Int2ObjectOpenHashMap<>();
-    private final IntList sentFormIds = new IntArrayList();
     private final GeyserSession session;
+    private long lastSettingsRequest;
+    private long lastContainerCloseResend;
 
     public boolean hasFormOpen() {
         // If forms is empty it implies that there are no forms to show
         // so technically this returns "has forms to show" or "has open"
         // Forms are only queued in specific circumstances, such as waiting on
         // previous inventories to close
-        return !forms.isEmpty() && !sentFormIds.isEmpty();
+        return !forms.isEmpty();
     }
 
     public int addForm(Form form) {
@@ -82,9 +89,6 @@ public class FormCache {
     private void sendForm(int formId, Form form) {
         String jsonData = formDefinitions.codecFor(form).jsonData(form);
 
-        // Store that this form has been sent
-        sentFormIds.add(formId);
-
         ModalFormRequestPacket formRequestPacket = new ModalFormRequestPacket();
         formRequestPacket.setFormId(formId);
         formRequestPacket.setFormData(jsonData);
@@ -92,14 +96,50 @@ public class FormCache {
 
         // Hack to fix the (url) image loading bug
         if (form instanceof SimpleForm) {
-            NetworkStackLatencyPacket latencyPacket = new NetworkStackLatencyPacket();
-            latencyPacket.setFromServer(true);
-            latencyPacket.setTimestamp(MAGIC_FORM_IMAGE_HACK_TIMESTAMP);
-            session.scheduleInEventLoop(
-                    () -> session.sendUpstreamPacket(latencyPacket),
-                    500, TimeUnit.MILLISECONDS
-            );
+            // Two delays:
+            // First, 500ms, before we send the network stack latency packet
+            session.scheduleInEventLoop(() -> session.sendNetworkLatencyStackPacket(MAGIC_FORM_IMAGE_HACK_TIMESTAMP, false, () -> {
+                    // Then, wait 500ms after we receive the response, then update attributes to get the image to show
+                    session.scheduleInEventLoop(() -> {
+                        // Hack to fix the url image loading bug
+                        UpdateAttributesPacket attributesPacket = new UpdateAttributesPacket();
+                        attributesPacket.setRuntimeEntityId(session.getPlayerEntity().geyserId());
+
+                        AttributeData attribute = session.getPlayerEntity().getAttributes().get(GeyserAttributeType.EXPERIENCE_LEVEL);
+                        if (attribute != null) {
+                            attributesPacket.setAttributes(Collections.singletonList(attribute));
+                        } else {
+                            attributesPacket.setAttributes(Collections.singletonList(GeyserAttributeType.EXPERIENCE_LEVEL.getAttribute(0)));
+                        }
+
+                        session.sendUpstreamPacket(attributesPacket);
+                    }, 500, TimeUnit.MILLISECONDS);
+                }), 500, TimeUnit.MILLISECONDS);
         }
+    }
+
+    /**
+     * @return whether a settings form may be built for a request now
+     */
+    public boolean allowSettingsRequest() {
+        long now = System.currentTimeMillis();
+        if (now - lastSettingsRequest < SETTINGS_REQUEST_COOLDOWN_MILLIS) {
+            return false;
+        }
+        lastSettingsRequest = now;
+        return true;
+    }
+
+    /**
+     * Resends pending forms after the client closed a container, which would have hidden them.
+     */
+    public void resendAfterContainerClose() {
+        long now = System.currentTimeMillis();
+        if (forms.isEmpty() || now - lastContainerCloseResend < CONTAINER_CLOSE_RESEND_COOLDOWN_MILLIS) {
+            return;
+        }
+        lastContainerCloseResend = now;
+        resendAllForms();
     }
 
     public void resendAllForms() {
@@ -110,7 +150,6 @@ public class FormCache {
 
     public void handleResponse(ModalFormResponsePacket response) {
         Form form = forms.remove(response.getFormId());
-        this.sentFormIds.rem(response.getFormId());
         if (form == null) {
             return;
         }
@@ -124,16 +163,20 @@ public class FormCache {
     }
 
     public void closeForms() {
-        if (!forms.isEmpty()) {
-            // Check if there are any forms that have not been sent to the client yet
-            for (Int2ObjectMap.Entry<Form> entry : forms.int2ObjectEntrySet()) {
-                if (!sentFormIds.contains(entry.getIntKey())) {
-                    // This will send the form, but close it instantly with the packet later
-                    // ...thereby clearing our list!
-                    sendForm(entry.getIntKey(), entry.getValue());
+        if (!this.forms.isEmpty()) {
+            // Copy them to ensure any response handler's sent form isn't instantly cleared
+            Int2ObjectMap<Form> copy = new Int2ObjectOpenHashMap<>(this.forms);
+            this.forms.clear();
+            // Now close it
+            session.sendUpstreamPacket(new ClientboundCloseFormPacket());
+
+            for (Form form : copy.values()) {
+                try {
+                    formDefinitions.definitionFor(form).handleFormResponse(form, "");
+                } catch (Exception e) {
+                    GeyserImpl.getInstance().getLogger().error("Error while closing form!", e);
                 }
             }
-            session.sendUpstreamPacket(new ClientboundCloseFormPacket());
         }
     }
 }

@@ -1,0 +1,323 @@
+/*
+ * Copyright (c) 2025 GeyserMC. http://geysermc.org
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ *
+ * @author GeyserMC
+ * @link https://github.com/GeyserMC/Geyser
+ */
+
+package org.geysermc.geyser.configuration;
+
+import org.checkerframework.checker.nullness.qual.Nullable;
+import org.geysermc.geyser.GeyserBootstrap;
+import org.geysermc.geyser.GeyserLogger;
+import org.spongepowered.configurate.CommentedConfigurationNode;
+import org.spongepowered.configurate.ConfigurateException;
+import org.spongepowered.configurate.ConfigurationNode;
+import org.spongepowered.configurate.serialize.SerializationException;
+import org.spongepowered.configurate.transformation.ConfigurationTransformation;
+import org.spongepowered.configurate.transformation.TransformAction;
+
+import java.util.Arrays;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Objects;
+import java.util.Set;
+import java.util.UUID;
+import java.util.function.BiFunction;
+
+import static org.spongepowered.configurate.NodePath.path;
+import static org.spongepowered.configurate.transformation.TransformAction.remove;
+import static org.spongepowered.configurate.transformation.TransformAction.rename;
+
+public class ConfigMigrations {
+
+    /** Geyser's default until August 2026, which named the HAProxy switch "use-proxy-protocol". */
+    private static final String OLD_HAPROXY_LIST_COMMENT = """
+        A list of allowed HAPROXY protocol speaking proxy IP addresses/subnets. Only effective when "use-proxy-protocol" is enabled, and
+        should really only be used when you are not able to use a proper firewall (usually true with shared hosting providers etc.).
+        Keeping this list empty means there is no IP address whitelist.
+        IP addresses, subnets, and links to plain text files are supported.""";
+
+    public static final BiFunction<Class<? extends GeyserConfig>, GeyserBootstrap, ConfigurationTransformation.Versioned> TRANSFORMER = (configClass, bootstrap) ->
+        ConfigurationTransformation.versionedBuilder()
+        .versionKey("config-version")
+        .addVersion(5, ConfigurationTransformation.builder()
+            // Java section
+            .addAction(path("remote"), rename("java"))
+            .addAction(path("remote", "address"), (path, value) -> {
+                if ("auto".equals(value.getString())) {
+                    // Auto-convert back to localhost
+                    value.set("127.0.0.1");
+                }
+                return null;
+            })
+
+            // Motd section
+            .addAction(path("bedrock", "motd1"), renameAndMove("motd", "primary-motd"))
+            .addAction(path("bedrock", "motd2"), renameAndMove("motd", "secondary-motd"))
+            .addAction(path("passthrough-motd"), moveTo("motd"))
+            .addAction(path("passthrough-player-counts"), moveTo("motd"))
+            .addAction(path("ping-passthrough-interval"), moveTo("motd"))
+            .addAction(path("max-players"), moveTo("motd"))
+            .addAction(path("legacy-ping-passthrough"), configClass == GeyserRemoteConfig.class ? remove() : (path, value) -> {
+                // Invert value
+                value.set(!value.getBoolean());
+                return new Object[]{ "motd", "integrated-ping-passthrough" };
+            })
+
+            // gameplay
+            .addAction(path("command-suggestions"), moveTo("gameplay"))
+            .addAction(path("forward-player-ping"), moveTo("gameplay"))
+            .addAction(path("show-cooldown"), (path, value) -> {
+                String s = value.getString();
+                if (s != null) {
+                    switch (s) {
+                        case "true" -> value.set("title");
+                        case "false" -> value.set("disabled");
+                    }
+                }
+                return new Object[]{ "gameplay", "show-cooldown" };
+            })
+            .addAction(path("bedrock", "server-name"), moveTo("gameplay"))
+            .addAction(path("show-coordinates"), moveTo("gameplay"))
+            .addAction(path("disable-bedrock-scaffolding"), moveTo("gameplay"))
+            .addAction(path("custom-skull-render-distance"), moveTo("gameplay"))
+            .addAction(path("force-resource-packs"), moveTo("gameplay"))
+            .addAction(path("xbox-achievements-enabled"), moveTo("gameplay"))
+            .addAction(path("unusable-space-block"), moveTo("gameplay"))
+            .addAction(path("unusable-space-block"), moveTo("gameplay"))
+            .addAction(path("add-non-bedrock-items"), renameAndMove("gameplay", "enable-custom-content"))
+            .addAction(path("above-bedrock-nether-building"), renameAndMove("gameplay", "nether-roof-workaround"))
+            .addAction(path("xbox-achievements-enabled"), moveTo("gameplay"))
+            // NOTE: We're not explicitly removing the allow-custom-skulls option, it will already be removed since it
+            // won't be written back. If we remove it, we can't query the value of it!
+            .addAction(path("max-visible-custom-skulls"), (path, value) -> {
+                ConfigurationNode parent = value.parent();
+                if (parent != null && parent.isMap()) {
+                    ConfigurationNode allowCustomSkulls = parent.childrenMap().get("allow-custom-skulls");
+                    if (allowCustomSkulls != null && !allowCustomSkulls.getBoolean()) {
+                        value.set(0);
+                    }
+                }
+                return new Object[]{ "gameplay", "max-visible-custom-skulls" };
+            })
+            .addAction(path("emote-offhand-workaround"), (path,  value) -> {
+                String previous = value.getString();
+                if (!Objects.equals(previous, "disabled") && bootstrap != null) {
+                    bootstrap.getGeyserLogger().warning("The emote-offhand-workaround option has been removed from Geyser. If you still wish to have this functionality, use this Geyser extension: https://github.com/GeyserMC/EmoteOffhandExtension/");
+                }
+                if (Objects.equals(previous, "no-emotes")) {
+                    value.set(false);
+                    return new Object[]{ "gameplay", "emotes-enabled" };
+                }
+                return null;
+            })
+
+            // For the warning!
+            .addAction(path("allow-third-party-capes"), (node, value) -> {
+                if (bootstrap != null) {
+                    bootstrap.getGeyserLogger().warning("Third-party ears/capes have been removed from Geyser. If you still wish to have this functionality, use this Geyser extension: https://github.com/GeyserMC/ThirdPartyCosmetics");
+                }
+                return null;
+            })
+            .addAction(path("allow-third-party-ears"), (node, value) -> {
+                if (bootstrap != null) {
+                    bootstrap.getGeyserLogger().warning("Third-party ears/capes have been removed from Geyser. If you still wish to have this functionality, use this Geyser extension: https://github.com/GeyserMC/ThirdPartyCosmetics");
+                }
+                return null;
+            })
+
+            // Advanced section
+            .addAction(path("cache-images"), moveTo("advanced"))
+            .addAction(path("scoreboard-packet-threshold"), moveTo("advanced"))
+            .addAction(path("add-team-suggestions"), moveTo("advanced"))
+            .addAction(path("floodgate-key-file"), (path, value) -> {
+                // Elimate any legacy config values
+                if ("public-key.pem".equals(value.getString())) {
+                    value.set("key.pem");
+                }
+                return new Object[]{ "advanced", "floodgate-key-file" };
+            })
+
+            // Bedrock
+            .addAction(path("bedrock", "broadcast-port"), moveTo("advanced", "bedrock"))
+            .addAction(path("bedrock", "compression-level"), moveTo("advanced", "bedrock"))
+            .addAction(path("bedrock", "enable-proxy-protocol"), renameAndMove("advanced", "bedrock", "use-haproxy-protocol"))
+            .addAction(path("bedrock", "proxy-protocol-whitelisted-ips"), renameAndMove("advanced", "bedrock", "haproxy-protocol-whitelisted-ips"))
+            .addAction(path("mtu"), moveTo("advanced", "bedrock"))
+
+            // Java
+            .addAction(path("remote", "use-proxy-protocol"), renameAndMove("advanced", "java", "use-haproxy-protocol"))
+            .addAction(path("disable-compression"), moveTo("advanced", "java"))
+            .addAction(path("use-direct-connection"), moveTo("advanced", "java"))
+
+            // Other
+            .addAction(path("default-locale"), (path, value) -> {
+                if (value.getString() == null) {
+                    value.set("system");
+                }
+                return null;
+            })
+            .addAction(path("metrics", "uuid"), (path, value) -> {
+                if ("generateduuid".equals(value.getString())) {
+                    // Manually copied config without Metrics UUID creation?
+                    value.set(UUID.randomUUID());
+                }
+                return new Object[]{ "metrics-uuid" };
+            })
+            .addAction(path("metrics", "enabled"), (path, value) -> {
+                // Move to the root, not in the Metrics class.
+                return new Object[]{ "enable-metrics" };
+            })
+
+            .build())
+            .addVersion(6, ConfigurationTransformation.builder()
+                .addAction(path("gameplay", "show-cooldown"), (path, value) -> {
+                    String s = value.getString();
+                    if (s != null && !"disabled".equals(s)) {
+                        value.set("crosshair");
+                    }
+                    return new Object[]{ "gameplay", "show-cooldown" };
+                })
+                .build())
+            .addVersion(7, ConfigurationTransformation.builder()
+                .addAction(path("gameplay", "show-cooldown"), rename(new Object[] { "gameplay", "cooldown-type" }))
+                .build())
+            // NetherNet config options
+            .addVersion(8, ConfigurationTransformation.empty())
+            // Addition of advertise-addresses option
+            .addVersion(9, ConfigurationTransformation.empty())
+            // Advanced NXS options and signaling-trusted-proxies
+            .addVersion(10, ConfigurationTransformation.empty())
+            // One advertise-addresses list and stun-discovery switch for built-in and external signaling
+            .addVersion(11, ConfigurationTransformation.builder()
+                .addAction(path("bedrock", "signaling"), (path, value) -> {
+                    Set<String> addresses = new LinkedHashSet<>();
+                    for (String mode : List.of("builtin", "nxs")) {
+                        ConfigurationNode side = value.node(mode);
+                        side.node("advertise-addresses").getList(String.class, List.of()).stream()
+                            .map(String::trim)
+                            .filter(address -> !address.isEmpty())
+                            .forEach(addresses::add);
+                        side.removeChild("advertise-addresses");
+                    }
+                    if (!addresses.isEmpty()) {
+                        value.node("advertise-addresses").setList(String.class, List.copyOf(addresses));
+                    }
+                    return null;
+                })
+                .addAction(path("advanced", "nxs", "stun-discovery"), (path, value) ->
+                    new Object[]{ "bedrock", "signaling", "stun-discovery" })
+                .build())
+            // Listing HAProxy proxies turns the protocol on, so its switch is gone
+            .addVersion(12, ConfigurationTransformation.chain(ConfigurationTransformation.builder()
+                // Built-in signaling's proxies used to always give the player's address due to a bug, so configs with one keep that.
+                // Runs before the switch is folded into the list, as it reads the switch.
+                .addAction(path("advanced", "bedrock"), (path, value) -> {
+                    ConfigurationNode prefer = value.node("prefer-signaling-proxy-address");
+                    if (!prefer.virtual()) {
+                        return null;
+                    }
+                    boolean haproxy = value.node("use-haproxy-protocol").getBoolean(false)
+                        && !value.node("haproxy-protocol-whitelisted-ips").getList(String.class, List.of()).isEmpty();
+                    boolean trusted = !value.node("signaling-trusted-proxies").getList(String.class, List.of()).isEmpty();
+                    if (haproxy || trusted) {
+                        prefer.set(true);
+                    }
+                    return null;
+                })
+                .build(), ConfigurationTransformation.builder()
+                .addAction(path("advanced", "bedrock", "use-haproxy-protocol"), (path, value) -> {
+                    ConfigurationNode proxies = value.parent().node("haproxy-protocol-whitelisted-ips");
+                    // A comment naming the removed switch is stale, so the current one is written instead.
+                    // The old default named it wrong, so only that exact text goes, not a comment of the user's own.
+                    if (proxies instanceof CommentedConfigurationNode commented && commented.comment() != null
+                            && (commented.comment().contains("use-haproxy-protocol")
+                                || commented.comment().strip().equals(OLD_HAPROXY_LIST_COMMENT))) {
+                        commented.comment(null);
+                    }
+                    if (!value.getBoolean(false)) {
+                        // Ignored while it was off, and would turn it on now. Emptied rather than removed, so a comment of the user's own stays
+                        if (!proxies.virtual()) {
+                            proxies.setList(String.class, List.of());
+                        }
+                    } else if (proxies.getList(String.class, List.of()).isEmpty() && bootstrap != null) {
+                        bootstrap.getGeyserLogger().warning("\"use-haproxy-protocol\" has been removed: listing proxies in "
+                            + "\"haproxy-protocol-whitelisted-ips\" under \"advanced.bedrock\" now turns HAProxy protocol on. "
+                            + "Yours was on with an empty list, which took a HAProxy header from any address, so it is off "
+                            + "until you list your proxies there.");
+                    }
+                    value.raw(null);
+                    return null;
+                })
+                .addAction(path("bedrock", "transport"), (path, value) -> {
+                    // Old defaults offer "raknet", which no longer loads, on a line of its own, so the current
+                    // comment is written instead. A comment of the user's own rarely starts a line with it
+                    if (value instanceof CommentedConfigurationNode commented && commented.comment() != null
+                            && commented.comment().lines().anyMatch(line -> line.strip().startsWith("\"raknet\""))) {
+                        commented.comment(null);
+                    }
+                    // The value itself is moved by the config loader, which also sees overrides
+                    return null;
+                })
+                .build()))
+        .build();
+
+    /**
+     * Moves a "raknet" transport, which was removed, to "nethernet". The config loader runs this on the file at any
+     * version, and again once overrides apply.
+     */
+    static void moveRakNetOnly(ConfigurationNode transport, @Nullable GeyserLogger logger) throws SerializationException {
+        if (!"raknet".equalsIgnoreCase(transport.getString())) {
+            return;
+        }
+        if (logger != null) {
+            logger.error("      / \\");
+            logger.error("     /   \\      WARNING! Raknet-only transport has now been REMOVED.");
+            logger.error("    /  |  \\     Your server now tries to use NetherNet transport,");
+            logger.error("   /   |   \\    which means you MUST setup the network configurations required.");
+            logger.error("  /         \\   Please see our blog post over at https://geysermc.org/blog/preparing-for-nethernet");
+            logger.error(" /     o     \\  on how to configure NetherNet for your server.");
+            logger.error("/_____________\\");
+        }
+        // Not "both", so signaling and WebRTC can share the Bedrock port without RakNet in the way
+        transport.set("nethernet");
+    }
+
+    static TransformAction renameAndMove(String... newPath) {
+        return ((path, value) -> Arrays.stream(newPath).toArray());
+    }
+
+    static TransformAction moveTo(String... newPath) {
+        return (path, value) -> {
+            Object[] arr = path.array();
+            if (arr.length == 0) {
+                throw new ConfigurateException(value, "The root node cannot be renamed!");
+            } else {
+                // create a new array with space for newPath segments + the original last segment
+                Object[] result = new Object[newPath.length + 1];
+                System.arraycopy(newPath, 0, result, 0, newPath.length);
+                result[newPath.length] = arr[arr.length - 1];
+                return result;
+            }
+        };
+    }
+}

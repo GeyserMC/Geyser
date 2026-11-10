@@ -26,10 +26,11 @@
 package org.geysermc.geyser.session.dialog;
 
 import net.kyori.adventure.key.Key;
+import net.kyori.adventure.text.Component;
 import org.cloudburstmc.nbt.NbtMap;
 import org.geysermc.cumulus.form.CustomForm;
 import org.geysermc.cumulus.form.SimpleForm;
-import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.registry.java.JavaRegistryProvider;
 import org.geysermc.geyser.session.dialog.input.ParsedInputs;
 import org.geysermc.geyser.util.MinecraftKey;
 
@@ -41,9 +42,9 @@ public class NoticeDialog extends Dialog {
 
     private final Optional<DialogButton> button;
 
-    public NoticeDialog(Optional<GeyserSession> session, NbtMap map, Dialog.IdGetter idGetter) {
-        super(session, map);
-        button = DialogButton.read(session, map.getCompound("action"), idGetter);
+    public NoticeDialog(JavaRegistryProvider registries, NbtMap map) {
+        super(map);
+        button = DialogButton.read(registries, map.get("action"));
     }
 
     @Override
@@ -58,7 +59,7 @@ public class NoticeDialog extends Dialog {
 
     @Override
     protected void addCustomComponents(DialogHolder holder, SimpleForm.Builder builder) {
-        builder.button(button.map(DialogButton::label).orElse("gui.ok"))
+        builder.button(holder.convertText(button.map(DialogButton::label).orElseGet(() -> Component.translatable("gui.ok"))))
             .validResultHandler(response -> holder.runButton(button, ParsedInputs.EMPTY));
     }
 }

@@ -25,12 +25,13 @@
 
 package org.geysermc.geyser.translator.protocol.java;
 
+import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.packet.SetPlayerGameTypePacket;
 import org.geysermc.geyser.entity.attribute.GeyserAttributeType;
 import org.geysermc.geyser.entity.type.player.SessionPlayerEntity;
 import org.geysermc.geyser.level.JavaDimension;
 import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.geyser.session.cache.registry.JavaRegistries;
+import org.geysermc.geyser.registry.java.JavaRegistries;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 import org.geysermc.geyser.util.ChunkUtils;
@@ -57,6 +58,8 @@ public class JavaRespawnTranslator extends PacketTranslator<ClientboundRespawnPa
         }
 
         session.setSpawned(false);
+        entity.setMotion(Vector3f.ZERO);
+        entity.setLastTickEndVelocity(Vector3f.ZERO);
 
         entity.setHealth(entity.getMaxHealth());
         entity.getAttributes().put(GeyserAttributeType.HEALTH, entity.createHealthAttribute());
@@ -80,7 +83,7 @@ public class JavaRespawnTranslator extends PacketTranslator<ClientboundRespawnPa
             session.updateThunder(0);
         }
 
-        JavaDimension newDimension = session.getRegistryCache().registry(JavaRegistries.DIMENSION_TYPE).byId(spawnInfo.getDimension());
+        JavaDimension newDimension = JavaRegistries.DIMENSION_TYPE.getOrThrow(session.javaRegistries(), spawnInfo.getDimension());
         if (session.getDimensionType() != newDimension || !spawnInfo.getWorldName().equals(session.getWorldName())) {
             // Switching to a new world (based off the world name change or new dimension); send a fake dimension change
             if (session.getDimensionType().bedrockId() == newDimension.bedrockId()) {
@@ -88,7 +91,7 @@ public class JavaRespawnTranslator extends PacketTranslator<ClientboundRespawnPa
                 DimensionUtils.fastSwitchDimension(session, fakeDim);
             }
             session.setWorldName(spawnInfo.getWorldName());
-            session.setWorldTicks(0);
+            session.resetTimeParameters();
             DimensionUtils.switchDimension(session, newDimension);
 
             ChunkUtils.loadDimension(session);

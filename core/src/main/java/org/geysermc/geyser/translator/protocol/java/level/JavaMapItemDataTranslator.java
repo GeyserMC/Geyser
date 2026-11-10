@@ -25,6 +25,7 @@
 
 package org.geysermc.geyser.translator.protocol.java.level;
 
+import it.unimi.dsi.fastutil.longs.LongArrayList;
 import org.geysermc.mcprotocollib.protocol.data.game.level.map.MapData;
 import org.geysermc.mcprotocollib.protocol.data.game.level.map.MapIcon;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.level.ClientboundMapItemDataPacket;
@@ -37,6 +38,8 @@ import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 import org.geysermc.geyser.util.DimensionUtils;
+
+import java.util.ArrayList;
 
 @Translator(packet = ClientboundMapItemDataPacket.class)
 public class JavaMapItemDataTranslator extends PacketTranslator<ClientboundMapItemDataPacket> {
@@ -51,7 +54,7 @@ public class JavaMapItemDataTranslator extends PacketTranslator<ClientboundMapIt
         mapItemDataPacket.setOrigin(Vector3i.ZERO); // Required since 1.19.20
         mapItemDataPacket.setScale(packet.getScale());
         // Required as of 1.19.50
-        mapItemDataPacket.getTrackedEntityIds().add(packet.getMapId());
+        mapItemDataPacket.setTrackedEntityIds(new LongArrayList(new long[]{packet.getMapId()}));
 
         MapData data = packet.getData();
         if (data != null) {
@@ -72,13 +75,18 @@ public class JavaMapItemDataTranslator extends PacketTranslator<ClientboundMapIt
         }
 
         // Bedrock needs an entity id to display an icon
-        int id = 0;
-        for (MapIcon icon : packet.getIcons()) {
-            BedrockMapIcon bedrockMapIcon = BedrockMapIcon.fromType(icon.getIconType());
+        if (packet.getIcons().length != 0) {
+            mapItemDataPacket.setTrackedObjects(new ArrayList<>(packet.getIcons().length));
+            mapItemDataPacket.setDecorations(new ArrayList<>(packet.getIcons().length));
 
-            mapItemDataPacket.getTrackedObjects().add(new MapTrackedObject(id));
-            mapItemDataPacket.getDecorations().add(new MapDecoration(bedrockMapIcon.getIconID(), icon.getIconRotation(), icon.getCenterX(), icon.getCenterZ(), "", bedrockMapIcon.toARGB()));
-            id++;
+            int id = 0;
+            for (MapIcon icon : packet.getIcons()) {
+                BedrockMapIcon bedrockMapIcon = BedrockMapIcon.fromType(icon.getIconType());
+
+                mapItemDataPacket.getTrackedObjects().add(new MapTrackedObject(id));
+                mapItemDataPacket.getDecorations().add(new MapDecoration(bedrockMapIcon.getIconID(), icon.getIconRotation(), icon.getCenterX(), icon.getCenterZ(), "", bedrockMapIcon.toARGB()));
+                id++;
+            }
         }
 
         // Client will ignore if sent too early

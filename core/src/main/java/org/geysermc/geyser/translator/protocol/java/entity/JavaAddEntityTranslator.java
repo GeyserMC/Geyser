@@ -25,15 +25,15 @@
 
 package org.geysermc.geyser.translator.protocol.java.entity;
 
-import org.cloudburstmc.math.vector.Vector3f;
 import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.entity.EntityDefinition;
+import org.geysermc.geyser.entity.EntityTypeDefinition;
+import org.geysermc.geyser.entity.GeyserEntityType;
+import org.geysermc.geyser.entity.spawn.EntitySpawnContext;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.type.FallingBlockEntity;
 import org.geysermc.geyser.entity.type.FishingHookEntity;
 import org.geysermc.geyser.entity.type.HangingEntity;
 import org.geysermc.geyser.entity.type.player.PlayerEntity;
-import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.skin.SkinManager;
 import org.geysermc.geyser.text.GeyserLocale;
@@ -48,6 +48,8 @@ import org.geysermc.mcprotocollib.protocol.data.game.entity.object.WardenData;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.type.EntityType;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.entity.ClientboundAddEntityPacket;
 
+import java.util.Optional;
+
 @Translator(packet = ClientboundAddEntityPacket.class)
 public class JavaAddEntityTranslator extends PacketTranslator<ClientboundAddEntityPacket> {
 
@@ -55,26 +57,29 @@ public class JavaAddEntityTranslator extends PacketTranslator<ClientboundAddEnti
 
     @Override
     public void translate(GeyserSession session, ClientboundAddEntityPacket packet) {
-        EntityDefinition<?> definition = Registries.ENTITY_DEFINITIONS.get(packet.getType());
-        if (definition == null) {
-            session.getGeyser().getLogger().debug("Could not find an entity definition with type " + packet.getType());
+        GeyserEntityType type = GeyserEntityType.of(packet.getType());
+        if (type.isUnregistered()) {
+            session.getGeyser().getLogger().warning("Received unregistered entity type " + type + " in add entity packet");
             return;
         }
 
-        Vector3f position = Vector3f.from(packet.getX(), packet.getY(), packet.getZ());
-        Vector3f motion = packet.getMovement().toFloat();
-        float yaw = packet.getYaw();
-        float pitch = packet.getPitch();
-        float headYaw = packet.getHeadYaw();
+        Optional<EntityTypeDefinition<?>> definition = type.definition();
+        if (definition.isEmpty()) {
+            session.getGeyser().getLogger().debug("Could not find an entity definition for add entity packet " + packet);
+            return;
+        }
 
-        if (packet.getType() == EntityType.PLAYER) {
+        Integer removedPlayerVehicleId = session.getPlayerEntity().getRemovedPlayerVehicleId();
+        if (removedPlayerVehicleId != null && removedPlayerVehicleId == packet.getEntityId()) {
+            session.getPlayerEntity().setRemovedPlayerVehicleId(null);
+        }
 
+        EntitySpawnContext context = EntitySpawnContext.fromPacket(session, definition.get(), packet);
+        if (type.is(EntityType.PLAYER)) {
             PlayerEntity entity;
-            if (packet.getUuid().equals(session.getPlayerEntity().getUuid())) {
+            if (packet.getUuid().equals(session.getPlayerEntity().uuid())) {
                 // Server is sending a fake version of the current player
-                entity = new PlayerEntity(session, packet.getEntityId(), session.getEntityCache().getNextEntityId().incrementAndGet(),
-                        session.getPlayerEntity().getUuid(), position, motion, yaw, pitch, headYaw, session.getPlayerEntity().getUsername(),
-                        session.getPlayerEntity().getTexturesProperty());
+                entity = new PlayerEntity(context, session.getPlayerEntity().getUsername(), session.getPlayerEntity().getTextures());
             } else {
                 entity = session.getEntityCache().getPlayerEntity(packet.getUuid());
                 if (entity == null) {
@@ -85,11 +90,11 @@ public class JavaAddEntityTranslator extends PacketTranslator<ClientboundAddEnti
                 }
 
                 entity.setEntityId(packet.getEntityId());
-                entity.setPosition(position);
-                entity.setYaw(yaw);
-                entity.setPitch(pitch);
-                entity.setHeadYaw(headYaw);
-                entity.setMotion(motion);
+                entity.setPosition(context.position());
+                entity.setYaw(packet.getYaw());
+                entity.setPitch(packet.getPitch());
+                entity.setHeadYaw(packet.getHeadYaw());
+                entity.setMotion(packet.getMovement().toFloat());
             }
 
             entity.sendPlayer();
@@ -101,24 +106,26 @@ public class JavaAddEntityTranslator extends PacketTranslator<ClientboundAddEnti
             return;
         }
 
+        if (!context.callServerSpawnEvent()) {
+            GeyserImpl.getInstance().getLogger().debug(session, "Cancelled entity spawn (%s) at (%s)", type.identifier(), context.position());
+            return;
+        }
+
         Entity entity;
-        if (packet.getType() == EntityType.FALLING_BLOCK) {
-            entity = new FallingBlockEntity(session, packet.getEntityId(), session.getEntityCache().getNextEntityId().incrementAndGet(), packet.getUuid(),
-                    position, motion, yaw, pitch, headYaw, ((FallingBlockData) packet.getData()).getId());
-        } else if (packet.getType() == EntityType.FISHING_BOBBER) {
+        if (type.is(EntityType.FALLING_BLOCK)) {
+            entity = new FallingBlockEntity(context, ((FallingBlockData) packet.getData()).getId());
+        } else if (type.is(EntityType.FISHING_BOBBER)) {
             // Fishing bobbers need the owner for the line
             int ownerEntityId = ((ProjectileData) packet.getData()).getOwnerId();
             Entity owner = session.getEntityCache().getEntityByJavaId(ownerEntityId);
             // Java clients only spawn fishing hooks with a player as its owner
             if (owner instanceof PlayerEntity) {
-                entity = new FishingHookEntity(session, packet.getEntityId(), session.getEntityCache().getNextEntityId().incrementAndGet(), packet.getUuid(),
-                        position, motion, yaw, pitch, headYaw, (PlayerEntity) owner);
+                entity = new FishingHookEntity(context, (PlayerEntity) owner);
             } else {
                 return;
             }
         } else {
-            entity = definition.factory().create(session, packet.getEntityId(), session.getEntityCache().getNextEntityId().incrementAndGet(),
-                    packet.getUuid(), definition, position, motion, yaw, pitch, headYaw);
+            entity = definition.get().factory().create(context);
 
             // This is done over entity metadata in modern versions, but is still sent over network in the spawn packet
             if (entity instanceof HangingEntity hanging) {
@@ -126,11 +133,16 @@ public class JavaAddEntityTranslator extends PacketTranslator<ClientboundAddEnti
             }
         }
 
-        if (packet.getType() == EntityType.WARDEN) {
+        if (type.is(EntityType.WARDEN)) {
             WardenData wardenData = (WardenData) packet.getData();
             if (wardenData.isEmerging()) {
                 entity.setPose(Pose.EMERGING);
             }
+        }
+
+        // Call pre-spawn consumer
+        if (context.consumers() != null) {
+            context.consumers().forEach(consumer -> consumer.accept(entity));
         }
 
         session.getEntityCache().spawnEntity(entity);

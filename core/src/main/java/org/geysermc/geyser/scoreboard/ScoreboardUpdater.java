@@ -28,7 +28,7 @@ package org.geysermc.geyser.scoreboard;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.configuration.GeyserConfiguration;
+import org.geysermc.geyser.configuration.GeyserConfig;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.cache.WorldCache;
 import org.geysermc.geyser.text.GeyserLocale;
@@ -46,9 +46,9 @@ public final class ScoreboardUpdater extends Thread {
     private static final boolean DEBUG_ENABLED;
 
     static {
-        GeyserConfiguration config = GeyserImpl.getInstance().getConfig();
-        FIRST_SCORE_PACKETS_PER_SECOND_THRESHOLD = Math.min(config.getScoreboardPacketThreshold(), SECOND_SCORE_PACKETS_PER_SECOND_THRESHOLD);
-        DEBUG_ENABLED = config.isDebugMode();
+        GeyserConfig config = GeyserImpl.getInstance().config();
+        FIRST_SCORE_PACKETS_PER_SECOND_THRESHOLD = Math.min(config.advanced().scoreboardPacketThreshold(), SECOND_SCORE_PACKETS_PER_SECOND_THRESHOLD);
+        DEBUG_ENABLED = config.debugMode();
     }
 
     private final GeyserImpl geyser = GeyserImpl.getInstance();
@@ -56,13 +56,22 @@ public final class ScoreboardUpdater extends Thread {
     private long lastUpdate = System.currentTimeMillis();
     private long lastPacketsPerSecondUpdate = System.currentTimeMillis();
 
-    public static void init() {
-        new ScoreboardUpdater().start();
+    private volatile boolean shutdown;
+
+    public static ScoreboardUpdater init() {
+        ScoreboardUpdater updater = new ScoreboardUpdater();
+        updater.start();
+        return updater;
+    }
+
+    public void shutdown() {
+        shutdown = true;
+        this.interrupt();
     }
 
     @Override
     public void run() {
-        while (!geyser.isShuttingDown() && !geyser.isReloading()) {
+        while (!shutdown) {
             try {
                 long timeTillAction = getTimeTillNextAction();
                 if (timeTillAction > 0) {
@@ -165,7 +174,7 @@ public final class ScoreboardUpdater extends Thread {
         try {
             Thread.sleep(millis);
         } catch (InterruptedException e) {
-            e.printStackTrace();
+            // no-op, the run loop rechecks its exit condition
         }
     }
 

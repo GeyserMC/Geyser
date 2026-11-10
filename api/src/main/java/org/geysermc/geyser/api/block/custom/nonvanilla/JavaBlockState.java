@@ -1,9 +1,33 @@
+/*
+ * Copyright (c) 2023-2026 GeyserMC. http://geysermc.org
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ *
+ * @author GeyserMC
+ * @link https://github.com/GeyserMC/Geyser
+ */
+
 package org.geysermc.geyser.api.block.custom.nonvanilla;
 
 import org.checkerframework.checker.index.qual.NonNegative;
-import org.checkerframework.checker.nullness.qual.NonNull;
-import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.api.GeyserApi;
+import org.jspecify.annotations.Nullable;
 
 public interface JavaBlockState {
     /**
@@ -11,7 +35,7 @@ public interface JavaBlockState {
      * 
      * @return the identifier of the block state
      */
-    @NonNull String identifier();
+    String identifier();
 
     /**
      * Gets the Java ID of the block state
@@ -46,7 +70,7 @@ public interface JavaBlockState {
      * 
      * @return the collision of the block state
      */
-    @NonNull JavaBoundingBox[] collision();
+    JavaBoundingBox[] collision();
 
     /**
      * Gets whether the block state can be broken with hand
@@ -57,11 +81,13 @@ public interface JavaBlockState {
 
     /**
      * Gets the pick item of the block state
-     * 
+     *
+     * <p>This method is deprecated for removal and will be removed in Geyser 2.13.0.</p>
+     *
      * @return the pick item of the block state
-     * @deprecated the pick item is sent by the Java server
+     * @deprecated since 2.9.0: the pick item is sent by the Java server since Java Edition 1.21.9
      */
-    @Deprecated
+    @Deprecated(since = "2.9.0", forRemoval = true)
     @Nullable String pickItem();
 
     /**
@@ -73,12 +99,14 @@ public interface JavaBlockState {
 
     /**
      * Gets whether the block state has a block entity
-     * 
+     *
+     * <p>This method is deprecated for removal and will be removed in Geyser 2.13.0.</p>
+     *
      * @return whether the block state has block entity
-     * @deprecated Does not have an effect. If you were using this to
+     * @deprecated since 2.4.0: does not have an effect. If you were using this to
      * set piston behavior, use {@link #pistonBehavior()} instead.
      */
-    @Deprecated(forRemoval = true)
+    @Deprecated(since = "2.4.0", forRemoval = true)
     boolean hasBlockEntity();
 
     /**
@@ -91,7 +119,7 @@ public interface JavaBlockState {
     }
 
     interface Builder {
-        Builder identifier(@NonNull String identifier);
+        Builder identifier(String identifier);
 
         Builder javaId(@NonNegative int javaId);
 
@@ -101,20 +129,25 @@ public interface JavaBlockState {
 
         Builder waterlogged(boolean waterlogged);
 
-        Builder collision(@NonNull JavaBoundingBox[] collision);
+        Builder collision(JavaBoundingBox[] collision);
 
         Builder canBreakWithHand(boolean canBreakWithHand);
 
-        @Deprecated
+        /**
+         * This method is deprecated for removal and will be removed in Geyser 2.13.0.
+         */
+        @Deprecated(since = "2.9.0", forRemoval = true)
         Builder pickItem(@Nullable String pickItem);
 
         Builder pistonBehavior(@Nullable String pistonBehavior);
 
         /**
-         * @deprecated Does not have an effect. If you were using this to
-         *      * set piston behavior, use {@link #pistonBehavior(String)} instead.
+         * This method is deprecated for removal and will be removed in Geyser 2.13.0.
+         *
+         * @deprecated since 2.4.0: does not have an effect. If you were using this to
+         * set piston behavior, use {@link #pistonBehavior(String)} instead.
          */
-        @Deprecated(forRemoval = true)
+        @Deprecated(since = "2.4.0", forRemoval = true)
         Builder hasBlockEntity(boolean hasBlockEntity);
 
         JavaBlockState build();

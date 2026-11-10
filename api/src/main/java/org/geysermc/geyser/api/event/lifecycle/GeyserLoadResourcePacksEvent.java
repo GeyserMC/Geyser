@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2026 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,15 +25,16 @@
 
 package org.geysermc.geyser.api.event.lifecycle;
 
-import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.event.Event;
 
 import java.nio.file.Path;
 import java.util.List;
 
 /**
- * @deprecated Use the {@link GeyserDefineResourcePacksEvent} instead.
+ * This record is deprecated for removal and will be removed in Geyser 2.13.0.
+ *
+ * @deprecated since 2.6.2: use the {@link GeyserDefineResourcePacksEvent} instead.
  */
-@Deprecated
-public record GeyserLoadResourcePacksEvent(@NonNull List<Path> resourcePacks) implements Event {
+@Deprecated(since = "2.6.2", forRemoval = true)
+public record GeyserLoadResourcePacksEvent(List<Path> resourcePacks) implements Event {
 }

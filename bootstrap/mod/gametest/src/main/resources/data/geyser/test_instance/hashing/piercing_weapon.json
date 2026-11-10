@@ -1,0 +1,29 @@
+{
+  "type": "geyser:component_hash",
+  "component": "minecraft:piercing_weapon",
+  "value": [
+    {},
+    {
+      "deals_knockback": false
+    },
+    {
+      "dismounts": true
+    },
+    {
+      "sound": "minecraft:entity.ghast.death"
+    },
+    {
+      "hit_sound": {
+        "sound_id": "geyser:bam"
+      }
+    },
+    {
+      "deals_knockback": false,
+      "dismounts": true,
+      "sound": {
+        "sound_id": "geyser:beam",
+        "range": 4.0
+      }
+    }
+  ]
+}

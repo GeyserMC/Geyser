@@ -30,7 +30,7 @@ import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.TranslatableComponent;
 import org.geysermc.geyser.api.util.PlatformType;
 import org.geysermc.geyser.event.type.SessionDisconnectEventImpl;
-import org.geysermc.geyser.network.GameProtocol;
+import org.geysermc.geyser.network.bedrock.GameProtocol;
 import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.translator.text.MessageTranslator;
 
@@ -55,10 +55,10 @@ public final class SessionDisconnectListener {
         String serverDisconnectMessage = MessageTranslator.convertMessage(disconnectReason, session.locale());
         if (testForOutdatedServer(disconnectReason)) {
             String locale = session.locale();
-            PlatformType platform = session.getGeyser().getPlatformType();
+            PlatformType platform = session.getGeyser().platformType();
             String outdatedType = (platform == PlatformType.BUNGEECORD || platform == PlatformType.VELOCITY || platform == PlatformType.VIAPROXY) ?
                 "geyser.network.remote.outdated.proxy" : "geyser.network.remote.outdated.server";
-            event.disconnectReason(GeyserLocale.getPlayerLocaleString(outdatedType, locale, GameProtocol.getJavaVersions().get(0)) + '\n'
+            event.disconnectReason(GeyserLocale.getPlayerLocaleString(outdatedType, locale, GameProtocol.getJavaVersions().getFirst()) + '\n'
                 + GeyserLocale.getPlayerLocaleString("geyser.network.remote.original_disconnect_message", locale, serverDisconnectMessage));
         } else if (testForMissingProfilePublicKey(disconnectReason)) {
             event.disconnectReason("Please set `enforce-secure-profile` to `false` in server.properties for Bedrock players to be able to connect." + '\n'

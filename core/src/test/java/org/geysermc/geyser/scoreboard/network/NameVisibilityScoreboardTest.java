@@ -25,21 +25,41 @@
 
 package org.geysermc.geyser.scoreboard.network;
 
-import static org.geysermc.geyser.scoreboard.network.util.AssertUtils.assertNextPacket;
-import static org.geysermc.geyser.scoreboard.network.util.AssertUtils.assertNoNextPacket;
-import static org.geysermc.geyser.scoreboard.network.util.GeyserMockContextScoreboard.spawnPlayerSilently;
-import static org.geysermc.geyser.scoreboard.network.util.GeyserMockContextScoreboard.mockContextScoreboard;
-
 import net.kyori.adventure.text.Component;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
+import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.cloudburstmc.protocol.bedrock.packet.SetEntityDataPacket;
+import org.cloudburstmc.protocol.bedrock.packet.SetEntityLinkPacket;
+import org.geysermc.geyser.entity.type.living.ArmorStandEntity;
+import org.geysermc.geyser.entity.type.player.PlayerEntity;
+import org.geysermc.geyser.translator.protocol.java.entity.JavaSetEntityDataTranslator;
+import org.geysermc.geyser.translator.protocol.java.entity.JavaSetPassengersTranslator;
 import org.geysermc.geyser.translator.protocol.java.scoreboard.JavaSetPlayerTeamTranslator;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.EntityMetadata;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.MetadataTypes;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.BooleanEntityMetadata;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.ObjectEntityMetadata;
 import org.geysermc.mcprotocollib.protocol.data.game.scoreboard.CollisionRule;
 import org.geysermc.mcprotocollib.protocol.data.game.scoreboard.NameTagVisibility;
 import org.geysermc.mcprotocollib.protocol.data.game.scoreboard.TeamAction;
 import org.geysermc.mcprotocollib.protocol.data.game.scoreboard.TeamColor;
+import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.entity.ClientboundSetEntityDataPacket;
+import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.entity.ClientboundSetPassengersPacket;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.scoreboard.ClientboundSetPlayerTeamPacket;
 import org.junit.jupiter.api.Test;
+
+import java.util.EnumMap;
+import java.util.Map;
+import java.util.Optional;
+
+import static org.geysermc.geyser.scoreboard.network.util.AssertUtils.assertNextPacket;
+import static org.geysermc.geyser.scoreboard.network.util.AssertUtils.assertNextPacketMatch;
+import static org.geysermc.geyser.scoreboard.network.util.AssertUtils.assertNextPacketType;
+import static org.geysermc.geyser.scoreboard.network.util.AssertUtils.assertNoNextPacket;
+import static org.geysermc.geyser.scoreboard.network.util.GeyserMockContextScoreboard.mockContextScoreboard;
+import static org.geysermc.geyser.scoreboard.network.util.GeyserMockContextScoreboard.spawnArmorStand;
+import static org.geysermc.geyser.scoreboard.network.util.GeyserMockContextScoreboard.spawnPlayerSilently;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class NameVisibilityScoreboardTest {
     @Test
@@ -265,6 +285,189 @@ public class NameVisibilityScoreboardTest {
                 new ClientboundSetPlayerTeamPacket("team1", TeamAction.ADD_PLAYER, new String[]{"Tim203"})
             );
             assertNoNextPacket(context);
+        });
+    }
+
+    @Test
+    void teamsDontOverrideCustomName() {
+        mockContextScoreboard(context -> {
+            var setPlayerTeamTranslator = new JavaSetPlayerTeamTranslator();
+            var setEntityMetadataTranslator = new JavaSetEntityDataTranslator();
+
+            spawnPlayerSilently(context, "Tim203", 2);
+            spawnArmorStand(context, 3);
+
+            // Set custom name for armor stand
+            ClientboundSetEntityDataPacket showNamePacket = new ClientboundSetEntityDataPacket(3,
+                new EntityMetadata[]{
+                    // custom name shown -> true
+                    new BooleanEntityMetadata(3, MetadataTypes.BOOLEAN, true)
+                }
+            );
+
+            context.translate(setEntityMetadataTranslator, showNamePacket);
+
+            // We should be showing the generic type now, as no custom name is set
+            assertNextPacket(context, () -> {
+                var packet = new SetEntityDataPacket();
+                packet.setRuntimeEntityId(3);
+                packet.getMetadata().put(EntityDataTypes.NAME, "entity.minecraft.armor_stand");
+                packet.getMetadata().put(EntityDataTypes.NAMETAG_ALWAYS_SHOW, (byte) 1);
+                packet.getMetadata().put(EntityDataTypes.SCALE, 1f);
+
+                // default things that would also be sent
+                packet.getMetadata().putFlags(new EnumMap<>(
+                    Map.of(
+                        EntityFlag.INVISIBLE, false,
+                        EntityFlag.CAN_SHOW_NAME, true,
+                        EntityFlag.SILENT, true,
+                        EntityFlag.CAN_CLIMB, true,
+                        EntityFlag.HAS_COLLISION, true,
+                        EntityFlag.HAS_GRAVITY, true,
+                        EntityFlag.HIDDEN_WHEN_INVISIBLE, true
+                    )
+                ));
+                return packet;
+            });
+
+            // Now: Send custom name, it should show up too
+            ClientboundSetEntityDataPacket customNamePacket = new ClientboundSetEntityDataPacket(3,
+                new EntityMetadata[]{
+                    // show custom name
+                    new ObjectEntityMetadata<>(2, MetadataTypes.OPTIONAL_COMPONENT, Optional.of(Component.text("Custom Name")))
+                }
+            );
+
+            context.translate(setEntityMetadataTranslator, customNamePacket);
+
+            assertNextPacket(context, () -> {
+                var packet = new SetEntityDataPacket();
+                packet.setRuntimeEntityId(3);
+                packet.getMetadata().put(EntityDataTypes.NAME, "Custom Name");
+                packet.getMetadata().put(EntityDataTypes.SCALE, 1f);
+                return packet;
+            });
+
+            // Now ensure that calls Team#refreshAllEntities is called; which would be the case for
+            // adding the session player into a team
+
+            context.translate(
+                setPlayerTeamTranslator,
+                new ClientboundSetPlayerTeamPacket(
+                    "team1",
+                    Component.text("displayName"),
+                    Component.text("prefix"),
+                    Component.text("suffix"),
+                    false,
+                    false,
+                    NameTagVisibility.ALWAYS,
+                    CollisionRule.NEVER,
+                    TeamColor.DARK_RED,
+                    new String[]{"Tim203"}
+                )
+            );
+            assertNextPacket(context, () -> {
+                var packet = new SetEntityDataPacket();
+                packet.setRuntimeEntityId(2);
+                packet.getMetadata().put(EntityDataTypes.NAME, "§4prefix§r§4Tim203§r§4suffix");
+                return packet;
+            });
+
+            // Ensure we don't update the armor stand name; it shouldn't be reset
+            assertNoNextPacket(context);
+        });
+    }
+
+    @Test
+    void anyPassengersHidePlayerName() {
+        mockContextScoreboard(context -> {
+            PlayerEntity player = spawnPlayerSilently(context, "eclipseisoffline", 2L);
+            spawnArmorStand(context, 3L);
+
+            context.translate(new JavaSetPassengersTranslator(), new ClientboundSetPassengersPacket(2, new int[]{3}));
+            // Passenger/vehicle link
+            assertNextPacketType(context, SetEntityLinkPacket.class);
+            // Passenger metadata
+            assertNextPacketType(context, SetEntityDataPacket.class);
+
+            // Name metadata doesn't update until called for
+            player.updateBedrockMetadata();
+            assertNextPacket(context, () -> {
+                SetEntityDataPacket packet = new SetEntityDataPacket();
+                packet.setRuntimeEntityId(2);
+                packet.getMetadata().put(EntityDataTypes.NAME, "");
+                return packet;
+            });
+        });
+    }
+
+    @Test
+    void anyPassengersHideArmorStandName() {
+        mockContextScoreboard(context -> {
+            ArmorStandEntity vehicle = spawnArmorStand(context, 2L);
+            spawnArmorStand(context, 3L);
+
+            context.translate(new JavaSetEntityDataTranslator(), new ClientboundSetEntityDataPacket(2, new EntityMetadata[]{
+                new ObjectEntityMetadata<>(2, MetadataTypes.OPTIONAL_COMPONENT, Optional.of(Component.text("apples are gud")))
+            }));
+
+            assertNextPacketMatch(context, SetEntityDataPacket.class, packet -> {
+                assertEquals("apples are gud", packet.getMetadata().get(EntityDataTypes.NAME));
+            });
+
+            context.translate(new JavaSetPassengersTranslator(), new ClientboundSetPassengersPacket(2, new int[]{3}));
+            // Passenger/vehicle link
+            assertNextPacketType(context, SetEntityLinkPacket.class);
+            // Passenger metadata
+            assertNextPacketType(context, SetEntityDataPacket.class);
+            vehicle.updateBedrockMetadata();
+            assertNextPacket(context, () -> {
+                SetEntityDataPacket packet = new SetEntityDataPacket();
+                packet.setRuntimeEntityId(2);
+                packet.getMetadata().put(EntityDataTypes.NAME, "");
+                return packet;
+            });
+        });
+    }
+
+    @Test
+    void noPassengersShowsArmorStandName() {
+        mockContextScoreboard(context -> {
+            ArmorStandEntity vehicle = spawnArmorStand(context, 2L);
+            spawnArmorStand(context, 3L);
+
+            JavaSetPassengersTranslator setPassengersTranslator = new JavaSetPassengersTranslator();
+
+            context.translate(setPassengersTranslator, new ClientboundSetPassengersPacket(2, new int[]{3}));
+            // Passenger/vehicle link
+            assertNextPacketType(context, SetEntityLinkPacket.class);
+            // Passenger metadata
+            assertNextPacketType(context, SetEntityDataPacket.class);
+
+            vehicle.updateBedrockMetadata();
+            // Since the vehicle has no custom name, no new name should be sent
+            assertNoNextPacket(context);
+
+            context.translate(new JavaSetEntityDataTranslator(), new ClientboundSetEntityDataPacket(2, new EntityMetadata[]{
+                new ObjectEntityMetadata<>(2, MetadataTypes.OPTIONAL_COMPONENT, Optional.of(Component.text("apples are gud")))
+            }));
+
+            // Since it's a vehicle, the custom name should not be sent
+            assertNextPacketMatch(context, SetEntityDataPacket.class, packet -> {
+                assertEquals("", packet.getMetadata().get(EntityDataTypes.NAME));
+            });
+
+            context.translate(setPassengersTranslator, new ClientboundSetPassengersPacket(2, new int[0]));
+            // Passenger/vehicle link
+            assertNextPacketType(context, SetEntityLinkPacket.class);
+            // Passenger metadata
+            assertNextPacketType(context, SetEntityDataPacket.class);
+
+            // No longer a vehicle, now the name is sent
+            vehicle.updateBedrockMetadata();
+            assertNextPacketMatch(context, SetEntityDataPacket.class, packet -> {
+                assertEquals("apples are gud", packet.getMetadata().get(EntityDataTypes.NAME));
+            });
         });
     }
 }

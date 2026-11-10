@@ -25,20 +25,19 @@
 
 package org.geysermc.geyser.registry.type;
 
-import it.unimi.dsi.fastutil.Pair;
+import com.google.common.collect.SortedSetMultimap;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import lombok.Value;
+import net.kyori.adventure.key.Key;
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.protocol.bedrock.data.definitions.BlockDefinition;
 import org.cloudburstmc.protocol.bedrock.data.definitions.ItemDefinition;
-import org.geysermc.geyser.api.item.custom.CustomItemOptions;
+import org.geysermc.geyser.item.GeyserCustomMappingData;
 import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.item.type.Item;
-
-import java.util.Collections;
-import java.util.List;
 
 @Value
 @Builder
@@ -52,7 +51,7 @@ public class ItemMapping {
             null, // Air is never sent in full over the network for this to serialize.
             null,
             null,
-            Collections.emptyList(),
+            false,
             Items.AIR
     );
 
@@ -66,12 +65,16 @@ public class ItemMapping {
      */
     BlockDefinition bedrockBlockDefinition;
 
-    String toolType;
-
     String translationString;
 
-    @NonNull
-    List<Pair<CustomItemOptions, ItemDefinition>> customItemOptions;
+    /**
+     * A map of item models and all of their custom items, sorted from most definition predicates to least, which is important when matching predicates.
+     */
+    @Nullable
+    SortedSetMultimap<Key, GeyserCustomMappingData> customItemDefinitions;
+
+    @Builder.Default
+    boolean containsV1Mappings = false;
 
     @NonNull
     Item javaItem;
@@ -92,14 +95,5 @@ public class ItemMapping {
      */
     public boolean hasTranslation() {
         return this.translationString != null;
-    }
-
-    /**
-     * Gets if this item is a tool.
-     *
-     * @return if this item is a tool
-     */
-    public boolean isTool() {
-        return this.toolType != null;
     }
 }

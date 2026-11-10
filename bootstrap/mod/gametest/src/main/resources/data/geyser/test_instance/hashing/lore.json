@@ -1,0 +1,16 @@
+{
+  "type": "geyser:component_hash",
+  "component": "minecraft:lore",
+  "value": [
+    ["simple_lore"],
+    [
+      {
+        "text": "lore with multiple lines"
+      },
+      {
+        "text": "and style!",
+        "bold": true
+      }
+    ]
+  ]
+}

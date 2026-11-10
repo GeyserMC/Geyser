@@ -34,7 +34,7 @@ import org.geysermc.geyser.util.VersionCheckUtils;
 public final class GeyserModUpdateListener {
     public static void onPlayReady(ServerPlayer player) {
         // We could just not register the listener, but, this allows config reloading
-        if (GeyserImpl.getInstance().getConfig().isNotifyOnNewBedrockUpdate()) {
+        if (GeyserImpl.getInstance().config().notifyOnNewBedrockUpdate()) {
             // Should be creating this in the supplier, but we need it for the permission check.
             // Not a big deal currently because ModCommandSource doesn't load locale, so don't need to try to wait for it.
             ModCommandSource source = new ModCommandSource(player.createCommandSourceStack());

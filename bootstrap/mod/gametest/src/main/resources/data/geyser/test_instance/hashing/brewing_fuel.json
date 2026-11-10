@@ -1,0 +1,18 @@
+{
+  "type": "geyser:component_hash",
+  "component": "minecraft:brewing_fuel",
+  "value": [
+    {
+      "uses": 3,
+      "speed_multiplier": 0.5
+    },
+    {
+      "uses": 2,
+      "speed_multiplier": 2.5
+    },
+    {
+      "uses": "minecraft:brewing_default_uses",
+      "speed_multiplier": 1.0
+    }
+  ]
+}

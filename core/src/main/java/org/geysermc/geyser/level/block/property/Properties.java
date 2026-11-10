@@ -126,7 +126,7 @@ public final class Properties {
     public static final EnumProperty<ChestType> CHEST_TYPE = EnumProperty.create("type", ChestType.VALUES);
     public static final BasicEnumProperty MODE_COMPARATOR = BasicEnumProperty.create("mode", "compare", "subtract");
     public static final BasicEnumProperty DOOR_HINGE = BasicEnumProperty.create("hinge", "left", "right");
-    public static final BasicEnumProperty NOTEBLOCK_INSTRUMENT = BasicEnumProperty.create("instrument", "harp", "basedrum", "snare", "hat", "bass", "flute", "bell", "guitar", "chime", "xylophone", "iron_xylophone", "cow_bell", "didgeridoo", "bit", "banjo", "pling", "zombie", "skeleton", "creeper", "dragon", "wither_skeleton", "piglin", "custom_head");
+    public static final BasicEnumProperty NOTEBLOCK_INSTRUMENT = BasicEnumProperty.create("instrument", "harp", "basedrum", "snare", "hat", "bass", "flute", "bell", "guitar", "chime", "xylophone", "iron_xylophone", "cow_bell", "didgeridoo", "bit", "banjo", "pling", "trumpet", "trumpet_exposed", "trumpet_oxidized", "trumpet_weathered", "zombie", "skeleton", "creeper", "dragon", "wither_skeleton", "piglin", "custom_head");
     public static final BasicEnumProperty PISTON_TYPE = BasicEnumProperty.create("type", "normal", "sticky");
     public static final BasicEnumProperty SLAB_TYPE = BasicEnumProperty.create("type", "top", "bottom", "double");
     public static final BasicEnumProperty STAIRS_SHAPE = BasicEnumProperty.create("shape", "straight", "inner_left", "inner_right", "outer_left", "outer_right");
@@ -134,7 +134,7 @@ public final class Properties {
     public static final BasicEnumProperty BAMBOO_LEAVES = BasicEnumProperty.create("leaves", "none", "small", "large");
     public static final BasicEnumProperty TILT = BasicEnumProperty.create("tilt", "none", "unstable", "partial", "full");
     public static final EnumProperty<Direction> VERTICAL_DIRECTION = EnumProperty.create("vertical_direction", Direction.UP, Direction.DOWN);
-    public static final BasicEnumProperty DRIPSTONE_THICKNESS = BasicEnumProperty.create("thickness", "tip_merge", "tip", "frustum", "middle", "base");
+    public static final BasicEnumProperty SPELEOTHEM_THICKNESS = BasicEnumProperty.create("thickness", "tip_merge", "tip", "frustum", "middle", "base");
     public static final BasicEnumProperty SCULK_SENSOR_PHASE = BasicEnumProperty.create("sculk_sensor_phase", "inactive", "active", "cooldown");
     public static final BooleanProperty SLOT_0_OCCUPIED = BooleanProperty.create("slot_0_occupied");
     public static final BooleanProperty SLOT_1_OCCUPIED = BooleanProperty.create("slot_1_occupied");
@@ -152,4 +152,6 @@ public final class Properties {
     public static final BasicEnumProperty TEST_BLOCK_MODE = BasicEnumProperty.create("mode", "start", "log", "fail", "accept");
     public static final BooleanProperty MAP = BooleanProperty.create("map");
     public static final BasicEnumProperty COPPER_GOLEM_POSE = BasicEnumProperty.create("copper_golem_pose", "standing", "sitting", "running", "star");
+    public static final BasicEnumProperty POTENT_SULFUR_STATE = BasicEnumProperty.create("potent_sulfur_state", "dry", "wet", "dormant", "erupting", "continuous");
+
 }

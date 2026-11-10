@@ -1,0 +1,14 @@
+{
+  "type": "geyser:component_hash",
+  "component": "minecraft:debug_stick_state",
+  "value": [
+    {},
+    {
+      "minecraft:repeater": "facing"
+    },
+    {
+      "minecraft:oak_trapdoor": "facing",
+      "minecraft:redstone_torch": "lit"
+    }
+  ]
+}

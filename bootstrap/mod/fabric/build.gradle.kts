@@ -1,6 +1,5 @@
 plugins {
     id("geyser.modded-conventions")
-    id("geyser.modrinth-uploading-conventions")
 }
 
 architectury {
@@ -8,22 +7,41 @@ architectury {
     fabric()
 }
 
-dependencies {
-    modImplementation(libs.fabric.loader)
-    modApi(libs.fabric.api)
+loom {
+    mods {
+        create("geyser-fabric") {
+            sourceSet(sourceSets.main.get())
+            sourceSet("main", projects.mod)
+            sourceSet("main", projects.core)
+        }
+    }
+}
 
-    api(project(":mod", configuration = "namedElements"))
+dependencies {
+    implementation(libs.fabric.loader)
+    api(libs.fabric.api)
+
+    api(project(":mod"))
     shadowBundle(project(path = ":mod", configuration = "transformProductionFabric"))
     shadowBundle(projects.core)
     includeTransitive(projects.core)
 
-    // These are NOT transitively included, and instead shadowed + relocated.
+    // These are NOT transitively included, and instead shadowed (+ relocated, if not under the org.geyser namespace).
     // Avoids fabric complaining about non-SemVer versioning
     shadowBundle(libs.protocol.connection)
     shadowBundle(libs.protocol.common)
     shadowBundle(libs.protocol.codec)
+    // Shared by raknet and nethernet, so it must be relocated along with them
+    shadowBundle(libs.netty.transport.common)
     shadowBundle(libs.raknet)
+    shadowBundle(libs.nethernet.transport)
+    shadowBundle(libs.nethernet.signaling)
     shadowBundle(libs.mcprotocollib)
+
+    // Shade + relocate configurate as we're using a fork
+    shadowBundle(libs.configurate.`interface`)
+    shadowBundle(libs.configurate.yaml)
+    shadowBundle(libs.configurate.core)
 
     // Since we also relocate cloudburst protocol: shade erosion common
     shadowBundle(libs.erosion.common)
@@ -32,7 +50,7 @@ dependencies {
     shadowBundle(projects.api)
     shadowBundle(projects.common)
 
-    modImplementation(libs.cloud.fabric)
+    implementation(libs.cloud.fabric)
     include(libs.cloud.fabric)
     include(libs.fabric.permissions.api)
 }
@@ -43,20 +61,27 @@ tasks.withType<Jar> {
 
 relocate("org.cloudburstmc.netty")
 relocate("org.cloudburstmc.protocol")
+relocate("org.spongepowered.configurate")
 
 tasks {
-    remapJar {
+    named<Jar>("mergeShadowAndJarJar") {
+        from (
+            zipTree( shadowJar.map { it.outputs.files.singleFile } ).matching {
+                exclude("fabric.mod.json")
+                exclude("LICENSE")
+            },
+            zipTree( jar.map { it.outputs.files.singleFile } ).matching {
+                include("META-INF/jars/**")
+                include("fabric.mod.json")
+                include("LICENSE")
+            }
+        )
         archiveBaseName.set("Geyser-Fabric")
-    }
-
-    remapModrinthJar {
-        archiveBaseName.set("geyser-fabric")
     }
 }
 
 modrinth {
     loaders.add("fabric")
-    uploadFile.set(tasks.getByPath("remapModrinthJar"))
     dependencies {
         required.project("fabric-api")
     }

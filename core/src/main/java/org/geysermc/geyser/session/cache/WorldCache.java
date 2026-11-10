@@ -28,6 +28,8 @@ package org.geysermc.geyser.session.cache;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntMaps;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
+import it.unimi.dsi.fastutil.objects.Object2LongMap;
+import it.unimi.dsi.fastutil.objects.Object2LongOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import lombok.Getter;
 import lombok.Setter;
@@ -71,12 +73,19 @@ public final class WorldCache {
     private final Object2IntMap<Vector3i> unverifiedPredictions = new Object2IntOpenHashMap<>(1);
 
     private final Map<Vector3i, String> activeRecords = new Object2ObjectOpenHashMap<>(1); // Assume the average player won't be listening to many records
+    private final Object2LongMap<Vector3i> playingRecords = new Object2LongOpenHashMap<>(1) {
+        {
+            this.defaultReturnValue(-1);
+        }
+    }; // Ditto for the above
+
+    private long lastPlayingSoundId = 0;
 
     @Getter
     @Setter
     private boolean editingSignOnFront;
 
-    private final Object2IntMap<String> activeCooldowns = new Object2IntOpenHashMap<>(2);
+    private final Object2IntMap<Key> activeCooldowns = new Object2IntOpenHashMap<>(2);
 
     public WorldCache(GeyserSession session) {
         this.session = session;
@@ -94,6 +103,10 @@ public final class WorldCache {
         int pendingPps = scoreboardSession.getPendingPacketsPerSecond().incrementAndGet();
         int pps = scoreboardSession.getPacketsPerSecond();
         return Math.max(pps, pendingPps);
+    }
+
+    public boolean isTitleTimesIncorrect() {
+        return titleTimesNeedReset;
     }
 
     public void markTitleTimesAsIncorrect() {
@@ -176,9 +189,7 @@ public final class WorldCache {
     }
 
     public void updateServerCorrectBlockState(Vector3i position, int blockState) {
-        if (!this.unverifiedPredictions.isEmpty()) {
-            this.unverifiedPredictions.removeInt(position);
-        }
+        this.unverifiedPredictions.removeInt(position);
 
         // Hack to avoid looking up blockstates for the currently broken position each tick
         Vector3i clientBreakPos = session.getBlockBreakHandler().getCurrentBlockPos();
@@ -187,6 +198,10 @@ public final class WorldCache {
         }
 
         ChunkUtils.updateBlock(session, blockState, position);
+    }
+
+    public void removePrediction(Vector3i position) {
+        this.unverifiedPredictions.removeInt(position);
     }
 
     public void endPredictionsUpTo(int sequence) {
@@ -211,6 +226,17 @@ public final class WorldCache {
         this.activeRecords.put(pos, bedrockPlaySound);
     }
 
+    public long addPlayingRecord(Vector3i pos) {
+        long selectedId = lastPlayingSoundId++;
+        this.playingRecords.put(pos, selectedId);
+        return selectedId;
+    }
+
+    public @Nullable Long removePlayingRecord(Vector3i pos) {
+        long removedId = this.playingRecords.removeLong(pos);
+        return removedId == -1 ? null : removedId;
+    }
+
     // Implementation note: positions aren't removed unless the server calls, but this seems to match 1.21 Java
     // client behavior.
     @Nullable
@@ -221,19 +247,19 @@ public final class WorldCache {
     public void setCooldown(Key cooldownGroup, int ticks) {
         if (ticks == 0) {
             // As of Java 1.21
-            this.activeCooldowns.removeInt(cooldownGroup.asString());
+            this.activeCooldowns.removeInt(cooldownGroup);
             return;
         }
-        this.activeCooldowns.put(cooldownGroup.asString(), session.getTicks() + ticks);
+        this.activeCooldowns.put(cooldownGroup, session.getTicks() + ticks);
     }
 
     public boolean hasCooldown(GeyserItemStack item) {
         UseCooldown cooldown = item.getComponent(DataComponentTypes.USE_COOLDOWN);
-        String cooldownGroup;
+        Key cooldownGroup;
         if (cooldown != null && cooldown.cooldownGroup() != null) {
-            cooldownGroup = cooldown.cooldownGroup().asString();
+            cooldownGroup = cooldown.cooldownGroup();
         } else {
-            cooldownGroup = item.asItem().javaIdentifier();
+            cooldownGroup = item.asItem().javaKey();
         }
         return this.activeCooldowns.containsKey(cooldownGroup);
     }
@@ -243,9 +269,9 @@ public final class WorldCache {
         // but we don't want the cooldown field to balloon in size from overuse.
         if (!this.activeCooldowns.isEmpty()) {
             int ticks = session.getTicks();
-            Iterator<Object2IntMap.Entry<String>> it = Object2IntMaps.fastIterator(this.activeCooldowns);
+            Iterator<Object2IntMap.Entry<Key>> it = Object2IntMaps.fastIterator(this.activeCooldowns);
             while (it.hasNext()) {
-                Object2IntMap.Entry<String> entry = it.next();
+                Object2IntMap.Entry<Key> entry = it.next();
                 if (entry.getIntValue() <= ticks) {
                     it.remove();
                 }

@@ -27,38 +27,44 @@ package org.geysermc.geyser.entity.type.living.animal.horse;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
+import org.cloudburstmc.math.vector.Vector2f;
 import org.cloudburstmc.math.vector.Vector3f;
+import org.cloudburstmc.protocol.bedrock.data.AttributeData;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityEventType;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerType;
 import org.cloudburstmc.protocol.bedrock.packet.EntityEventPacket;
 import org.cloudburstmc.protocol.bedrock.packet.UpdateAttributesPacket;
-import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.entity.attribute.GeyserAttributeType;
+import org.geysermc.geyser.entity.spawn.EntitySpawnContext;
 import org.geysermc.geyser.entity.type.living.animal.AnimalEntity;
+import org.geysermc.geyser.entity.vehicle.ClientVehicle;
+import org.geysermc.geyser.entity.vehicle.HorseVehicleComponent;
+import org.geysermc.geyser.entity.vehicle.VehicleComponent;
 import org.geysermc.geyser.input.InputLocksFlag;
 import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.item.type.Item;
-import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.cache.tags.ItemTag;
 import org.geysermc.geyser.session.cache.tags.Tag;
 import org.geysermc.geyser.util.InteractionResult;
 import org.geysermc.geyser.util.InteractiveTag;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.EquipmentSlot;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.attribute.Attribute;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.attribute.AttributeType;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.ByteEntityMetadata;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.Hand;
 
-import java.util.UUID;
+public class AbstractHorseEntity extends AnimalEntity implements ClientVehicle {
 
-public class AbstractHorseEntity extends AnimalEntity {
+    private final HorseVehicleComponent vehicleComponent = new HorseVehicleComponent(this);
 
-    public AbstractHorseEntity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
-        super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
+    public AbstractHorseEntity(EntitySpawnContext context) {
+        super(context);
 
         // Specifies the size of the entity's inventory. Required to place slots in the entity.
-        dirtyMetadata.put(EntityDataTypes.CONTAINER_SIZE, getContainerBaseSize());
+        metadata.put(EntityDataTypes.CONTAINER_SIZE, getContainerBaseSize());
 
         setFlag(EntityFlag.WASD_CONTROLLED, true);
     }
@@ -95,6 +101,15 @@ public class AbstractHorseEntity extends AnimalEntity {
     }
 
     @Override
+    protected AttributeData calculateAttribute(Attribute javaAttribute, GeyserAttributeType type) {
+        AttributeData attributeData = super.calculateAttribute(javaAttribute, type);
+        if (javaAttribute.getType() == AttributeType.Builtin.JUMP_STRENGTH) {
+            vehicleComponent.setHorseJumpStrength(attributeData.getValue());
+        }
+        return attributeData;
+    }
+
+    @Override
     public boolean doesJumpDismount() {
         return !this.getFlag(EntityFlag.SADDLED);
     }
@@ -117,7 +132,7 @@ public class AbstractHorseEntity extends AnimalEntity {
         horseFlags = (xd & 0x10) == 0x10 && (xd & 0x40) != 0x40 ? horseFlags | 0x20 : horseFlags;
 
         // Set the flags into the horse flags
-        dirtyMetadata.put(EntityDataTypes.HORSE_FLAGS, horseFlags);
+        metadata.put(EntityDataTypes.HORSE_FLAGS, horseFlags);
 
         // Send the eating particles
         // We use the wheat metadata as static particles since Java
@@ -131,7 +146,7 @@ public class AbstractHorseEntity extends AnimalEntity {
         }
 
         // Set container type if tamed
-        dirtyMetadata.put(EntityDataTypes.CONTAINER_TYPE, tamed ? (byte) ContainerType.HORSE.getId() : (byte) 0);
+        metadata.put(EntityDataTypes.CONTAINER_TYPE, tamed ? (byte) ContainerType.HORSE.getId() : (byte) 0);
     }
 
     @Override
@@ -258,7 +273,7 @@ public class AbstractHorseEntity extends AnimalEntity {
 
     protected boolean additionalTestForInventoryOpen(@NonNull GeyserItemStack itemInHand) {
         // TODO this doesn't seem right anymore... (as of Java 1.21.9)
-        return itemInHand.asItem().javaIdentifier().endsWith("_horse_armor");
+        return itemInHand.asItem().javaKey().value().endsWith("_horse_armor");
     }
 
     /* Just a place to stuff common code for the undead variants without having duplicate code */
@@ -308,5 +323,26 @@ public class AbstractHorseEntity extends AnimalEntity {
         } else {
             return isAlive() && !isBaby() && getFlag(EntityFlag.TAMED);
         }
+    }
+
+    @Override
+    public VehicleComponent<?> getVehicleComponent() {
+        return this.vehicleComponent;
+    }
+
+    @Override
+    public Vector3f getRiddenInput(Vector2f input) {
+        input = input.mul(0.5f, input.getY() < 0 ? 0.25f : 1.0f);
+        return Vector3f.from(input.getX(), 0.0, input.getY());
+    }
+
+    @Override
+    public float getVehicleSpeed() {
+        return vehicleComponent.getMoveSpeed();
+    }
+
+    @Override
+    public boolean canSimulateMovement() {
+        return getFlag(EntityFlag.SADDLED) && !passengers.isEmpty() && passengers.getFirst() == session.getPlayerEntity() && !session.isInClientPredictedVehicle();
     }
 }

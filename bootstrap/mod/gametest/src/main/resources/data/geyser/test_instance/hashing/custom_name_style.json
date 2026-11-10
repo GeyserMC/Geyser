@@ -1,0 +1,35 @@
+{
+  "type": "geyser:component_hash",
+  "component": "minecraft:custom_name",
+  "value": [
+    {
+      "text": "hello!",
+      "color": "dark_purple",
+      "font": "geyser:my_cool_font"
+    },
+    {
+      "text": "hi there!",
+      "color": "#660200",
+      "bold": false,
+      "italic": true,
+      "underlined": true,
+      "strikethrough": false,
+      "obfuscated": true
+    },
+    {
+      "text": "how are you doing on this splendid day?",
+      "bold": true,
+      "italic": false,
+      "strikethrough": true
+    },
+    {
+      "text": "I am doing quite all right, ma'am, how about you?",
+      "shadow_color": [0.34, 0.8, 0.1, 1.0],
+      "font": "geyser:the_splendid_font"
+    },
+    {
+      "text": "Oh, I myself am also doing just fine! Thank you for asking!",
+      "insertion": "(please help me)"
+    }
+  ]
+}

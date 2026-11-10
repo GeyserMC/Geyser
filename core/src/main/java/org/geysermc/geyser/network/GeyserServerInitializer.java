@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2026 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -32,45 +32,55 @@ import lombok.Getter;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.cloudburstmc.protocol.bedrock.BedrockPeer;
 import org.cloudburstmc.protocol.bedrock.BedrockServerSession;
-import org.cloudburstmc.protocol.bedrock.netty.codec.packet.BedrockPacketCodec;
 import org.cloudburstmc.protocol.bedrock.netty.initializer.BedrockServerInitializer;
 import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.network.bedrock.GeyserBedrockPeer;
+import org.geysermc.geyser.network.bedrock.InvalidPacketHandler;
+import org.geysermc.geyser.network.bedrock.LoginPacketHandler;
 import org.geysermc.geyser.session.GeyserSession;
 
-import java.net.InetSocketAddress;
-
-public class GeyserServerInitializer extends BedrockServerInitializer {
-    private final GeyserImpl geyser;
+/**
+ * Shared by every Bedrock transport: turns each new Bedrock session into a {@link GeyserSession}.
+ * Subclasses only set up the transport specific part of the pipeline.
+ */
+public abstract class GeyserServerInitializer extends BedrockServerInitializer {
+    protected final GeyserImpl geyser;
     // There is a constructor that doesn't require inputting threads, but older Netty versions don't have it
     @Getter
-    private final DefaultEventLoopGroup eventLoopGroup = new DefaultEventLoopGroup(0, new DefaultThreadFactory("Geyser player thread"));
+    private final DefaultEventLoopGroup eventLoopGroup;
 
-    public GeyserServerInitializer(GeyserImpl geyser) {
+    protected GeyserServerInitializer(GeyserImpl geyser, String playerThreadName) {
         this.geyser = geyser;
+        this.eventLoopGroup = new DefaultEventLoopGroup(0, new DefaultThreadFactory(playerThreadName));
     }
 
     @Override
     public void initSession(@NonNull BedrockServerSession bedrockServerSession) {
         try {
-            if (this.geyser.getGeyserServer().getProxiedAddresses() != null) {
-                InetSocketAddress address = this.geyser.getGeyserServer().getProxiedAddresses().get((InetSocketAddress) bedrockServerSession.getSocketAddress());
-                if (address != null) {
-                    ((GeyserBedrockPeer) bedrockServerSession.getPeer()).setProxiedAddress(address);
+            bedrockServerSession.setLogging(this.geyser.config().debugMode());
+            GeyserSession session = new GeyserSession(this.geyser, bedrockServerSession, this.eventLoopGroup.next());
+
+            if (!bedrockServerSession.isSubClient()) {
+                InvalidPacketHandler handler = bedrockServerSession.getPeer().getChannel().pipeline().get(InvalidPacketHandler.class);
+                if (handler != null) {
+                    handler.setSession(session);
                 }
             }
 
-            bedrockServerSession.setLogging(true);
-            GeyserSession session = new GeyserSession(this.geyser, bedrockServerSession, this.eventLoopGroup.next());
-
-            Channel channel = bedrockServerSession.getPeer().getChannel();
-            channel.pipeline().addAfter(BedrockPacketCodec.NAME, InvalidPacketHandler.NAME, new InvalidPacketHandler(session));
-
-            bedrockServerSession.setPacketHandler(new UpstreamPacketHandler(this.geyser, session));
+            bedrockServerSession.setPacketHandler(new LoginPacketHandler(this.geyser, session));
         } catch (Throwable e) {
             // Error must be caught or it will be swallowed
             this.geyser.getLogger().error("Error occurred while initializing player!", e);
             bedrockServerSession.disconnect(e.getMessage());
         }
+    }
+
+    @Override
+    protected void postInitChannel(Channel channel) throws Exception {
+        // Added after BedrockPeer, not BedrockPacketCodec to ensure exceptions thrown while dispatching
+        // to the packet handler also get here if no other handler exists
+        // FIXME not ideal for e.g. UpstreamPacketHandler having a couple of its own packet handlers
+        channel.pipeline().addAfter(BedrockPeer.NAME, InvalidPacketHandler.NAME, new InvalidPacketHandler());
     }
 
     @Override

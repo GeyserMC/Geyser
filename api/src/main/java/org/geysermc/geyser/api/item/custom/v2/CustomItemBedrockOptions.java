@@ -1,0 +1,322 @@
+/*
+ * Copyright (c) 2024-2026 GeyserMC. http://geysermc.org
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ *
+ * @author GeyserMC
+ * @link https://github.com/GeyserMC/Geyser
+ */
+
+package org.geysermc.geyser.api.item.custom.v2;
+
+import org.checkerframework.checker.index.qual.NonNegative;
+import org.checkerframework.common.returnsreceiver.qual.This;
+import org.checkerframework.common.value.qual.IntRange;
+import org.geysermc.geyser.api.GeyserApi;
+import org.geysermc.geyser.api.util.CreativeCategory;
+import org.geysermc.geyser.api.util.Identifier;
+import org.jspecify.annotations.Nullable;
+
+import java.awt.Color;
+import java.util.Set;
+
+/**
+ * This is used to store options for a custom item definition that can't be described using item components.
+ * @since 2.9.3
+ */
+public interface CustomItemBedrockOptions {
+
+    /**
+     * Gets the item's icon, if it was manually set. When not present, the item's Bedrock identifier is used.
+     *
+     * <p>This method is deprecated and planned to be removed in Geyser 2.14.0.</p>
+     *
+     * @return the item's icon
+     * @see CustomItemIcons#defaultIcon()
+     * @deprecated since 2.12.0: use {@link CustomItemBedrockOptions#icons()} and {@link CustomItemIcons#defaultIcon()} instead
+     * @since 2.9.3
+     */
+    @Deprecated(since = "2.12.0")
+    default @Nullable String icon() {
+        return icons().defaultIcon();
+    }
+
+    /**
+     * Gets the item's icon data. Defaults to {@link CustomItemIcons#EMPTY} if not manually set using {@link CustomItemBedrockOptions.Builder#icons(CustomItemIcons)}.
+     *
+     * @return the item's icon data
+     * @see CustomItemIcons
+     * @since 2.12.0
+     */
+    CustomItemIcons icons();
+
+    /**
+     * If the item is allowed to be put into the offhand. Defaults to true.
+     *
+     * @return true if the item is allowed to be used in the offhand, false otherwise
+     * @since 2.9.3
+     */
+    boolean allowOffhand();
+
+    /**
+     * If the item should be displayed as handheld, like a tool. Defaults to false.
+     *
+     * @return true if the item should be displayed as handheld, false otherwise
+     * @since 2.9.3
+     */
+    boolean displayHandheld();
+
+    /**
+     * Since Bedrock doesn't properly support setting item armor values over attributes, this value
+     * determines how many armor points should be shown when this item is worn. This is purely visual.
+     *
+     * <p>Only has an effect when the item is equippable, and defaults to 0.</p>
+     *
+     * @return the item's visually shown protection value
+     * @since 2.9.3
+     */
+    int protectionValue();
+
+    /**
+     * The item's creative category. Defaults to {@code NONE}.
+     *
+     * @return the item's creative category
+     * @since 2.9.3
+     */
+    CreativeCategory creativeCategory();
+
+    /**
+     * The item's creative group.
+     *
+     * <p>A list of creative groups available in vanilla can be found <a href="https://wiki.bedrock.dev/documentation/menu-categories#list-of-vanilla-groups">here</a>.</p>
+     *
+     * @return the item's creative group
+     * @since 2.9.3
+     */
+    @Nullable String creativeGroup();
+
+    /**
+     * Gets the item's set of bedrock tags that can be used in Molang.
+     * Equivalent to "tag:some_tag".
+     *
+     * @return the item's set of bedrock tags, can be empty
+     * @since 2.9.3
+     */
+    Set<Identifier> tags();
+
+    /**
+     * Returns the default color of the item if it is dyeable, and if not, {@code null}.
+     *
+     * <p>The client allows dyeing dyeable items using any of the vanilla dyes in a crafting table.</p>
+     *
+     * @return the default color of the item if it is dyeable, and if not, {@code null}
+     * @since 2.12.0
+     */
+    @Nullable Integer defaultDyeableColor();
+
+    /**
+     * Creates a new builder for custom item bedrock options.
+     *
+     * @return a new builder
+     * @since 2.9.3
+     */
+    static Builder builder() {
+        return GeyserApi.api().provider(Builder.class);
+    }
+
+    /**
+     * Builder for custom item bedrock options.
+     * @since 2.9.3
+     */
+    interface Builder {
+
+        /**
+         * Shorthand method for setting the item's default icon.
+         *
+         * <p>This will clear the item's dyeable icon, if it was set.</p>
+         *
+         * @param icon the item's default icon
+         * @see CustomItemIcons#defaultIcon()
+         * @see CustomItemIcons.Builder#defaultIcon(String)
+         * @see Builder#icons(CustomItemIcons)
+         * @return this builder
+         * @since 2.9.3
+         */
+        @This
+        default Builder icon(@Nullable String icon) {
+            return icons(CustomItemIcons.builder().defaultIcon(icon));
+        }
+
+        /**
+         * Shorthand method for {@link Builder#icons(CustomItemIcons)}, sets this item's icon data.
+         *
+         * @param builder the {@link CustomItemIcons.Builder} instance
+         * @see CustomItemIcons
+         * @return this builder
+         * @since 2.12.0
+         */
+        @This
+        default Builder icons(CustomItemIcons.Builder builder) {
+            return icons(builder.build());
+        }
+
+        /**
+         * Sets this item's icon data.
+         *
+         * @param icons the {@link CustomItemIcons} instance
+         * @see CustomItemIcons
+         * @return this builder
+         * @since 2.12.0
+         */
+        @This
+        Builder icons(CustomItemIcons icons);
+
+        /**
+         * Sets if the item is allowed to be put into the offhand.
+         *
+         * @param allowOffhand if the item is allowed to be put into the offhand slot
+         * @see CustomItemBedrockOptions#allowOffhand()
+         * @return this builder
+         * @since 2.9.3
+         */
+        @This
+        Builder allowOffhand(boolean allowOffhand);
+
+        /**
+         * Sets if the item should be displayed as handheld, like a tool.
+         *
+         * @param displayHandheld if the item should be displayed as handheld
+         * @see CustomItemBedrockOptions#displayHandheld()
+         * @return this builder
+         * @since 2.9.3
+         */
+        @This
+        Builder displayHandheld(boolean displayHandheld);
+
+        /**
+         * Sets the item's protection value.
+         *
+         * @param protectionValue the item's protection value
+         * @see CustomItemBedrockOptions#protectionValue()
+         * @return this builder
+         * @since 2.9.3
+         */
+        @This
+        Builder protectionValue(@NonNegative int protectionValue);
+
+        /**
+         * Sets the item's creative category.
+         *
+         * @param creativeCategory the item's creative category
+         * @see CustomItemBedrockOptions#creativeCategory()
+         * @return this builder
+         * @since 2.9.3
+         */
+        @This
+        Builder creativeCategory(CreativeCategory creativeCategory);
+
+        /**
+         * Sets the item's creative group.
+         *
+         * @param creativeGroup the item's creative group
+         * @see CustomItemBedrockOptions#creativeGroup()
+         * @return this builder
+         * @since 2.9.3
+         */
+        @This
+        Builder creativeGroup(@Nullable String creativeGroup);
+
+        /**
+         * Adds a tag to the set of bedrock tags this item has, for use in Molang.
+         *
+         * @param tag the tag to be added
+         * @see CustomItemBedrockOptions#tags()
+         * @return this builder
+         * @since 2.9.3
+         */
+        @This
+        Builder tag(Identifier tag);
+
+        /**
+         * Sets the item's set of bedrock tags, for use in Molang. Pass {@code null} to clear all tags.
+         *
+         * @param tags the tags to be set, or {@code null} to clear all tags
+         * @see CustomItemBedrockOptions#tags()
+         * @return this builder
+         * @since 2.9.3
+         */
+        @This
+        Builder tags(@Nullable Set<Identifier> tags);
+
+        /**
+         * Marks the item as dyeable, and sets the default color of the item.
+         *
+         * @param defaultColor the default color of the item
+         * @see CustomItemBedrockOptions#defaultDyeableColor()
+         * @return this builder
+         * @since 2.12.0
+         */
+        @This
+        Builder dyeable(@IntRange(from = 0x000000, to = 0xFFFFFF) int defaultColor);
+
+        /**
+         * Marks the item as dyeable, and sets the default color of the item.
+         *
+         * @param defaultRed the red component of the default color of the item
+         * @param defaultGreen the green component of the default color of the item
+         * @param defaultBlue the blue component of the default color of the item
+         * @see CustomItemBedrockOptions#defaultDyeableColor()
+         * @return this builder
+         * @since 2.12.0
+         */
+        @This
+        default Builder dyeable(@IntRange(from = 0, to = 255) int defaultRed, @IntRange(from = 0, to = 255) int defaultGreen, @IntRange(from = 0, to = 255) int defaultBlue) {
+            if (defaultRed < 0 || defaultRed > 255) {
+                throw new IllegalArgumentException("Red component must be between 0 and 255, was: " + defaultRed);
+            }else if (defaultGreen < 0 || defaultGreen > 255) {
+                throw new IllegalArgumentException("Green component must be between 0 and 255, was: " + defaultGreen);
+            }else if (defaultBlue < 0 || defaultBlue > 255) {
+                throw new IllegalArgumentException("Blue component must be between 0 and 255, was: " + defaultBlue);
+            }
+            return dyeable((defaultRed << 16) | (defaultGreen << 8) | defaultBlue);
+        }
+
+        /**
+         * Marks the item as dyeable, and sets the default color of the item.
+         *
+         * @param defaultColor the default color of the item
+         * @return this builder
+         * @since 2.12.0
+         */
+        @This
+        default Builder dyeable(Color defaultColor) {
+            // Discard alpha value
+            return dyeable(defaultColor.getRGB() & 0xFFFFFF);
+        }
+
+        /**
+         * Creates the custom item bedrock options.
+         *
+         * @return the new instance of bedrock options
+         * @throws IllegalStateException when the set {@link CustomItemIcons} has a dyeable icon, but the item is not marked as dyeable
+         * @since 2.9.3
+         */
+        CustomItemBedrockOptions build();
+    }
+}
