@@ -85,8 +85,8 @@ public interface GeometryComponent {
     interface Builder {
         /**
          * Sets the identifier of the geometry.
-         * @see GeometryComponent#identifier()
          *
+         * @see GeometryComponent#identifier()
          * @param identifier the identifier of the geometry
          * @return this builder
          * @since 2.2.0
@@ -96,8 +96,8 @@ public interface GeometryComponent {
 
         /**
          * Sets the bone visibility of the geometry.
-         * @see GeometryComponent#boneVisibility()
          *
+         * @see GeometryComponent#boneVisibility()
          * @param boneVisibility the bone visibility of the geometry
          * @return this builder
          * @since 2.2.0
@@ -107,8 +107,8 @@ public interface GeometryComponent {
 
         /**
          * Sets the identifier of the block culling rules, defined in a resource pack's {@code block_culling} folder.
-         * @see GeometryComponent#culling()
          *
+         * @see GeometryComponent#culling()
          * @param culling the identifier of the block culling rules
          * @return this builder
          * @since 2.12.2
@@ -118,8 +118,8 @@ public interface GeometryComponent {
 
         /**
          * Sets the culling layer, used by block culling rules with the {@code same_culling_layer} condition.
-         * @see GeometryComponent#cullingLayer()
          *
+         * @see GeometryComponent#cullingLayer()
          * @param cullingLayer the culling layer
          * @return this builder
          * @since 2.12.2
