@@ -298,6 +298,7 @@ public class NetherNetCommand extends GeyserCommand {
 
     static String summary(String name, NetherNetStats.Snapshot snapshot) {
         return name + ": rtt " + snapshot.sctpRtt() + " ms (rto " + snapshot.sctpRto() + " ms)"
+            + " | game rtt " + snapshot.describeGameRoundTrip()
             + " | out " + bytes(snapshot.bytesOutPerSecond()) + "/s, " + snapshot.messagesOutPerSecond() + " msg/s, "
             + snapshot.packetsOutPerSecond() + " pkt/s | in " + bytes(snapshot.bytesInPerSecond()) + "/s"
             + " | cwnd " + bytes(snapshot.congestionWindow()) + ", peer rwnd " + bytes(snapshot.peerReceiveWindow())
@@ -307,6 +308,7 @@ public class NetherNetCommand extends GeyserCommand {
             + " | " + (snapshot.writable() ? "writable" : "UNWRITABLE for " + snapshot.unwritableMillis() + " ms")
             + " (" + snapshot.unwritableEvents() + "x)"
             + " | " + String.format(Locale.ROOT, "%.1f pkt/msg, %.0f%% compressed size", snapshot.averageBatchSize(), snapshot.compressionRatio() * 100)
+            + (snapshot.topPacketTypes().isEmpty() ? "" : " | top " + String.join(", ", snapshot.topPacketTypes()))
             + " | " + (snapshot.path() == null ? "no path" : snapshot.path());
     }
 

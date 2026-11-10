@@ -51,10 +51,13 @@ import java.util.function.Consumer;
  * its retransmission timer on SACKs with gaps, so while data stays in flight a timeout comes every one or two RTOs
  * however promptly the client acknowledges: evenly spaced timeouts, unacked never reaching 0, and cwnd dropping to one
  * MTU after some of them. With the fix, timeouts only come with real loss.
+ * <p>
+ * game_rtt_ms is the last NetworkStackLatency round trip (see {@link NetherNetStats.Snapshot#gameRoundTripMillis()}).
+ * When it grows far past rtt_ms while unacked chunks stay low, the backlog is in the client, not the network.
  */
 public final class NetherNetRecorder {
     static final long INTERVAL_MILLIS = 20;
-    static final String HEADER = "t_ms,rtt_ms,rto_ms,cwnd,unacked_chunks,timeouts";
+    static final String HEADER = "t_ms,rtt_ms,rto_ms,cwnd,unacked_chunks,timeouts,game_rtt_ms";
     /** Rows are flushed this often, so a recording cut off by a shutdown loses at most about a second */
     private static final int FLUSH_EVERY = 50;
     private static final Set<Channel> RECORDING = ConcurrentHashMap.newKeySet();
@@ -129,9 +132,10 @@ public final class NetherNetRecorder {
             return;
         }
         long t = TimeUnit.NANOSECONDS.toMillis(now - startNanos);
+        NetherNetStats stats = channel.attr(NetherNetStats.ATTRIBUTE).get();
         try {
             writer.write(t + "," + sctp.rtt().toMillis() + "," + sctp.rto().toMillis() + "," + sctp.congestionWindow()
-                + "," + sctp.unackedChunks() + "," + sctp.dataTimeouts());
+                + "," + sctp.unackedChunks() + "," + sctp.dataTimeouts() + "," + (stats == null ? -1 : stats.lastGameRoundTripMillis()));
             writer.newLine();
             if (summary.samples % FLUSH_EVERY == 0) {
                 writer.flush();

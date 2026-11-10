@@ -34,6 +34,7 @@ import io.netty.util.concurrent.ScheduledFuture;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.netty.channel.nethernet.NetherNetChannel;
 import org.cloudburstmc.protocol.bedrock.netty.BedrockBatchWrapper;
+import org.cloudburstmc.protocol.bedrock.netty.BedrockPacketWrapper;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.session.GeyserSession;
 
@@ -124,12 +125,13 @@ public class NetherNetStatsHandler extends ChannelDuplexHandler {
             + ", receive queue " + snapshot.receiveQueueChunks() + " chunks"
             + ", cwnd " + snapshot.congestionWindow() + " B, peer rwnd " + snapshot.peerReceiveWindow() + " B"
             + ", rtt " + snapshot.sctpRtt() + " ms, rto " + snapshot.sctpRto() + " ms"
+            + ", game rtt " + snapshot.describeGameRoundTrip()
             + ", out " + snapshot.bytesOutPerSecond() + " B/s in " + snapshot.messagesOutPerSecond() + " msg/s"
             + ", timeouts +" + Math.max(newTimeouts, 0));
     }
 
     /**
-     * Counts packets and uncompressed bytes of outbound batches. Goes right after the compression codec in the pipeline,
+     * Counts packets, by type, and uncompressed bytes of outbound batches. Goes right after the compression codec in the pipeline,
      * so it sees batches before they are compressed: zlib copies a multi-packet batch out of its composite buffer, which
      * leaves nothing readable for a handler behind compression.
      */
@@ -147,6 +149,9 @@ public class NetherNetStatsHandler extends ChannelDuplexHandler {
             if (msg instanceof BedrockBatchWrapper batch) {
                 ByteBuf uncompressed = batch.getUncompressed();
                 stats.batchOut(batch.getPackets().size(), uncompressed == null ? 0 : uncompressed.readableBytes());
+                for (BedrockPacketWrapper packet : batch.getPackets()) {
+                    stats.packetOut(packet.getPacket() == null ? "id " + packet.getPacketId() : packet.getPacket().getClass().getSimpleName());
+                }
             }
             super.write(ctx, msg, promise);
         }

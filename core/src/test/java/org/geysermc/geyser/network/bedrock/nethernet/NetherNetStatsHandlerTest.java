@@ -38,6 +38,9 @@ import org.cloudburstmc.protocol.bedrock.netty.codec.compression.ZlibCompression
 import org.cloudburstmc.protocol.common.util.Zlib;
 import org.junit.jupiter.api.Test;
 
+import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class NetherNetStatsHandlerTest {
@@ -71,5 +74,25 @@ class NetherNetStatsHandlerTest {
         // compressed size over 0 uncompressed bytes, which the stats showed as ever growing percentages
         double ratio = stats.compressionRatio();
         assertTrue(ratio > 0 && ratio < 0.1, "compression ratio " + ratio);
+    }
+
+    @Test
+    void topPacketTypesAreCountedPerPacket() throws InterruptedException {
+        NetherNetStats stats = new NetherNetStats();
+        EmbeddedChannel channel = new EmbeddedChannel(new NetherNetStatsHandler.BatchCounter(stats));
+        BedrockBatchWrapper batch = BedrockBatchWrapper.newInstance();
+        for (int i = 0; i < 15; i++) {
+            BedrockPacketWrapper packet = BedrockPacketWrapper.create();
+            packet.setPacketId(i < 10 ? 111 : 40);
+            batch.addPacket(packet);
+        }
+        batch.setUncompressed(ByteBufAllocator.DEFAULT.buffer(1).writeZero(1));
+        channel.writeOutbound(batch);
+        ReferenceCountUtil.release(channel.readOutbound());
+        channel.finishAndReleaseAll();
+
+        // Rates average whole seconds, so the one just recorded counts once it is over
+        Thread.sleep(1100);
+        assertEquals(List.of("id 111 2/s", "id 40 1/s"), stats.topPacketTypes(5));
     }
 }
