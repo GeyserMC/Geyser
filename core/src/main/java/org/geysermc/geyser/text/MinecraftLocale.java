@@ -195,10 +195,11 @@ public class MinecraftLocale {
             langMap.putAll(parseLangFile(localeOverride, lowercaseLocale));
         }
 
+        String finalLowercaseLocale = lowercaseLocale;
         GeyserImpl.getInstance().eventBus().fire(new GeyserLoadLocaleEvent() {
             @Override
             public @NonNull String locale() {
-                return locale;
+                return finalLowercaseLocale;
             }
 
             @Override
