@@ -752,7 +752,7 @@ public abstract class InventoryTranslator<Type extends Inventory> {
         }
         int gridDimensions = gridSize == 4 ? 2 : 3;
 
-        GeyserRecipe recipe = null;
+        GeyserRecipe<?> recipe = null;
         List<SlotDisplay> ingredients = Collections.emptyList();
         int recipeWidth = 0;
         int ingRemaining = 0;

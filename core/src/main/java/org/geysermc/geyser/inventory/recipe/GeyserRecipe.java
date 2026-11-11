@@ -27,6 +27,7 @@ package org.geysermc.geyser.inventory.recipe;
 
 import org.cloudburstmc.protocol.bedrock.data.inventory.crafting.recipe.RecipeData;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.mcprotocollib.protocol.data.game.recipe.display.RecipeDisplayEntry;
 import org.geysermc.mcprotocollib.protocol.data.game.recipe.display.slot.SlotDisplay;
 
 import java.util.List;
@@ -36,7 +37,7 @@ import java.util.List;
  */
 public interface GeyserRecipe<T extends RecipeData> {
     /**
-     * The Java Edition {@code RecipeDisplayId} this recipe was created from, as sent to us by the backend
+     * The Java Edition {@link RecipeDisplayEntry#id()} this recipe was created from, as sent to us by the backend
      * server. Needed to place this recipe via a {@link org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.inventory.ServerboundPlaceRecipePacket}.
      */
     int id();
