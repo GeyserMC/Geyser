@@ -15,7 +15,7 @@ on:
 permissions: {}
 
 jobs:
-  build:
+  build-remote:
     runs-on: ubuntu-latest
     steps:
       - name: Set Build Number

@@ -54,6 +54,11 @@ import java.util.List;
 import java.util.ListIterator;
 
 public final class ClickPlan {
+    /**
+     * Clicks a session may send to the Java server per tick. Far above what a player does.
+     */
+    public static final int MAX_CLICKS_PER_TICK = 512;
+
     private final List<ClickAction> plan = new ArrayList<>();
     private final Int2ObjectMap<GeyserItemStack> simulatedItems;
     /**
@@ -96,6 +101,8 @@ public final class ClickPlan {
     public void add(Click click, int slot, boolean force) {
         if (executionBegan)
             throw new UnsupportedOperationException("ClickPlan already executed");
+        if (!session.takeInventoryClick())
+            throw new ClickLimitException();
 
         if (click == Click.LEFT_OUTSIDE || click == Click.RIGHT_OUTSIDE) {
             slot = Click.OUTSIDE_SLOT;
@@ -162,7 +169,7 @@ public final class ClickPlan {
                 action.slot,
                 action.click.actionType,
                 action.click.action,
-                DataComponentHashers.hashStack(session, clickedItemStack),
+                DataComponentHashers.hashStack(session.javaRegistries(), clickedItemStack),
                 changedHashedItems
             );
 
@@ -260,7 +267,7 @@ public final class ClickPlan {
     private void onSlotItemChange(int slot, GeyserItemStack itemStack) {
         if (changedItems != null) {
             changedItems.put(slot, itemStack.getItemStack());
-            changedHashedItems.put(slot, DataComponentHashers.hashStack(session, itemStack.getItemStack()));
+            changedHashedItems.put(slot, DataComponentHashers.hashStack(session.javaRegistries(), itemStack.getItemStack()));
         }
     }
 
@@ -594,5 +601,14 @@ public final class ClickPlan {
     }
 
     private record ClickAction(Click click, int slot, boolean force) {
+    }
+
+    /**
+     * Thrown when a request would send more clicks than the session has left this tick
+     */
+    public static final class ClickLimitException extends RuntimeException {
+        private ClickLimitException() {
+            super("Too many inventory clicks this tick", null, false, false);
+        }
     }
 }

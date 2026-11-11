@@ -31,8 +31,10 @@ import java.nio.file.Path;
 import java.util.List;
 
 /**
- * @deprecated Use the {@link GeyserDefineResourcePacksEvent} instead.
+ * This record is deprecated for removal and will be removed in Geyser 2.13.0.
+ *
+ * @deprecated since 2.6.2: use the {@link GeyserDefineResourcePacksEvent} instead.
  */
-@Deprecated
+@Deprecated(since = "2.6.2", forRemoval = true)
 public record GeyserLoadResourcePacksEvent(List<Path> resourcePacks) implements Event {
 }

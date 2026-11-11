@@ -17,7 +17,7 @@
       }
     },
     {
-      "items": "#minecraft:brewing_fuel",
+      "items": "#minecraft:llama_food",
       "count": 43,
       "components": {
         "minecraft:max_stack_size": 44

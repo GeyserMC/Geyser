@@ -26,7 +26,6 @@
 package org.geysermc.geyser.translator.protocol.java;
 
 import net.kyori.adventure.text.Component;
-import org.cloudburstmc.protocol.bedrock.packet.ToastRequestPacket;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
@@ -41,9 +40,9 @@ public class JavaLowDiskSpaceWarningTranslator extends PacketTranslator<Clientbo
 
     @Override
     public void translate(GeyserSession session, ClientboundLowDiskSpaceWarningPacket packet) {
-        ToastRequestPacket toastRequestPacket = new ToastRequestPacket();
-        toastRequestPacket.setTitle(MessageTranslator.convertMessage(LOW_DISK_SPACE, session.locale()));
-        toastRequestPacket.setContent(MessageTranslator.convertMessage(LOW_DISK_SPACE_DESCRIPTION, session.locale()));
-        session.sendUpstreamPacket(toastRequestPacket);
+        session.sendToast(
+            MessageTranslator.convertMessage(LOW_DISK_SPACE, session.locale()),
+            MessageTranslator.convertMessage(LOW_DISK_SPACE_DESCRIPTION, session.locale())
+        );
     }
 }

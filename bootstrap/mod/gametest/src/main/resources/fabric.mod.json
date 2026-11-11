@@ -27,7 +27,7 @@
     "geyser-gametest.mixins.json"
   ],
   "depends": {
-    "fabricloader": ">=0.19.3",
+    "fabricloader": ">=0.19.5",
     "fabric-api": "*",
     "minecraft": "~${minecraft}"
   }

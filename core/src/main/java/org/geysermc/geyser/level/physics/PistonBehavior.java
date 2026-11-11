@@ -30,10 +30,11 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import java.util.Locale;
 
 public enum PistonBehavior {
-    NORMAL,
-    BLOCK,
-    DESTROY,
-    PUSH_ONLY;
+    PUSH_PULL,
+    PUSH,
+    POPPED,
+    IMMOVEABLE,
+    IGNORE_ENTITY;
 
     private static final PistonBehavior[] VALUES = values();
 
@@ -44,6 +45,6 @@ public enum PistonBehavior {
                 return type;
             }
         }
-        return NORMAL;
+        return PUSH_PULL;
     }
 }

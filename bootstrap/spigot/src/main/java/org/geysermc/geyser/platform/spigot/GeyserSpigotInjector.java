@@ -37,9 +37,9 @@ import io.netty.util.concurrent.DefaultThreadFactory;
 import org.bukkit.Bukkit;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.GeyserBootstrap;
-import org.geysermc.geyser.network.netty.GeyserInjector;
-import org.geysermc.geyser.network.netty.LocalServerChannelWrapper;
-import org.geysermc.geyser.network.netty.LocalSession;
+import org.geysermc.geyser.network.java.GeyserInjector;
+import org.geysermc.geyser.network.java.LocalServerChannelWrapper;
+import org.geysermc.geyser.network.java.LocalSession;
 import org.geysermc.mcprotocollib.protocol.MinecraftConstants;
 import org.geysermc.mcprotocollib.protocol.MinecraftProtocol;
 

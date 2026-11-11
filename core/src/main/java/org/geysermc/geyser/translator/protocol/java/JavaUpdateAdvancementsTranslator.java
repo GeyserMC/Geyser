@@ -27,7 +27,6 @@ package org.geysermc.geyser.translator.protocol.java;
 
 import org.geysermc.mcprotocollib.protocol.data.game.advancement.Advancement;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.ClientboundUpdateAdvancementsPacket;
-import org.cloudburstmc.protocol.bedrock.packet.ToastRequestPacket;
 import org.geysermc.geyser.level.GeyserAdvancement;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.cache.AdvancementsCache;
@@ -89,10 +88,7 @@ public class JavaUpdateAdvancementsTranslator extends PacketTranslator<Clientbou
                     String frameTitle = advancement.getDisplayColor() + MinecraftLocale.getLocaleString("advancements.toast." + frameType, session.locale());
                     String advancementName = MessageTranslator.convertMessage(advancement.getDisplayData().getTitle(), session.locale());
 
-                    ToastRequestPacket toastRequestPacket = new ToastRequestPacket();
-                    toastRequestPacket.setTitle(frameTitle);
-                    toastRequestPacket.setContent(advancementName);
-                    session.sendUpstreamPacket(toastRequestPacket);
+                    session.sendToast(frameTitle, advancementName);
                 }
             }
         }

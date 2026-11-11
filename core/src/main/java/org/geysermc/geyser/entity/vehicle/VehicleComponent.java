@@ -763,6 +763,8 @@ public class VehicleComponent<T extends Entity & ClientVehicle> {
         MoveEntityDeltaPacket moveEntityDeltaPacket = new MoveEntityDeltaPacket();
         moveEntityDeltaPacket.setRuntimeEntityId(vehicle.geyserId());
 
+        // Since 26.40 the ground state is its own field instead of that flag
+        moveEntityDeltaPacket.setOnGround(vehicle.isOnGround());
         if (vehicle.isOnGround()) {
             moveEntityDeltaPacket.getFlags().add(MoveEntityDeltaPacket.Flag.ON_GROUND);
         }
@@ -806,7 +808,7 @@ public class VehicleComponent<T extends Entity & ClientVehicle> {
 
     protected void sendServerboundMoveVehiclePacket(Vector3d javaPos) {
         ServerboundMoveVehiclePacket moveVehiclePacket = new ServerboundMoveVehiclePacket(javaPos, vehicle.getYaw(), vehicle.getPitch(), vehicle.isOnGround());
-        vehicle.getSession().sendDownstreamPacket(moveVehiclePacket);
+        vehicle.getSession().sendDownstreamGamePacket(moveVehiclePacket);
     }
 
     protected double getGravity() {

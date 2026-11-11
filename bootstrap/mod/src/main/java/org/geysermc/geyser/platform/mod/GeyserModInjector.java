@@ -38,8 +38,8 @@ import net.minecraft.server.network.ServerConnectionListener;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.GeyserBootstrap;
 import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.network.netty.GeyserInjector;
-import org.geysermc.geyser.network.netty.LocalServerChannelWrapper;
+import org.geysermc.geyser.network.java.GeyserInjector;
+import org.geysermc.geyser.network.java.LocalServerChannelWrapper;
 import org.geysermc.geyser.platform.mod.platform.GeyserModPlatform;
 
 import java.lang.reflect.Field;

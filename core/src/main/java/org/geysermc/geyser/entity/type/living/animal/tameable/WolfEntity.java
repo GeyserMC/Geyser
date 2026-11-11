@@ -39,8 +39,8 @@ import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.item.enchantment.EnchantmentComponent;
 import org.geysermc.geyser.item.type.DyeItem;
 import org.geysermc.geyser.item.type.Item;
-import org.geysermc.geyser.session.cache.registry.JavaRegistries;
-import org.geysermc.geyser.session.cache.registry.JavaRegistryKey;
+import org.geysermc.geyser.registry.java.JavaRegistries;
+import org.geysermc.geyser.registry.java.JavaRegistryKey;
 import org.geysermc.geyser.session.cache.tags.ItemTag;
 import org.geysermc.geyser.session.cache.tags.Tag;
 import org.geysermc.geyser.util.InteractionResult;
@@ -142,7 +142,7 @@ public class WolfEntity extends TameableEntity implements VariantIntHolder {
     @Override
     public void setBody(GeyserItemStack stack) {
         super.setBody(stack);
-        isCurseOfBinding = ItemUtils.hasEffect(session, stack, EnchantmentComponent.PREVENT_ARMOR_CHANGE);
+        isCurseOfBinding = ItemUtils.hasEffect(session.javaRegistries(), stack, EnchantmentComponent.PREVENT_ARMOR_CHANGE);
         repairableItems = stack.getComponent(DataComponentTypes.REPAIRABLE);
     }
 

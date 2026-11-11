@@ -44,10 +44,12 @@ import org.jetbrains.annotations.ApiStatus;
 public interface ItemRangeDispatchPredicate {
 
     /**
-     * @deprecated Use {@link #bundleFullness(double)} instead
+     * This method is deprecated for removal and will be removed in Geyser 2.13.0.
+     *
+     * @deprecated since 2.9.4: use {@link #bundleFullness(double)} instead
      * @since 2.9.3
      */
-    @Deprecated(since = "2.9.4")
+    @Deprecated(since = "2.9.4", forRemoval = true)
     static MinecraftPredicate<ItemPredicateContext> bundleFullness(int threshold) {
         return bundleFullness((double) threshold);
     }

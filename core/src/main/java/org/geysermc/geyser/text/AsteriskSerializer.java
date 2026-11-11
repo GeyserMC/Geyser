@@ -29,6 +29,10 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonPrimitive;
 import com.google.gson.JsonSerializationContext;
 import com.google.gson.JsonSerializer;
+import io.netty.util.NetUtil;
+import org.spongepowered.configurate.ConfigurationNode;
+import org.spongepowered.configurate.ConfigurationOptions;
+import org.spongepowered.configurate.interfaces.InterfaceDefaultOptions;
 import org.spongepowered.configurate.objectmapping.meta.Processor;
 import org.spongepowered.configurate.serialize.SerializationException;
 
@@ -37,7 +41,9 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 import java.lang.reflect.Type;
+import java.net.Inet6Address;
 import java.net.InetAddress;
+import java.net.InetSocketAddress;
 
 public class AsteriskSerializer implements JsonSerializer<String> {
     public static final String[] NON_SENSITIVE_ADDRESSES = {"", "0.0.0.0", "localhost", "127.0.0.1", "auto", "unknown"};
@@ -61,31 +67,88 @@ public class AsteriskSerializer implements JsonSerializer<String> {
         }
 
         try {
-            InetAddress address = InetAddress.getByName(ip);
-            if (address.isSiteLocalAddress() || address.isLoopbackAddress()) {
-                return false;
-            }
+            return isSensitiveIp(InetAddress.getByName(ip));
         } catch (Exception e) {
-            // Ignore
+            return true;
         }
-
-        return true;
     }
 
-    public static Processor.Factory<Asterisk, String> CONFIGURATE_SERIALIZER = (data, fieldType) -> (value, destination) -> {
-        if (showSensitive || !isSensitiveIp(value)) {
+    private static boolean isSensitiveIp(InetAddress address) {
+        return !address.isAnyLocalAddress() && !address.isSiteLocalAddress() && !address.isLoopbackAddress();
+    }
+
+    /**
+     * An address and port for a dump, the address censored the same way as an {@link Asterisk} value.
+     */
+    public static String censor(InetSocketAddress endpoint) {
+        InetAddress address = endpoint.getAddress();
+        if (address != null && (showSensitive || !isSensitiveIp(address))) {
+            return NetUtil.toSocketAddressString(endpoint);
+        }
+        return (address instanceof Inet6Address ? "[***]:" : "***:") + endpoint.getPort();
+    }
+
+    /**
+     * Options for writing a config into a dump, censoring its {@link Asterisk} and {@link Secret} values.
+     */
+    public static ConfigurationOptions dumpOptions() {
+        return InterfaceDefaultOptions.addTo(ConfigurationOptions.defaults(), builder ->
+                builder.addProcessor(Asterisk.class, CONFIGURATE_SERIALIZER)
+                    .addProcessor(Secret.class, String.class, CONFIGURATE_SECRET))
+            .shouldCopyDefaults(false);
+    }
+
+    // Untyped, as a processor typed to String is silently skipped on a list
+    private static final Processor.Factory<Asterisk, Object> CONFIGURATE_SERIALIZER = (data, fieldType) -> (value, destination) -> {
+        if (showSensitive) {
+            return;
+        }
+        if (destination.isList()) {
+            destination.childrenList().forEach(AsteriskSerializer::censorIp);
+        } else {
+            censorIp(destination);
+        }
+    };
+
+    private static void censorIp(ConfigurationNode node) {
+        String value = node.getString();
+        if (value == null || !isSensitiveIp(value)) {
+            return;
+        }
+        try {
+            node.set("***");
+        } catch (SerializationException e) {
+            throw new RuntimeException("Unable to censor IP address", e); // Error over silently printing an IP address.
+        }
+    }
+
+    /**
+     * Censors a value that is never safe to publish, such as a token or a password.
+     * <p>
+     * Unlike {@link Asterisk} this ignores {@code showSensitive}, so a full dump censors it too: a
+     * dump is routinely posted to a public paste, and a reader helping with support has no use for
+     * the secret itself. An empty value is left alone so that "not configured" stays visible.
+     */
+    private static final Processor.Factory<Secret, String> CONFIGURATE_SECRET = (data, fieldType) -> (value, destination) -> {
+        if (value == null || value.isEmpty()) {
             return;
         }
         try {
             destination.set("***");
         } catch (SerializationException e) {
-            throw new RuntimeException("Unable to censor IP address", e); // Error over silently printing an IP address.
+            throw new RuntimeException("Unable to censor a secret", e); // Error over silently printing a secret.
         }
     };
 
     @Target({ElementType.FIELD, ElementType.METHOD})
     @Retention(RetentionPolicy.RUNTIME)
     public @interface Asterisk {
+
+    }
+
+    @Target({ElementType.FIELD, ElementType.METHOD})
+    @Retention(RetentionPolicy.RUNTIME)
+    public @interface Secret {
 
     }
 }

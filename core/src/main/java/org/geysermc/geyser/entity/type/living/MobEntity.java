@@ -123,7 +123,7 @@ public class MobEntity extends LivingEntity implements Leashable {
 
             Equippable equippable = equipped.getComponent(DataComponentTypes.EQUIPPABLE);
             if (equippable != null && equippable.canBeSheared()) {
-                if (!ItemUtils.hasEffect(session, equipped, EnchantmentComponent.PREVENT_ARMOR_CHANGE) || session.getGameMode() == GameMode.CREATIVE) {
+                if (!ItemUtils.hasEffect(session.javaRegistries(), equipped, EnchantmentComponent.PREVENT_ARMOR_CHANGE) || session.getGameMode() == GameMode.CREATIVE) {
                     return true;
                 }
             }

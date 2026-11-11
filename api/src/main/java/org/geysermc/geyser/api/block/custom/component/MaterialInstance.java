@@ -62,10 +62,24 @@ public interface MaterialInstance {
 
     /**
      * Gets if the block should have ambient occlusion
-     * 
+     *
+     * <p>This method is deprecated for removal and will be removed in Geyser 2.13.0.</p>
+     *
      * @return If the block should have ambient occlusion.
+     * @deprecated since 2.11.3: use {@link #ambientOcclusionExponent()} instead
      */
+    @Deprecated(since = "2.11.3", forRemoval = true)
     boolean ambientOcclusion();
+
+    /**
+     * Gets the exponent applied to the ambient occlusion value after lighting.
+     * Bedrock accepts values between {@code 0.0} and {@code 10.0}, where {@code 0.0}
+     * disables ambient occlusion and {@code 1.0} is the default strength.
+     *
+     * @return the ambient occlusion exponent
+     * @since 2.11.3
+     */
+    float ambientOcclusionExponent();
 
     /**
      * Gets if the block is isotropic
@@ -92,7 +106,21 @@ public interface MaterialInstance {
 
         Builder faceDimming(boolean faceDimming);
 
+        /**
+         * This method is deprecated for removal and will be removed in Geyser 2.13.0.
+         *
+         * @deprecated since 2.11.3: Use {@link #ambientOcclusionExponent(float)} instead
+         */
+        @Deprecated(since = "2.11.3", forRemoval = true)
         Builder ambientOcclusion(boolean ambientOcclusion);
+
+        /**
+         * Sets the exponent applied to the ambient occlusion value after lighting,
+         * between {@code 0.0} and {@code 10.0} inclusive.
+         *
+         * @since 2.11.3
+         */
+        Builder ambientOcclusionExponent(float ambientOcclusionExponent);
 
         Builder isotropic(boolean isotropic);
 

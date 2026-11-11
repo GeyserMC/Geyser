@@ -35,6 +35,7 @@ import org.geysermc.mcprotocollib.protocol.data.game.inventory.ContainerType;
 public class BeaconContainer extends Container {
     private int primaryId;
     private int secondaryId;
+    private int levels;
 
     public BeaconContainer(GeyserSession session, String title, int id, int size, ContainerType containerType) {
         super(session, title, id, size, containerType);

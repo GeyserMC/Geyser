@@ -25,7 +25,6 @@
 
 package org.geysermc.geyser.translator.inventory;
 
-import net.kyori.adventure.key.Key;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtType;
@@ -49,8 +48,7 @@ import org.geysermc.geyser.item.type.BannerItem;
 import org.geysermc.geyser.item.type.DyeItem;
 import org.geysermc.geyser.level.block.Blocks;
 import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.geyser.session.cache.registry.JavaRegistries;
-import org.geysermc.geyser.session.cache.tags.Tag;
+import org.geysermc.geyser.session.cache.tags.BannerPatternTag;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.BannerPatternLayer;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentTypes;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.inventory.ServerboundContainerButtonClickPacket;
@@ -59,8 +57,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class LoomInventoryTranslator extends AbstractBlockInventoryTranslator<Container> {
-
-    private static final Tag<BannerPattern> NO_ITEMS_REQUIRED = new Tag<>(JavaRegistries.BANNER_PATTERN, Key.key("no_item_required"));
 
     public LoomInventoryTranslator() {
         super(4, Blocks.LOOM, ContainerType.LOOM, UIInventoryUpdater.INSTANCE);
@@ -106,7 +102,7 @@ public class LoomInventoryTranslator extends AbstractBlockInventoryTranslator<Co
             return rejectRequest(request);
         }
 
-        int index = session.getTagCache().get(NO_ITEMS_REQUIRED).indexOf(requestedPattern);
+        int index = session.javaRegistries().tag(BannerPatternTag.NO_ITEM_REQUIRED).indexOf(requestedPattern);
         if (index == -1) {
             return rejectRequest(request);
         }
@@ -124,7 +120,7 @@ public class LoomInventoryTranslator extends AbstractBlockInventoryTranslator<Co
 
         GeyserItemStack inputCopy = container.getItem(0).copy(1);
         inputCopy.setNetId(session.getNextItemNetId());
-        BannerPatternLayer bannerPatternLayer = BannerItem.getJavaBannerPattern(session, pattern); // TODO
+        BannerPatternLayer bannerPatternLayer = BannerItem.getJavaBannerPattern(session.javaRegistries(), pattern); // TODO
         if (bannerPatternLayer != null) {
             List<BannerPatternLayer> patternsList = new ArrayList<>(inputCopy.getComponentElseGet(DataComponentTypes.BANNER_PATTERNS, ArrayList::new));
             patternsList.add(bannerPatternLayer);

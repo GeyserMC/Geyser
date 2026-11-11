@@ -96,7 +96,7 @@ public interface CustomItemDefinition {
     Identifier model();
 
     /**
-     * The icon used for this item.
+     * The default icon used for this item.
      *
      * <p>If none is set in the item's Bedrock options, then the item's Bedrock identifier is used,
      * the namespace separator ({@code :}) replaced with {@code .} and the path separators ({@code /}) replaced with {@code _}. For example:</p>
@@ -104,7 +104,9 @@ public interface CustomItemDefinition {
      * <p>{@code my_datapack:my_custom_item} => {@code my_datapack.my_custom_item}</p>
      * <p>{@code my_datapack:cool_items/cool_item_1} => {@code my_datapack.cool_items_cool_item_1}</p>
      *
-     * @return the icon shown to Bedrock players
+     * @return the icon shown to Bedrock players by default
+     * @see CustomItemBedrockOptions#icons()
+     * @see CustomItemIcons
      * @since 2.9.3
      */
     String icon();

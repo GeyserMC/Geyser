@@ -25,6 +25,8 @@
 
 package org.geysermc.geyser.api.item.custom.v2.component;
 
+import org.jspecify.annotations.Nullable;
+
 import java.util.Set;
 
 /**
@@ -37,7 +39,7 @@ public interface ItemDataComponentMap {
      * @return the value of the given component, or null if it is not in the map
      * @since 2.9.3
      */
-    <T> T get(ItemDataComponent<T> type);
+    <T> @Nullable T get(ItemDataComponent<T> type);
 
     /**
      * @return the value of the given component, or {@code fallback} if it is null

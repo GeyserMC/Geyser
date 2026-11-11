@@ -28,7 +28,7 @@ package org.geysermc.geyser.text;
 import net.kyori.adventure.text.format.Style;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtType;
-import org.geysermc.geyser.session.cache.registry.RegistryEntryContext;
+import org.geysermc.geyser.registry.java.reader.JavaRegistryReader;
 import org.geysermc.geyser.translator.text.MessageTranslator;
 import org.geysermc.mcprotocollib.protocol.data.game.chat.ChatType;
 import org.geysermc.mcprotocollib.protocol.data.game.chat.ChatTypeDecoration;
@@ -45,11 +45,11 @@ public record ChatDecoration(String translationKey, List<Parameter> parameters, 
         throw new UnsupportedOperationException();
     }
 
-    public static ChatType readChatType(RegistryEntryContext context) {
+    public static ChatType readChatType(JavaRegistryReader.Context context) {
         // Note: The ID is NOT ALWAYS THE SAME! ViaVersion as of 1.19 adds two registry entries that do NOT match vanilla.
         // (This note has been passed around through several classes and iterations. It stays as a warning
         // to anyone that dares to try and hardcode registry IDs.)
-        NbtMap tag = context.data();
+        NbtMap tag = context.dataAsMap();
         NbtMap chat = tag.getCompound("chat", null);
         if (chat != null) {
             String translationKey = chat.getString("translation_key");

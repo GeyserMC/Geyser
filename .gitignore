@@ -136,6 +136,7 @@ hs_err_pid*
 # Gradle
 .idea/**/gradle.xml
 .idea/**/libraries
+core/src/main/resources/GeyserIntegratedPack.mcpack
 
 # Gradle and Maven with auto-import
 # When using Gradle or Maven with auto-import, you should exclude module files,
@@ -259,3 +260,5 @@ locales/
 /languages/
 /custom-skulls.yml
 /permissions.yml
+
+bootstrap/mod/gametest/src/main/generated/.cache

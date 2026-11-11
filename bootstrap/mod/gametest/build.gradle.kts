@@ -49,4 +49,17 @@ tasks {
     withType(PublishToMavenRepository::class).configureEach {
         enabled = false
     }
+
+    // Gametests are not published to Modrinth
+    modrinth.configure {
+        enabled = false
+        // hacks, love em
+        setDependsOn(emptyList<Any>())
+    }
+    modrinthSyncBody.configure {
+        enabled = false
+    }
+    renameModrinthJar.configure {
+        enabled = false
+    }
 }

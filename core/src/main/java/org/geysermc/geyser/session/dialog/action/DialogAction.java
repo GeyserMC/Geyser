@@ -30,6 +30,8 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.registry.java.JavaRegistries;
+import org.geysermc.geyser.registry.java.JavaRegistryProvider;
 import org.geysermc.geyser.session.dialog.Dialog;
 import org.geysermc.geyser.session.dialog.input.ParsedInputs;
 import org.geysermc.geyser.util.MinecraftKey;
@@ -42,7 +44,7 @@ import java.util.Optional;
 
 public interface DialogAction {
 
-    static Optional<DialogAction> read(Object tag, Dialog.IdGetter idGetter) {
+    static Optional<DialogAction> read(JavaRegistryProvider registries, Object tag) {
         if (!(tag instanceof NbtMap map)) {
             return Optional.empty();
         }
@@ -53,7 +55,7 @@ public interface DialogAction {
         } else if (type.equals(RunCommand.TYPE)) {
             return Optional.of(new RunCommand(map.getString("command")));
         } else if (type.equals(ShowDialog.TYPE)) {
-            return Optional.of(ShowDialog.read(map.get("dialog"), idGetter));
+            return Optional.of(ShowDialog.read(registries, map.get("dialog")));
         } else if (type.equals(Custom.TYPE)) {
             return Optional.of(new Custom(MinecraftKey.key(map.getString("id")), map.getCompound("payload")));
         } else if (type.equals(DynamicRunCommand.TYPE)) {
@@ -116,11 +118,11 @@ public interface DialogAction {
             this(Optional.of(dialog), null);
         }
 
-        private static ShowDialog read(Object dialog, Dialog.IdGetter idGetter) {
+        private static ShowDialog read(JavaRegistryProvider registries, Object dialog) {
             if (dialog instanceof NbtMap map) {
                 return new ShowDialog(Optional.empty(), Holder.ofCustom(map));
             } else if (dialog instanceof String string) {
-                return new ShowDialog(Optional.empty(), Holder.ofId(idGetter.applyAsInt(MinecraftKey.key(string))));
+                return new ShowDialog(Optional.empty(), JavaRegistries.DIALOG.wrapOrThrow(registries, MinecraftKey.key(string)));
             }
             throw new IllegalArgumentException("Expected dialog in show_dialog action to be a NBT map or a resource location");
         }

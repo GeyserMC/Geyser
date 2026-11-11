@@ -4,6 +4,9 @@ plugins {
     alias(libs.plugins.runpaper)
 }
 
+// Kept off the compile classpath: Geyser compiles against an older API, so it keeps working on older servers
+val runServerPaperApi: Configuration by configurations.creating
+
 dependencies {
     api(projects.core)
     api(libs.erosion.bukkit.common) {
@@ -34,6 +37,28 @@ dependencies {
     implementation(libs.gson.record.factory) {
         isTransitive = false
     }
+
+    // Servers before 1.21.11 still bundle Netty 4.1, so the codecs we shade must be 4.1 too
+    // HTTP tends to be missing, just like haproxy, so we ship those
+    implementation(libs.netty.legacy.codec.http) {
+        version {
+            strictly(libs.versions.netty.legacy.get())
+        }
+    }
+    implementation(libs.netty.legacy.codec.haproxy) {
+        version {
+            strictly(libs.versions.netty.legacy.get())
+        }
+    }
+
+    // Test
+    testImplementation(platform("org.junit:junit-bom:6.0.0"))
+    testImplementation(libs.junit)
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+    testRuntimeOnly(libs.folia.api) // The API Geyser compiles against, to load its classes in tests
+
+    // Latest paper-api build of the runServer version, see PaperApiCompatibilityTest
+    runServerPaperApi("io.papermc.paper:paper-api:${libs.versions.runpaperversion.get()}.build.+")
 }
 
 platformRelocate("it.unimi.dsi.fastutil")
@@ -66,8 +91,9 @@ tasks.withType<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar> {
     dependencies {
         exclude(dependency("com.google.*:.*"))
 
-        // Needed because older Spigot builds do not provide the haproxy module
-        exclude("io.netty", libs.netty.codec.haproxy)
+        // Netty is provided by the server, except for the haproxy module (missing on older Spigot builds)
+        // and the http codec (needed for built-in signaling)
+        exclude("io.netty", libs.netty.codec.haproxy, libs.netty.codec.http)
 
         // Commodore includes Brigadier
         exclude(dependency("com.mojang:.*"))
@@ -85,5 +111,16 @@ tasks {
     runServer {
         minecraftVersion(libs.versions.runpaperversion.get())
         jvmArgs("-Dcom.mojang.eula.agree=true")
+    }
+
+    test {
+        useJUnitPlatform()
+        // Recent paper-api builds target a newer Java than Geyser, so the test JVM has to be able to load them
+        javaLauncher = project.javaToolchains.launcherFor { languageVersion = JavaLanguageVersion.of(25) }
+        inputs.files(runServerPaperApi)
+        // Resolved when the test runs, not while configuring
+        jvmArgumentProviders.add(CommandLineArgumentProvider {
+            listOf("-Dgeyser.runServerPaperApi=" + runServerPaperApi.asPath)
+        })
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 GeyserMC. http://geysermc.org
+ * Copyright (c) 2025-2026 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -31,7 +31,7 @@ import org.geysermc.geyser.Constants;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.network.AuthType;
 import org.geysermc.geyser.api.util.PlatformType;
-import org.geysermc.geyser.network.netty.LocalSession;
+import org.geysermc.geyser.network.java.LocalSession;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.session.auth.BedrockClientData;
 import org.geysermc.geyser.skin.FloodgateSkinUploader;
@@ -112,7 +112,7 @@ public class GeyserSessionAdapter extends SessionAdapter {
             }
 
             String address;
-            if (geyser.config().java().forwardHostname()) {
+            if (geyser.config().java().forwardHostname() && !session.joinAddress().isBlank()) {
                 address = session.joinAddress();
             } else {
                 address = intentionPacket.getHostname();

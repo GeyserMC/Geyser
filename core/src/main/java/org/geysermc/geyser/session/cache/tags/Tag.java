@@ -26,7 +26,7 @@
 package org.geysermc.geyser.session.cache.tags;
 
 import net.kyori.adventure.key.Key;
-import org.geysermc.geyser.session.cache.registry.JavaRegistryKey;
+import org.geysermc.geyser.registry.java.JavaRegistryKey;
 
 /**
  * A tag in any of the registries that tags are loaded for by Geyser.

@@ -1,0 +1,6 @@
+{
+  "type": "geyser:java_packet_translator_existence",
+  "flow": "clientbound",
+  "packet": "minecraft:game_test_highlight_pos",
+  "protocol": "play"
+}

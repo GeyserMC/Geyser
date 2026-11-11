@@ -54,8 +54,13 @@ public class GeyserBungeePingPassthrough implements IGeyserPingPassthrough, List
 
     @Override
     public GeyserPingInfo getPingInformation(InetSocketAddress inetSocketAddress) {
+        return getPingInformation(inetSocketAddress, null);
+    }
+
+    @Override
+    public GeyserPingInfo getPingInformation(InetSocketAddress inetSocketAddress, @Nullable InetSocketAddress virtualHost) {
         CompletableFuture<ProxyPingEvent> future = new CompletableFuture<>();
-        proxyServer.getPluginManager().callEvent(new ProxyPingEvent(new GeyserPendingConnection(inetSocketAddress), getPingInfo(), (event, throwable) -> {
+        proxyServer.getPluginManager().callEvent(new ProxyPingEvent(new GeyserPendingConnection(inetSocketAddress, virtualHost), getPingInfo(), (event, throwable) -> {
             if (throwable != null) {
                 future.completeExceptionally(throwable);
             } else {
@@ -102,9 +107,11 @@ public class GeyserBungeePingPassthrough implements IGeyserPingPassthrough, List
         private static final UUID FAKE_UUID = UUID.nameUUIDFromBytes("geyser!internal".getBytes());
 
         private final InetSocketAddress remote;
+        private final @Nullable InetSocketAddress virtualHost;
 
-        public GeyserPendingConnection(InetSocketAddress remote) {
+        public GeyserPendingConnection(InetSocketAddress remote, @Nullable InetSocketAddress virtualHost) {
             this.remote = remote;
+            this.virtualHost = virtualHost;
         }
 
         @Override
@@ -119,7 +126,7 @@ public class GeyserBungeePingPassthrough implements IGeyserPingPassthrough, List
 
         @Override
         public @Nullable InetSocketAddress getVirtualHost() {
-            return null;
+            return virtualHost;
         }
 
         @Override

@@ -27,6 +27,8 @@ package org.geysermc.geyser.registry.populator.conversion;
 
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
+import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.registry.populator.BlockRegistryPopulator;
 
 // A variety of methods to help with re-mapping blocks and items to older versions.
 public class ConversionHelper {
@@ -48,4 +50,14 @@ public class ConversionHelper {
         return tagBuilder.build();
     }
 
+    static NbtMap removeStates(NbtMap map, String firstState, String... otherStates) {
+        NbtMapBuilder builder = map.toBuilder();
+        NbtMapBuilder states = map.getCompound("states").toBuilder();
+        states.remove(firstState);
+        for (String otherState : otherStates) {
+            states.remove(otherState);
+        }
+        builder.putCompound("states", states.build());
+        return builder.build();
+    }
 }

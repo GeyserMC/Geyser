@@ -35,7 +35,8 @@ import com.velocitypowered.api.proxy.server.ServerPing;
 import com.velocitypowered.api.proxy.server.ServerPing.Version;
 import lombok.AllArgsConstructor;
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
-import org.geysermc.geyser.network.GameProtocol;
+import org.checkerframework.checker.nullness.qual.Nullable;
+import org.geysermc.geyser.network.bedrock.GameProtocol;
 import org.geysermc.geyser.ping.GeyserPingInfo;
 import org.geysermc.geyser.ping.IGeyserPingPassthrough;
 
@@ -50,9 +51,14 @@ public class GeyserVelocityPingPassthrough implements IGeyserPingPassthrough {
 
     @Override
     public GeyserPingInfo getPingInformation(InetSocketAddress inetSocketAddress) {
+        return getPingInformation(inetSocketAddress, null);
+    }
+
+    @Override
+    public GeyserPingInfo getPingInformation(InetSocketAddress inetSocketAddress, @Nullable InetSocketAddress virtualHost) {
         ProxyPingEvent event;
         try {
-            event = server.getEventManager().fire(new ProxyPingEvent(new GeyserInboundConnection(inetSocketAddress), ServerPing.builder()
+            event = server.getEventManager().fire(new ProxyPingEvent(new GeyserInboundConnection(inetSocketAddress, virtualHost), ServerPing.builder()
                 .description(server.getConfiguration().getMotd())
                 .onlinePlayers(server.getPlayerCount())
                 .maximumPlayers(server.getConfiguration().getShowMaxPlayers())
@@ -70,9 +76,11 @@ public class GeyserVelocityPingPassthrough implements IGeyserPingPassthrough {
     private static class GeyserInboundConnection implements InboundConnection {
 
         private final InetSocketAddress remote;
+        private final @Nullable InetSocketAddress virtualHost;
 
-        public GeyserInboundConnection(InetSocketAddress remote) {
+        public GeyserInboundConnection(InetSocketAddress remote, @Nullable InetSocketAddress virtualHost) {
             this.remote = remote;
+            this.virtualHost = virtualHost;
         }
 
         @Override
@@ -82,12 +90,12 @@ public class GeyserVelocityPingPassthrough implements IGeyserPingPassthrough {
 
         @Override
         public Optional<InetSocketAddress> getVirtualHost() {
-            return Optional.empty();
+            return Optional.ofNullable(this.virtualHost);
         }
 
         @Override
         public Optional<String> getRawVirtualHost() {
-            return Optional.empty();
+            return Optional.ofNullable(this.virtualHost).map(InetSocketAddress::getHostString);
         }
 
         @Override

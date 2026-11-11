@@ -26,13 +26,9 @@
 package org.geysermc.geyser.translator.protocol.java.entity;
 
 import org.cloudburstmc.math.vector.Vector3f;
-import org.cloudburstmc.protocol.bedrock.data.entity.EntityEventType;
-import org.cloudburstmc.protocol.bedrock.packet.AnimateEntityPacket;
 import org.cloudburstmc.protocol.bedrock.packet.AnimatePacket;
-import org.cloudburstmc.protocol.bedrock.packet.EntityEventPacket;
 import org.cloudburstmc.protocol.bedrock.packet.SpawnParticleEffectPacket;
 import org.geysermc.geyser.entity.type.Entity;
-import org.geysermc.geyser.entity.type.LivingEntity;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
@@ -60,37 +56,11 @@ public class JavaAnimateTranslator extends PacketTranslator<ClientboundAnimatePa
         AnimatePacket animatePacket = new AnimatePacket();
         animatePacket.setRuntimeEntityId(entity.geyserId());
         switch (animation) {
-            case SWING_ARM -> {
-                if (entity instanceof LivingEntity livingEntity && livingEntity.useArmSwingAttack()) {
-                    EntityEventPacket entityEventPacket = new EntityEventPacket();
-                    entityEventPacket.setRuntimeEntityId(entity.geyserId());
-                    entityEventPacket.setType(EntityEventType.ATTACK_START);
-                    session.sendUpstreamPacket(entityEventPacket);
-                    return;
-                }
-
-                animatePacket.setAction(AnimatePacket.Action.SWING_ARM);
-                if (entity.getEntityId() == session.getPlayerEntity().getEntityId()) {
-                    session.activateArmAnimationTicking();
-                }
-            }
-            case SWING_OFFHAND -> {
-                // Use the OptionalPack to trigger the animation
-                AnimateEntityPacket offHandPacket = new AnimateEntityPacket();
-                offHandPacket.setAnimation("animation.player.attack.rotations.offhand");
-                offHandPacket.setNextState("default");
-                offHandPacket.setBlendOutTime(0.0f);
-                offHandPacket.setStopExpression("query.any_animation_finished");
-                offHandPacket.setController("__runtime_controller");
-                offHandPacket.getRuntimeEntityIds().add(entity.geyserId());
-                session.sendUpstreamPacket(offHandPacket);
-                return;
-            }
             case CRITICAL_HIT -> {
                 animatePacket.setData(55);
                 animatePacket.setAction(AnimatePacket.Action.CRITICAL_HIT);
             }
-            case ENCHANTMENT_CRITICAL_HIT -> {
+            case MAGIC_CRITICAL_HIT -> {
                 animatePacket.setData(15);
                 animatePacket.setAction(AnimatePacket.Action.MAGIC_CRITICAL_HIT); // Unsure if this does anything
 
@@ -103,7 +73,7 @@ public class JavaAnimateTranslator extends PacketTranslator<ClientboundAnimatePa
                 stringPacket.setMolangVariablesJson(Optional.empty());
                 session.sendUpstreamPacket(stringPacket);
             }
-            case LEAVE_BED -> {
+            case WAKE_UP -> {
                 // Technically the client does a bunch more here, like figuring out the correct bed position
                 // However, we only adjust the pose - that way we stop applying the sleeping offset for the player position
                 session.getPlayerEntity().setPose(Pose.STANDING);

@@ -72,7 +72,7 @@ public class ParsedInputs {
                 builder.label("§c" + GeyserLocale.getPlayerLocaleString("geyser.dialogs.input_adjust", holder.session().locale()));
             }
             // Can't be a Geyser update without eclipse dealing with generics
-            ((DialogInput) entry.getKey()).addComponent(builder, Optional.of(entry.getValue()));
+            ((DialogInput) entry.getKey()).addComponent(builder, holder, Optional.of(entry.getValue()));
         }
     }
 

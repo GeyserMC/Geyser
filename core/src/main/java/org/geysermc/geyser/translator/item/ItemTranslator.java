@@ -48,9 +48,10 @@ import org.geysermc.geyser.item.TooltipOptions;
 import org.geysermc.geyser.item.components.Rarity;
 import org.geysermc.geyser.item.type.Item;
 import org.geysermc.geyser.item.type.PotionItem;
+import org.geysermc.geyser.item.type.TippedArrowItem;
 import org.geysermc.geyser.level.block.type.Block;
 import org.geysermc.geyser.registry.BlockRegistries;
-import org.geysermc.geyser.registry.Registries;
+import org.geysermc.geyser.registry.java.BuiltInJavaRegistries;
 import org.geysermc.geyser.registry.type.CustomSkull;
 import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.session.GeyserSession;
@@ -121,6 +122,25 @@ public final class ItemTranslator {
     private final static List<Item> GLINT_PRESENT = List.of(Items.ENCHANTED_GOLDEN_APPLE, Items.EXPERIENCE_BOTTLE, Items.WRITTEN_BOOK,
         Items.NETHER_STAR, Items.ENCHANTED_BOOK, Items.END_CRYSTAL);
 
+    private static final List<Effect> NEGATIVE_EFFECTS = List.of(
+        Effect.SLOWNESS,
+        Effect.MINING_FATIGUE,
+        Effect.INSTANT_DAMAGE,
+        Effect.NAUSEA,
+        Effect.BLINDNESS,
+        Effect.HUNGER,
+        Effect.WEAKNESS,
+        Effect.POISON,
+        Effect.WITHER,
+        Effect.LEVITATION,
+        Effect.UNLUCK,
+        Effect.DARKNESS,
+        Effect.WIND_CHARGED,
+        Effect.WEAVING,
+        Effect.OOZING,
+        Effect.INFESTED
+    );
+
     private ItemTranslator() {
     }
 
@@ -152,7 +172,7 @@ public final class ItemTranslator {
             session.getGeyser().getLogger().debug("ItemMapping returned air: " + javaId);
             return ItemData.builder();
         }
-        return translateToBedrock(session, Registries.JAVA_ITEMS.get().get(javaId), bedrockItem, count, components);
+        return translateToBedrock(session, BuiltInJavaRegistries.ITEM.getOrThrow(javaId), bedrockItem, count, components);
     }
 
     @NonNull
@@ -167,7 +187,7 @@ public final class ItemTranslator {
             return ItemData.AIR;
         }
         // Java item needs to be loaded separately. The mapping for tipped arrow would
-        return translateToBedrock(session, Registries.JAVA_ITEMS.get().get(stack.getId()), bedrockItem, stack.getAmount(), stack.getDataComponentsPatch())
+        return translateToBedrock(session, BuiltInJavaRegistries.ITEM.getOrThrow(stack.getId()), bedrockItem, stack.getAmount(), stack.getDataComponentsPatch())
                 .build();
     }
 
@@ -203,7 +223,10 @@ public final class ItemTranslator {
             PotionContents potionContents = components.get(DataComponentTypes.POTION_CONTENTS);
             // Make custom effect information visible when shown in tooltip
             if (potionContents != null && tooltip.showInTooltip(DataComponentTypes.POTION_CONTENTS)) {
-                customName += getPotionEffectInfo(potionContents, session.locale()); // TODO should this be done with lore instead?
+                // Add to the name (use '\n' to wrap lines) instead of the lore
+                // to make it show in HUD like the effect information of vanilla Bedrock potion
+                customName += getPotionEffectInfo(potionContents,
+                    components.getOrDefault(DataComponentTypes.POTION_DURATION_SCALE, 1f), 1000.0f / session.getMillisecondsPerTick(), session.locale());
             }
 
             nbtBuilder.setCustomName(customName);
@@ -245,7 +268,7 @@ public final class ItemTranslator {
         builder.tag(nbtBuilder.build());
         if (bedrockItem.isBlock()) {
             CustomBlockData customBlockData = BlockRegistries.CUSTOM_BLOCK_ITEM_OVERRIDES.getOrDefault(
-                    bedrockItem.getJavaItem().javaIdentifier(), null);
+                    bedrockItem.getJavaItem().javaKey().asString(), null);
             if (customBlockData != null) {
                 translateCustomBlock(customBlockData, session, builder);
             } else {
@@ -370,60 +393,41 @@ public final class ItemTranslator {
         return MessageTranslator.convertMessage(attributeComponent, language);
     }
 
-    private static final List<Effect> negativeEffectList = List.of(
-        Effect.SLOWNESS,
-        Effect.MINING_FATIGUE,
-        Effect.INSTANT_DAMAGE,
-        Effect.NAUSEA,
-        Effect.BLINDNESS,
-        Effect.HUNGER,
-        Effect.WEAKNESS,
-        Effect.POISON,
-        Effect.WITHER,
-        Effect.LEVITATION,
-        Effect.UNLUCK,
-        Effect.DARKNESS,
-        Effect.WIND_CHARGED,
-        Effect.WEAVING,
-        Effect.OOZING,
-        Effect.INFESTED
-    );
-
-    public static String getPotionEffectInfo(PotionContents contents, String language) {
+    private static String getPotionEffectInfo(PotionContents contents, float durationScale, float tickrate, String language) {
         StringBuilder finalText = new StringBuilder();
         List<MobEffectInstance> effectInstanceList = contents.getCustomEffects();
         for (MobEffectInstance effectInstance : effectInstanceList) {
             Effect effect = effectInstance.getEffect();
             MobEffectDetails details = effectInstance.getDetails();
             int amplifier = details.getAmplifier();
-            int durations = details.getDuration();
-            TranslatableComponent appendTranslatable = Component.translatable("effect.minecraft." + effect.toString().toLowerCase(Locale.ROOT));
+            int duration = details.getDuration();
+            TranslatableComponent appendTranslatable = Component.translatable("effect.minecraft." + effect.name().toLowerCase(Locale.ROOT));
             if (amplifier != 0) {
                 appendTranslatable = Component.translatable("potion.withAmplifier",
                     appendTranslatable,
                     Component.translatable("potion.potency." + amplifier));
             }
-            if (durations > 20) {
-                int seconds = durations / 20;
-                int secondsFormat = seconds % 60;
+            if (duration > 20) {
+                int seconds = (int) ((int) (duration * durationScale) / tickrate); // Match Java Edition calculation
                 int minutes = seconds / 60;
-                int minutesFormat = minutes % 60;
+                seconds %= 60;
                 int hours = minutes / 60;
-                String text = ((minutesFormat > 9) ? "" : "0") + minutesFormat + ":" + ((secondsFormat > 9) ? "" : "0") + secondsFormat;
+                minutes %= 60;
+                String text = ((minutes > 9) ? "" : "0") + minutes + ":" + ((seconds > 9) ? "" : "0") + seconds;
                 if (minutes >= 60) {
                     text = ((hours > 9) ? "" : "0") + hours + ":" + text;
                 }
                 appendTranslatable = Component.translatable("potion.withDuration",
                     appendTranslatable,
                     Component.text(text));
-            } else if (durations == -1) {
+            } else if (duration == -1) {
                 appendTranslatable = Component.translatable("potion.withDuration",
                     appendTranslatable,
                     Component.translatable("effect.duration.infinite"));
             }
             Component component = Component.text()
                 .resetStyle()
-                .color((negativeEffectList.contains(effect)) ? NamedTextColor.RED : NamedTextColor.BLUE)
+                .color((NEGATIVE_EFFECTS.contains(effect)) ? NamedTextColor.RED : NamedTextColor.BLUE)
                 .append(appendTranslatable)
                 .build();
             // Bedrock supports wrap lines with '\n' in a single string in custom name
@@ -432,21 +436,34 @@ public final class ItemTranslator {
         return finalText.toString();
     }
 
-    public static String getPotionName(PotionContents contents, ItemMapping mapping, String language) {
+    private static String getPotionName(PotionContents contents, ItemMapping mapping, boolean includeDefault, String language) {
         String customPotionName = contents.getCustomName();
-        Potion potion = Potion.getByJavaId(contents.getPotionId());
-
         if (customPotionName != null) {
             // "custom_name" tag in "potion_contents" component
-            return MessageTranslator.convertMessage(
-                Component.translatable(mapping.getJavaItem().translationKey() + ".effect." + customPotionName),
-                language);
+            return MinecraftLocale.getLocaleString(mapping.getJavaItem().translationKey() + ".effect." + customPotionName, language);
         }
-        if (!contents.getCustomEffects().isEmpty()) {
+
+        if (includeDefault) {
             // Make a name when has custom effects
-            String potionName = potion == null ? "empty" : potion.toString().toLowerCase(Locale.ROOT);
-            return MessageTranslator.convertMessage(Component.translatable(mapping.getJavaItem().translationKey() + ".effect." + potionName), language);
+            // The custom effect information is displayed in the second line of the name.
+            // If a name is not set, the custom effect information will not be displayed.
+            String potionName;
+            Potion potion = Potion.getByJavaId(contents.getPotionId());
+            if (potion != null) {
+                potionName = potion.name().toLowerCase(Locale.ROOT);
+                // Remove the incorrect prefix
+                // for example, potion "long_leaping" should use "leaping" in translatable name
+                if (potionName.startsWith("strong_")) {
+                    potionName = potionName.substring(7);
+                } else if (potionName.startsWith("long_")) {
+                    potionName = potionName.substring(5);
+                }
+            } else {
+                potionName = "empty";
+            }
+            return MinecraftLocale.getLocaleString(mapping.getJavaItem().translationKey() + ".effect." + potionName, language);
         }
+
         return null;
     }
 
@@ -470,7 +487,7 @@ public final class ItemTranslator {
             }
         }
 
-        builder.getOrCreateLore().add(ChatColor.RESET + ChatColor.DARK_GRAY + item.javaIdentifier());
+        builder.getOrCreateLore().add(ChatColor.RESET + ChatColor.DARK_GRAY + item.javaKey());
         if (components != null) {
             Component component = Component.text()
                     .resetStyle()
@@ -512,7 +529,7 @@ public final class ItemTranslator {
                 for (int blockId : holders) {
                     // Get the Bedrock identifier of the item
                     // This will unfortunately be limited - for example, beds and banners will be translated weirdly
-                    Block block = BlockRegistries.JAVA_BLOCKS.get(blockId);
+                    Block block = BuiltInJavaRegistries.BLOCK.getOrThrow(blockId);
                     if (block == null) {
                         continue;
                     }
@@ -542,7 +559,7 @@ public final class ItemTranslator {
 
         ItemDefinition itemDefinition = mapping.getBedrockDefinition();
         CustomBlockData customBlockData = BlockRegistries.CUSTOM_BLOCK_ITEM_OVERRIDES.getOrDefault(
-                mapping.getJavaItem().javaIdentifier(), null);
+                mapping.getJavaItem().javaKey().asString(), null);
         if (customBlockData != null) {
             itemDefinition = session.getItemMappings().getCustomBlockItemDefinitions().get(customBlockData);
         }
@@ -578,14 +595,18 @@ public final class ItemTranslator {
             // ItemStack#getHoverName as of 1.20.5
             Component customName = components.get(DataComponentTypes.CUSTOM_NAME);
             if (customName != null) {
-                return MessageTranslator.convertMessage(customName, session.locale());
+                return MessageTranslator.convertMessageRaw(customName, session.locale());
             }
 
             if (!customNameOnly) {
-                if (mapping.getJavaItem() instanceof PotionItem) {
+                if (mapping.getJavaItem() instanceof PotionItem || mapping.getJavaItem() instanceof TippedArrowItem) {
                     PotionContents potionContents = components.get(DataComponentTypes.POTION_CONTENTS);
                     if (potionContents != null) {
-                        String potionName = getPotionName(potionContents, mapping, session.locale()); // TODO also test this
+                        String potionName = getPotionName(potionContents, mapping,
+                            !potionContents.getCustomEffects().isEmpty() &&
+                                TooltipOptions.fromComponents(components).showInTooltip(DataComponentTypes.POTION_CONTENTS) ||
+                                potionContents.getPotionId() == -1, // "Uncraftable ..."
+                            session.locale()); // TODO also test this
                         if (potionName != null) {
                             return ChatColor.RESET + ChatColor.ESCAPE + translationColor + potionName;
                         }
@@ -604,7 +625,7 @@ public final class ItemTranslator {
                 if (customName != null) {
                     // Get the translated name and prefix it with a reset char to prevent italics - matches Java Edition
                     // behavior as of 1.21
-                    return ChatColor.RESET + ChatColor.ESCAPE + translationColor + MessageTranslator.convertMessage(customName, session.locale());
+                    return ChatColor.RESET + ChatColor.ESCAPE + translationColor + MessageTranslator.convertMessageRaw(customName, session.locale());
                 }
             }
         }

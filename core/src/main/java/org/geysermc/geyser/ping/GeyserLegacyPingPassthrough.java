@@ -32,7 +32,7 @@ import io.netty.util.NetUtil;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.nbt.util.VarInts;
 import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.network.GameProtocol;
+import org.geysermc.geyser.network.bedrock.GameProtocol;
 import org.geysermc.geyser.util.JsonUtils;
 
 import java.io.ByteArrayOutputStream;

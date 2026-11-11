@@ -32,7 +32,7 @@ import org.geysermc.geyser.api.util.PlatformType;
 import org.geysermc.geyser.api.util.TriState;
 import org.geysermc.geyser.command.GeyserCommand;
 import org.geysermc.geyser.command.GeyserCommandSource;
-import org.geysermc.geyser.network.GameProtocol;
+import org.geysermc.geyser.network.bedrock.GameProtocol;
 import org.geysermc.geyser.text.ChatColor;
 import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.util.WebUtils;

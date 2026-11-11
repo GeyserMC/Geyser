@@ -1,0 +1,6 @@
+{
+  "type": "geyser:java_packet_translator_existence",
+  "flow": "clientbound",
+  "packet": "minecraft:block_entity_data",
+  "protocol": "play"
+}

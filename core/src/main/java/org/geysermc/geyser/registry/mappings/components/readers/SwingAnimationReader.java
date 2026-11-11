@@ -27,7 +27,7 @@ package org.geysermc.geyser.registry.mappings.components.readers;
 
 import com.google.gson.JsonElement;
 import org.checkerframework.checker.nullness.qual.NonNull;
-import org.geysermc.geyser.api.item.custom.v2.component.java.JavaItemDataComponents;
+import org.geysermc.geyser.api.item.custom.v2.component.ItemDataComponent;
 import org.geysermc.geyser.api.item.custom.v2.component.java.JavaSwingAnimation;
 import org.geysermc.geyser.item.custom.impl.JavaSwingAnimationImpl;
 import org.geysermc.geyser.item.exception.InvalidCustomMappingsFileException;
@@ -37,8 +37,8 @@ import org.geysermc.geyser.registry.mappings.util.NodeReader;
 
 public class SwingAnimationReader extends DataComponentReader<JavaSwingAnimation> {
 
-    public SwingAnimationReader() {
-        super(JavaItemDataComponents.SWING_ANIMATION);
+    public SwingAnimationReader(ItemDataComponent<JavaSwingAnimation> type) {
+        super(type);
     }
 
     @Override
