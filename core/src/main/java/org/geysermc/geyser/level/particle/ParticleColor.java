@@ -87,13 +87,13 @@ public sealed interface ParticleColor {
             ThreadLocalRandom random = ThreadLocalRandom.current();
             if (values.isEmpty()) {
                 // Used by the NOTE particle - we need to pick a random colour
-                // This roughly estimates https://mcsrc.dev/2/26.4-snapshot-8/net/minecraft/client/particle/NoteParticle#L19-21,
+                // This estimates https://mcsrc.dev/2/26.4-snapshot-8/net/minecraft/client/particle/NoteParticle#L19-21
                 // Presumably Java does this to have a nicer selection of random colours ("true" random would be more boring)
 
                 double baseColor = randomization.xAux();
-                int red = (int) ((Math.sin((baseColor + 0.0) * PHASE)  * 0.65 + 0.35) * 255);
-                int green = (int) ((Math.sin((baseColor + 0.33333334) * PHASE)  * 0.65 + 0.35) * 255);
-                int blue = (int) ((Math.sin((baseColor + 6666667) * PHASE)  * 0.65 + 0.35) * 255);
+                int red = (int) (Math.max(0.0, Math.sin(baseColor * PHASE) * 0.65 + 0.35) * 255);
+                int green = (int) (Math.max(0.0, Math.sin((baseColor + 0.33333334) * PHASE) * 0.65 + 0.35) * 255);
+                int blue = (int) (Math.max(0.0, Math.sin((baseColor + 0.6666667) * PHASE) * 0.65 + 0.35) * 255);
                 return red << 16 | green << 8 | blue;
             }
             return values.get(random.nextInt(values.size()));
