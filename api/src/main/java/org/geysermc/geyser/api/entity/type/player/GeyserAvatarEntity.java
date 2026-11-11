@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
+ * Copyright (c) 2026 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,10 +23,30 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.registry.type;
+package org.geysermc.geyser.api.entity.type.player;
 
-import org.checkerframework.checker.nullness.qual.Nullable;
-import org.cloudburstmc.protocol.bedrock.data.LevelEventType;
+import org.geysermc.geyser.api.entity.type.GeyserEntity;
 
-public record ParticleMapping(@Nullable LevelEventType levelEventType, @Nullable String identifier) {
+public interface GeyserAvatarEntity extends GeyserEntity {
+
+    /**
+     * Displays a player or mannequin entity as emoting to this client.
+     * This is the equivalent of {@link GeyserAvatarEntity#showEmote(String, boolean)},
+     * with the emote chat announcement silencing set to false.
+     *
+     * @param emoteId the emote ID to send to this client
+     * @since 2.12.1
+     */
+    default void showEmote(String emoteId) {
+        showEmote(emoteId, false);
+    }
+
+    /**
+     * Displays a player or mannequin entity as emoting to this client.
+     *
+     * @param emoteId the emote ID to send to this client
+     * @param silent whether to silence the emote chat announcement
+     * @since 2.12.1
+     */
+    void showEmote(String emoteId, boolean silent);
 }

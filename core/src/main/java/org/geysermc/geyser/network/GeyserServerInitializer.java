@@ -36,7 +36,7 @@ import org.cloudburstmc.protocol.bedrock.netty.initializer.BedrockServerInitiali
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.network.bedrock.GeyserBedrockPeer;
 import org.geysermc.geyser.network.bedrock.InvalidPacketHandler;
-import org.geysermc.geyser.network.bedrock.UpstreamPacketHandler;
+import org.geysermc.geyser.network.bedrock.LoginPacketHandler;
 import org.geysermc.geyser.session.GeyserSession;
 
 /**
@@ -61,19 +61,26 @@ public abstract class GeyserServerInitializer extends BedrockServerInitializer {
             GeyserSession session = new GeyserSession(this.geyser, bedrockServerSession, this.eventLoopGroup.next());
 
             if (!bedrockServerSession.isSubClient()) {
-                Channel channel = bedrockServerSession.getPeer().getChannel();
-                // Added after BedrockPeer, not BedrockPacketCodec to ensure exceptions thrown while dispatching
-                // to the packet handler also get here if no other handler exists
-                // FIXME not ideal for e.g. UpstreamPacketHandler having a couple of its own packet handlers
-                channel.pipeline().addAfter(BedrockPeer.NAME, InvalidPacketHandler.NAME, new InvalidPacketHandler(session));
+                InvalidPacketHandler handler = bedrockServerSession.getPeer().getChannel().pipeline().get(InvalidPacketHandler.class);
+                if (handler != null) {
+                    handler.setSession(session);
+                }
             }
 
-            bedrockServerSession.setPacketHandler(new UpstreamPacketHandler(this.geyser, session));
+            bedrockServerSession.setPacketHandler(new LoginPacketHandler(this.geyser, session));
         } catch (Throwable e) {
             // Error must be caught or it will be swallowed
             this.geyser.getLogger().error("Error occurred while initializing player!", e);
             bedrockServerSession.disconnect(e.getMessage());
         }
+    }
+
+    @Override
+    protected void postInitChannel(Channel channel) throws Exception {
+        // Added after BedrockPeer, not BedrockPacketCodec to ensure exceptions thrown while dispatching
+        // to the packet handler also get here if no other handler exists
+        // FIXME not ideal for e.g. UpstreamPacketHandler having a couple of its own packet handlers
+        channel.pipeline().addAfter(BedrockPeer.NAME, InvalidPacketHandler.NAME, new InvalidPacketHandler());
     }
 
     @Override

@@ -256,22 +256,27 @@ public abstract class InventoryTranslator<Type extends Inventory> {
         ItemStackResponsePacket responsePacket = new ItemStackResponsePacket();
         for (ItemStackRequest request : requests) {
             ItemStackResponse response;
-            if (request.getActions().length > 0) {
-                ItemStackRequestAction firstAction = request.getActions()[0];
-                if (shouldHandleRequestFirst(firstAction, inventory)) {
-                    // Some special request that shouldn't be processed normally
-                    response = translateSpecialRequest(session, inventory, request);
+            try {
+                if (request.getActions().length > 0) {
+                    ItemStackRequestAction firstAction = request.getActions()[0];
+                    if (shouldHandleRequestFirst(firstAction, inventory)) {
+                        // Some special request that shouldn't be processed normally
+                        response = translateSpecialRequest(session, inventory, request);
+                    } else {
+                        response = switch (firstAction.getType()) {
+                            case CRAFT_RECIPE -> translateCraftingRequest(session, inventory, request);
+                            case CRAFT_RECIPE_AUTO -> translateAutoCraftingRequest(session, inventory, request);
+                            case CRAFT_CREATIVE ->
+                                    // This is also used for pulling items out of creative
+                                    translateCreativeRequest(session, inventory, request);
+                            default -> translateRequest(session, inventory, request);
+                        };
+                    }
                 } else {
-                    response = switch (firstAction.getType()) {
-                        case CRAFT_RECIPE -> translateCraftingRequest(session, inventory, request);
-                        case CRAFT_RECIPE_AUTO -> translateAutoCraftingRequest(session, inventory, request);
-                        case CRAFT_CREATIVE ->
-                                // This is also used for pulling items out of creative
-                                translateCreativeRequest(session, inventory, request);
-                        default -> translateRequest(session, inventory, request);
-                    };
+                    response = rejectRequest(request);
                 }
-            } else {
+            } catch (ClickPlan.ClickLimitException e) {
+                // Nothing is sent before a plan executes, so the whole request can still be refused
                 response = rejectRequest(request);
             }
 
@@ -546,6 +551,9 @@ public abstract class InventoryTranslator<Type extends Inventory> {
 
                     if (isCursor(dropAction.getSource())) { //clicking outside of window
                         int sourceAmount = plan.getCursor().getAmount();
+                        if (dropAction.getCount() <= 0 || dropAction.getCount() > sourceAmount) {
+                            return rejectRequest(request);
+                        }
                         if (dropAction.getCount() == sourceAmount) { //drop all
                             plan.add(Click.LEFT_OUTSIDE, Click.OUTSIDE_SLOT);
                         } else { //drop some
@@ -556,6 +564,9 @@ public abstract class InventoryTranslator<Type extends Inventory> {
                     } else { //dropping from inventory
                         int sourceSlot = bedrockSlotToJava(dropAction.getSource());
                         int sourceAmount = plan.getItem(sourceSlot).getAmount();
+                        if (dropAction.getCount() <= 0 || dropAction.getCount() > sourceAmount) {
+                            return rejectRequest(request);
+                        }
                         if (dropAction.getCount() == sourceAmount && sourceAmount > 1) { //dropping all? (prefer DROP_ONE if only one)
                             plan.add(Click.DROP_ALL, sourceSlot);
                         } else { //drop some

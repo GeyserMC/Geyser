@@ -48,10 +48,12 @@ public final class ConnectionRequestEvent implements Event, Cancellable {
     /**
      * The IP address of the client attempting to connect
      *
+     * <p>This method is deprecated for removal and will be removed in Geyser 2.13.0.</p>
+     *
      * @return the IP address of the client attempting to connect
-     * @deprecated Use {@link #inetSocketAddress()} instead
+     * @deprecated since 2.3.0: use {@link #inetSocketAddress()} instead
      */
-    @Deprecated(forRemoval = true)
+    @Deprecated(since = "2.3.0", forRemoval = true)
     public InetSocketAddress getInetSocketAddress() {
         return ip;
     }
@@ -59,10 +61,12 @@ public final class ConnectionRequestEvent implements Event, Cancellable {
     /**
      * The IP address of the proxy handling the connection. It will return null if there is no proxy.
      *
+     * <p>This method is deprecated for removal and will be removed in Geyser 2.13.0.</p>
+     *
      * @return the IP address of the proxy handling the connection
-     * @deprecated Use {@link #proxyIp()} instead
+     * @deprecated since 2.3.0: use {@link #proxyIp()} instead
      */
-    @Deprecated(forRemoval = true)
+    @Deprecated(since = "2.3.0", forRemoval = true)
     public @Nullable InetSocketAddress getProxyIp() {
         return proxyIp;
     }

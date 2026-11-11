@@ -37,6 +37,7 @@ import org.cloudburstmc.protocol.bedrock.data.AttributeData;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerId;
+import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
 import org.cloudburstmc.protocol.bedrock.packet.MobArmorEquipmentPacket;
 import org.cloudburstmc.protocol.bedrock.packet.MobEquipmentPacket;
 import org.cloudburstmc.protocol.bedrock.packet.MoveEntityDeltaPacket;
@@ -486,6 +487,8 @@ public class LivingEntity extends Entity implements Tickable {
             MoveEntityDeltaPacket moveEntityPacket = new MoveEntityDeltaPacket();
             moveEntityPacket.getFlags().add(MoveEntityDeltaPacket.Flag.TELEPORTING);
             moveEntityPacket.setRuntimeEntityId(geyserId);
+            // Since 26.40 the ground state is its own field instead of that flag
+            moveEntityPacket.setOnGround(onGround);
             if (onGround) {
                 moveEntityPacket.getFlags().add(MoveEntityDeltaPacket.Flag.ON_GROUND);
             }
@@ -572,13 +575,20 @@ public class LivingEntity extends Entity implements Tickable {
 
         MobArmorEquipmentPacket armorEquipmentPacket = new MobArmorEquipmentPacket();
         armorEquipmentPacket.setRuntimeEntityId(geyserId);
-        armorEquipmentPacket.setHelmet(ItemTranslator.translateToBedrock(session, helmet));
-        armorEquipmentPacket.setChestplate(ItemTranslator.translateToBedrock(session, chestplate));
-        armorEquipmentPacket.setLeggings(ItemTranslator.translateToBedrock(session, getItemInSlot(EquipmentSlot.LEGGINGS)));
-        armorEquipmentPacket.setBoots(ItemTranslator.translateToBedrock(session, getItemInSlot(EquipmentSlot.BOOTS)));
-        armorEquipmentPacket.setBody(ItemTranslator.translateToBedrock(session, getItemInSlot(EquipmentSlot.BODY)));
+        armorEquipmentPacket.setHelmet(translateEquipment(helmet, EquipmentSlot.HELMET));
+        armorEquipmentPacket.setChestplate(translateEquipment(chestplate, EquipmentSlot.CHESTPLATE));
+        armorEquipmentPacket.setLeggings(translateEquipment(getItemInSlot(EquipmentSlot.LEGGINGS), EquipmentSlot.LEGGINGS));
+        armorEquipmentPacket.setBoots(translateEquipment(getItemInSlot(EquipmentSlot.BOOTS), EquipmentSlot.BOOTS));
+        armorEquipmentPacket.setBody(translateEquipment(getItemInSlot(EquipmentSlot.BODY), EquipmentSlot.BODY));
 
         session.sendUpstreamPacket(armorEquipmentPacket);
+    }
+
+    /**
+     * Translates an item this entity has equipped, as Bedrock should see it in the given slot.
+     */
+    protected ItemData translateEquipment(GeyserItemStack stack, EquipmentSlot slot) {
+        return ItemTranslator.translateToBedrock(session, stack);
     }
 
     public void updateMainHand() {
@@ -586,7 +596,7 @@ public class LivingEntity extends Entity implements Tickable {
 
         MobEquipmentPacket handPacket = new MobEquipmentPacket();
         handPacket.setRuntimeEntityId(geyserId);
-        handPacket.setItem(ItemTranslator.translateToBedrock(session, getMainHandItem()));
+        handPacket.setItem(translateEquipment(getMainHandItem(), EquipmentSlot.MAIN_HAND));
         handPacket.setHotbarSlot(-1);
         handPacket.setInventorySlot(0);
         handPacket.setContainerId(ContainerId.INVENTORY);
@@ -599,7 +609,7 @@ public class LivingEntity extends Entity implements Tickable {
 
         MobEquipmentPacket offHandPacket = new MobEquipmentPacket();
         offHandPacket.setRuntimeEntityId(geyserId);
-        offHandPacket.setItem(ItemTranslator.translateToBedrock(session, getOffHandItem()));
+        offHandPacket.setItem(translateEquipment(getOffHandItem(), EquipmentSlot.OFF_HAND));
         offHandPacket.setHotbarSlot(-1);
         offHandPacket.setInventorySlot(0);
         offHandPacket.setContainerId(ContainerId.OFFHAND);

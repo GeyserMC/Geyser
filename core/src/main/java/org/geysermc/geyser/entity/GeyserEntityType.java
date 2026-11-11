@@ -31,13 +31,14 @@ import org.geysermc.geyser.Constants;
 import org.geysermc.geyser.api.entity.definition.GeyserEntityDefinition;
 import org.geysermc.geyser.api.entity.definition.JavaEntityType;
 import org.geysermc.geyser.api.util.Identifier;
-import org.geysermc.geyser.registry.Registries;
+import org.geysermc.geyser.registry.java.BuiltInJavaRegistries;
 import org.geysermc.geyser.util.MinecraftKey;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.type.EntityType;
 
 import java.util.EnumMap;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
 
 public record GeyserEntityType(Identifier identifier, EntityType mcpl) implements JavaEntityType {
     private static final Identifier UNREGISTERED = Identifier.of(Constants.GEYSER_CUSTOM_NAMESPACE, "unregistered_sadface");
@@ -59,29 +60,25 @@ public record GeyserEntityType(Identifier identifier, EntityType mcpl) implement
 
     @Override
     public float width() {
-        var definition = Registries.JAVA_ENTITY_TYPES.get(this);
-        if (definition == null) {
-            throw new IllegalStateException("No entity definition registered for " + this);
-        }
-        return definition.width();
+        return definitionOrThrow().width();
     }
 
     @Override
     public float height() {
-        var definition = Registries.JAVA_ENTITY_TYPES.get(this);
-        if (definition == null) {
-            throw new IllegalStateException("No entity definition registered for " + this);
-        }
-        return definition.height();
+        return definitionOrThrow().height();
     }
 
     @Override
     public @Nullable GeyserEntityDefinition defaultBedrockDefinition() {
-        var definition = Registries.JAVA_ENTITY_TYPES.get(this);
-        if (definition == null) {
-            throw new IllegalStateException("No entity definition registered for " + this);
-        }
-        return definition.defaultBedrockDefinition();
+        return definitionOrThrow().defaultBedrockDefinition();
+    }
+
+    public Optional<EntityTypeDefinition<?>> definition() {
+        return BuiltInJavaRegistries.ENTITY_TYPE.get(mcpl.ordinal());
+    }
+
+    private EntityTypeDefinition<?> definitionOrThrow() {
+        return BuiltInJavaRegistries.ENTITY_TYPE.getOrThrow(mcpl.ordinal());
     }
 
     public boolean is(EntityType type) {

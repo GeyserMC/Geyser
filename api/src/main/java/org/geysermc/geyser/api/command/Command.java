@@ -71,19 +71,23 @@ public interface Command {
     /**
      * Gets if this command is designed to be used only by server operators.
      *
+     * <p>This method is deprecated for removal and will be removed in Geyser 2.13.0.</p>
+     *
      * @return if this command is designated to be used only by server operators.
-     * @deprecated this method is not guaranteed to provide meaningful or expected results.
+     * @deprecated since 2.4.1: this method is not guaranteed to provide meaningful or expected results.
      */
-    @Deprecated(forRemoval = true)
+    @Deprecated(since = "2.4.1", forRemoval = true)
     default boolean isSuggestedOpOnly() {
         return false;
     }
 
     /**
+     * This method is deprecated for removal and will be removed in Geyser 2.13.0.
+     *
      * @return true if this command is executable on console
-     * @deprecated use {@link #isPlayerOnly()} instead (inverted)
+     * @deprecated since 2.4.1: use {@link #isPlayerOnly()} instead (inverted)
      */
-    @Deprecated(forRemoval = true)
+    @Deprecated(since = "2.4.1", forRemoval = true)
     default boolean isExecutableOnConsole() {
         return !isPlayerOnly();
     }
@@ -99,9 +103,11 @@ public interface Command {
     boolean isBedrockOnly();
 
     /**
-     * @deprecated this method will always return an empty immutable list
+     * This method is deprecated for removal and will be removed in Geyser 2.13.0.
+     *
+     * @deprecated since 2.4.1: this method will always return an empty immutable list
      */
-    @Deprecated(forRemoval = true)
+    @Deprecated(since = "2.4.1", forRemoval = true)
     default List<String> subCommands() {
         return Collections.emptyList();
     }
@@ -184,21 +190,25 @@ public interface Command {
         /**
          * Sets if this command is designed to be used only by server operators.
          *
+         * <p>This method is deprecated for removal and will be removed in Geyser 2.13.0.</p>
+         *
          * @param suggestedOpOnly if this command is designed to be used only by server operators
          * @return this builder
-         * @deprecated this method is not guaranteed to produce meaningful or expected results
+         * @deprecated since 2.4.1: this method is not guaranteed to produce meaningful or expected results
          */
-        @Deprecated(forRemoval = true)
+        @Deprecated(since = "2.4.1", forRemoval = true)
         Builder<T> suggestedOpOnly(boolean suggestedOpOnly);
 
         /**
          * Sets if this command is executable on console.
          *
+         * <p>This method is deprecated for removal and will be removed in Geyser 2.13.0.</p>
+         *
          * @param executableOnConsole if this command is executable on console
          * @return this builder
-         * @deprecated use {@link #isPlayerOnly()} instead (inverted)
+         * @deprecated since 2.4.1: use {@link #isPlayerOnly()} instead (inverted)
          */
-        @Deprecated(forRemoval = true)
+        @Deprecated(since = "2.4.1", forRemoval = true)
         Builder<T> executableOnConsole(boolean executableOnConsole);
 
         /**
@@ -220,11 +230,13 @@ public interface Command {
         /**
          * Sets the subcommands.
          *
+         * <p>This method is deprecated for removal and will be removed in Geyser 2.13.0.</p>
+         *
          * @param subCommands the subcommands
          * @return this builder
-         * @deprecated this method has no effect
+         * @deprecated since 2.4.1: this method has no effect
          */
-        @Deprecated(forRemoval = true)
+        @Deprecated(since = "2.4.1", forRemoval = true)
         default Builder<T> subCommands(List<String> subCommands) {
             return this;
         }

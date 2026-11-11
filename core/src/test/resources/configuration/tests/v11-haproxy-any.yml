@@ -1,0 +1,4 @@
+advanced:
+  bedrock:
+    use-haproxy-protocol: true
+config-version: 11

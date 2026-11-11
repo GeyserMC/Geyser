@@ -108,6 +108,17 @@ public class SimpleMappedDeferredRegistry<K, V> extends AbstractMappedDeferredRe
     }
 
     /**
+     * Creates a new deferred registry using a lazily-loaded input.
+     *
+     * @param deferredLoader the deferred loader
+     * @param <I> the input type
+     * @return the new deferred registry
+     */
+    public static <I, K, V> SimpleMappedDeferredRegistry<K, V> createFromLazyInput(Supplier<I> input, RegistryLoader<I, Map<K, V>> deferredLoader) {
+        return create(null, SimpleMappedRegistry::create, falseInput -> deferredLoader.load(input.get()));
+    }
+
+    /**
      * Creates a new deferred registry.
      *
      * @param deferredLoader the deferred loader
