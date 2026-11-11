@@ -48,7 +48,6 @@ import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.inventory.C
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
 
 @Translator(packet = ClientboundContainerSetSlotPacket.class)
@@ -174,7 +173,9 @@ public class JavaContainerSetSlotTranslator extends PacketTranslator<Clientbound
                 }
             }
 
-            GeyserShapedRecipe geyserRecipe = new GeyserShapedRecipe(ThreadLocalRandom.current().nextInt(), newRecipeId,
+            // Not a recipe the Java server knows about (e.g. a dynamic recipe), so there is no Java recipe ID.
+            // A negative ID marks this (see GeyserRecipe#hasJavaId) while keeping the Bedrock recipe string ID unique.
+            GeyserShapedRecipe geyserRecipe = new GeyserShapedRecipe(-newRecipeId, newRecipeId,
                     width, height, javaIngredients, new ItemStackSlotDisplay(item));
             session.getCraftingRecipes().put(newRecipeId, geyserRecipe);
 

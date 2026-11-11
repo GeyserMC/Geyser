@@ -39,8 +39,20 @@ public interface GeyserRecipe<T extends RecipeData> {
     /**
      * The Java Edition {@link RecipeDisplayEntry#id()} this recipe was created from, as sent to us by the backend
      * server. Needed to place this recipe via a {@link org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.inventory.ServerboundPlaceRecipePacket}.
+     * <p>
+     * Negative for recipes Geyser created itself (for example, dynamic recipes such as firework rockets or armor
+     * dyeing), which have no Java recipe ID; see {@link #hasJavaId()}.
      */
     int id();
+
+    /**
+     * Whether this recipe was sent to us by the backend server, and can therefore be placed with a
+     * {@link org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.inventory.ServerboundPlaceRecipePacket}.
+     * If not, the crafting grid has to be filled with individual clicks instead, as a Java player would by hand.
+     */
+    default boolean hasJavaId() {
+        return id() >= 0;
+    }
 
     /**
      * Whether the recipe is flexible or not in which items can be placed where.
