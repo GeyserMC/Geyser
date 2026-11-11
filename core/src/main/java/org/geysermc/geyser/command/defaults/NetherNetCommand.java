@@ -63,6 +63,7 @@ public class NetherNetCommand extends GeyserCommand {
 
     private static final int MAX_RECORD_SECONDS = 600;
     private static final int MAX_CAPTURE_SECONDS = 30;
+    private static final DateTimeFormatter FILE_STAMP = DateTimeFormatter.ofPattern("yyyyMMdd-HHmmss-SSS", Locale.ROOT);
 
     private final GeyserImpl geyser;
 
@@ -110,7 +111,7 @@ public class NetherNetCommand extends GeyserCommand {
             return;
         }
 
-        String[] args = context.<String>optional(ARGUMENTS).map(value -> value.trim().split("\\s+")).orElse(new String[0]);
+        String[] args = arguments(context);
         try {
             if (args.length == 0) {
                 source.sendMessage(GeyserImpl.GSON.toJson(server.serverStatus()));
@@ -242,103 +243,118 @@ public class NetherNetCommand extends GeyserCommand {
     }
 
     /**
-     * Records one player's SCTP state every 20 ms to a CSV file, to show when and why retransmission timeouts happen
+     * Records one player's SCTP state to a CSV file, see {@link NetherNetRecorder}
      */
     private void record(CommandContext<GeyserCommandSource> context) {
         GeyserCommandSource source = context.sender();
         if (server(source) == null) {
             return;
         }
-        String[] args = context.<String>optional(ARGUMENTS).map(value -> value.trim().split("\\s+")).orElse(new String[0]);
-        int seconds = 60;
-        try {
-            if (args.length == 2) {
-                seconds = Integer.parseInt(args[1]);
-            }
-        } catch (NumberFormatException e) {
-            seconds = -1;
-        }
-        if (args.length < 1 || args.length > 2 || args[0].isEmpty() || seconds < 1 || seconds > MAX_RECORD_SECONDS) {
+        String[] args = arguments(context);
+        int seconds = seconds(args, 60, MAX_RECORD_SECONDS);
+        if (seconds < 0) {
             source.sendMessage("Usage: " + rootCommand() + " " + name() + " record <player> [seconds, 1-" + MAX_RECORD_SECONDS + ", default 60]");
             return;
         }
-
-        for (GeyserSession session : geyser.getSessionManager().getAllSessions()) {
-            String name = String.valueOf(session.bedrockUsername());
-            if (!name.equalsIgnoreCase(args[0])
-                || !(session.getUpstream().getSession().getPeer().getChannel() instanceof NetherNetChannel channel)) {
-                continue;
-            }
-            String stamp = DateTimeFormatter.ofPattern("yyyyMMdd-HHmmss-SSS", Locale.ROOT).format(LocalDateTime.now());
-            Path file = geyser.configDirectory().resolve("nethernet-records")
-                .resolve(name.replaceAll("[^A-Za-z0-9_-]", "_") + "-" + stamp + ".csv");
-            NetherNetChannel.Path path = channel.selectedPath();
-            List<String> header = List.of(
-                "Geyser " + GeyserImpl.VERSION + ", NetherNet recording every 20 ms",
-                "player " + name + ", " + session.platform() + ", " + session.version()
-                    + ", path " + (path == null ? "unknown" : path.localType() + " -> " + path.remoteType()));
-            try {
-                if (NetherNetRecorder.start(channel, file, header, seconds, source::sendMessage)) {
-                    source.sendMessage("Recording " + name + " for " + seconds + " s to " + file);
-                } else {
-                    source.sendMessage(name + " is already being recorded.");
-                }
-            } catch (IOException e) {
-                source.sendMessage("Could not record to " + file + ": " + e.getMessage());
-            }
+        GeyserSession session = netherNetSession(args[0]);
+        if (session == null) {
+            source.sendMessage("No NetherNet player named " + args[0] + ".");
             return;
         }
-        source.sendMessage("No NetherNet player named " + args[0] + ".");
+
+        NetherNetChannel channel = (NetherNetChannel) session.getUpstream().getSession().getPeer().getChannel();
+        String name = session.bedrockUsername();
+        Path file = recordFile(name, ".csv");
+        NetherNetChannel.Path path = channel.selectedPath();
+        List<String> header = List.of(
+            "Geyser " + GeyserImpl.VERSION + ", NetherNet recording every " + NetherNetRecorder.INTERVAL_MILLIS + " ms",
+            "player " + name + ", " + session.platform() + ", " + session.version()
+                + ", path " + (path == null ? "unknown" : path.localType() + " -> " + path.remoteType()));
+        try {
+            if (NetherNetRecorder.start(channel, file, header, seconds, source::sendMessage)) {
+                source.sendMessage("Recording " + name + " for " + seconds + " s to " + file);
+            } else {
+                source.sendMessage(name + " is already being recorded.");
+            }
+        } catch (IOException e) {
+            source.sendMessage("Could not record to " + file + ": " + e.getMessage());
+        }
     }
 
     /**
-     * Writes every Java and Bedrock packet of one player, with contents, to a file for a few seconds
+     * Writes one player's Java and Bedrock packets to a file, see {@link NetherNetPacketCapture}
      */
     private void packets(CommandContext<GeyserCommandSource> context) {
         GeyserCommandSource source = context.sender();
         if (server(source) == null) {
             return;
         }
-        String[] args = context.<String>optional(ARGUMENTS).map(value -> value.trim().split("\\s+")).orElse(new String[0]);
-        int seconds = 5;
-        try {
-            if (args.length == 2) {
-                seconds = Integer.parseInt(args[1]);
-            }
-        } catch (NumberFormatException e) {
-            seconds = -1;
-        }
-        if (args.length < 1 || args.length > 2 || args[0].isEmpty() || seconds < 1 || seconds > MAX_CAPTURE_SECONDS) {
+        String[] args = arguments(context);
+        int seconds = seconds(args, 5, MAX_CAPTURE_SECONDS);
+        if (seconds < 0) {
             source.sendMessage("Usage: " + rootCommand() + " " + name() + " packets <player> [seconds, 1-" + MAX_CAPTURE_SECONDS + ", default 5]");
             return;
         }
-
-        for (GeyserSession session : geyser.getSessionManager().getAllSessions()) {
-            String name = String.valueOf(session.bedrockUsername());
-            if (!name.equalsIgnoreCase(args[0])
-                || !(session.getUpstream().getSession().getPeer().getChannel() instanceof NetherNetChannel channel)) {
-                continue;
-            }
-            String stamp = DateTimeFormatter.ofPattern("yyyyMMdd-HHmmss-SSS", Locale.ROOT).format(LocalDateTime.now());
-            Path file = geyser.configDirectory().resolve("nethernet-records")
-                .resolve(name.replaceAll("[^A-Za-z0-9_-]", "_") + "-packets-" + stamp + ".tsv");
-            List<String> header = List.of(
-                "Geyser " + GeyserImpl.VERSION + ", every Java and Bedrock packet of " + name + " (" + session.platform() + ", "
-                    + session.version() + ") for " + seconds + " s, contents cut at " + NetherNetPacketCapture.MAX_CONTENT_CHARS + " characters",
-                "JAVA_IN: from the Java server, JAVA_OUT: to it, BEDROCK_IN: from the client, BEDROCK_OUT: to it, before compression");
-            try {
-                if (NetherNetPacketCapture.start(channel, file, header, seconds, source::sendMessage)) {
-                    source.sendMessage("Capturing " + name + "'s packets for " + seconds + " s to " + file
-                        + ". It contains chat, names and skins, so only share it privately.");
-                } else {
-                    source.sendMessage(name + "'s packets are already being captured.");
-                }
-            } catch (IOException e) {
-                source.sendMessage("Could not capture to " + file + ": " + e.getMessage());
-            }
+        GeyserSession session = netherNetSession(args[0]);
+        if (session == null) {
+            source.sendMessage("No NetherNet player named " + args[0] + ".");
             return;
         }
-        source.sendMessage("No NetherNet player named " + args[0] + ".");
+
+        String name = session.bedrockUsername();
+        Path file = recordFile(name + "-packets", ".tsv");
+        List<String> header = List.of(
+            "Geyser " + GeyserImpl.VERSION + ", every Java and Bedrock packet of " + name + " (" + session.platform() + ", "
+                + session.version() + ") for " + seconds + " s, contents cut at " + NetherNetPacketCapture.MAX_CONTENT_CHARS + " characters",
+            "JAVA_IN: from the Java server, JAVA_OUT: to it, BEDROCK_IN: from the client, BEDROCK_OUT: to it, before compression");
+        try {
+            if (NetherNetPacketCapture.start(session.getUpstream().getSession().getPeer().getChannel(), file, header, seconds, source::sendMessage)) {
+                source.sendMessage("Capturing " + name + "'s packets for " + seconds + " s to " + file
+                    + ". It contains chat, names and skins, so only share it privately.");
+            } else {
+                source.sendMessage(name + "'s packets are already being captured.");
+            }
+        } catch (IOException e) {
+            source.sendMessage("Could not capture to " + file + ": " + e.getMessage());
+        }
+    }
+
+    private static String[] arguments(CommandContext<GeyserCommandSource> context) {
+        return context.<String>optional(ARGUMENTS).map(value -> value.trim().split("\\s+")).orElse(new String[0]);
+    }
+
+    /**
+     * @return the seconds given after the player name, the fallback if none, or -1 if the arguments are invalid
+     */
+    private static int seconds(String[] args, int fallback, int max) {
+        if (args.length < 1 || args.length > 2 || args[0].isEmpty()) {
+            return -1;
+        }
+        if (args.length == 1) {
+            return fallback;
+        }
+        try {
+            int seconds = Integer.parseInt(args[1]);
+            return seconds >= 1 && seconds <= max ? seconds : -1;
+        } catch (NumberFormatException e) {
+            return -1;
+        }
+    }
+
+    private @Nullable GeyserSession netherNetSession(String name) {
+        for (GeyserSession session : geyser.getSessionManager().getAllSessions()) {
+            if (name.equalsIgnoreCase(session.bedrockUsername())
+                && session.getUpstream().getSession().getPeer().getChannel() instanceof NetherNetChannel) {
+                return session;
+            }
+        }
+        return null;
+    }
+
+    private Path recordFile(String name, String extension) {
+        String stamp = FILE_STAMP.format(LocalDateTime.now());
+        return geyser.configDirectory().resolve("nethernet-records")
+            .resolve(name.replaceAll("[^A-Za-z0-9_-]", "_") + "-" + stamp + extension);
     }
 
     /**

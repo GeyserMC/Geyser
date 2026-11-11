@@ -32,10 +32,7 @@ import org.geysermc.geyser.session.GeyserSession;
 
 import java.io.BufferedWriter;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -44,6 +41,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
@@ -51,12 +49,17 @@ import java.util.stream.Collectors;
  * Writes every packet of one player's session, Java and Bedrock in both directions, with its contents, to a file for
  * a few seconds, for the nethernet packets command. Contents come from each packet's toString, cut at
  * {@link #MAX_CONTENT_CHARS}. They include chat, names and skins, so a capture should only be shared privately.
+ * <p>
+ * The toString calls run on the network threads while a capture is running, which adds some load of its own.
+ * Bedrock packets the client sends are seen as they are translated, so login and resource pack packets are missing.
  */
 public final class NetherNetPacketCapture {
     public static final int MAX_CONTENT_CHARS = 4000;
-    /** Stops a capture before it fills a disk, whatever its length */
+    /** Bounds the queue and the file: at most about 2 GB if every packet's contents reach the limit */
     private static final int MAX_LINES = 500_000;
+    private static final int TOP_TYPES = 5;
     private static final Map<Channel, NetherNetPacketCapture> ACTIVE = new ConcurrentHashMap<>();
+    // Compared by identity; captured lines are always new strings
     private static final String END = "";
 
     public enum Direction {
@@ -67,10 +70,10 @@ public final class NetherNetPacketCapture {
     private final Path file;
     private final long startNanos = System.nanoTime();
     private final BlockingQueue<String> lines = new LinkedBlockingQueue<>();
+    private final AtomicInteger queued = new AtomicInteger();
     private final AtomicBoolean stopped = new AtomicBoolean();
     private final Map<Direction, Map<String, Integer>> counts = new ConcurrentHashMap<>();
     private final Consumer<String> onDone;
-    private volatile int written;
 
     private NetherNetPacketCapture(Channel channel, Path file, Consumer<String> onDone) {
         this.channel = channel;
@@ -89,14 +92,7 @@ public final class NetherNetPacketCapture {
         }
         BufferedWriter writer;
         try {
-            Files.createDirectories(file.getParent());
-            writer = Files.newBufferedWriter(file, StandardCharsets.UTF_8);
-            for (String line : header) {
-                writer.write("# " + line);
-                writer.newLine();
-            }
-            writer.write("t_ms\tdirection\tpacket\tcontents");
-            writer.newLine();
+            writer = NetherNetRecordFiles.open(file, header, "t_ms\tdirection\tpacket\tcontents");
         } catch (IOException | RuntimeException e) {
             ACTIVE.remove(channel);
             throw e;
@@ -109,8 +105,10 @@ public final class NetherNetPacketCapture {
         return true;
     }
 
-    /** Java packets, from the session's downstream handlers. */
-    public static void java(GeyserSession session, Direction direction, Object packet) {
+    /**
+     * A Java packet from the session's downstream handlers, or a Bedrock packet from the client as it is translated.
+     */
+    public static void packet(GeyserSession session, Direction direction, Object packet) {
         if (ACTIVE.isEmpty()) {
             return;
         }
@@ -120,32 +118,37 @@ public final class NetherNetPacketCapture {
         }
     }
 
-    /** A Bedrock packet the client sent, as it is translated. */
-    public static void bedrockIn(GeyserSession session, Object packet) {
-        java(session, Direction.BEDROCK_IN, packet);
-    }
-
-    /** A Bedrock packet about to be batched and sent; its object is gone if it was sent pre-encoded. */
-    static void bedrockOut(Channel channel, BedrockPacketWrapper wrapper) {
+    /**
+     * A Bedrock packet about to be batched and sent. Its object is gone if it was sent pre-encoded.
+     */
+    static void bedrockOut(Channel channel, BedrockPacketWrapper wrapper, String type) {
         if (ACTIVE.isEmpty()) {
             return;
         }
         NetherNetPacketCapture capture = ACTIVE.get(channel);
         if (capture != null) {
             Object packet = wrapper.getPacket();
-            capture.add(Direction.BEDROCK_OUT, packet == null ? "id " + wrapper.getPacketId() : packet.getClass().getSimpleName(),
-                packet == null ? "(pre-encoded, " + (wrapper.getPacketBuffer() == null ? "?" : wrapper.getPacketBuffer().readableBytes()) + " bytes)" : packet);
+            capture.add(Direction.BEDROCK_OUT, type, packet != null ? packet : preEncoded(wrapper));
         }
     }
 
-    private void add(Direction direction, String type, @Nullable Object packet) {
+    private static String preEncoded(BedrockPacketWrapper wrapper) {
+        String size = wrapper.getPacketBuffer() == null ? "?" : String.valueOf(wrapper.getPacketBuffer().readableBytes());
+        return "(pre-encoded, " + size + " bytes)";
+    }
+
+    private void add(Direction direction, String type, Object packet) {
         if (stopped.get()) {
+            return;
+        }
+        if (queued.incrementAndGet() > MAX_LINES) {
+            stop();
             return;
         }
         counts.computeIfAbsent(direction, key -> new ConcurrentHashMap<>()).merge(type, 1, Integer::sum);
         String contents;
         try {
-            // Taken now: packets are pooled and reused once handled
+            // Now, while the handler still owns the packet: it may be changed or released once the handler returns
             contents = String.valueOf(packet);
         } catch (RuntimeException e) {
             contents = "(toString failed: " + e + ")";
@@ -165,30 +168,24 @@ public final class NetherNetPacketCapture {
     }
 
     private void write(BufferedWriter writer) {
-        String reason = null;
+        int written = 0;
+        @Nullable String failure = null;
         try (writer) {
-            while (true) {
-                String line = lines.take();
-                if (line == END) {
-                    break;
-                }
-                if (written >= MAX_LINES) {
-                    reason = "stopped after " + MAX_LINES + " packets";
-                    stop();
-                    continue;
-                }
+            String line;
+            while ((line = lines.take()) != END) {
                 writer.write(line);
                 writer.newLine();
                 written++;
             }
         } catch (IOException e) {
-            reason = "writing failed: " + e.getMessage();
+            failure = "writing failed: " + e.getMessage();
             stop();
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
             stop();
         }
-        onDone.accept("Captured " + written + " packets to " + file + (reason == null ? "" : " (" + reason + ")") + ": " + summary());
+        String note = failure != null ? failure : queued.get() > MAX_LINES ? "stopped after " + MAX_LINES + " packets" : null;
+        onDone.accept("Captured " + written + " packets to " + file + (note == null ? "" : " (" + note + ")") + ": " + summary());
     }
 
     /** Packets per second in each direction, with the most frequent types. */
@@ -196,11 +193,11 @@ public final class NetherNetPacketCapture {
         double seconds = Math.max(1, TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - startNanos)) / 1000.0;
         StringBuilder builder = new StringBuilder();
         for (Direction direction : Direction.values()) {
-            Map<String, Integer> byType = counts.getOrDefault(direction, new HashMap<>());
+            Map<String, Integer> byType = counts.getOrDefault(direction, Map.of());
             int total = byType.values().stream().mapToInt(Integer::intValue).sum();
             String top = byType.entrySet().stream()
                 .sorted(Map.Entry.<String, Integer>comparingByValue().reversed())
-                .limit(5)
+                .limit(TOP_TYPES)
                 .map(entry -> entry.getKey() + " " + entry.getValue())
                 .collect(Collectors.joining(", "));
             if (!builder.isEmpty()) {

@@ -84,7 +84,7 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
     }
 
     private PacketSignal translateAndDefault(BedrockPacket packet) {
-        NetherNetPacketCapture.bedrockIn(session, packet);
+        NetherNetPacketCapture.packet(session, NetherNetPacketCapture.Direction.BEDROCK_IN, packet);
         Registries.BEDROCK_PACKET_TRANSLATORS.translate(packet.getClass(), packet, session, false);
         return PacketSignal.HANDLED; // PacketSignal.UNHANDLED will log a WARN publicly
     }

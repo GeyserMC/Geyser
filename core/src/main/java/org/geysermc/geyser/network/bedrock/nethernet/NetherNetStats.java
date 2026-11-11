@@ -49,6 +49,7 @@ import java.util.concurrent.atomic.LongAdder;
  */
 public final class NetherNetStats implements NetherChannelMetrics {
     public static final AttributeKey<NetherNetStats> ATTRIBUTE = AttributeKey.valueOf("geyser-nethernet-stats");
+    private static final int TOP_PACKET_TYPES = 5;
 
     private final long createdNanos = System.nanoTime();
 
@@ -201,6 +202,7 @@ public final class NetherNetStats implements NetherChannelMetrics {
 
         long batches = batchesOut.sum();
         long unwritableSince = unwritableSinceNanos;
+        long gameRoundTrip = gameRoundTripMillis;
 
         String pathDescription = null;
         if (path != null) {
@@ -228,8 +230,8 @@ public final class NetherNetStats implements NetherChannelMetrics {
             unwritableEvents.sum(),
             unwritableSince == 0 ? 0 : TimeUnit.NANOSECONDS.toMillis(now - unwritableSince),
             TimeUnit.NANOSECONDS.toMillis(now - lastReceivedNanos),
-            gameRoundTripMillis,
-            gameRoundTripMillis < 0 ? -1 : TimeUnit.NANOSECONDS.toSeconds(now - gameRoundTripAtNanos),
+            gameRoundTrip,
+            gameRoundTrip < 0 ? -1 : TimeUnit.NANOSECONDS.toSeconds(now - gameRoundTripAtNanos),
             gameRoundTripMax.get(),
             bytesOut.rate(), messagesOut.rate(), packetsOut.rate(),
             bytesIn.rate(), messagesIn.rate(),
@@ -237,7 +239,7 @@ public final class NetherNetStats implements NetherChannelMetrics {
             bytesIn.total(), messagesIn.total(), fragmentsIn.sum(), decodeFailures.sum(),
             batches == 0 ? 0 : (double) packetsOut.total() / batches,
             compressionRatio(),
-            topPacketTypes(5)
+            topPacketTypes(TOP_PACKET_TYPES)
         );
     }
 
@@ -260,15 +262,17 @@ public final class NetherNetStats implements NetherChannelMetrics {
      * @param receiveQueueChunks chunks received from the client that SCTP holds for reassembly or until they are read
      *                           (usrsctp's sstat_penddata). Not the send backlog
      * @param unwritableMillis how long the channel has been over its write buffer high watermark, 0 if it is not
-     * @param gameRoundTripMillis how long the last NetworkStackLatency packet (one per Java keep-alive) took to come
-     *                            back, -1 if none has yet. The client answers once it has processed everything sent
-     *                            before it, so this is SCTP's RTT plus any backlog in the send buffers or in the client.
-     *                            Pings are matched to replies in order, so one the client never answers skews the rest
+     * @param gameRoundTripMillis how long the last NetworkStackLatency packet took to come back, -1 if none has yet.
+     *                            One is sent per Java keep-alive only with forward-player-ping enabled; otherwise
+     *                            only the occasional inventory workaround sends one. The client answers once it has
+     *                            processed everything sent before it, so this is SCTP's RTT plus any backlog in the
+     *                            send buffers or in the client. Pings are matched to replies in order, so one the
+     *                            client never answers skews the rest
      * @param gameRoundTripAgeSeconds seconds since gameRoundTripMillis was measured, -1 if never
      * @param gameRoundTripMaxMillis the longest such round trip on this connection, -1 if none yet
      * @param averageBatchSize Bedrock packets per NetherNet message
      * @param compressionRatio compressed size over uncompressed size of the batches Geyser compressed itself
-     * @param topPacketTypes the five most frequent Bedrock packet types sent over the last few seconds, with their rate
+     * @param topPacketTypes the most frequent Bedrock packet types sent over the last few seconds, with their rate
      */
     public record Snapshot(
         long ageSeconds,
@@ -310,11 +314,11 @@ public final class NetherNetStats implements NetherChannelMetrics {
         List<String> topPacketTypes
     ) {
         /**
-         * @return the last game round trip with its age and the connection's longest, or "unknown" before the first
+         * @return the last game round trip with its age and the connection's longest, or why it is unknown
          */
         public String describeGameRoundTrip() {
             if (gameRoundTripMillis < 0) {
-                return "unknown";
+                return "unknown (measured on Java keep-alives with forward-player-ping enabled)";
             }
             return gameRoundTripMillis + " ms (" + gameRoundTripAgeSeconds + " s ago, max " + gameRoundTripMaxMillis + " ms)";
         }

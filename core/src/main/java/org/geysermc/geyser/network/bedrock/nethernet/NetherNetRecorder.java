@@ -33,8 +33,6 @@ import tel.schich.libdatachannel.SctpStats;
 
 import java.io.BufferedWriter;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
@@ -45,21 +43,17 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
 /**
- * Samples one connection's SCTP state every 20 ms into a CSV file, for the nethernet record command.
+ * Samples one connection's SCTP state every {@link #INTERVAL_MILLIS} ms into a CSV file, for the nethernet record
+ * command.
  * <p>
- * Made to tell spurious retransmission timeouts from real ones. Without the usrsctp T3-rtx fix, usrsctp only restarts
- * its retransmission timer on SACKs with gaps, so while data stays in flight a timeout comes every one or two RTOs
- * however promptly the client acknowledges: evenly spaced timeouts, unacked never reaching 0, and cwnd dropping to one
- * MTU after some of them. With the fix, timeouts only come with real loss.
- * <p>
- * game_rtt_ms is the last NetworkStackLatency round trip (see {@link NetherNetStats.Snapshot#gameRoundTripMillis()}).
- * When it grows far past rtt_ms while unacked chunks stay low, the backlog is in the client, not the network.
+ * Timeouts that come evenly spaced while data stays in flight, with no loss, point at the sender's retransmission
+ * timer rather than the network. game_rtt_ms is the last NetworkStackLatency round trip (see
+ * {@link NetherNetStats.Snapshot#gameRoundTripMillis()}): when it grows far past rtt_ms while unacked chunks stay low,
+ * the backlog is in the client, not the network.
  */
 public final class NetherNetRecorder {
-    static final long INTERVAL_MILLIS = 20;
+    public static final long INTERVAL_MILLIS = 20;
     static final String HEADER = "t_ms,rtt_ms,rto_ms,cwnd,unacked_chunks,timeouts,game_rtt_ms";
-    /** Rows are flushed this often, so a recording cut off by a shutdown loses at most about a second */
-    private static final int FLUSH_EVERY = 50;
     private static final Set<Channel> RECORDING = ConcurrentHashMap.newKeySet();
 
     private final NetherNetChannel channel;
@@ -71,7 +65,7 @@ public final class NetherNetRecorder {
     private final Summary summary = new Summary();
     // Only touched on the channel's event loop
     private @Nullable ScheduledFuture<?> task;
-    private boolean closed;
+    private boolean finished;
 
     private NetherNetRecorder(NetherNetChannel channel, Path file, BufferedWriter writer, int seconds, Consumer<String> onDone) {
         this.channel = channel;
@@ -93,32 +87,22 @@ public final class NetherNetRecorder {
         }
         BufferedWriter writer;
         try {
-            Files.createDirectories(file.getParent());
-            writer = Files.newBufferedWriter(file, StandardCharsets.UTF_8);
-            for (String line : header) {
-                writer.write("# " + line);
-                writer.newLine();
-            }
-            writer.write(HEADER);
-            writer.newLine();
+            writer = NetherNetRecordFiles.open(file, header, HEADER);
         } catch (IOException | RuntimeException e) {
             RECORDING.remove(channel);
             throw e;
         }
         NetherNetRecorder recorder = new NetherNetRecorder(channel, file, writer, seconds, onDone);
         channel.eventLoop().execute(() -> {
-            recorder.task = channel.eventLoop().scheduleAtFixedRate(recorder::sample, 0, INTERVAL_MILLIS, TimeUnit.MILLISECONDS);
-            channel.closeFuture().addListener(future -> channel.eventLoop().execute(() -> recorder.finish("the connection closed")));
+            recorder.task = channel.eventLoop().scheduleWithFixedDelay(recorder::sample, 0, INTERVAL_MILLIS, TimeUnit.MILLISECONDS);
+            // Channel listeners run on the event loop
+            channel.closeFuture().addListener(future -> recorder.finish("the connection closed"));
         });
         return true;
     }
 
     private void sample() {
-        if (closed) {
-            return;
-        }
-        if (!channel.isActive()) {
-            finish("the connection closed");
+        if (finished) {
             return;
         }
         long now = System.nanoTime();
@@ -133,13 +117,11 @@ public final class NetherNetRecorder {
         }
         long t = TimeUnit.NANOSECONDS.toMillis(now - startNanos);
         NetherNetStats stats = channel.attr(NetherNetStats.ATTRIBUTE).get();
+        long gameRoundTrip = stats == null ? -1 : stats.lastGameRoundTripMillis();
         try {
             writer.write(t + "," + sctp.rtt().toMillis() + "," + sctp.rto().toMillis() + "," + sctp.congestionWindow()
-                + "," + sctp.unackedChunks() + "," + sctp.dataTimeouts() + "," + (stats == null ? -1 : stats.lastGameRoundTripMillis()));
+                + "," + sctp.unackedChunks() + "," + sctp.dataTimeouts() + "," + gameRoundTrip);
             writer.newLine();
-            if (summary.samples % FLUSH_EVERY == 0) {
-                writer.flush();
-            }
         } catch (IOException e) {
             finish("writing failed: " + e.getMessage());
             return;
@@ -148,16 +130,17 @@ public final class NetherNetRecorder {
     }
 
     private void finish(@Nullable String reason) {
-        if (closed) {
+        if (finished) {
             return;
         }
-        closed = true;
+        finished = true;
         if (task != null) {
             task.cancel(false);
         }
         try {
             writer.close();
         } catch (IOException ignored) {
+            // Nothing more can be written, and the summary below still reaches the sender
         }
         RECORDING.remove(channel);
         onDone.accept("Recorded " + file + (reason == null ? "" : " (stopped early: " + reason + ")") + ": " + summary);
@@ -165,9 +148,13 @@ public final class NetherNetRecorder {
 
     /**
      * What a recording shows at a glance: how often timeouts came, how far apart, and whether data was in flight
-     * all along, which is when usrsctp's timer runs out without any loss.
+     * all along.
      */
     static final class Summary {
+        // One MTU is about 1.2 KB: a window that falls under 2 KB from above twice that was cut by a timeout
+        private static final long CUT_FROM_ABOVE = 2400;
+        private static final long CUT_BELOW = 2000;
+
         private long samples;
         private long inFlightSamples;
         private long firstTimeouts = -1;
@@ -194,9 +181,8 @@ public final class NetherNetRecorder {
                 lastTimeoutAt = millis;
                 lastTimeouts = dataTimeouts;
             }
-            // One MTU is about 1.2 KB; a window that falls under 2 KB from above twice that was cut by a timeout.
             // A cut that recovers within one sample on a fast link is missed
-            if (lastCwnd > 2400 && congestionWindow < 2000) {
+            if (lastCwnd > CUT_FROM_ABOVE && congestionWindow < CUT_BELOW) {
                 collapses++;
             }
             lastCwnd = congestionWindow;
@@ -207,8 +193,7 @@ public final class NetherNetRecorder {
             long timeouts = firstTimeouts < 0 ? 0 : lastTimeouts - firstTimeouts;
             String spacing = "n/a";
             if (!spacings.isEmpty()) {
-                List<Long> sorted = new ArrayList<>(spacings);
-                sorted.sort(null);
+                List<Long> sorted = spacings.stream().sorted().toList();
                 spacing = sorted.get(sorted.size() / 2) + " ms";
             }
             double seconds = Math.max(lastMillis, 1) / 1000.0;

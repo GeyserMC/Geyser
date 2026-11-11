@@ -2791,18 +2791,17 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource, Jav
         NetworkStackLatencyPacket latencyPacket = new NetworkStackLatencyPacket();
         latencyPacket.setFromServer(true);
         latencyPacket.setTimestamp(timestamp);
-        Runnable onReply = ensureEventLoop ? () -> ensureInEventLoop(runnable) : runnable;
+        // Timed for the nethernet stats command: how long a packet takes to come back, client backlog included
         Channel channel = getUpstream().getSession().getPeer().getChannel();
-        if (channel instanceof NetherNetChannel) {
-            // Timed for the nethernet stats command: how long a packet takes to come back, client backlog included
-            long sentNanos = System.nanoTime();
-            Runnable reply = onReply;
-            onReply = () -> {
-                NetherNetStats.recordGameRoundTrip(channel, System.nanoTime() - sentNanos);
-                reply.run();
-            };
-        }
-        latencyPingCache.add(onReply);
+        long sentNanos = System.nanoTime();
+        latencyPingCache.add(() -> {
+            NetherNetStats.recordGameRoundTrip(channel, System.nanoTime() - sentNanos);
+            if (ensureEventLoop) {
+                ensureInEventLoop(runnable);
+            } else {
+                runnable.run();
+            }
+        });
         sendUpstreamPacket(latencyPacket);
     }
 
