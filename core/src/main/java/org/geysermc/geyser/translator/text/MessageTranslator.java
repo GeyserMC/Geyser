@@ -78,9 +78,6 @@ public class MessageTranslator {
     private static final String RESET = BASE + "r";
     private static final Pattern LOCALIZATION_PATTERN = Pattern.compile("%(?:(\\d+)\\$)?s");
 
-    // Check Bedrock format prefix (only second format can be a color)
-    public static final Pattern FORMAT_PREFIX_PATTERN = Pattern.compile("^§r(§.(?:§[klo])*)(.*)$", Pattern.DOTALL);
-
     private static final String ERROR_MESSAGE = "§cReport to Geyser";
 
     static {
@@ -248,8 +245,7 @@ public class MessageTranslator {
 
     /**
      * Convert a Java message to the legacy format ready for bedrock. Unlike {@link #convertMessage(Component, String)}
-     * this version does not add a leading color reset. In Bedrock some places have build-in styles.
-     * Only recommend to use this when the default style of target Bedrock label matches that after "§r".
+     * this version does not add a leading color reset. In Bedrock some places have build-in colors.
      *
      * @param message Java message
      * @param locale Locale to use for translation strings
@@ -629,35 +625,6 @@ public class MessageTranslator {
             return "";
         }
         return new String(newChars, 0, count - (whitespacesCount > 0 ? 1 : 0)).trim();
-    }
-
-    /**
-     * Used to filter styles in text prefixes that duplicate the built-in styles of target Bedrock label (e.g. tooltips)
-     * @param origin Original string, converted by {@link #convertMessage(Component, String)}
-     * @param color Built-in color of target label. Make sure the original has a color (e.g. use colorIfAbsent before component conversion)
-     * @param decorations Built-in decorations of target label. Only filter when the prefix of the original string contains all of these
-     * @return Filtered string, or the original if nothing filtered
-     */
-    public static String filterBedrockFormatPrefix(String origin, @Nullable String color, String... decorations) {
-        Matcher matcher = MessageTranslator.FORMAT_PREFIX_PATTERN.matcher(origin);
-        if (!matcher.matches()) {
-            return origin;
-        }
-        String prefix = matcher.group(1);
-        boolean filtered = false;
-        for (String decoration : decorations) {
-            String newPrefix = prefix.replace(decoration, "");
-            if (newPrefix.length() == prefix.length()) {
-                return origin;
-            }
-            filtered = true;
-            prefix = newPrefix;
-        }
-        if (color != null && prefix.length() >= 2 && color.charAt(1) == prefix.charAt(1)) {
-            filtered = true;
-            prefix = prefix.substring(2);
-        }
-        return filtered ? prefix + matcher.group(2) : origin;
     }
 
     private static int setFormattingFlag(int flags, char format) {

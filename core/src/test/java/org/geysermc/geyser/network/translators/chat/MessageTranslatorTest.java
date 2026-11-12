@@ -29,7 +29,6 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextColor;
 import net.kyori.adventure.text.format.TextDecoration;
-import org.geysermc.geyser.text.ChatColor;
 import org.geysermc.geyser.translator.text.MessageTranslator;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
@@ -106,11 +105,10 @@ public class MessageTranslatorTest {
                 §e and the top 3 will get extra bonus prizes!""");
 
         // Escape curly braces in translatable strings (make MessageFormat ignore them)
-        // Use fallback to test since 50855d0 changed the translation process for non-localize
-        messages.put(Component.translatable("").fallback("tt{tt%stt}tt").arguments(Component.text("AA")), "§rtt{ttAAtt}tt");
-        messages.put(Component.translatable("").fallback("tt{'tt%stt'{tt").arguments(Component.text("AA")), "§rtt{'ttAAtt'{tt");
-        messages.put(Component.translatable("").fallback("tt{''{tt"), "§rtt{''{tt");
-        messages.put(Component.translatable("").fallback("tt{{''}}tt"), "§rtt{{''}}tt");
+        messages.put(Component.translatable("tt{tt%stt}tt").arguments(Component.text("AA")), "§rtt{ttAAtt}tt");
+        messages.put(Component.translatable("tt{'tt%stt'{tt").arguments(Component.text("AA")), "§rtt{'ttAAtt'{tt");
+        messages.put(Component.translatable("tt{''{tt"), "§rtt{''{tt");
+        messages.put(Component.translatable("tt{{''}}tt"), "§rtt{{''}}tt");
 
         // Remove duplicated resets, tail resets and dangling paragraph sign
         messages.put(Component.text("abc§r").color(NamedTextColor.YELLOW), "§r§eabc");
@@ -151,22 +149,5 @@ public class MessageTranslatorTest {
         Assertions.assertEquals("Strange", MessageTranslator.convertToPlainTextLenient("§rStrange", "en_US"), "Valid lenient JSON is not handled properly");
         Assertions.assertEquals("", MessageTranslator.convertToPlainTextLenient("", "en_US"), "Empty message is not handled properly");
         Assertions.assertEquals("     ", MessageTranslator.convertToPlainTextLenient("     ", "en_US"), "Whitespace is not preserved");
-    }
-
-    @Test
-    public void filterBedrockFormatPrefix() {
-        String testColor = ChatColor.DARK_PURPLE, italic = ChatColor.ITALIC, bold = ChatColor.BOLD;
-        Assertions.assertEquals("CustomName", MessageTranslator.filterBedrockFormatPrefix("§r§oCustomName", null, italic));
-        Assertions.assertEquals("§9§k§lCustom§r§oName", MessageTranslator.filterBedrockFormatPrefix("§r§9§k§o§lCustom§r§oName", null, italic));
-        Assertions.assertEquals("Lore", MessageTranslator.filterBedrockFormatPrefix("§r§5§oLore", testColor, italic));
-        Assertions.assertEquals("§9§l§kLore§r§5§oMsg", MessageTranslator.filterBedrockFormatPrefix("§r§9§l§k§oLore§r§5§oMsg", testColor, italic));
-        Assertions.assertEquals("Special", MessageTranslator.filterBedrockFormatPrefix("§r§5Special", testColor));
-        Assertions.assertEquals("Special", MessageTranslator.filterBedrockFormatPrefix("§r§5§l§oSpecial", testColor, italic, bold));
-        Assertions.assertEquals("§rSpecial", MessageTranslator.filterBedrockFormatPrefix("§rSpecial", testColor, italic, bold));
-        Assertions.assertEquals("§r§5§lSpecial", MessageTranslator.filterBedrockFormatPrefix("§r§5§lSpecial", testColor, italic, bold));
-        Assertions.assertEquals("§9Special", MessageTranslator.filterBedrockFormatPrefix("§r§9§l§oSpecial", testColor, italic, bold));
-        Assertions.assertEquals("§r§9Impossible", MessageTranslator.filterBedrockFormatPrefix("§r§9Impossible", null));
-        Assertions.assertEquals("§rImpossible", MessageTranslator.filterBedrockFormatPrefix("§rImpossible", testColor));
-        Assertions.assertEquals("§r§lImpossible", MessageTranslator.filterBedrockFormatPrefix("§r§lImpossible", testColor));
     }
 }
