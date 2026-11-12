@@ -28,7 +28,6 @@ package org.geysermc.geyser.registry.mappings.versions.biome;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import org.checkerframework.checker.nullness.qual.Nullable;
-import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.biome.custom.CustomBiomeAppearance;
 import org.geysermc.geyser.api.biome.custom.CustomBiomeDefinition;
 import org.geysermc.geyser.api.biome.custom.CustomBiomeDefinitionRegisterException;
@@ -40,39 +39,24 @@ import org.geysermc.geyser.registry.mappings.MappingsReader;
 import org.geysermc.geyser.registry.mappings.util.MappingsUtil;
 import org.geysermc.geyser.registry.mappings.util.NodeReader;
 
-import java.nio.file.Path;
-import java.util.Map;
 import java.util.UUID;
-import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
 public class BiomeMappingsReader_v1 implements MappingsReader<Identifier, CustomBiomeDefinition> {
 
     @Override
-    public void read(Path file, JsonObject mappings, BiConsumer<Identifier, CustomBiomeDefinition> consumer) {
-        read(file, new JsonObject(), mappings, consumer);
-    }
-
-    @Override
-    public void read(Path file, JsonObject root, JsonObject mappings, BiConsumer<Identifier, CustomBiomeDefinition> consumer) {
-        UUID packUuid;
-        try {
-            packUuid = readPackUuid(root);
-        } catch (InvalidCustomMappingsFileException exception) {
-            GeyserImpl.getInstance().getLogger().error("Error reading mapping_options in custom mappings file: " + file, exception);
-            return;
-        }
+    public void read(Context<Identifier, CustomBiomeDefinition> context) {
         // Sorted so registration conflicts don't depend on the file's property order
-        mappings.entrySet().stream().sorted(Map.Entry.comparingByKey()).forEach(entry -> {
-            if (entry.getValue().isJsonObject()) {
+        context.forEachMapping((key, value) -> {
+            if (value.isJsonObject()) {
                 try {
-                    Identifier javaIdentifier = Identifier.of(entry.getKey());
-                    consumer.accept(javaIdentifier, readDefinition(javaIdentifier, entry.getValue().getAsJsonObject(), packUuid, "biome " + javaIdentifier));
+                    Identifier javaIdentifier = Identifier.of(key);
+                    context.accept(javaIdentifier, readDefinition(javaIdentifier, value.getAsJsonObject(), context.packUuid(), "biome " + javaIdentifier));
                 } catch (InvalidCustomMappingsFileException | IllegalArgumentException | CustomBiomeDefinitionRegisterException exception) {
-                    GeyserImpl.getInstance().getLogger().error("Error reading custom biome " + entry.getKey() + " in custom mappings file: " + file.toString(), exception);
+                    context.reportError("failed reading custom biome " + key + ": " + exception.getMessage());
                 }
             } else {
-                GeyserImpl.getInstance().getLogger().error("Custom biome key " + entry.getKey() + " in custom mappings file " + file.toString() + " was not an object!");
+                context.reportError("custom biome key " + key + " was not an object!");
             }
         });
     }

@@ -1,9 +1,7 @@
 {
   "format_version": 1,
   "mapping_options": {
-    "biomes": {
-      "pack_uuid": "8caa1b2a-0b23-4d55-9b46-8a3c2d9f0e11"
-    }
+    "pack_uuid": "8caa1b2a-0b23-4d55-9b46-8a3c2d9f0e11"
   },
   "biomes": {
     "example:packed": {

@@ -30,6 +30,9 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.item.exception.InvalidCustomMappingsFileException;
+import org.geysermc.geyser.registry.mappings.util.MappingsUtil;
+import org.geysermc.geyser.registry.mappings.util.NodeReader;
 import org.jetbrains.annotations.VisibleForTesting;
 
 import java.io.FileReader;
@@ -37,10 +40,12 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.function.BiConsumer;
 import java.util.stream.Stream;
 
 public final class MappingsConfigReader {
+    public static final String OPTIONS_KEY = "mappings_options";
 
     private MappingsConfigReader() {}
 
@@ -109,7 +114,17 @@ public final class MappingsConfigReader {
             GeyserImpl.getInstance().getLogger().error("Mappings file " + file + " has an unsupported format version (" + formatVersion + ") for " + type.name() + " mappings");
             return;
         }
-        reader.read(file, mappingsRoot, mappings.getAsJsonObject(), consumer);
+
+        UUID packUuid;
+        try {
+            packUuid = getPackUuid(mappingsRoot);
+        } catch (InvalidCustomMappingsFileException exception) {
+            GeyserImpl.getInstance().getLogger().error("Error reading " + OPTIONS_KEY + " in mappings file: " + file + ", skipping it!", exception);
+            return;
+        }
+
+        reader.read(new MappingsReader.Context<>(mappings.getAsJsonObject(), packUuid, consumer,
+            error -> GeyserImpl.getInstance().getLogger().error("Error occurred whilst reading mappings in " + file + ": " + error)));
     }
 
     private static @Nullable JsonObject getMappingsRoot(Path file) {
@@ -127,5 +142,14 @@ public final class MappingsConfigReader {
         }
 
         return mappingsRoot;
+    }
+
+    private static @Nullable UUID getPackUuid(JsonObject root) throws InvalidCustomMappingsFileException {
+        JsonElement options = root.get(OPTIONS_KEY);
+        if (options == null) {
+            return null;
+        }
+
+        return MappingsUtil.readOrThrow(options, "pack_uuid", NodeReader.UUID, "mapping options");
     }
 }
