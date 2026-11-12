@@ -171,15 +171,15 @@ public class WolfEntity extends TameableEntity implements VariantIntHolder {
                 }
             }
             if (itemInHand.is(Items.WOLF_ARMOR) && !getItemInSlot(EquipmentSlot.BODY).isEmpty() && !getFlag(EntityFlag.BABY)) {
-                return InteractiveTag.EQUIP_WOLF_ARMOR;
+                return InteractiveTag.EQUIPWOLFARMOR;
             }
             if (itemInHand.is(Items.SHEARS) && !getItemInSlot(EquipmentSlot.BODY).isEmpty()
                     && (!isCurseOfBinding || session.getGameMode().equals(GameMode.CREATIVE))) {
-                return InteractiveTag.REMOVE_WOLF_ARMOR;
+                return InteractiveTag.REMOVEWOLFARMOR;
             }
             if (getFlag(EntityFlag.SITTING) && itemInHand.is(session, repairableItems) &&
                     !getItemInSlot(EquipmentSlot.BODY).isEmpty() && getItemInSlot(EquipmentSlot.BODY).isDamaged()) {
-                return InteractiveTag.REPAIR_WOLF_ARMOR;
+                return InteractiveTag.REPAIRWOLFARMOR;
             }
             // Tamed and owned by player - can sit/stand
             return getFlag(EntityFlag.SITTING) ? InteractiveTag.STAND : InteractiveTag.SIT;

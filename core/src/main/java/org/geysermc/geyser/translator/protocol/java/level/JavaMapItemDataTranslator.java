@@ -26,18 +26,19 @@
 package org.geysermc.geyser.translator.protocol.java.level;
 
 import it.unimi.dsi.fastutil.longs.LongArrayList;
-import org.geysermc.mcprotocollib.protocol.data.game.level.map.MapData;
-import org.geysermc.mcprotocollib.protocol.data.game.level.map.MapIcon;
-import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.level.ClientboundMapItemDataPacket;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.protocol.bedrock.data.MapDecoration;
 import org.cloudburstmc.protocol.bedrock.data.MapTrackedObject;
 import org.geysermc.geyser.level.BedrockMapIcon;
 import org.geysermc.geyser.level.MapColor;
+import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 import org.geysermc.geyser.util.DimensionUtils;
+import org.geysermc.mcprotocollib.protocol.data.game.level.map.MapData;
+import org.geysermc.mcprotocollib.protocol.data.game.level.map.MapIcon;
+import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.level.ClientboundMapItemDataPacket;
 
 import java.util.ArrayList;
 
@@ -81,10 +82,14 @@ public class JavaMapItemDataTranslator extends PacketTranslator<ClientboundMapIt
 
             int id = 0;
             for (MapIcon icon : packet.getIcons()) {
-                BedrockMapIcon bedrockMapIcon = BedrockMapIcon.fromType(icon.getIconType());
+                BedrockMapIcon bedrockMapIcon = Registries.MAP_DECORATION_MAPPINGS.get(icon.getIconType());
+                if (bedrockMapIcon == null) {
+                    session.getGeyser().getLogger().debug("Missed map icon: " + icon.getIconType() + " because no mapping for it exists");
+                    continue;
+                }
 
                 mapItemDataPacket.getTrackedObjects().add(new MapTrackedObject(id));
-                mapItemDataPacket.getDecorations().add(new MapDecoration(bedrockMapIcon.getIconID(), icon.getIconRotation(), icon.getCenterX(), icon.getCenterZ(), "", bedrockMapIcon.toARGB()));
+                mapItemDataPacket.getDecorations().add(new MapDecoration(bedrockMapIcon.id(), icon.getIconRotation(), icon.getCenterX(), icon.getCenterZ(), "", bedrockMapIcon.argb()));
                 id++;
             }
         }

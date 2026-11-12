@@ -39,12 +39,14 @@ import org.geysermc.geyser.api.util.Identifier;
 import org.geysermc.geyser.api.waypoint.CustomWaypointStyle;
 import org.geysermc.geyser.entity.BedrockEntityDefinition;
 import org.geysermc.geyser.item.components.resolvable.ResolvableComponent;
+import org.geysermc.geyser.level.BedrockMapIcon;
 import org.geysermc.geyser.level.gamerule.GameRule;
 import org.geysermc.geyser.level.gamerule.GameRules;
 import org.geysermc.geyser.pack.ResourcePackHolder;
 import org.geysermc.geyser.registry.java.BuiltInJavaRegistries;
 import org.geysermc.geyser.registry.loader.BiomeIdentifierRegistryLoader;
 import org.geysermc.geyser.registry.loader.BlockEntityRegistryLoader;
+import org.geysermc.geyser.registry.loader.MapDecorationsLoader;
 import org.geysermc.geyser.registry.loader.ParticleTypesRegistryLoader;
 import org.geysermc.geyser.registry.loader.PotPatternRegistryLoader;
 import org.geysermc.geyser.registry.loader.ProviderRegistryLoader;
@@ -72,6 +74,7 @@ import org.geysermc.mcprotocollib.network.packet.Packet;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
 import org.geysermc.mcprotocollib.protocol.data.game.level.block.BlockEntityType;
 import org.geysermc.mcprotocollib.protocol.data.game.level.event.LevelEvent;
+import org.geysermc.mcprotocollib.protocol.data.game.level.map.MapIconType;
 import org.geysermc.mcprotocollib.protocol.data.game.level.particle.ParticleType;
 
 import java.util.ArrayList;
@@ -202,6 +205,11 @@ public final class Registries {
     public static final SimpleMappedDeferredRegistry<Identifier, CustomWaypointStyle> WAYPOINT_STYLE_MAPPINGS = SimpleMappedDeferredRegistry.create(MappingsType.WAYPOINT_STYLES, WaypointStyleLoader::new);
 
     /**
+     * A registry mapping Java {@link MapIconType}s to {@link BedrockMapIcon}s.
+     */
+    public static final SimpleMappedDeferredRegistry<MapIconType, BedrockMapIcon> MAP_DECORATION_MAPPINGS = SimpleMappedDeferredRegistry.create("mappings/map_decorations.json", MapDecorationsLoader::new);
+
+    /**
      * A registry containing all the Java game rules.
      * Loaded through {@link GameRules}
      */
@@ -237,6 +245,7 @@ public final class Registries {
         DANGEROUS_BLOCK_ENTITIES.load();
         DANGEROUS_ENTITIES.load();
         SUSPICIOUS_EFFECT_HOLDERS.load();
+        MAP_DECORATION_MAPPINGS.load();
         GameRules.init();
 
         // Finally populate registries needing populating

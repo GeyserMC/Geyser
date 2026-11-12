@@ -61,10 +61,10 @@ public class MooshroomEntity extends CowEntity {
         if (!isBaby()) {
             if (itemInHand.is(Items.BOWL)) {
                 // Stew
-                return InteractiveTag.MOOSHROOM_MILK_STEW;
+                return InteractiveTag.MOOSTEW;
             } else if (isAlive() && itemInHand.is(Items.SHEARS)) {
                 // Shear items
-                return InteractiveTag.MOOSHROOM_SHEAR;
+                return InteractiveTag.MOOSHEAR;
             }
         }
         return super.testMobInteraction(hand, itemInHand);
