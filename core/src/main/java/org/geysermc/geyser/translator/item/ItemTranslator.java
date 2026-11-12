@@ -32,7 +32,6 @@ import net.kyori.adventure.text.TranslatableComponent;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextColor;
 import net.kyori.adventure.text.format.TextDecoration;
-import net.kyori.adventure.text.serializer.legacy.CharacterAndFormat;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.nbt.NbtList;
@@ -59,7 +58,6 @@ import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.skin.SkinManager;
 import org.geysermc.geyser.text.ChatColor;
-import org.geysermc.geyser.text.MinecraftLocale;
 import org.geysermc.geyser.translator.text.MessageTranslator;
 import org.geysermc.geyser.util.InventoryUtils;
 import org.geysermc.geyser.util.MinecraftKey;
@@ -597,10 +595,12 @@ public final class ItemTranslator {
             // ItemStack#getHoverName as of 1.20.5
             Component customName = components.get(DataComponentTypes.CUSTOM_NAME);
             if (customName != null) {
-                return MessageTranslator.convertMessage(customName
+                String customNameString = MessageTranslator.convertMessage(customName
                         // Match Vanilla styles to fully normalize the text component
                         .decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.TRUE),
                     session.locale());
+                // Filter the default custom name style in text prefixes to avoid it show in anvil UI
+                return customNameString.startsWith("§r§o") ? customNameString.substring(4) : customNameString;
             }
 
             if (!customNameOnly) {
