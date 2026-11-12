@@ -1,6 +1,6 @@
 {
   "format_version": 1,
-  "mapping_options": {
+  "mappings_options": {
     "pack_uuid": "not-a-uuid"
   },
   "biomes": {

@@ -111,6 +111,29 @@ public interface NodeReader<T> {
 
     NodeReader<String> NON_EMPTY_STRING = STRING.validate(s -> !s.isEmpty(), "string must not be empty");
 
+    NodeReader<UUID> UUID = NON_EMPTY_STRING.andThen(s -> {
+        try {
+            return java.util.UUID.fromString(s);
+        } catch (IllegalArgumentException exception) {
+            throw new InvalidCustomMappingsFileException("expected a UUID such as 01234567-89ab-cdef-0123-456789abcdef");
+        }
+    });
+
+    // Reads an opaque color; the alpha in #aarrggbb values is accepted and ignored
+    NodeReader<Color> COLOR = node -> {
+        if (node.isNumber()) {
+            return new Color(INT.read(node));
+        }
+        String string = node.getAsString();
+        try {
+            if ((string.length() == 7 || string.length() == 9) && string.startsWith("#")) {
+                return new Color(Integer.parseUnsignedInt(string.substring(1), 16));
+            }
+        } catch (NumberFormatException ignored) {
+        }
+        throw new InvalidCustomMappingsFileException("expected color to be an integer or a #rrggbb / #aarrggbb string");
+    };
+
     // General API readers
 
     NodeReader<Identifier> IDENTIFIER = NON_EMPTY_STRING.andThen(Identifier::of);
@@ -158,29 +181,6 @@ public interface NodeReader<T> {
     // Biome readers
 
     NodeReader<CustomBiomePrecipitation.Type> PRECIPITATION_TYPE = ofEnum(CustomBiomePrecipitation.Type.class);
-
-    NodeReader<UUID> UUID = NON_EMPTY_STRING.andThen(s -> {
-        try {
-            return java.util.UUID.fromString(s);
-        } catch (IllegalArgumentException exception) {
-            throw new InvalidCustomMappingsFileException("expected a UUID such as 01234567-89ab-cdef-0123-456789abcdef");
-        }
-    });
-
-    // The alpha in #aarrggbb values is accepted and ignored, as biome colors are RGB only
-    NodeReader<Color> COLOR = node -> {
-        if (node.isNumber()) {
-            return new Color(INT.read(node));
-        }
-        String string = node.getAsString();
-        try {
-            if ((string.length() == 7 || string.length() == 9) && string.startsWith("#")) {
-                return new Color(Integer.parseUnsignedInt(string.substring(1), 16));
-            }
-        } catch (NumberFormatException ignored) {
-        }
-        throw new InvalidCustomMappingsFileException("expected color to be an integer or a #rrggbb / #aarrggbb string");
-    };
 
     static <E extends Enum<E>> NodeReader<E> ofEnum(Class<E> clazz) {
         return NON_EMPTY_STRING.andThen(s -> s.toUpperCase(Locale.ROOT)).andThen(s -> {
