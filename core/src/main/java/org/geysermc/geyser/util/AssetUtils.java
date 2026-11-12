@@ -27,7 +27,6 @@ package org.geysermc.geyser.util;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
 import com.google.gson.annotations.SerializedName;
 import lombok.Getter;
 import org.geysermc.geyser.GeyserImpl;
@@ -89,54 +88,58 @@ public final class AssetUtils {
     /**
      * Fetch the latest versions asset cache from Mojang so we can grab the locale files later
      */
-    public static CompletableFuture<Void> generateAssetCache() {
-        return CompletableFuture.supplyAsync(() -> {
-            try {
-                // Get the version manifest from Mojang
-                VersionManifest versionManifest = GeyserImpl.GSON.fromJson(
-                        WebUtils.getBody("https://launchermeta.mojang.com/mc/game/version_manifest.json"), VersionManifest.class);
+    public static CompletableFuture<?> generateAssetCache() {
+        return FancyHttpClient.oneShot(client -> client.getBody("https://launchermeta.mojang.com/mc/game/version_manifest.json")
+            .thenCompose(body -> {
+                try {
+                    // Get the version manifest from Mojang
+                    VersionManifest versionManifest = GeyserImpl.GSON.fromJson(body, VersionManifest.class);
 
-                // Get the url for the latest version of the games manifest
-                String latestInfoURL = "";
-                for (Version version : versionManifest.getVersions()) {
-                    if (version.getId().equals(GameProtocol.getJavaMinecraftVersion())) {
-                        latestInfoURL = version.getUrl();
-                        break;
-                    }
-                }
-
-                // Make sure we definitely got a version
-                if (latestInfoURL.isEmpty()) {
-                    throw new Exception(GeyserLocale.getLocaleStringLog("geyser.locale.fail.latest_version"));
-                }
-
-                // Get the individual version manifest
-                VersionInfo versionInfo = GeyserImpl.GSON.fromJson(WebUtils.getBody(latestInfoURL), VersionInfo.class);
-
-                // Get the client jar for use when downloading the en_us locale
-                GeyserImpl.getInstance().getLogger().debug(versionInfo.getDownloads()); // Was previously a Jackson call for writeValueToString
-                CLIENT_JAR_INFO = versionInfo.getDownloads().get("client");
-                GeyserImpl.getInstance().getLogger().debug(CLIENT_JAR_INFO); // Was previously a Jackson call for writeValueToString
-
-                // Get the assets list
-                JsonObject assets = ((JsonObject) new JsonParser().parse(WebUtils.getBody(versionInfo.getAssetIndex().getUrl()))).getAsJsonObject("objects");
-
-                // Put each asset into an array for use later
-                for (Map.Entry<String, JsonElement> entry : assets.entrySet()) {
-                    if (!entry.getKey().startsWith("minecraft/lang/")) {
-                        // No need to cache non-language assets as we don't use them
-                        continue;
+                    // Get the url for the latest version of the games manifest
+                    String latestInfoURL = "";
+                    for (Version version : versionManifest.getVersions()) {
+                        if (version.getId().equals(GameProtocol.getJavaMinecraftVersion())) {
+                            latestInfoURL = version.getUrl();
+                            break;
+                        }
                     }
 
-                    Asset asset = GeyserImpl.GSON.fromJson(entry.getValue(), Asset.class);
-                    ASSET_MAP.put(entry.getKey(), asset);
-                }
+                    // Make sure we definitely got a version
+                    if (latestInfoURL.isEmpty()) {
+                        throw new Exception(GeyserLocale.getLocaleStringLog("geyser.locale.fail.latest_version"));
+                    }
 
-            } catch (Exception e) {
-                GeyserImpl.getInstance().getLogger().error(GeyserLocale.getLocaleStringLog("geyser.locale.fail.asset_cache", (!e.getMessage().isEmpty() ? e.getMessage() : e.getStackTrace())));
-            }
-            return null;
-        });
+                    return client.getBody(latestInfoURL).thenCompose(infoBody -> {
+                        // Get the individual version manifest
+                        VersionInfo versionInfo = GeyserImpl.GSON.fromJson(infoBody, VersionInfo.class);
+
+                        // Get the client jar for use when downloading the en_us locale
+                        GeyserImpl.getInstance().getLogger().debug(versionInfo.getDownloads()); // Was previously a Jackson call for writeValueToString
+                        CLIENT_JAR_INFO = versionInfo.getDownloads().get("client");
+                        GeyserImpl.getInstance().getLogger().debug(CLIENT_JAR_INFO); // Was previously a Jackson call for writeValueToString
+
+
+                        return client.getJson(versionInfo.getAssetIndex().getUrl()).thenAccept(assetIndex -> {
+                            // Get the assets list
+                            JsonObject assets = assetIndex.getAsJsonObject().getAsJsonObject("objects");
+
+                            // Put each asset into an array for use later
+                            for (Map.Entry<String, JsonElement> entry : assets.entrySet()) {
+                                if (!entry.getKey().startsWith("minecraft/lang/")) {
+                                    // No need to cache non-language assets as we don't use them
+                                    continue;
+                                }
+
+                                Asset asset = GeyserImpl.GSON.fromJson(entry.getValue(), Asset.class);
+                                ASSET_MAP.put(entry.getKey(), asset);
+                            }
+                        });
+                    });
+                } catch (Exception e) {
+                    GeyserImpl.getInstance().getLogger().error(GeyserLocale.getLocaleStringLog("geyser.locale.fail.asset_cache", (!e.getMessage().isEmpty() ? e.getMessage() : e.getStackTrace())));
+                }
+                return CompletableFuture.completedFuture(null);
+            }));
     }
 
     public static void downloadAndRunClientJarTasks() {
@@ -173,7 +176,7 @@ public final class AssetUtils {
             GeyserImpl.getInstance().getLogger().debug("Download URL: " + CLIENT_JAR_INFO.getUrl());
 
             Path tmpFilePath = GeyserImpl.getInstance().getBootstrap().getConfigFolder().resolve("tmp_locale.jar");
-            WebUtils.downloadFile(CLIENT_JAR_INFO.getUrl(), tmpFilePath.toString());
+            FancyHttpClient.oneShot(client -> client.downloadFile(CLIENT_JAR_INFO.getUrl(), tmpFilePath)).join();
 
             // Load in the JAR as a zip and extract the files
             try (ZipFile localeJar = new ZipFile(tmpFilePath.toString())) {
