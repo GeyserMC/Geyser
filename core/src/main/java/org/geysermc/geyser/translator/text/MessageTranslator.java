@@ -396,7 +396,7 @@ public class MessageTranslator {
      * @return Parsed and formatted message for bedrock, in gray color
      */
     public static String convertMessageForTooltip(Component message, String locale) {
-        return RESET + ChatColor.GRAY + convertMessageRaw(message, locale);
+        return convertMessage(message.colorIfAbsent(NamedTextColor.GRAY), locale);
     }
 
     /* === Java -> Bedrock conversion (plain text) === */

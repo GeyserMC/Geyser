@@ -25,6 +25,7 @@
 
 package org.geysermc.geyser.item.type;
 
+import net.kyori.adventure.text.format.NamedTextColor;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
@@ -105,7 +106,7 @@ public class ShulkerBoxItem extends BlockItem {
 
             // Only the display name is what we have interest in, so just translate that if relevant
             if (boxComponents != null) {
-                String customName = ItemTranslator.getCustomName(session, boxComponents, boxMapping, '7', false, true);
+                String customName = ItemTranslator.getCustomName(session, boxComponents, boxMapping, NamedTextColor.GRAY, false, true);
                 if (customName != null) {
                     // Fix count display (e.g., x16) with incorrect color due to some items with colored names
                     if (customName.contains("" + ChatColor.ESCAPE)) {

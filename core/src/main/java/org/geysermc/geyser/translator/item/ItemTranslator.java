@@ -30,6 +30,7 @@ import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TranslatableComponent;
 import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.format.TextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
@@ -57,7 +58,6 @@ import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.skin.SkinManager;
 import org.geysermc.geyser.text.ChatColor;
-import org.geysermc.geyser.text.MinecraftLocale;
 import org.geysermc.geyser.translator.text.MessageTranslator;
 import org.geysermc.geyser.util.InventoryUtils;
 import org.geysermc.geyser.util.MinecraftKey;
@@ -436,11 +436,11 @@ public final class ItemTranslator {
         return finalText.toString();
     }
 
-    private static String getPotionName(PotionContents contents, ItemMapping mapping, boolean includeDefault, String language) {
+    private static Component getPotionName(PotionContents contents, ItemMapping mapping, boolean includeDefault) {
         String customPotionName = contents.getCustomName();
         if (customPotionName != null) {
             // "custom_name" tag in "potion_contents" component
-            return MinecraftLocale.getLocaleString(mapping.getJavaItem().translationKey() + ".effect." + customPotionName, language);
+            return Component.translatable(mapping.getJavaItem().translationKey() + ".effect." + customPotionName);
         }
 
         if (includeDefault) {
@@ -461,7 +461,7 @@ public final class ItemTranslator {
             } else {
                 potionName = "empty";
             }
-            return MinecraftLocale.getLocaleString(mapping.getJavaItem().translationKey() + ".effect." + potionName, language);
+            return Component.translatable(mapping.getJavaItem().translationKey() + ".effect." + potionName);
         }
 
         return null;
@@ -585,7 +585,7 @@ public final class ItemTranslator {
      *                         Normally, this should just be white, but for shulker boxes this should be gray.
      */
     public static String getCustomName(GeyserSession session, DataComponents components, ItemMapping mapping,
-                                       char translationColor, boolean customNameOnly, boolean includeAll) {
+                                       TextColor translationColor, boolean customNameOnly, boolean includeAll) {
         if (components != null) {
             // If the tooltip is hidden entirely, return an empty custom name
             if (TooltipOptions.hideTooltip(components)) {
@@ -595,20 +595,24 @@ public final class ItemTranslator {
             // ItemStack#getHoverName as of 1.20.5
             Component customName = components.get(DataComponentTypes.CUSTOM_NAME);
             if (customName != null) {
-                return MessageTranslator.convertMessageRaw(customName, session.locale());
+                String customNameString = MessageTranslator.convertMessage(customName
+                        // Match Vanilla styles to fully normalize the text component
+                        .decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.TRUE),
+                    session.locale());
+                // Filter the default custom name style in text prefixes to avoid it show in anvil UI
+                return customNameString.startsWith("§r§o") ? customNameString.substring(4) : customNameString;
             }
 
             if (!customNameOnly) {
                 if (mapping.getJavaItem() instanceof PotionItem || mapping.getJavaItem() instanceof TippedArrowItem) {
                     PotionContents potionContents = components.get(DataComponentTypes.POTION_CONTENTS);
                     if (potionContents != null) {
-                        String potionName = getPotionName(potionContents, mapping,
+                        Component potionName = getPotionName(potionContents, mapping,
                             !potionContents.getCustomEffects().isEmpty() &&
                                 TooltipOptions.fromComponents(components).showInTooltip(DataComponentTypes.POTION_CONTENTS) ||
-                                potionContents.getPotionId() == -1, // "Uncraftable ..."
-                            session.locale()); // TODO also test this
+                                potionContents.getPotionId() == -1); // "Uncraftable ..."
                         if (potionName != null) {
-                            return ChatColor.RESET + ChatColor.ESCAPE + translationColor + potionName;
+                            return MessageTranslator.convertMessage(potionName.color(translationColor), session.locale());
                         }
                     }
                 }
@@ -617,15 +621,14 @@ public final class ItemTranslator {
                     // Fix book title display in tooltips of shulker box
                     WrittenBookContent bookContent = components.get(DataComponentTypes.WRITTEN_BOOK_CONTENT);
                     if (bookContent != null) {
-                        return ChatColor.RESET + ChatColor.ESCAPE + translationColor + bookContent.getTitle().getRaw();
+                        String bookTitle = bookContent.getTitle().getRaw();
+                        return MessageTranslator.convertMessage(Component.text(bookTitle, translationColor), session.locale());
                     }
                 }
 
                 customName = components.get(DataComponentTypes.ITEM_NAME);
                 if (customName != null) {
-                    // Get the translated name and prefix it with a reset char to prevent italics - matches Java Edition
-                    // behavior as of 1.21
-                    return ChatColor.RESET + ChatColor.ESCAPE + translationColor + MessageTranslator.convertMessageRaw(customName, session.locale());
+                    return MessageTranslator.convertMessage(customName.colorIfAbsent(translationColor), session.locale());
                 }
             }
         }
@@ -633,8 +636,7 @@ public final class ItemTranslator {
         if (mapping.hasTranslation()) {
             // No custom name, but we need to localize the item's name
             String translationKey = mapping.getTranslationString();
-            // Reset formatting since Bedrock defaults to italics
-            return ChatColor.RESET + ChatColor.ESCAPE + translationColor + MinecraftLocale.getLocaleString(translationKey, session.locale());
+            return MessageTranslator.convertMessage(Component.translatable(translationKey, translationColor), session.locale());
         }
         // No custom name
         return null;
