@@ -32,6 +32,7 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.netty.channel.nethernet.AddressSource;
 import org.cloudburstmc.netty.channel.nethernet.NetherNetChannel;
 import org.cloudburstmc.netty.channel.nethernet.SourcedAddress;
+import org.cloudburstmc.netty.channel.nethernet.config.DefaultNetherChannelConfig;
 import org.cloudburstmc.protocol.bedrock.BedrockPeer;
 import org.cloudburstmc.protocol.bedrock.PacketDirection;
 import org.cloudburstmc.protocol.bedrock.netty.codec.batch.BedrockBatchEncoder;
@@ -55,6 +56,8 @@ import org.geysermc.geyser.network.bedrock.nethernet.signaling.provider.GameOutc
 public class NetherNetChannelInitialiser extends GeyserServerInitializer {
     private static final CompressionStrategy NOOP_STRATEGY = new SimpleCompressionStrategy(new NoopCompression());
     private static final String CONNECTION_GATE = "geyser-connection-gate";
+    /** Fallback to one packet per NetherNet message, in case batching causes trouble with some clients */
+    private static final boolean BATCHING = Boolean.parseBoolean(System.getProperty("Geyser.NetherNetBatching", "true"));
 
     private final @Nullable GameOutcomeReporter outcomes;
 
@@ -83,6 +86,17 @@ public class NetherNetChannelInitialiser extends GeyserServerInitializer {
         channel.pipeline()
                 .addLast(NetherNetFrameCodec.NAME, NetherNetFrameCodec.INSTANCE)
                 .addLast(CompressionCodec.NAME, new CompressionCodec(NOOP_STRATEGY, false));
+
+        // Counts what is sent and received, for the nethernet stats command and backlog debug logging
+        if (channel.config() instanceof DefaultNetherChannelConfig config) {
+            NetherNetStats stats = new NetherNetStats();
+            config.setMetrics(stats);
+            channel.attr(NetherNetStats.ATTRIBUTE).set(stats);
+            channel.pipeline()
+                    .addAfter(NetherNetFrameCodec.NAME, NetherNetStatsHandler.NAME, new NetherNetStatsHandler(geyser, stats))
+                    // Compression is swapped in place later, so this stays ahead of it for outbound batches
+                    .addAfter(CompressionCodec.NAME, NetherNetStatsHandler.BatchCounter.NAME, new NetherNetStatsHandler.BatchCounter(stats));
+        }
     }
 
     @Override
@@ -95,10 +109,12 @@ public class NetherNetChannelInitialiser extends GeyserServerInitializer {
     protected void postInitChannel(Channel channel) throws Exception {
         super.postInitChannel(channel);
 
-        // TODO TEST batching: the BedrockBatchEncoder added by BedrockChannelInitializer batches every packet written between
-        //  flushes into one message, like RakNet. The channel fragments large messages itself, so dropping this replace should
-        //  be all that's needed. Until that is tested, keep sending one packet per message.
-        channel.pipeline().replace(BedrockBatchEncoder.NAME, NetherNetPacketEncoder.NAME, NetherNetPacketEncoder.INSTANCE);
+        // The BedrockBatchEncoder added by BedrockChannelInitializer batches every packet written between flushes into one
+        // message, like RakNet, and splits batches at the channel's max message size. Sending one packet per message instead
+        // multiplies the message rate and compresses every packet on its own, which backs up the reliable channel (#6854).
+        if (!BATCHING) {
+            channel.pipeline().replace(BedrockBatchEncoder.NAME, NetherNetPacketEncoder.NAME, NetherNetPacketEncoder.INSTANCE);
+        }
 
         if (outcomes != null) {
             channel.pipeline().addBefore(BedrockPeer.NAME, GameOutcomeReporter.HANDLER_NAME,

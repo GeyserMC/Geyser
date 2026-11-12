@@ -35,15 +35,24 @@ import org.geysermc.geyser.api.util.TriState;
 import org.geysermc.geyser.command.GeyserCommand;
 import org.geysermc.geyser.command.GeyserCommandSource;
 import org.geysermc.geyser.configuration.GeyserConfig;
+import org.cloudburstmc.netty.channel.nethernet.NetherNetChannel;
+import org.geysermc.geyser.network.bedrock.nethernet.NetherNetPacketCapture;
+import org.geysermc.geyser.network.bedrock.nethernet.NetherNetRecorder;
 import org.geysermc.geyser.network.bedrock.nethernet.NetherNetServer;
+import org.geysermc.geyser.network.bedrock.nethernet.NetherNetStats;
+import org.geysermc.geyser.session.GeyserSession;
 import org.incendo.cloud.CommandManager;
 import org.incendo.cloud.context.CommandContext;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Path;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Base64;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -51,6 +60,10 @@ import static org.incendo.cloud.parser.standard.StringParser.greedyStringParser;
 
 public class NetherNetCommand extends GeyserCommand {
     private static final String ARGUMENTS = "arguments";
+
+    private static final int MAX_RECORD_SECONDS = 600;
+    private static final int MAX_CAPTURE_SECONDS = 30;
+    private static final DateTimeFormatter FILE_STAMP = DateTimeFormatter.ofPattern("yyyyMMdd-HHmmss-SSS", Locale.ROOT);
 
     private final GeyserImpl geyser;
 
@@ -69,11 +82,23 @@ public class NetherNetCommand extends GeyserCommand {
         manager.command(baseBuilder(manager).literal("action").handler(this::action));
         manager.command(baseBuilder(manager).literal("diagnostics").handler(this::diagnostics));
         manager.command(baseBuilder(manager).literal("advertised").handler(this::advertised));
+        manager.command(baseBuilder(manager)
+            .literal("stats")
+            .optional(ARGUMENTS, greedyStringParser())
+            .handler(this::stats));
+        manager.command(baseBuilder(manager)
+            .literal("record")
+            .optional(ARGUMENTS, greedyStringParser())
+            .handler(this::record));
+        manager.command(baseBuilder(manager)
+            .literal("packets")
+            .optional(ARGUMENTS, greedyStringParser())
+            .handler(this::packets));
     }
 
     @Override
     public void execute(CommandContext<GeyserCommandSource> context) {
-        context.sender().sendMessage("Usage: " + rootCommand() + " " + name() + " <status | action | diagnostics | advertised>");
+        context.sender().sendMessage("Usage: " + rootCommand() + " " + name() + " <status | action | diagnostics | advertised | stats | record | packets>");
     }
 
     /**
@@ -86,7 +111,7 @@ public class NetherNetCommand extends GeyserCommand {
             return;
         }
 
-        String[] args = context.<String>optional(ARGUMENTS).map(value -> value.trim().split("\\s+")).orElse(new String[0]);
+        String[] args = arguments(context);
         try {
             if (args.length == 0) {
                 source.sendMessage(GeyserImpl.GSON.toJson(server.serverStatus()));
@@ -184,6 +209,189 @@ public class NetherNetCommand extends GeyserCommand {
         } else if (mode.nxs()) {
             source.sendMessage("External signaling is not running.");
         }
+    }
+
+    /**
+     * Show connection stats of NetherNet players: one line each, or everything for one player
+     */
+    private void stats(CommandContext<GeyserCommandSource> context) {
+        GeyserCommandSource source = context.sender();
+        if (server(source) == null) {
+            return;
+        }
+
+        String player = context.<String>optional(ARGUMENTS).map(String::trim).orElse("");
+        boolean logIps = geyser.config().logPlayerIpAddresses();
+        boolean any = false;
+        for (GeyserSession session : geyser.getSessionManager().getAllSessions()) {
+            if (!(session.getUpstream().getSession().getPeer().getChannel() instanceof NetherNetChannel channel)) {
+                continue;
+            }
+            NetherNetStats stats = channel.attr(NetherNetStats.ATTRIBUTE).get();
+            String name = String.valueOf(session.bedrockUsername());
+            if (stats == null || (!player.isEmpty() && !name.equalsIgnoreCase(player))) {
+                continue;
+            }
+            any = true;
+            NetherNetStats.Snapshot snapshot = stats.snapshot(channel, logIps);
+            source.sendMessage(player.isEmpty() ? summary(name, snapshot) : name + ": " + GeyserImpl.GSON.toJson(snapshot));
+        }
+
+        if (!any) {
+            source.sendMessage(player.isEmpty() ? "No players are connected over NetherNet." : "No NetherNet player named " + player + ".");
+        }
+    }
+
+    /**
+     * Records one player's SCTP state to a CSV file, see {@link NetherNetRecorder}
+     */
+    private void record(CommandContext<GeyserCommandSource> context) {
+        GeyserCommandSource source = context.sender();
+        if (server(source) == null) {
+            return;
+        }
+        String[] args = arguments(context);
+        int seconds = seconds(args, 60, MAX_RECORD_SECONDS);
+        if (seconds < 0) {
+            source.sendMessage("Usage: " + rootCommand() + " " + name() + " record <player> [seconds, 1-" + MAX_RECORD_SECONDS + ", default 60]");
+            return;
+        }
+        GeyserSession session = netherNetSession(args[0]);
+        if (session == null) {
+            source.sendMessage("No NetherNet player named " + args[0] + ".");
+            return;
+        }
+
+        NetherNetChannel channel = (NetherNetChannel) session.getUpstream().getSession().getPeer().getChannel();
+        String name = session.bedrockUsername();
+        Path file = recordFile(name, ".csv");
+        NetherNetChannel.Path path = channel.selectedPath();
+        List<String> header = List.of(
+            "Geyser " + GeyserImpl.VERSION + ", NetherNet recording every " + NetherNetRecorder.INTERVAL_MILLIS + " ms",
+            "player " + name + ", " + session.platform() + ", " + session.version()
+                + ", path " + (path == null ? "unknown" : path.localType() + " -> " + path.remoteType()));
+        try {
+            if (NetherNetRecorder.start(channel, file, header, seconds, source::sendMessage)) {
+                source.sendMessage("Recording " + name + " for " + seconds + " s to " + file);
+            } else {
+                source.sendMessage(name + " is already being recorded.");
+            }
+        } catch (IOException e) {
+            source.sendMessage("Could not record to " + file + ": " + e.getMessage());
+        }
+    }
+
+    /**
+     * Writes one player's Java and Bedrock packets to a file, see {@link NetherNetPacketCapture}
+     */
+    private void packets(CommandContext<GeyserCommandSource> context) {
+        GeyserCommandSource source = context.sender();
+        if (server(source) == null) {
+            return;
+        }
+        String[] args = arguments(context);
+        int seconds = seconds(args, 5, MAX_CAPTURE_SECONDS);
+        if (seconds < 0) {
+            source.sendMessage("Usage: " + rootCommand() + " " + name() + " packets <player> [seconds, 1-" + MAX_CAPTURE_SECONDS + ", default 5]");
+            return;
+        }
+        GeyserSession session = netherNetSession(args[0]);
+        if (session == null) {
+            source.sendMessage("No NetherNet player named " + args[0] + ".");
+            return;
+        }
+
+        String name = session.bedrockUsername();
+        Path file = recordFile(name + "-packets", ".tsv");
+        List<String> header = List.of(
+            "Geyser " + GeyserImpl.VERSION + ", every Java and Bedrock packet of " + name + " (" + session.platform() + ", "
+                + session.version() + ") for " + seconds + " s, contents cut at " + NetherNetPacketCapture.MAX_CONTENT_CHARS + " characters",
+            "JAVA_IN: from the Java server, JAVA_OUT: to it, BEDROCK_IN: from the client, BEDROCK_OUT: to it, before compression");
+        try {
+            if (NetherNetPacketCapture.start(session.getUpstream().getSession().getPeer().getChannel(), file, header, seconds, source::sendMessage)) {
+                source.sendMessage("Capturing " + name + "'s packets for " + seconds + " s to " + file
+                    + ". It contains chat, names and skins, so only share it privately.");
+            } else {
+                source.sendMessage(name + "'s packets are already being captured.");
+            }
+        } catch (IOException e) {
+            source.sendMessage("Could not capture to " + file + ": " + e.getMessage());
+        }
+    }
+
+    private static String[] arguments(CommandContext<GeyserCommandSource> context) {
+        return context.<String>optional(ARGUMENTS).map(value -> value.trim().split("\\s+")).orElse(new String[0]);
+    }
+
+    /**
+     * @return the seconds given after the player name, the fallback if none, or -1 if the arguments are invalid
+     */
+    private static int seconds(String[] args, int fallback, int max) {
+        if (args.length < 1 || args.length > 2 || args[0].isEmpty()) {
+            return -1;
+        }
+        if (args.length == 1) {
+            return fallback;
+        }
+        try {
+            int seconds = Integer.parseInt(args[1]);
+            return seconds >= 1 && seconds <= max ? seconds : -1;
+        } catch (NumberFormatException e) {
+            return -1;
+        }
+    }
+
+    private @Nullable GeyserSession netherNetSession(String name) {
+        for (GeyserSession session : geyser.getSessionManager().getAllSessions()) {
+            if (name.equalsIgnoreCase(session.bedrockUsername())
+                && session.getUpstream().getSession().getPeer().getChannel() instanceof NetherNetChannel) {
+                return session;
+            }
+        }
+        return null;
+    }
+
+    private Path recordFile(String name, String extension) {
+        String stamp = FILE_STAMP.format(LocalDateTime.now());
+        return geyser.configDirectory().resolve("nethernet-records")
+            .resolve(name.replaceAll("[^A-Za-z0-9_-]", "_") + "-" + stamp + extension);
+    }
+
+    /**
+     * Without the usrsctp T3-rtx fix this runs at one per one or two RTOs while data is in flight (~75/min at a 400 ms
+     * RTO); with it, timeouts only come with real loss. Averaged over the connection's life, so idle time dilutes it.
+     */
+    private static String timeoutsPerMinute(NetherNetStats.Snapshot snapshot) {
+        if (snapshot.dataTimeouts() < 0 || snapshot.ageSeconds() < 60) {
+            return "";
+        }
+        return String.format(Locale.ROOT, " (%.1f/min)", snapshot.dataTimeouts() * 60.0 / snapshot.ageSeconds());
+    }
+
+    static String summary(String name, NetherNetStats.Snapshot snapshot) {
+        return name + ": rtt " + snapshot.sctpRtt() + " ms (rto " + snapshot.sctpRto() + " ms)"
+            + " | game rtt " + snapshot.describeGameRoundTrip()
+            + " | out " + bytes(snapshot.bytesOutPerSecond()) + "/s, " + snapshot.messagesOutPerSecond() + " msg/s, "
+            + snapshot.packetsOutPerSecond() + " pkt/s | in " + bytes(snapshot.bytesInPerSecond()) + "/s"
+            + " | cwnd " + bytes(snapshot.congestionWindow()) + ", peer rwnd " + bytes(snapshot.peerReceiveWindow())
+            + " | queued " + bytes(snapshot.queuedBytes()) + ", unacked " + snapshot.unackedChunks() + " chunks"
+            + " | receive queue " + snapshot.receiveQueueChunks() + " chunks"
+            + " | timeouts " + snapshot.dataTimeouts() + timeoutsPerMinute(snapshot)
+            + " | " + (snapshot.writable() ? "writable" : "UNWRITABLE for " + snapshot.unwritableMillis() + " ms")
+            + " (" + snapshot.unwritableEvents() + "x)"
+            + " | " + String.format(Locale.ROOT, "%.1f pkt/msg, %.0f%% compressed size", snapshot.averageBatchSize(), snapshot.compressionRatio() * 100)
+            + (snapshot.topPacketTypes().isEmpty() ? "" : " | top " + String.join(", ", snapshot.topPacketTypes()))
+            + " | " + (snapshot.path() == null ? "no path" : snapshot.path());
+    }
+
+    private static String bytes(long bytes) {
+        if (bytes < 0) {
+            return "?";
+        }
+        if (bytes < 1024) {
+            return bytes + " B";
+        }
+        return String.format(Locale.ROOT, bytes < 1024 * 1024 ? "%.1f KiB" : "%.2f MiB", bytes / (bytes < 1024 * 1024 ? 1024.0 : 1024.0 * 1024));
     }
 
     static String builtinAdvertised(NetherNetServer.Advertised.Builtin builtin) {

@@ -57,6 +57,7 @@ import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtList;
 import org.cloudburstmc.nbt.NbtMap;
+import org.cloudburstmc.netty.channel.nethernet.NetherNetChannel;
 import org.cloudburstmc.netty.channel.raknet.RakChildChannel;
 import org.cloudburstmc.netty.handler.codec.raknet.common.RakSessionCodec;
 import org.cloudburstmc.protocol.bedrock.BedrockDisconnectReasons;
@@ -164,6 +165,7 @@ import org.geysermc.geyser.level.BedrockDimension;
 import org.geysermc.geyser.level.JavaDimension;
 import org.geysermc.geyser.level.gamerule.GameRuleHandler;
 import org.geysermc.geyser.level.physics.CollisionManager;
+import org.geysermc.geyser.network.bedrock.nethernet.NetherNetStats;
 import org.geysermc.geyser.network.java.LocalSession;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.registry.java.JavaRegistries;
@@ -2737,9 +2739,13 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource, Jav
             return 0;
         }
 
+        Channel channel = getUpstream().getSession().getPeer().getChannel();
+        if (channel instanceof NetherNetChannel netherNetChannel) {
+            return (int) netherNetChannel.getPing();
+        }
+
         // TODO fixme
-        // TODO NetherNet: expose the WebRTC round trip time
-        if (!(getUpstream().getSession().getPeer().getChannel() instanceof RakChildChannel rakChannel)) {
+        if (!(channel instanceof RakChildChannel rakChannel)) {
             return 0;
         }
 
@@ -2785,11 +2791,17 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource, Jav
         NetworkStackLatencyPacket latencyPacket = new NetworkStackLatencyPacket();
         latencyPacket.setFromServer(true);
         latencyPacket.setTimestamp(timestamp);
-        if (ensureEventLoop) {
-            latencyPingCache.add(() -> ensureInEventLoop(runnable));
-        } else {
-            latencyPingCache.add(runnable);
-        }
+        // Timed for the nethernet stats command: how long a packet takes to come back, client backlog included
+        Channel channel = getUpstream().getSession().getPeer().getChannel();
+        long sentNanos = System.nanoTime();
+        latencyPingCache.add(() -> {
+            NetherNetStats.recordGameRoundTrip(channel, System.nanoTime() - sentNanos);
+            if (ensureEventLoop) {
+                ensureInEventLoop(runnable);
+            } else {
+                runnable.run();
+            }
+        });
         sendUpstreamPacket(latencyPacket);
     }
 
