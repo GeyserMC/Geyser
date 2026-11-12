@@ -883,7 +883,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource, Jav
         this.bundleCache = new BundleCache(this);
         this.chunkCache = new ChunkCache(this);
         this.entityCache = new EntityCache(this);
-        this.effectCache = new EntityEffectCache();
+        this.effectCache = new EntityEffectCache(this);
         this.formCache = new FormCache(this);
         this.inputCache = new InputCache(this);
         this.lodestoneCache = new LodestoneCache();
