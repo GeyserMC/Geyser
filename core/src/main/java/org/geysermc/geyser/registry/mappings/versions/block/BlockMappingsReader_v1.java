@@ -310,6 +310,12 @@ public class BlockMappingsReader_v1 implements MappingsReader<String, CustomBloc
                         geometryBuilder.boneVisibility(boneVisibilityMap);
                     }
                 }
+                if (geometry.has("culling")) {
+                    geometryBuilder.culling(geometry.get("culling").getAsString());
+                }
+                if (geometry.has("culling_layer")) {
+                    geometryBuilder.cullingLayer(geometry.get("culling_layer").getAsString());
+                }
                 builder.geometry(geometryBuilder.build());
             }
         }
