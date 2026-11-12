@@ -30,6 +30,7 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
+import org.geysermc.geyser.session.shared.SessionSharedCaches;
 import org.geysermc.geyser.text.GeyserLocale;
 
 import java.util.Collection;
@@ -73,6 +74,7 @@ public final class SessionManager {
             // Connection was likely pending
             pendingSessions.remove(session);
         }
+        SessionSharedCaches.releaseAll(session.sharedCacheUuid());
     }
 
     public boolean isXuidAlreadyPending(String xuid) {

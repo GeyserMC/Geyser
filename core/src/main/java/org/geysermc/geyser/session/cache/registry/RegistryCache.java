@@ -38,9 +38,11 @@ import org.geysermc.geyser.registry.java.JavaRegistryKey;
 import org.geysermc.geyser.registry.java.JavaRegistryProvider;
 import org.geysermc.geyser.registry.java.MutableJavaRegistry;
 import org.geysermc.geyser.registry.java.SimpleJavaRegistry;
+import org.geysermc.geyser.registry.java.reader.JavaRegistryReader;
 import org.geysermc.geyser.registry.java.reader.JavaRegistryReaders;
 import org.geysermc.geyser.registry.java.reader.KeyDependentJavaRegistryReader;
 import org.geysermc.geyser.registry.java.reader.RegistryEntryContext;
+import org.geysermc.geyser.session.shared.SessionSharedCaches;
 import org.geysermc.geyser.util.MinecraftKey;
 import org.geysermc.mcprotocollib.protocol.MinecraftProtocol;
 import org.geysermc.mcprotocollib.protocol.data.game.RegistryEntry;
@@ -49,6 +51,7 @@ import org.geysermc.mcprotocollib.protocol.packet.configuration.clientbound.Clie
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 /**
  * Stores any information sent via Java registries. May not contain all data in a given registry - we'll strip what's
@@ -78,10 +81,12 @@ final class RegistryCache {
         DEFAULTS = Map.copyOf(defaults);
     }
 
+    private final UUID uuid;
     private final Reference2ObjectMap<JavaRegistryKey<?>, MutableJavaRegistry<?>> registries;
     private final Reference2ObjectMap<JavaRegistryKey<?>, List<RegistryEntry>> configurationRegistryData;
 
-    RegistryCache() {
+    RegistryCache(UUID uuid) {
+        this.uuid = uuid;
         this.registries = new Reference2ObjectOpenHashMap<>(JavaRegistryReaders.networkRegistries().size());
         this.configurationRegistryData = new Reference2ObjectOpenHashMap<>(JavaRegistryReaders.networkRegistries().size());
         for (JavaRegistryKey<?> registry : JavaRegistryReaders.networkRegistries()) {
@@ -148,12 +153,16 @@ final class RegistryCache {
         // Bind the registry, parsing all the registries
         registry.bind(id -> {
             RegistryEntry entry = entries.get(id);
+            Object data = entry.getData();
             // If the data is null, that's the server telling us we need to use our default values.
-            if (entry.getData() == null) {
-                entry = new RegistryEntry(entry.getId(), localRegistryData.get(entry.getId()));
+            if (data == null) {
+                data = localRegistryData.get(entry.getId());
             }
-
-            return reader.read(new RegistryEntryContext(registryProvider, entry));
+            if (reader instanceof JavaRegistryReader<T>) {
+                return SessionSharedCaches.REGISTRIES.getOrCompute(registryProvider, registryKey, uuid, data);
+            } else {
+                return reader.read(new RegistryEntryContext(registryProvider, new RegistryEntry(entry.getId(), data)));
+            }
         });
     }
 

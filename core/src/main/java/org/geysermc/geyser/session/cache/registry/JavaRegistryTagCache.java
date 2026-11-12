@@ -36,6 +36,7 @@ import org.geysermc.mcprotocollib.protocol.packet.common.clientbound.Clientbound
 import org.geysermc.mcprotocollib.protocol.packet.configuration.clientbound.ClientboundRegistryDataPacket;
 
 import java.util.Optional;
+import java.util.UUID;
 
 /**
  * A {@link JavaRegistryProvider} for a {@link GeyserSession}, accessed through {@link GeyserSession#javaRegistries()}.
@@ -47,7 +48,11 @@ public final class JavaRegistryTagCache implements JavaRegistryProvider {
     private final TagCache tagCache;
 
     public JavaRegistryTagCache() {
-        registryCache = new RegistryCache();
+        this(UUID.randomUUID());
+    }
+
+    public JavaRegistryTagCache(UUID uuid) {
+        registryCache = new RegistryCache(uuid);
         tagCache = new TagCache();
     }
 
