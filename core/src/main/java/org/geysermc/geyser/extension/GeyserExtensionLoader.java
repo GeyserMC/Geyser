@@ -34,6 +34,7 @@ import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.GeyserLogger;
 import org.geysermc.geyser.api.GeyserApi;
 import org.geysermc.geyser.api.event.ExtensionEventBus;
+import org.geysermc.geyser.api.event.lifecycle.GeyserLoadLocaleEvent;
 import org.geysermc.geyser.api.extension.Extension;
 import org.geysermc.geyser.api.extension.ExtensionDescription;
 import org.geysermc.geyser.api.extension.ExtensionLoader;
@@ -46,7 +47,9 @@ import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.util.ThrowingBiConsumer;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.Reader;
+import java.nio.file.DirectoryStream;
 import java.nio.file.FileSystem;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
@@ -59,7 +62,9 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
+import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BiConsumer;
@@ -113,7 +118,7 @@ public class GeyserExtensionLoader extends ExtensionLoader {
 
         try {
             final Extension extension = loader.load();
-            return this.setup(extension, description, dataFolder, new GeyserExtensionEventBus(GeyserImpl.getInstance().eventBus(), extension));
+            return this.setup(extension, description, path, dataFolder, new GeyserExtensionEventBus(GeyserImpl.getInstance().eventBus(), extension));
         } catch (Throwable e) {
             // if the extension failed to load, remove its classloader and close it.
             this.classLoaders.remove(description.id()).close();
@@ -121,9 +126,47 @@ public class GeyserExtensionLoader extends ExtensionLoader {
         }
     }
 
-    private GeyserExtensionContainer setup(Extension extension, GeyserExtensionDescription description, Path dataFolder, ExtensionEventBus eventBus) {
+    private GeyserExtensionContainer setup(Extension extension, GeyserExtensionDescription description,
+                                           Path extensionJar, Path dataFolder, ExtensionEventBus eventBus) {
         GeyserExtensionLogger logger = new GeyserExtensionLogger(GeyserImpl.getInstance().getLogger(), description.id());
-        return new GeyserExtensionContainer(extension, dataFolder, description, this, logger, eventBus);
+        GeyserExtensionContainer container = new GeyserExtensionContainer(extension, dataFolder, description, this, logger, eventBus);
+
+        try (FileSystem jarFile = FileSystems.newFileSystem(extensionJar)) {
+            for (Path root : jarFile.getRootDirectories()) {
+                Path languages = root.resolve("languages");
+                if (!Files.isDirectory(languages)) {
+                    continue;
+                }
+                try (DirectoryStream<Path> locales = Files.newDirectoryStream(languages, "*.[Pp][Rr][Oo][Pp][Ee][Rr][Tt][Ii][Ee][Ss]")) {
+                    locales.forEach(locale -> {
+                        String localeCode = locale.getFileName().toString().replaceFirst("\\.[Pp][Rr][Oo][Pp][Ee][Rr][Tt][Ii][Ee][Ss]$", "").toLowerCase(Locale.ROOT);
+
+                        Properties properties = new Properties();
+                        try (InputStream stream = Files.newInputStream(locale)) {
+                            properties.load(stream);
+                        } catch (IOException exception) {
+                            // IOException here indicates an issue with opening the file, not malformed properties, so an issue on our side
+                            throw new RuntimeException("Failed to open " + locale + " in " + extensionJar.getFileName() + "!", exception);
+                        }
+
+                        Map<String, String> translations = new HashMap<>();
+                        properties.forEach((k, v) -> translations.put(k.toString(), v.toString()));
+
+                        if (!properties.isEmpty()) {
+                            eventBus.subscribe(GeyserLoadLocaleEvent.class, event -> {
+                                if (!event.locale().equals(localeCode.toLowerCase(Locale.ROOT))) return;
+
+                                event.registerTranslations(translations);
+                            });
+                        }
+                    });
+                }
+            }
+        } catch (Exception e) {
+            GeyserImpl.getInstance().getLogger().error("Unable to load locale files from extension", e);
+        }
+
+        return container;
     }
 
     public GeyserExtensionDescription extensionDescription(Path path) throws InvalidDescriptionException {

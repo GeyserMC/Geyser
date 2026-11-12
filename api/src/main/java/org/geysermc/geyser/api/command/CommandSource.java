@@ -25,6 +25,7 @@
 
 package org.geysermc.geyser.api.command;
 
+import org.geysermc.geyser.api.GeyserApi;
 import org.geysermc.geyser.api.connection.GeyserConnection;
 import org.jspecify.annotations.Nullable;
 
@@ -58,6 +59,33 @@ public interface CommandSource {
         for (String message : messages) {
             sendMessage(message);
         }
+    }
+
+    /**
+     * Translates the given translation key using the source's locale and the provided parameters,
+     * then sends the message.
+     *
+     * @param key the key of the translation
+     * @param parameters the translation parameters, can be empty
+     * @see org.geysermc.geyser.api.language.TranslationManager#translationString(String, String, String...)
+     * @since 2.13.0
+     */
+    default void sendTranslatedMessage(String key, String... parameters) {
+        sendMessage(GeyserApi.api().translationManager().translationString(locale(), key, parameters));
+    }
+
+    /**
+     * Translates the given translation key using the source's locale and the provided parameters,
+     * then sends the message.
+     *
+     * @param key the key of the translation
+     * @param defaultValue the fallback value for this translation, parameters are applied to this value
+     * @param parameters the translation parameters, can be empty
+     * @see org.geysermc.geyser.api.language.TranslationManager#translationStringOrDefault(String, String, String, String...)
+     * @since 2.13.0
+     */
+    default void sendTranslatedOrDefaultMessage(String key, String defaultValue, String... parameters) {
+        sendMessage(GeyserApi.api().translationManager().translationStringOrDefault(locale(), key, defaultValue, parameters));
     }
 
     /**

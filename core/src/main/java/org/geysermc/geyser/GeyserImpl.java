@@ -67,6 +67,7 @@ import org.geysermc.geyser.api.event.lifecycle.GeyserPreInitializeEvent;
 import org.geysermc.geyser.api.event.lifecycle.GeyserPreReloadEvent;
 import org.geysermc.geyser.api.event.lifecycle.GeyserRegisterPermissionsEvent;
 import org.geysermc.geyser.api.event.lifecycle.GeyserShutdownEvent;
+import org.geysermc.geyser.api.language.TranslationManager;
 import org.geysermc.geyser.api.network.AuthType;
 import org.geysermc.geyser.api.network.BedrockListener;
 import org.geysermc.geyser.api.network.RemoteServer;
@@ -80,6 +81,7 @@ import org.geysermc.geyser.event.GeyserEventBus;
 import org.geysermc.geyser.event.type.SessionDisconnectEventImpl;
 import org.geysermc.geyser.extension.GeyserExtensionManager;
 import org.geysermc.geyser.impl.MinecraftVersionImpl;
+import org.geysermc.geyser.language.GeyserTranslationManager;
 import org.geysermc.geyser.level.BedrockDimension;
 import org.geysermc.geyser.level.WorldManager;
 import org.geysermc.geyser.network.RaknetServer;
@@ -158,6 +160,7 @@ public class GeyserImpl implements GeyserApi, EventRegistrar {
     private static final Pattern IP_REGEX = Pattern.compile("\\b\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\b");
 
     private final SessionManager sessionManager = new SessionManager();
+    private final GeyserTranslationManager translationManager = new GeyserTranslationManager();
 
     private FloodgateCipher cipher;
     private @Nullable FloodgateSkinUploader skinUploader;
@@ -813,6 +816,16 @@ public class GeyserImpl implements GeyserApi, EventRegistrar {
     @Override
     public @NonNull CommandSource consoleCommandSource() {
         return getLogger();
+    }
+
+    @Override
+    public @NonNull String defaultLocale() {
+        return GeyserLocale.getDefaultLocale();
+    }
+
+    @Override
+    public @NonNull TranslationManager translationManager() {
+        return translationManager;
     }
 
     public int buildNumber() {
