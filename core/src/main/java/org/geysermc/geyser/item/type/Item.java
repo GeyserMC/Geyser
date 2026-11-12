@@ -241,7 +241,7 @@ public class Item {
                         .colorIfAbsent(NamedTextColor.DARK_PURPLE)
                         .decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.TRUE),
                     session.locale());
-                lore.add(loreString);
+                lore.add(MessageTranslator.filterBedrockFormatPrefix(loreString, ChatColor.DARK_PURPLE, ChatColor.ITALIC));
             }
         }
 

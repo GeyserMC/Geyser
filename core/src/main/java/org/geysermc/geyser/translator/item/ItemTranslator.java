@@ -222,6 +222,8 @@ public final class ItemTranslator {
         Rarity rarity = Rarity.fromId(components.getOrDefault(DataComponentTypes.RARITY, 0));
         String customName = getCustomName(session, customComponents, bedrockItem, rarity.getColor(), false, false);
         if (customName != null) {
+            customName = MessageTranslator.filterBedrockFormatPrefix(customName, null, ChatColor.ITALIC);
+
             PotionContents potionContents = components.get(DataComponentTypes.POTION_CONTENTS);
             // Make custom effect information visible when shown in tooltip
             if (potionContents != null && tooltip.showInTooltip(DataComponentTypes.POTION_CONTENTS)) {
