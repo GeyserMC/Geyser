@@ -25,6 +25,7 @@
 
 package org.geysermc.geyser.platform.spigot.world.manager;
 
+import io.netty.buffer.Unpooled;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
@@ -34,13 +35,19 @@ import org.geysermc.geyser.adapters.WorldAdapter;
 import org.geysermc.geyser.adapters.paper.PaperAdapters;
 import org.geysermc.geyser.adapters.spigot.SpigotAdapters;
 import org.geysermc.geyser.level.block.type.Block;
+import org.geysermc.geyser.network.bedrock.GameProtocol;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.mcprotocollib.protocol.packet.configuration.clientbound.ClientboundRegistryDataPacket;
+
+import java.util.List;
 
 public class GeyserSpigotNativeWorldManager extends GeyserSpigotWorldManager {
     protected final WorldAdapter<World> adapter;
+    private final boolean isPaper;
 
     public GeyserSpigotNativeWorldManager(Plugin plugin, boolean isPaper) {
         super(plugin);
+        this.isPaper = isPaper;
         if (isPaper) {
             adapter = PaperAdapters.getWorldAdapter();
         } else {
@@ -63,5 +70,17 @@ public class GeyserSpigotNativeWorldManager extends GeyserSpigotWorldManager {
         // Biome identifiers will basically always be the same for one server, since you have to re-send the
         // ClientboundLoginPacket to change the registry. Therefore, don't bother caching for each player.
         return adapter.getBiomeSuggestions(withTags);
+    }
+
+    @SuppressWarnings("deprecation")
+    @Override
+    protected Iterable<ClientboundRegistryDataPacket> encodeRegistryEntries() {
+        // The registries of another Java version aren't in the format Geyser reads
+        if (!isPaper || Bukkit.getUnsafe().getProtocolVersion() != GameProtocol.getJavaProtocolVersion()) {
+            return List.of();
+        }
+        return adapter.encodeRegistryData().stream()
+            .map(packet -> new ClientboundRegistryDataPacket(Unpooled.wrappedBuffer(packet)))
+            .toList();
     }
 }

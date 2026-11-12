@@ -98,6 +98,11 @@ public abstract class GeyserModBootstrap implements GeyserBootstrap {
             }
         }
 
+        // Created before Geyser starts, as starting reads the server's registries through it
+        if (!GeyserImpl.getInstance().isReloading()) {
+            this.geyserWorldManager = new GeyserModWorldManager(server);
+        }
+
         GeyserImpl.start();
 
         if (!geyserConfig.motd().integratedPingPassthrough()) {
@@ -110,8 +115,6 @@ public abstract class GeyserModBootstrap implements GeyserBootstrap {
         if (GeyserImpl.getInstance().isReloading()) {
             return;
         }
-
-        this.geyserWorldManager = new GeyserModWorldManager(server);
 
         // We want to do this late in the server startup process to allow other mods
         // To do their job injecting, then connect into *that*

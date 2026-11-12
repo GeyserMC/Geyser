@@ -41,8 +41,10 @@ public class BiomeIdentifierRegistryLoader implements RegistryLoader<String, Obj
 
     @Override
     public Object2IntMap<String> load(String input) {
-        // As of Bedrock Edition 1.17.10 with the experimental toggle, any unmapped biome identifier sent to the client
-        // crashes the client. Therefore, we need to have a list of all valid Bedrock biome IDs with which we can use from.
+        // Current clients render an unknown biome id with default visuals (verified on 1.26.63), where
+        // Bedrock 1.17.10 crashed. Every id a chunk uses should still come from this vanilla mapping, from
+        // a custom biome definition sent to the client, or from the vanilla fallback fitting the
+        // dimension, so biomes keep their intended look.
         // The server sends the corresponding Java network IDs, so we don't need to worry about that now.
 
         // Reference variable for Gson to read off of

@@ -27,6 +27,7 @@ package org.geysermc.geyser.registry.mappings.util;
 
 import com.google.gson.JsonPrimitive;
 import org.geysermc.geyser.Constants;
+import org.geysermc.geyser.api.biome.custom.CustomBiomePrecipitation;
 import org.geysermc.geyser.api.event.lifecycle.GeyserDefineCustomSkullsEvent;
 import org.geysermc.geyser.api.item.custom.v2.component.java.JavaConsumable;
 import org.geysermc.geyser.api.item.custom.v2.component.java.JavaEquippable;
@@ -40,9 +41,12 @@ import org.geysermc.geyser.registry.mappings.predicate.ItemConditionProperty;
 import org.geysermc.geyser.registry.mappings.predicate.ItemMatchProperty;
 import org.geysermc.geyser.registry.mappings.predicate.ItemRangeDispatchProperty;
 
+import java.awt.Color;
 import java.util.Arrays;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
+import java.util.UUID;
 import java.util.function.Predicate;
 
 @FunctionalInterface
@@ -107,6 +111,29 @@ public interface NodeReader<T> {
 
     NodeReader<String> NON_EMPTY_STRING = STRING.validate(s -> !s.isEmpty(), "string must not be empty");
 
+    NodeReader<UUID> UUID = NON_EMPTY_STRING.andThen(s -> {
+        try {
+            return java.util.UUID.fromString(s);
+        } catch (IllegalArgumentException exception) {
+            throw new InvalidCustomMappingsFileException("expected a UUID such as 01234567-89ab-cdef-0123-456789abcdef");
+        }
+    });
+
+    // Reads an opaque color; the alpha in #aarrggbb values is accepted and ignored
+    NodeReader<Color> COLOR = node -> {
+        if (node.isNumber()) {
+            return new Color(INT.read(node));
+        }
+        String string = node.getAsString();
+        try {
+            if ((string.length() == 7 || string.length() == 9) && string.startsWith("#")) {
+                return new Color(Integer.parseUnsignedInt(string.substring(1), 16));
+            }
+        } catch (NumberFormatException ignored) {
+        }
+        throw new InvalidCustomMappingsFileException("expected color to be an integer or a #rrggbb / #aarrggbb string");
+    };
+
     // General API readers
 
     NodeReader<Identifier> IDENTIFIER = NON_EMPTY_STRING.andThen(Identifier::of);
@@ -151,23 +178,27 @@ public interface NodeReader<T> {
 
     NodeReader<GeyserDefineCustomSkullsEvent.SkullTextureType> SKULL_TEXTURE_TYPE = ofEnum(GeyserDefineCustomSkullsEvent.SkullTextureType.class);
 
+    // Biome readers
+
+    NodeReader<CustomBiomePrecipitation.Type> PRECIPITATION_TYPE = ofEnum(CustomBiomePrecipitation.Type.class);
+
     static <E extends Enum<E>> NodeReader<E> ofEnum(Class<E> clazz) {
-        return NON_EMPTY_STRING.andThen(String::toUpperCase).andThen(s -> {
+        return NON_EMPTY_STRING.andThen(s -> s.toUpperCase(Locale.ROOT)).andThen(s -> {
             try {
                 return Enum.valueOf(clazz, s);
             } catch (IllegalArgumentException exception) {
                 throw new InvalidCustomMappingsFileException("unknown element in enum " + clazz.getSimpleName() + ", must be one of ["
-                    + String.join(", ", Arrays.stream(clazz.getEnumConstants()).map(E::toString).toArray(String[]::new)).toLowerCase() + "]");
+                    + String.join(", ", Arrays.stream(clazz.getEnumConstants()).map(E::toString).toArray(String[]::new)).toLowerCase(Locale.ROOT) + "]");
             }
         });
     }
 
     static <T> NodeReader<T> ofMap(Map<String, T> map) {
-        return NON_EMPTY_STRING.andThen(String::toLowerCase).andThen(s -> {
+        return NON_EMPTY_STRING.andThen(s -> s.toLowerCase(Locale.ROOT)).andThen(s -> {
             T value = map.get(s);
             if (value == null) {
                 throw new InvalidCustomMappingsFileException("unknown element, must be one of ["
-                    + String.join(", ", map.keySet()).toLowerCase() + "]");
+                    + String.join(", ", map.keySet()).toLowerCase(Locale.ROOT) + "]");
             }
             return value;
         });
