@@ -29,6 +29,8 @@ import lombok.Getter;
 import lombok.experimental.Accessors;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.format.TextDecoration;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.nbt.NbtMap;
@@ -50,6 +52,7 @@ import org.geysermc.geyser.registry.type.ItemMappings;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.registry.java.JavaRegistries;
 import org.geysermc.geyser.session.cache.tags.Tag;
+import org.geysermc.geyser.text.ChatColor;
 import org.geysermc.geyser.text.MinecraftLocale;
 import org.geysermc.geyser.translator.item.BedrockItemBuilder;
 import org.geysermc.geyser.translator.text.MessageTranslator;
@@ -68,6 +71,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.regex.Matcher;
 
 public class Item {
     public static final int BEDROCK_MAX_STACK_SIZE = 64;
@@ -232,7 +236,12 @@ public class Item {
         if (loreComponents != null && tooltip.showInTooltip(DataComponentTypes.LORE)) {
             List<String> lore = builder.getOrCreateLore();
             for (Component loreComponent : loreComponents) {
-                lore.add(MessageTranslator.convertMessageRaw(loreComponent, session.locale()));
+                String loreString = MessageTranslator.convertMessage(loreComponent
+                        // Match Vanilla styles to fully normalize the text component
+                        .colorIfAbsent(NamedTextColor.DARK_PURPLE)
+                        .decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.TRUE),
+                    session.locale());
+                lore.add(loreString);
             }
         }
 

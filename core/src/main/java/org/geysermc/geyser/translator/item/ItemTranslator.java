@@ -30,7 +30,9 @@ import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TranslatableComponent;
 import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.format.TextColor;
 import net.kyori.adventure.text.format.TextDecoration;
+import net.kyori.adventure.text.serializer.legacy.CharacterAndFormat;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.nbt.NbtList;
@@ -595,7 +597,10 @@ public final class ItemTranslator {
             // ItemStack#getHoverName as of 1.20.5
             Component customName = components.get(DataComponentTypes.CUSTOM_NAME);
             if (customName != null) {
-                return MessageTranslator.convertMessageRaw(customName, session.locale());
+                return MessageTranslator.convertMessage(customName
+                        // Match Vanilla styles to fully normalize the text component
+                        .decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.TRUE),
+                    session.locale());
             }
 
             if (!customNameOnly) {
@@ -623,9 +628,15 @@ public final class ItemTranslator {
 
                 customName = components.get(DataComponentTypes.ITEM_NAME);
                 if (customName != null) {
-                    // Get the translated name and prefix it with a reset char to prevent italics - matches Java Edition
-                    // behavior as of 1.21
-                    return ChatColor.RESET + ChatColor.ESCAPE + translationColor + MessageTranslator.convertMessageRaw(customName, session.locale());
+                    if (customName.color() == null && translationColor != 'f') {
+                        for (CharacterAndFormat format : CharacterAndFormat.defaults()) {
+                            if (format.character() == translationColor && format.format() instanceof TextColor color) {
+                                customName = customName.color(color);
+                                break;
+                            }
+                        }
+                    }
+                    return MessageTranslator.convertMessage(customName, session.locale());
                 }
             }
         }
