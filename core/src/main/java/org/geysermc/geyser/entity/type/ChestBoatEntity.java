@@ -37,7 +37,7 @@ public class ChestBoatEntity extends BoatEntity {
 
     @Override
     protected InteractiveTag testInteraction(Hand hand) {
-        return passengers.isEmpty() && !session.isSneaking() ? super.testInteraction(hand) : InteractiveTag.OPEN_CONTAINER;
+        return passengers.isEmpty() && !session.isSneaking() ? super.testInteraction(hand) : InteractiveTag.OPENCONTAINER;
     }
 
     @Override

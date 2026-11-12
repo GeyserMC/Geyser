@@ -55,12 +55,12 @@ public class AllayEntity extends MobEntity {
     protected InteractiveTag testMobInteraction(@NonNull Hand hand, @NonNull GeyserItemStack itemInHand) {
         if (this.canDuplicate && getFlag(EntityFlag.DANCING) && isDuplicationItem(itemInHand)) {
             // Maybe better as another tag?
-            return InteractiveTag.GIVE_ITEM_TO_ALLAY;
+            return InteractiveTag.ALLAY;
         } else if (getMainHandItem().isEmpty() && !itemInHand.isEmpty()) {
-            return InteractiveTag.GIVE_ITEM_TO_ALLAY;
+            return InteractiveTag.ALLAY;
         } else if (!getMainHandItem().isEmpty() && hand == Hand.MAIN_HAND && itemInHand.isEmpty()) {
             // Seems like there isn't a good tag for this yet
-            return InteractiveTag.GIVE_ITEM_TO_ALLAY;
+            return InteractiveTag.ALLAY;
         } else {
             return super.testMobInteraction(hand, itemInHand);
         }

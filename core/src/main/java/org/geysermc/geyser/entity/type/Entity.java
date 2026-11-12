@@ -875,7 +875,7 @@ public class Entity implements GeyserEntity {
         if (isAlive() && this instanceof Leashable leashable) {
             if (leashable.leashHolderBedrockId() == session.getPlayerEntity().geyserId()) {
                 // Note this might be client side. Has yet to be an issue though, as of Java 1.21.
-                return InteractiveTag.REMOVE_LEASH;
+                return InteractiveTag.UNLEASH;
             }
             if (session.getPlayerInventory().getItemInHand(hand).is(Items.LEAD) && leashable.canBeLeashed()) {
                 // We shall leash

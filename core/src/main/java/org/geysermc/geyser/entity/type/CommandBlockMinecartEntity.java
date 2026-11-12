@@ -62,7 +62,7 @@ public class CommandBlockMinecartEntity extends DefaultBlockMinecartEntity {
     @Override
     protected InteractiveTag testInteraction(Hand hand) {
         if (session.canUseCommandBlocks()) {
-            return InteractiveTag.OPEN_CONTAINER;
+            return InteractiveTag.OPENCONTAINER;
         } else {
             return InteractiveTag.NONE;
         }
