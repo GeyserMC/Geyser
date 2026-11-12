@@ -58,6 +58,9 @@ public record MappingsType<K, V>(String name, Int2ObjectMap<MappingsReader<K, V>
         .with(1, new WaypointStyleMappingsReader_v1()));
     
     private static <K, V> MappingsType<K, V> create(String name, UnaryOperator<Builder<K, V>> builder) {
+        if (name.equals(MappingsConfigReader.OPTIONS_KEY)) {
+            throw new IllegalArgumentException("MappingsType may not be named " + name);
+        }
         return new MappingsType<>(name, Int2ObjectMaps.unmodifiable(builder.apply(new Builder<>()).readers));
     }
 

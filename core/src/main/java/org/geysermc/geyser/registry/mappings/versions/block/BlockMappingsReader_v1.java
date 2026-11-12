@@ -57,7 +57,6 @@ import org.geysermc.geyser.util.BlockUtils;
 import org.geysermc.geyser.util.MathUtils;
 import org.geysermc.geyser.util.MinecraftKey;
 
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.HashSet;
@@ -66,7 +65,6 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.function.BiConsumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -74,16 +72,15 @@ import java.util.stream.Collectors;
 public class BlockMappingsReader_v1 implements MappingsReader<String, CustomBlockMapping> {
 
     @Override
-    public void read(Path file, JsonObject mappings, BiConsumer<String, CustomBlockMapping> consumer) {
-        mappings.entrySet().forEach(entry -> {
-            if (entry.getValue() instanceof JsonObject jsonObject) {
+    public void read(Context<String, CustomBlockMapping> context) {
+        context.forEachMapping((key, value) -> {
+            if (value instanceof JsonObject jsonObject) {
                 try {
-                    String identifier = MinecraftKey.key(entry.getKey()).asString();
+                    String identifier = MinecraftKey.key(key).asString();
                     CustomBlockMapping customBlockMapping = this.readBlockMappingEntry(identifier, jsonObject);
-                    consumer.accept(identifier, customBlockMapping);
+                    context.accept(identifier, customBlockMapping);
                 } catch (Exception e) {
-                    GeyserImpl.getInstance().getLogger().error("Error in registering blocks for custom mapping file: " + file.toString());
-                    GeyserImpl.getInstance().getLogger().error("due to entry: " + entry, e);
+                    context.reportError("failed registering blocks due to key " + key + ": " + e.getMessage());
                 }
             }
         });
