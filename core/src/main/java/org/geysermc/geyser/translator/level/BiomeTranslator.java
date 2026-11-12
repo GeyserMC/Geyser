@@ -30,6 +30,7 @@ import it.unimi.dsi.fastutil.ints.IntList;
 import it.unimi.dsi.fastutil.ints.IntLists;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.nbt.NbtMap;
+import org.geysermc.geyser.biome.custom.GeyserCustomBiomeAppearance;
 import org.geysermc.geyser.level.BedrockDimension;
 import org.geysermc.geyser.level.JavaBiome;
 import org.geysermc.geyser.level.JavaDimension;
@@ -58,12 +59,13 @@ public class BiomeTranslator {
      * session takes precedence; otherwise a dimension-appropriate fallback is selected in
      * {@link #bedrockBiomeId(GeyserSession, JavaRegistryLookup, int)}.
      */
-    private static final int UNKNOWN_BIOME = -1;
+    public static final int UNKNOWN_BIOME = -1;
 
     public static JavaBiome loadServerBiome(RegistryEntryContext entry) {
         NbtMap data = entry.dataAsMap();
-        return new JavaBiome(Registries.BIOME_IDENTIFIERS.get().getOrDefault(entry.id().asString(), UNKNOWN_BIOME),
-            data.getFloat("temperature"), data.getFloat("downfall"), data.getBoolean("has_precipitation"));
+        int bedrockId = Registries.BIOME_IDENTIFIERS.get().getOrDefault(entry.id().asString(), UNKNOWN_BIOME);
+        return new JavaBiome(bedrockId, data.getFloat("temperature"), data.getFloat("downfall"), data.getBoolean("has_precipitation"),
+            bedrockId == UNKNOWN_BIOME ? GeyserCustomBiomeAppearance.fromJavaBiome(data) : null);
     }
 
     /**

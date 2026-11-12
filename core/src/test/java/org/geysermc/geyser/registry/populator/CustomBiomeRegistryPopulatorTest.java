@@ -28,22 +28,33 @@ package org.geysermc.geyser.registry.populator;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import org.geysermc.geyser.GeyserBootstrap;
 import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.api.biome.custom.CustomBiomeAppearance;
 import org.geysermc.geyser.api.biome.custom.CustomBiomeDefinition;
 import org.geysermc.geyser.api.biome.custom.CustomBiomeDefinitionRegisterException;
 import org.geysermc.geyser.api.event.lifecycle.GeyserDefineCustomBiomesEvent;
 import org.geysermc.geyser.api.util.Identifier;
 import org.geysermc.geyser.configuration.GeyserConfig;
 import org.geysermc.geyser.event.GeyserEventBus;
+import org.geysermc.geyser.level.JavaBiome;
+import org.geysermc.geyser.level.WorldManager;
 import org.geysermc.geyser.registry.Registries;
+import org.geysermc.geyser.registry.java.JavaRegistries;
+import org.geysermc.geyser.registry.java.JavaRegistryProvider;
+import org.geysermc.geyser.registry.java.SimpleJavaRegistry;
 import org.geysermc.geyser.scoreboard.network.util.GeyserMockContext;
+import org.geysermc.geyser.translator.level.BiomeTranslator;
+import org.geysermc.geyser.util.MinecraftKey;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
+import java.awt.Color;
 import java.nio.file.Path;
+import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -103,6 +114,56 @@ public class CustomBiomeRegistryPopulatorTest {
                 Identifier.of("test:late"), CustomBiomeDefinition.builder(Identifier.of("test:late_biome")).build()));
             assertThrows(CustomBiomeDefinitionRegisterException.class, () -> captured[0].register(
                 Identifier.of("test:late"), CustomBiomeDefinition.builder(Identifier.of("test:late_biome")).build()));
+        });
+    }
+
+    @Test
+    void registersServerBiomes() {
+        GeyserMockContext.mockContext(context -> {
+            GeyserImpl geyser = GeyserImpl.getInstance();
+            GeyserConfig.GameplayConfig gameplay = context.mock(GeyserConfig.GameplayConfig.class);
+            when(context.mockOrSpy(GeyserConfig.class).gameplay()).thenReturn(gameplay);
+            when(gameplay.enableCustomContent()).thenReturn(true);
+
+            CustomBiomeAppearance appearance = CustomBiomeAppearance.builder().skyColor(new Color(0x78a7ff)).build();
+            SimpleJavaRegistry<JavaBiome> registry = new SimpleJavaRegistry<>(JavaRegistries.BIOME);
+            registry.register(0, MinecraftKey.key("minecraft:plains"), new JavaBiome(1, 0.8F, 0.4F, true, null));
+            registry.register(1, MinecraftKey.key("test:mapped"), new JavaBiome(BiomeTranslator.UNKNOWN_BIOME, 0.8F, 0.4F, true, appearance));
+            registry.register(2, MinecraftKey.key("test:styled"), new JavaBiome(BiomeTranslator.UNKNOWN_BIOME, 0.8F, 0.4F, true, appearance));
+            registry.register(3, MinecraftKey.key("test:cave/deep"), new JavaBiome(BiomeTranslator.UNKNOWN_BIOME, 0.8F, 0.4F, true, null));
+            registry.freeze();
+            JavaRegistryProvider registries = context.mock(JavaRegistryProvider.class);
+            when(registries.registry(JavaRegistries.BIOME)).thenAnswer(invocation -> registry);
+            WorldManager worldManager = context.mock(WorldManager.class);
+            when(worldManager.getGlobalJavaRegistries()).thenReturn(registries);
+            when(geyser.getWorldManager()).thenReturn(worldManager);
+
+            CustomBiomeDefinition mapped = CustomBiomeDefinition.builder(Identifier.of("test:mapped_bedrock")).build();
+            Registries.CUSTOM_BIOMES.set(Map.of(Identifier.of("test:mapped"), mapped));
+
+            when(gameplay.enableCustomContent()).thenReturn(false);
+            CustomBiomeRegistryPopulator.populateFromServer();
+            assertEquals(1, Registries.CUSTOM_BIOMES.get().size());
+            when(gameplay.enableCustomContent()).thenReturn(true);
+
+            // Running it again, as a reload does, must not change the result
+            for (int i = 0; i < 2; i++) {
+                CustomBiomeRegistryPopulator.populateFromServer();
+
+                Map<Identifier, CustomBiomeDefinition> catalogue = Registries.CUSTOM_BIOMES.get();
+                assertEquals(3, catalogue.size());
+                // Vanilla biomes are left alone, and existing definitions win
+                assertNull(catalogue.get(Identifier.of("minecraft:plains")));
+                assertSame(mapped, catalogue.get(Identifier.of("test:mapped")));
+
+                CustomBiomeDefinition styled = catalogue.get(Identifier.of("test:styled"));
+                assertEquals(Identifier.of("test:styled"), styled.bedrockIdentifier());
+                assertEquals(appearance, styled.appearance());
+
+                CustomBiomeDefinition cave = catalogue.get(Identifier.of("test:cave/deep"));
+                assertEquals("geyser", cave.bedrockIdentifier().namespace());
+                assertNull(cave.appearance());
+            }
         });
     }
 }

@@ -25,6 +25,9 @@
 
 package org.geysermc.geyser.level;
 
+import org.checkerframework.checker.nullness.qual.Nullable;
+import org.geysermc.geyser.api.biome.custom.CustomBiomeAppearance;
+
 /**
  * Represents the information we store from a Java biome.
  *
@@ -33,6 +36,9 @@ package org.geysermc.geyser.level;
  * @param temperature the biome's base temperature.
  * @param downfall the biome's base downfall.
  * @param hasPrecipitation whether rain or snow falls in this biome.
+ * @param appearance the colors and fog of a biome without a vanilla Bedrock biome, read from
+ *                   its registry data, or null for other biomes and when it sets none.
  */
-public record JavaBiome(int bedrockId, float temperature, float downfall, boolean hasPrecipitation) {
+public record JavaBiome(int bedrockId, float temperature, float downfall, boolean hasPrecipitation,
+                        @Nullable CustomBiomeAppearance appearance) {
 }

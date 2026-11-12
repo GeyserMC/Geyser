@@ -25,6 +25,7 @@
 
 package org.geysermc.geyser.biome.custom;
 
+import org.cloudburstmc.nbt.NbtMap;
 import org.geysermc.geyser.api.biome.custom.CustomBiomeAppearance;
 import org.geysermc.geyser.api.biome.custom.CustomBiomeDefinition;
 import org.geysermc.geyser.api.biome.custom.CustomBiomePrecipitation;
@@ -36,6 +37,7 @@ import java.awt.Color;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.mock;
 
@@ -89,5 +91,35 @@ public class CustomBiomeDefinitionTest {
             assertEquals(new Color(0x40a7ff), CustomBiomeAppearance.builder()
                 .skyColor(new Color(0x40, 0xa7, 0xff, 0x78)).build().skyColor());
         });
+    }
+
+    @Test
+    void readsAppearanceFromJavaBiome() {
+        NbtMap data = NbtMap.builder()
+            .putCompound("effects", NbtMap.builder()
+                .putString("water_color", "#3f76e4")
+                .putString("grass_color", "#112233")
+                .putString("foliage_color", "green")
+                .build())
+            .putCompound("attributes", NbtMap.builder()
+                .putString("minecraft:visual/sky_color", "#78a7ff")
+                // Modifiers have no fixed result to translate
+                .putCompound("minecraft:visual/fog_color", NbtMap.builder()
+                    .putString("modifier", "multiply")
+                    .putString("argument", "#ffffff")
+                    .build())
+                .putFloat("minecraft:visual/water_fog_end_distance", 24.0F)
+                .build())
+            .build();
+
+        CustomBiomeAppearance appearance = GeyserCustomBiomeAppearance.fromJavaBiome(data);
+        assertEquals(new Color(0x3f76e4), appearance.waterSurfaceColor());
+        assertEquals(new Color(0x112233), appearance.grassColor());
+        assertNull(appearance.foliageColor());
+        assertEquals(new Color(0x78a7ff), appearance.skyColor());
+        assertNull(appearance.fogColor());
+        assertEquals(24.0F, appearance.waterFogEndDistance());
+
+        assertNull(GeyserCustomBiomeAppearance.fromJavaBiome(NbtMap.EMPTY));
     }
 }

@@ -144,7 +144,7 @@ public class CustomBiomeCacheTest {
 
             // A transfer that adds a second custom biome resends: the committed definition
             // keeps its id and the new one continues the sequence
-            session.reset(new JavaBiome(UNKNOWN_BIOME, 1.9F, 0.15F, false), "minecraft:plains", "test:java_biome", "test:java_extra");
+            session.reset(new JavaBiome(UNKNOWN_BIOME, 1.9F, 0.15F, false, null), "minecraft:plains", "test:java_biome", "test:java_extra");
             session.cache.reconcile();
             assertEquals(1, session.packets.size());
             assertEquals(id, session.biomeValue("test:java_biome"));
@@ -168,7 +168,7 @@ public class CustomBiomeCacheTest {
             assertNull(session.cache.loginDefinitions().getDefinitions().get("test:bedrock_biome"));
 
             // The new phase's registry applies with its own climate
-            session.reset(new JavaBiome(UNKNOWN_BIOME, 0.2F, 0.9F, true), "minecraft:plains", "test:java_biome");
+            session.reset(new JavaBiome(UNKNOWN_BIOME, 0.2F, 0.9F, true, null), "minecraft:plains", "test:java_biome");
             session.cache.reconcile();
             assertEquals(1, session.packets.size());
             assertTrue(session.biomeValue("test:java_biome") >= 30000);
@@ -219,14 +219,14 @@ public class CustomBiomeCacheTest {
 
             // A later backend has the same biome with different climate; the sent definition
             // must keep its meaning, so this backend's biome uses the vanilla fallback
-            session.reset(new JavaBiome(UNKNOWN_BIOME, 0.2F, 0.9F, true), "minecraft:plains", "test:java_biome");
+            session.reset(new JavaBiome(UNKNOWN_BIOME, 0.2F, 0.9F, true, null), "minecraft:plains", "test:java_biome");
             session.cache.reconcile();
             assertEquals(1, session.packets.size());
             assertEquals(UNKNOWN_BIOME, session.biomeValue("test:java_biome"));
 
             // Non-finite climate from a malformed backend is never sent
             TestSession invalid = new TestSession();
-            invalid.reset(new JavaBiome(UNKNOWN_BIOME, Float.NaN, 0.0F, false), "test:java_biome");
+            invalid.reset(new JavaBiome(UNKNOWN_BIOME, Float.NaN, 0.0F, false, null), "test:java_biome");
             invalid.spawned.set(true);
             invalid.cache.reconcile();
             assertTrue(invalid.packets.isEmpty());
@@ -277,7 +277,7 @@ public class CustomBiomeCacheTest {
          * from the Java registry apart from copied vanilla ones.
          */
         void reset(String... javaIdentifiers) {
-            reset(new JavaBiome(UNKNOWN_BIOME, 1.9F, 0.15F, false), javaIdentifiers);
+            reset(new JavaBiome(UNKNOWN_BIOME, 1.9F, 0.15F, false, null), javaIdentifiers);
         }
 
         void reset(JavaBiome data, String... javaIdentifiers) {

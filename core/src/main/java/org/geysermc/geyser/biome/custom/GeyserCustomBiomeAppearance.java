@@ -28,6 +28,7 @@ package org.geysermc.geyser.biome.custom;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import org.checkerframework.checker.nullness.qual.Nullable;
+import org.cloudburstmc.nbt.NbtMap;
 import org.geysermc.geyser.api.biome.custom.CustomBiomeAppearance;
 import org.geysermc.geyser.api.biome.custom.CustomBiomePrecipitation;
 
@@ -49,11 +50,7 @@ public final class GeyserCustomBiomeAppearance implements CustomBiomeAppearance 
     private final @Nullable CustomBiomePrecipitation precipitation;
 
     public GeyserCustomBiomeAppearance(Builder builder) {
-        if (builder.skyColor == null && builder.fogColor == null && builder.waterSurfaceColor == null
-                && builder.waterSurfaceOpacity == null && builder.waterFogColor == null
-                && builder.waterFogEndDistance == null && builder.grassColor == null
-                && builder.foliageColor == null && builder.dryFoliageColor == null
-                && builder.precipitation == null) {
+        if (builder.isEmpty()) {
             throw new IllegalArgumentException("A biome appearance must set at least one value");
         }
         if (builder.waterFogEndDistance != null
@@ -85,6 +82,44 @@ public final class GeyserCustomBiomeAppearance implements CustomBiomeAppearance 
     // Appearance colors are RGB only; snapshot them without alpha so it can't affect equality
     private static @Nullable Color rgb(@Nullable Color color) {
         return color == null ? null : new Color(color.getRGB() & 0xFFFFFF);
+    }
+
+    /**
+     * Reads the appearance of a Java biome from its registry data, using the same
+     * {@code effects} and {@code attributes} keys a biome mappings file does. Values that
+     * aren't plain, such as attribute modifiers, are skipped.
+     *
+     * @return the appearance, or null when the biome sets none of the values
+     */
+    public static @Nullable CustomBiomeAppearance fromJavaBiome(NbtMap data) {
+        Builder builder = new Builder();
+        NbtMap effects = data.getCompound("effects");
+        builder.waterSurfaceColor = color(effects.get("water_color"));
+        builder.grassColor = color(effects.get("grass_color"));
+        builder.foliageColor = color(effects.get("foliage_color"));
+        builder.dryFoliageColor = color(effects.get("dry_foliage_color"));
+
+        NbtMap attributes = data.getCompound("attributes");
+        builder.skyColor = color(attributes.get("minecraft:visual/sky_color"));
+        builder.fogColor = color(attributes.get("minecraft:visual/fog_color"));
+        builder.waterFogColor = color(attributes.get("minecraft:visual/water_fog_color"));
+        if (attributes.get("minecraft:visual/water_fog_end_distance") instanceof Number distance
+                && Float.isFinite(distance.floatValue()) && distance.floatValue() >= 0.0F) {
+            builder.waterFogEndDistance = distance.floatValue();
+        }
+
+        return builder.isEmpty() ? null : builder.build();
+    }
+
+    // Java sends colors as #rrggbb strings
+    private static @Nullable Color color(@Nullable Object value) {
+        if (value instanceof String string && string.length() == 7 && string.startsWith("#")) {
+            try {
+                return new Color(Integer.parseInt(string.substring(1), 16));
+            } catch (NumberFormatException ignored) {
+            }
+        }
+        return null;
     }
 
     @Override
@@ -148,6 +183,14 @@ public final class GeyserCustomBiomeAppearance implements CustomBiomeAppearance 
         private @Nullable Color foliageColor;
         private @Nullable Color dryFoliageColor;
         private @Nullable CustomBiomePrecipitation precipitation;
+
+        private boolean isEmpty() {
+            return skyColor == null && fogColor == null && waterSurfaceColor == null
+                && waterSurfaceOpacity == null && waterFogColor == null
+                && waterFogEndDistance == null && grassColor == null
+                && foliageColor == null && dryFoliageColor == null
+                && precipitation == null;
+        }
 
         @Override
         public Builder skyColor(Color skyColor) {

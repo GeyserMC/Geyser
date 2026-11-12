@@ -33,9 +33,12 @@ import org.geysermc.geyser.api.biome.custom.CustomBiomeDefinitionRegisterExcepti
 import org.geysermc.geyser.api.event.lifecycle.GeyserDefineCustomBiomesEvent;
 import org.geysermc.geyser.api.util.Identifier;
 import org.geysermc.geyser.biome.custom.GeyserCustomBiomeDefinition;
+import org.geysermc.geyser.level.JavaBiome;
 import org.geysermc.geyser.registry.Registries;
+import org.geysermc.geyser.registry.java.JavaRegistries;
 import org.geysermc.geyser.registry.mappings.MappingsConfigReader;
 import org.geysermc.geyser.registry.mappings.MappingsType;
+import org.geysermc.geyser.translator.level.BiomeTranslator;
 
 import java.util.Collections;
 import java.util.Map;
@@ -62,6 +65,45 @@ public class CustomBiomeRegistryPopulator {
 
         if (!event.definitions.isEmpty()) {
             GeyserImpl.getInstance().getLogger().info("Registered " + event.definitions.size() + " custom biome mappings");
+        }
+    }
+
+    /**
+     * Registers the server's biomes that have no vanilla Bedrock biome and no definition
+     * yet, with the appearance read from their registry data. Runs when Geyser starts,
+     * before the resource pack is generated. Platforms that can't read the server's
+     * registries, such as proxies, have none to register.
+     */
+    public static void populateFromServer() {
+        if (!GeyserImpl.getInstance().config().gameplay().enableCustomContent()) {
+            return;
+        }
+
+        Map<Identifier, CustomBiomeDefinition> definitions = new Object2ObjectOpenHashMap<>(Registries.CUSTOM_BIOMES.get());
+        Set<Identifier> bedrockIdentifiers = new ObjectOpenHashSet<>();
+        definitions.values().forEach(definition -> bedrockIdentifiers.add(definition.bedrockIdentifier()));
+        int registered = definitions.size();
+
+        GeyserImpl.getInstance().getWorldManager().getGlobalJavaRegistries().registry(JavaRegistries.BIOME).forEachEntry(entry -> {
+            Identifier javaIdentifier = Identifier.of(entry.key().asString());
+            JavaBiome biome = entry.data();
+            if (biome.bedrockId() != BiomeTranslator.UNKNOWN_BIOME || definitions.containsKey(javaIdentifier)) {
+                return;
+            }
+
+            GeyserCustomBiomeDefinition.Builder builder = GeyserCustomBiomeDefinition.derivedBuilder(javaIdentifier);
+            if (biome.appearance() != null) {
+                builder.appearance(biome.appearance());
+            }
+            CustomBiomeDefinition definition = builder.build();
+            if (bedrockIdentifiers.add(definition.bedrockIdentifier())) {
+                definitions.put(javaIdentifier, definition);
+            }
+        });
+
+        if (definitions.size() > registered) {
+            Registries.CUSTOM_BIOMES.set(Map.copyOf(definitions));
+            GeyserImpl.getInstance().getLogger().info("Registered " + (definitions.size() - registered) + " custom biomes from the server's registries");
         }
     }
 
