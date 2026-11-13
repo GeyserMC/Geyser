@@ -38,11 +38,18 @@ import org.geysermc.geyser.api.event.lifecycle.GeyserDefineCustomBlocksEvent;
 import org.geysermc.geyser.api.event.lifecycle.GeyserDefineCustomItemsEvent;
 import org.geysermc.geyser.api.item.custom.v2.CustomItemBedrockOptions;
 import org.geysermc.geyser.api.item.custom.v2.CustomItemDefinition;
+import org.geysermc.geyser.api.item.custom.v2.CustomItemDefinitionRegisterException;
+import org.geysermc.geyser.api.item.custom.v2.component.geyser.GeyserItemDataComponents;
 import org.geysermc.geyser.api.util.CreativeCategory;
 import org.geysermc.geyser.api.util.Identifier;
+import org.geysermc.geyser.item.custom.GeyserCustomItemDefinition;
+import org.geysermc.geyser.item.type.Item;
+import org.geysermc.geyser.registry.java.BuiltInJavaRegistries;
+import org.geysermc.geyser.util.MinecraftKey;
 import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -148,8 +155,73 @@ public class BuiltInMappings {
                     .creativeCategory(CreativeCategory.ITEMS)
                     .creativeGroup("itemGroup.name.minecart"))
                 .build());
+
+            // Vanilla tools are replaced with custom items so that block breaking is handled server-side by Geyser
+            // (see CustomItemRegistryPopulator#computeToolProperties and BlockBreakHandler), using the Java tool component.
+            // This makes mining speeds match Java exactly, instead of relying on Bedrock's own tool speeds/tiers.
+            if (GeyserImpl.getInstance().config().gameplay().enableIntegratedPack()) {
+                registerToolReplacements(event);
+            }
         } finally {
             REGISTERING = false;
+        }
+    }
+
+    /**
+     * Whether the given definition is a built-in vanilla tool replacement, which should give way to
+     * any user-defined custom item definition it would otherwise conflict with.
+     */
+    public static boolean isToolReplacement(CustomItemDefinition definition) {
+        return TOOL_REPLACEMENTS.contains(definition.bedrockIdentifier());
+    }
+
+    private static final Set<Identifier> TOOL_REPLACEMENTS = new HashSet<>();
+
+    private static final List<String> TOOL_MATERIALS = List.of("wooden", "copper", "stone", "golden", "iron", "diamond", "netherite");
+    private static final List<String> TOOL_TYPES = List.of("sword", "shovel", "pickaxe", "axe", "hoe");
+
+    private static void registerToolReplacements(GeyserDefineCustomItemsEvent event) {
+        for (String material : TOOL_MATERIALS) {
+            for (String type : TOOL_TYPES) {
+                String javaName = material + "_" + type;
+                // Vanilla Bedrock only defines these textures as array entries (e.g. "pickaxe"), which an item icon can't index into.
+                // The GeyserIntegratedPack defines a single texture key for each of them instead.
+                registerToolReplacement(event, javaName, "geyser_" + javaName);
+            }
+        }
+        registerToolReplacement(event, "shears", "shears");
+    }
+
+    private static void registerToolReplacement(GeyserDefineCustomItemsEvent event, String javaName, String icon) {
+        Identifier javaIdentifier = Identifier.of(javaName);
+        Identifier bedrockIdentifier = Identifier.of("geysermc", javaName);
+        int attackDamage = BuiltInJavaRegistries.ITEM.get(MinecraftKey.identifierToKey(javaIdentifier))
+            .map(Item::defaultAttackDamage)
+            .orElse(0);
+
+        GeyserCustomItemDefinition.Builder builder = new GeyserCustomItemDefinition.Builder(bedrockIdentifier, javaIdentifier);
+        // Bedrock uses the same lang keys as Java item identifiers for these items
+        builder.displayName("item." + javaName + ".name")
+            // Below the default priority (0), so other definitions for the same item model are checked first.
+            // Not Integer.MIN_VALUE: ItemRegistryPopulator sorts by subtracting priorities, which would overflow
+            .priority(-1000)
+            .bedrockOptions(CustomItemBedrockOptions.builder()
+                .icon(icon)
+                .displayHandheld(true)
+                // The vanilla Bedrock item is already in the creative inventory, and maps back to this definition
+                .creativeCategory(CreativeCategory.NONE));
+
+        if (attackDamage > 0) {
+            // The API builder rejects Geyser components on vanilla item definitions; this matches the vanilla item, so it is fine here
+            builder.geyserComponent(GeyserItemDataComponents.ATTACK_DAMAGE, attackDamage);
+        }
+
+        try {
+            event.register(javaIdentifier, builder.build());
+            TOOL_REPLACEMENTS.add(bedrockIdentifier);
+        } catch (CustomItemDefinitionRegisterException exception) {
+            // Most likely a definition from a mappings file already covers this item; that one takes precedence
+            GeyserImpl.getInstance().getLogger().debug("Not registering built-in tool replacement for " + javaName + ": " + exception.getMessage());
         }
     }
 
