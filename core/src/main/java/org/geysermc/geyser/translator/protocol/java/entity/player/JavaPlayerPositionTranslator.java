@@ -195,7 +195,21 @@ public class JavaPlayerPositionTranslator extends PacketTranslator<ClientboundPl
      */
     private void acceptTeleport(GeyserSession session, Vector3d position, float yaw, float pitch, int id) {
         ServerboundAcceptTeleportationPacket teleportConfirmPacket = new ServerboundAcceptTeleportationPacket(id, position.getX(), position.getY(), position.getZ(), yaw, pitch);
-        session.sendNetworkLatencyStackPacket(id, true, () -> session.sendDownstreamGamePacket(teleportConfirmPacket));
+
+        // See https://github.com/GeyserMC/Geyser/issues/6898 - the issue here is ultimately Velocity and Geyser, not the backend software...
+        // whenever transferring to a new backend, teleport IDs roll back and start from 1 again... and clients won't respond to a network latency stack
+        // packet until they're finished loading in, so a teleport accept packet lambda behind a ping packet might only be acknowledged (and sent!) once
+        // they've loaded in to a new backend, where the present backend's teleport is instead accepted - et voila, the player is kicked due to invalid movement...
+        // So, the ultimate solution here, add a counter for server switches and compare the original counter ID when the ping packet was sent,
+        // to when it was answered (in the lambda). If it's the same, gucci, else drop it entirely
+        int serverSwitchCount = session.getServerSwitchCount();
+        session.sendNetworkLatencyStackPacket(id, true, () -> {
+            if (serverSwitchCount != session.getServerSwitchCount()) {
+                session.getGeyser().getLogger().debug("Dropping outdated teleport accept packet (" + id + ")");
+                return;
+            }
+            session.sendDownstreamGamePacket(teleportConfirmPacket);
+        });
     }
 
     private static boolean looksLikeBedTeleport(SessionPlayerEntity.PendingBedInteraction pendingInteraction, Vector3d packetPosition, Vector3f deltaMovement) {

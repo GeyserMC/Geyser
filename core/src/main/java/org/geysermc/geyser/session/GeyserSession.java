@@ -823,6 +823,15 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource, Jav
     private final Queue<Runnable> latencyPingCache = new ConcurrentLinkedQueue<>();
 
     /**
+     * Counter for server switches (incremented in {@link org.geysermc.geyser.translator.protocol.java.JavaStartConfigurationTranslator})
+     * Used for latency ping stack callbacks, so they can return early if a packet was intended for the previous server...
+     * <p>
+     * We can't just nuke {@link #latencyPingCache} after all sadly, as the ordering in there matters... :(
+     */
+    @Setter
+    private int serverSwitchCount;
+
+    /**
      * Queued packets to be sent immediately at the end of each tick.
      */
     private final List<BedrockPacket> queuedImmediatelyPackets = new ArrayList<>();
