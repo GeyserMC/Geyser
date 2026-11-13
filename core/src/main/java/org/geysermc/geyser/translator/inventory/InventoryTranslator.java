@@ -776,12 +776,9 @@ public abstract class InventoryTranslator<Type extends Inventory> {
         Int2ObjectMap<Int2IntMap> ingredientMap = new Int2ObjectOpenHashMap<>();
         CraftState craftState = CraftState.START;
 
-        // For recipes with a Java recipe ID, only used to simulate, locally, the crafting grid that the single
-        // ServerboundPlaceRecipePacket below will cause the backend server to fill - none of these simulated clicks
-        // are sent as real packets. This keeps Bedrock's own already-applied prediction (removing ingredients from
-        // its inventory slots) confirmed by our response immediately, instead of it momentarily reverting until the
-        // server's real, separate container sync arrives.
-        // For recipes Geyser created itself (no Java recipe ID), these clicks are sent to the server for real.
+        // Fills the crafting grid the way Bedrock predicted from its CONSUME actions. For recipes with a Java recipe ID
+        // this is only applied locally, so our response matches Bedrock's prediction; for recipes Geyser created
+        // itself, the clicks are sent to the server.
         ClickPlan fillPlan = new ClickPlan(session, this, inventory);
         requestLoop:
         for (ItemStackRequestAction action : request.getActions()) {
@@ -886,9 +883,7 @@ public abstract class InventoryTranslator<Type extends Inventory> {
                         return rejectRequest(request);
                     }
 
-                    // We only need Bedrock's preferred source slot for the single grid fill below - the rest of
-                    // what this action used to drive (juggling the cursor across multiple grid refills) no
-                    // longer applies now that we mirror a single real Java shift-click instead of looping locally.
+                    // If the result goes into a slot this craft empties, take ingredients from that slot first
                     if (isCursor(transferAction.getDestination())) {
                         break requestLoop;
                     } else {
@@ -927,26 +922,24 @@ public abstract class InventoryTranslator<Type extends Inventory> {
         }
 
         if (recipe.hasJavaId()) {
-            // Commit the simulated grid fill locally - the real Java server performs the equivalent fill itself,
-            // server-side, in response to the ServerboundPlaceRecipePacket sent below.
+            // Apply the predicted fill to our copy of the inventory without sending any clicks. The server fills the
+            // grid itself from the packet below and may choose different source slots; its container sync corrects
+            // our copy if so.
             for (int slot : fillPlan.getAffectedSlots()) {
                 inventory.setItem(slot, fillPlan.getItem(slot), session);
             }
             session.getPlayerInventory().setCursor(fillPlan.getCursor(), session);
 
-            // Mirrors what a real Java Edition client sends for a recipe book shift-click: one packet to fill the
-            // crafting grid with as many ingredients as can be crafted (ServerPlaceRecipe#calculateAmountToCraft
-            // on the backend server does this the same way for both platforms), and one shift-click to collect
-            // the result. This replaces simulating every individual ingredient transfer as its own click, which
-            // could send dozens of ServerboundContainerClickPackets to the backend server for a single Bedrock
-            // auto-craft action.
+            // The same packet a Java client sends when clicking a recipe in its recipe book; useMaxItems is what a
+            // shift-click on the recipe sends.
             session.sendDownstreamGamePacket(new ServerboundPlaceRecipePacket(inventory.getJavaId(), recipe.id(), timesCrafted > 1));
         } else {
-            // A recipe Geyser created itself (e.g. a dynamic recipe like firework rockets) has no Java recipe ID to
-            // place, and isn't in the player's Java recipe book either. A Java client can't auto-craft these at all;
-            // its player fills the grid by hand. Do the same by sending the grid fill as real clicks.
+            // Recipes Geyser created itself (e.g. dynamic recipes like firework rockets) have no Java recipe ID and
+            // aren't in the Java recipe book, so a Java player fills the grid by hand. Send the fill as clicks instead.
             fillPlan.execute(false);
         }
+
+        // Shift-click the result, as a player does after filling the grid
 
         inventory.setItem(0, GeyserItemStack.from(session, recipe.result()), session);
         ClickPlan collectPlan = new ClickPlan(session, this, inventory);
