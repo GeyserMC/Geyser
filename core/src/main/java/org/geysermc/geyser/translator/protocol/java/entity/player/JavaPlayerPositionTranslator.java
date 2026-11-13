@@ -202,9 +202,9 @@ public class JavaPlayerPositionTranslator extends PacketTranslator<ClientboundPl
         // they've loaded in to a new backend, where the present backend's teleport is instead accepted - et voila, the player is kicked due to invalid movement...
         // So, the ultimate solution here, add a counter for server switches and compare the original counter ID when the ping packet was sent,
         // to when it was answered (in the lambda). If it's the same, gucci, else drop it entirely
-        int serverSwitchCount = session.getServerSwitchCount();
+        int serverSwitchCount = session.getReconfigCount();
         session.sendNetworkLatencyStackPacket(id, true, () -> {
-            if (serverSwitchCount != session.getServerSwitchCount()) {
+            if (serverSwitchCount != session.getReconfigCount()) {
                 session.getGeyser().getLogger().debug("Dropping outdated teleport accept packet (" + id + ")");
                 return;
             }

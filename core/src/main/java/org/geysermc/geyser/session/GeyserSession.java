@@ -829,7 +829,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource, Jav
      * We can't just nuke {@link #latencyPingCache} after all sadly, as the ordering in there matters... :(
      */
     @Setter
-    private int serverSwitchCount;
+    private int reconfigCount;
 
     /**
      * Queued packets to be sent immediately at the end of each tick.
