@@ -24,7 +24,7 @@ libdatachannel = "0.24.6.0-20261029.091642-10"
 bouncycastle-pkix = "1.85"
 bouncycastle-prov = "1.85.2"
 minecraftauth = "5.0.0"
-mcprotocollib = "26.3-3"
+mcprotocollib = "c54609535886840ec4cac81b9bcc6e6347e35569"
 adventure = "5.2.0"
 junit = "6.0.0"
 checkerframework = "3.19.0"
@@ -151,7 +151,7 @@ gson-runtime = { group = "com.google.code.gson", name = "gson", version.ref = "g
 gson-record-factory = { group = "com.github.Marcono1234", name = "gson-record-type-adapter-factory", version = "0.3.0" }
 junit = { group = "org.junit.jupiter", name = "junit-jupiter", version.ref = "junit" }
 minecraftauth = { group = "net.raphimc", name = "MinecraftAuth", version.ref = "minecraftauth" }
-mcprotocollib = { group = "org.geysermc.mcprotocollib", name = "protocol", version.ref = "mcprotocollib" }
+mcprotocollib = { group = "com.github.StackAnvil.MCProtocolLib", name = "protocol", version.ref = "mcprotocollib" }
 netty-transport-common = { group = "org.cloudburstmc.netty", name = "netty-transport-common", version.ref = "network" }
 raknet = { group = "org.cloudburstmc.netty", name = "netty-transport-raknet", version.ref = "network" }
 nethernet-transport = { group = "org.cloudburstmc.netty", name = "netty-transport-nethernet", version.ref = "network" }

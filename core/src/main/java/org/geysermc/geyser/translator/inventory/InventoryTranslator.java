@@ -114,8 +114,8 @@ public abstract class InventoryTranslator<Type extends Inventory> {
             put(ContainerType.ANVIL, new AnvilInventoryTranslator());
             put(ContainerType.BEACON, new BeaconInventoryTranslator());
             put(ContainerType.BREWING_STAND, new BrewingInventoryTranslator());
-            put(ContainerType.CARTOGRAPHY, new CartographyInventoryTranslator());
-            put(ContainerType.CRAFTER_3x3, new CrafterInventoryTranslator());
+            put(ContainerType.CARTOGRAPHY_TABLE, new CartographyInventoryTranslator());
+            put(ContainerType.CRAFTER_3X3, new CrafterInventoryTranslator());
             put(ContainerType.CRAFTING, new CraftingInventoryTranslator());
             put(ContainerType.ENCHANTMENT, new EnchantingInventoryTranslator());
             put(ContainerType.HOPPER, new HopperInventoryTranslator());

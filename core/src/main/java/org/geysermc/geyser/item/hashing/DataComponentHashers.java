@@ -213,7 +213,7 @@ public class DataComponentHashers {
 
         registerMap(DataComponentTypes.POTION_CONTENTS, builder -> builder
             .optional("potion", RegistryHasher.POTION, PotionContents::getPotionId, -1)
-            .optional("custom_color", MinecraftHasher.INT, PotionContents::getCustomColor, -1)
+            .optionalTypePredicate("custom_color", MinecraftHasher.INT, PotionContents::getCustomColor, PotionContents::hasCustomColor)
             .optionalList("custom_effects", RegistryHasher.MOB_EFFECT_INSTANCE, PotionContents::getCustomEffects)
             .optionalNullable("custom_name", MinecraftHasher.STRING, PotionContents::getCustomName));
 
