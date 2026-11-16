@@ -26,6 +26,7 @@
 package org.geysermc.geyser.entity.type;
 
 import lombok.Getter;
+import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
@@ -36,6 +37,7 @@ import org.cloudburstmc.protocol.bedrock.packet.UpdateBlockPacket;
 import org.geysermc.geyser.entity.spawn.EntitySpawnContext;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.item.ItemTranslator;
+import org.geysermc.geyser.util.ChunkUtils;
 import org.geysermc.geyser.util.InteractionResult;
 import org.geysermc.geyser.util.InventoryUtils;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.EntityMetadata;
@@ -53,7 +55,7 @@ public class ItemFrameEntity extends HangingEntity {
      * Used for getting the Bedrock block position.
      * Blocks deal with integers whereas entities deal with floats.
      */
-    private final Vector3i bedrockPosition;
+    private Vector3i bedrockPosition;
     /**
      * Specific block 'state' we are emulating in Bedrock.
      */
@@ -96,6 +98,43 @@ public class ItemFrameEntity extends HangingEntity {
         updateBlock(true);
         session.getGeyser().getLogger().debug("Spawned item frame at location " + bedrockPosition + " with java id " + entityId);
         valid = true;
+    }
+
+    @Override
+    public void moveRelativeRaw(double relX, double relY, double relZ, float yaw, float pitch, float headYaw, boolean isOnGround) {
+        moveAbsoluteRaw(position.add(relX, relY, relZ), yaw, pitch, headYaw, isOnGround, false);
+    }
+
+    @Override
+    public void moveAbsoluteRaw(Vector3f position, float yaw, float pitch, float headYaw, boolean isOnGround, boolean teleported) {
+        // Frame movement updates blocks, not a Bedrock actor, but must still track the Java transform.
+        setPosition(position);
+        setYaw(yaw);
+        setPitch(pitch);
+        setHeadYaw(headYaw);
+        setOnGround(isOnGround);
+
+        Vector3i newPosition = position.toInt();
+        if (newPosition.equals(bedrockPosition)) {
+            return;
+        }
+
+        Vector3i oldPosition = bedrockPosition;
+        session.getItemFrameCache().remove(oldPosition, this);
+        bedrockPosition = newPosition;
+        session.getItemFrameCache().put(newPosition, this);
+        if (cachedTag != null) {
+            cachedTag = cachedTag.toBuilder()
+                .putInt("x", newPosition.getX())
+                .putInt("y", newPosition.getY())
+                .putInt("z", newPosition.getZ())
+                .build();
+        }
+
+        if (isValid()) {
+            ChunkUtils.updateBlockClientSide(session, session.getGeyser().getWorldManager().blockAt(session, oldPosition), oldPosition);
+            updateBlock(true);
+        }
     }
 
     @Override
