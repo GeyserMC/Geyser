@@ -112,7 +112,7 @@ public final class CustomBiomeCache {
      */
     public void reconcile() {
         // The previous mapping used the previous registry's network ids
-        bedrockIds = newIdMap();
+        bedrockIds.clear();
 
         // Nothing can have been sent when the catalogue is empty; it is frozen at startup
         Map<Identifier, CustomBiomeDefinition> catalogue = Registries.CUSTOM_BIOMES.get();
@@ -184,7 +184,6 @@ public final class CustomBiomeCache {
         }
 
         // Map the Java ids only after the definition list is queued
-        Int2IntMap ids = newIdMap();
         int skipped = 0;
         for (Claim claim : claims) {
             SentBiome sentBiome = sent.get(claim.definition().bedrockIdentifier());
@@ -194,9 +193,8 @@ public final class CustomBiomeCache {
                 skipped++;
                 continue;
             }
-            ids.put(claim.javaId(), sentBiome.id());
+            bedrockIds.put(claim.javaId(), sentBiome.id());
         }
-        bedrockIds = ids;
         warnSkipped(skipped);
     }
 

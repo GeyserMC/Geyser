@@ -56,35 +56,7 @@ public final class GeyserCustomBiomeDefinition implements CustomBiomeDefinition 
     private final @Nullable CustomBiomeAppearance appearance;
     private final @Nullable UUID packUuid;
 
-    public GeyserCustomBiomeDefinition(Builder builder) {
-        String identifier = builder.bedrockIdentifier.toString();
-        if (!BEDROCK_IDENTIFIER.matcher(identifier).matches()) {
-            throw new IllegalArgumentException(
-                "Bedrock biome identifiers must match " + BEDROCK_IDENTIFIER.pattern() + ", got " + identifier);
-        }
-        if (Identifier.DEFAULT_NAMESPACE.equals(builder.bedrockIdentifier.namespace())) {
-            throw new IllegalArgumentException(
-                "Custom biomes cannot use the minecraft namespace: " + identifier);
-        }
-        if (!builder.derived && "geyser".equals(builder.bedrockIdentifier.namespace()) && builder.bedrockIdentifier.path().startsWith("auto_")) {
-            throw new IllegalArgumentException(
-                "The geyser:auto_ prefix is reserved for Geyser: " + identifier);
-        }
-        if (builder.appearance != null && !(builder.appearance instanceof GeyserCustomBiomeAppearance)) {
-            throw new IllegalArgumentException(
-                "The appearance for " + identifier + " was not created with CustomBiomeAppearance.builder()");
-        }
-        for (String tag : builder.tags) {
-            if (!BIOME_TAG.matcher(tag).matches()) {
-                throw new IllegalArgumentException(
-                    "Biome tags must match " + BIOME_TAG.pattern() + ", got " + tag);
-            }
-            if (tag.startsWith("minecraft:")) {
-                throw new IllegalArgumentException(
-                    "Biome tags cannot use the minecraft namespace: " + tag);
-            }
-        }
-
+    private GeyserCustomBiomeDefinition(Builder builder) {
         this.bedrockIdentifier = builder.bedrockIdentifier;
         // Sorted so tag order doesn't change how a definition serializes
         this.tags = Collections.unmodifiableSortedSet(new TreeSet<>(builder.tags));
@@ -97,9 +69,7 @@ public final class GeyserCustomBiomeDefinition implements CustomBiomeDefinition 
      * deriving one from the Java identifier instead.
      */
     public static Builder derivedBuilder(Identifier javaIdentifier) {
-        Builder builder = new Builder(deriveBedrockIdentifier(javaIdentifier));
-        builder.derived = true;
-        return builder;
+        return new Builder(deriveBedrockIdentifier(javaIdentifier), true);
     }
 
     /**
@@ -150,21 +120,52 @@ public final class GeyserCustomBiomeDefinition implements CustomBiomeDefinition 
         private final Set<String> tags = new HashSet<>();
         private @Nullable CustomBiomeAppearance appearance;
         private @Nullable UUID packUuid;
-        private boolean derived;
 
         public Builder(Identifier bedrockIdentifier) {
-            this.bedrockIdentifier = Objects.requireNonNull(bedrockIdentifier, "bedrockIdentifier may not be null");
+            this(bedrockIdentifier, false);
+        }
+
+        private Builder(Identifier bedrockIdentifier, boolean derived) {
+            Objects.requireNonNull(bedrockIdentifier, "bedrockIdentifier may not be null");
+            String identifier = bedrockIdentifier.toString();
+            if (!BEDROCK_IDENTIFIER.matcher(identifier).matches()) {
+                throw new IllegalArgumentException(
+                    "Bedrock biome identifiers must match " + BEDROCK_IDENTIFIER.pattern() + ", got " + identifier);
+            }
+            if (Identifier.DEFAULT_NAMESPACE.equals(bedrockIdentifier.namespace())) {
+                throw new IllegalArgumentException(
+                    "Custom biomes cannot use the minecraft namespace: " + identifier);
+            }
+            if (!derived && "geyser".equals(bedrockIdentifier.namespace()) && bedrockIdentifier.path().startsWith("auto_")) {
+                throw new IllegalArgumentException(
+                    "The geyser:auto_ prefix is reserved for Geyser: " + identifier);
+            }
+            this.bedrockIdentifier = bedrockIdentifier;
         }
 
         @Override
         public Builder tag(String tag) {
-            this.tags.add(Objects.requireNonNull(tag, "tag may not be null"));
+            Objects.requireNonNull(tag, "tag may not be null");
+            if (!BIOME_TAG.matcher(tag).matches()) {
+                throw new IllegalArgumentException(
+                    "Biome tags must match " + BIOME_TAG.pattern() + ", got " + tag);
+            }
+            if (tag.startsWith("minecraft:")) {
+                throw new IllegalArgumentException(
+                    "Biome tags cannot use the minecraft namespace: " + tag);
+            }
+            this.tags.add(tag);
             return this;
         }
 
         @Override
         public Builder appearance(CustomBiomeAppearance appearance) {
-            this.appearance = Objects.requireNonNull(appearance, "appearance may not be null");
+            Objects.requireNonNull(appearance, "appearance may not be null");
+            if (!(appearance instanceof GeyserCustomBiomeAppearance)) {
+                throw new IllegalArgumentException(
+                    "The appearance for " + bedrockIdentifier + " was not created with CustomBiomeAppearance.builder()");
+            }
+            this.appearance = appearance;
             return this;
         }
 

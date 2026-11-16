@@ -49,24 +49,7 @@ public final class GeyserCustomBiomeAppearance implements CustomBiomeAppearance 
     private final @Nullable Color dryFoliageColor;
     private final @Nullable CustomBiomePrecipitation precipitation;
 
-    public GeyserCustomBiomeAppearance(Builder builder) {
-        if (builder.isEmpty()) {
-            throw new IllegalArgumentException("A biome appearance must set at least one value");
-        }
-        if (builder.waterFogEndDistance != null
-                && (!Float.isFinite(builder.waterFogEndDistance) || builder.waterFogEndDistance < 0.0F)) {
-            throw new IllegalArgumentException(
-                "Water fog end distance must be finite and non-negative, got " + builder.waterFogEndDistance);
-        }
-        if (builder.waterSurfaceOpacity != null && (!Float.isFinite(builder.waterSurfaceOpacity)
-                || builder.waterSurfaceOpacity < 0.0F || builder.waterSurfaceOpacity > 1.0F)) {
-            throw new IllegalArgumentException(
-                "Water surface opacity must be between 0.0 and 1.0, got " + builder.waterSurfaceOpacity);
-        }
-        if (builder.precipitation != null && !(builder.precipitation instanceof GeyserCustomBiomePrecipitation)) {
-            throw new IllegalArgumentException("The precipitation was not created with CustomBiomePrecipitation.of()");
-        }
-
+    private GeyserCustomBiomeAppearance(Builder builder) {
         this.skyColor = rgb(builder.skyColor);
         this.fogColor = rgb(builder.fogColor);
         this.waterSurfaceColor = rgb(builder.waterSurfaceColor);
@@ -212,6 +195,10 @@ public final class GeyserCustomBiomeAppearance implements CustomBiomeAppearance 
 
         @Override
         public Builder waterSurfaceOpacity(float waterSurfaceOpacity) {
+            if (!Float.isFinite(waterSurfaceOpacity) || waterSurfaceOpacity < 0.0F || waterSurfaceOpacity > 1.0F) {
+                throw new IllegalArgumentException(
+                    "Water surface opacity must be between 0.0 and 1.0, got " + waterSurfaceOpacity);
+            }
             this.waterSurfaceOpacity = waterSurfaceOpacity;
             return this;
         }
@@ -224,6 +211,10 @@ public final class GeyserCustomBiomeAppearance implements CustomBiomeAppearance 
 
         @Override
         public Builder waterFogEndDistance(float waterFogEndDistance) {
+            if (!Float.isFinite(waterFogEndDistance) || waterFogEndDistance < 0.0F) {
+                throw new IllegalArgumentException(
+                    "Water fog end distance must be finite and non-negative, got " + waterFogEndDistance);
+            }
             this.waterFogEndDistance = waterFogEndDistance;
             return this;
         }
@@ -248,12 +239,19 @@ public final class GeyserCustomBiomeAppearance implements CustomBiomeAppearance 
 
         @Override
         public Builder precipitation(CustomBiomePrecipitation precipitation) {
-            this.precipitation = Objects.requireNonNull(precipitation, "precipitation may not be null");
+            Objects.requireNonNull(precipitation, "precipitation may not be null");
+            if (!(precipitation instanceof GeyserCustomBiomePrecipitation)) {
+                throw new IllegalArgumentException("The precipitation was not created with CustomBiomePrecipitation.of()");
+            }
+            this.precipitation = precipitation;
             return this;
         }
 
         @Override
         public CustomBiomeAppearance build() {
+            if (isEmpty()) {
+                throw new IllegalArgumentException("A biome appearance must set at least one value");
+            }
             return new GeyserCustomBiomeAppearance(this);
         }
     }

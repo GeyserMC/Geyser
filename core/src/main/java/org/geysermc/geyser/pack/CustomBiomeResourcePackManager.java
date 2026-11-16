@@ -329,9 +329,8 @@ public class CustomBiomeResourcePackManager {
     }
 
     /**
-     * File names use a digest of the Bedrock identifier: identifiers can contain characters
-     * that are unsafe in zip paths, and the digest gives each biome's assets a stable name
-     * that operator packs can override.
+     * File names use a digest of the Bedrock identifier, since identifiers can contain
+     * characters that are unsafe in zip paths.
      */
     private static String assetKey(Identifier bedrockIdentifier) {
         return HexFormat.of().formatHex(sha256(bedrockIdentifier.toString().getBytes(StandardCharsets.UTF_8)), 0, 16);
@@ -344,9 +343,7 @@ public class CustomBiomeResourcePackManager {
         } catch (NoSuchAlgorithmException e) {
             throw new AssertionError(e);
         }
-        for (int i = 0; i < 8; i++) {
-            digest.update((byte) ((RESOURCE_PACK_VERSION >> (i * 8)) & 0xFF));
-        }
+        digest.update(ByteBuffer.allocate(Long.BYTES).putLong(RESOURCE_PACK_VERSION).array());
         files.forEach((path, bytes) -> {
             digest.update(path.getBytes(StandardCharsets.UTF_8));
             digest.update(bytes);

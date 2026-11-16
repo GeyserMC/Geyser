@@ -46,7 +46,7 @@ import java.util.Set;
  * set in the optional {@link CustomBiomeAppearance}, which Geyser delivers to clients in
  * a generated resource pack.</p>
  *
- * @since 2.12.2
+ * @since 2.13.0
  */
 @ApiStatus.NonExtendable
 public interface CustomBiomeDefinition {
@@ -58,7 +58,7 @@ public interface CustomBiomeDefinition {
      * {@code geyser:auto_} prefix are reserved.
      *
      * @return the Bedrock biome identifier
-     * @since 2.12.2
+     * @since 2.13.0
      */
     Identifier bedrockIdentifier();
 
@@ -70,7 +70,7 @@ public interface CustomBiomeDefinition {
      * cannot start with {@code minecraft:}.
      *
      * @return an immutable set of the biome's Bedrock tags
-     * @since 2.12.2
+     * @since 2.13.0
      */
     Set<String> tags();
 
@@ -80,7 +80,7 @@ public interface CustomBiomeDefinition {
      * style the biome.
      *
      * @return the biome's appearance
-     * @since 2.12.2
+     * @since 2.13.0
      */
     @Nullable CustomBiomeAppearance appearance();
 
@@ -89,7 +89,8 @@ public interface CustomBiomeDefinition {
      *
      * @param bedrockIdentifier the Bedrock identifier of the biome
      * @return a new definition builder
-     * @since 2.12.2
+     * @throws IllegalArgumentException when the identifier is invalid
+     * @since 2.13.0
      */
     static Builder builder(Identifier bedrockIdentifier) {
         return GeyserApi.api().provider(Builder.class, bedrockIdentifier);
@@ -97,7 +98,7 @@ public interface CustomBiomeDefinition {
 
     /**
      * The builder for a custom biome definition.
-     * @since 2.12.2
+     * @since 2.13.0
      */
     interface Builder extends GenericBuilder<CustomBiomeDefinition> {
 
@@ -107,7 +108,8 @@ public interface CustomBiomeDefinition {
          * @param tag the tag to add
          * @see CustomBiomeDefinition#tags()
          * @return this builder
-         * @since 2.12.2
+         * @throws IllegalArgumentException when the tag is invalid
+         * @since 2.13.0
          */
         @This
         Builder tag(String tag);
@@ -118,7 +120,9 @@ public interface CustomBiomeDefinition {
          * @param appearance the biome appearance
          * @see CustomBiomeDefinition#appearance()
          * @return this builder
-         * @since 2.12.2
+         * @throws IllegalArgumentException when the appearance was not created through
+         * {@link CustomBiomeAppearance#builder()}
+         * @since 2.13.0
          */
         @This
         Builder appearance(CustomBiomeAppearance appearance);
@@ -129,7 +133,7 @@ public interface CustomBiomeDefinition {
          * @param appearance the builder of the biome appearance
          * @see CustomBiomeDefinition.Builder#appearance(CustomBiomeAppearance)
          * @return this builder
-         * @since 2.12.2
+         * @since 2.13.0
          */
         @This
         default Builder appearance(CustomBiomeAppearance.Builder appearance) {
@@ -140,9 +144,7 @@ public interface CustomBiomeDefinition {
          * Creates the custom biome definition.
          *
          * @return the created definition
-         * @throws IllegalArgumentException when the identifier or a tag is invalid, or
-         * when the appearance was not created through {@link CustomBiomeAppearance#builder()}
-         * @since 2.12.2
+         * @since 2.13.0
          */
         @Override
         CustomBiomeDefinition build();
