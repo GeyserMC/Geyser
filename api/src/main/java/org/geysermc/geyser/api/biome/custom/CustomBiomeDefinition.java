@@ -93,7 +93,21 @@ public interface CustomBiomeDefinition {
      * @since 2.13.0
      */
     static Builder builder(Identifier bedrockIdentifier) {
-        return GeyserApi.api().provider(Builder.class, bedrockIdentifier);
+        return GeyserApi.api().provider(Builder.class, bedrockIdentifier, false);
+    }
+
+    /**
+     * Creates a builder for the definition of a Java biome, deriving the Bedrock identifier
+     * from the Java identifier. A Java identifier that is also a valid custom Bedrock
+     * identifier is used as it is; any other gets an identifier with the reserved
+     * {@code geyser:auto_} prefix.
+     *
+     * @param javaIdentifier the identifier of the Java biome the definition is for
+     * @return a new definition builder
+     * @since 2.13.0
+     */
+    static Builder derivedBuilder(Identifier javaIdentifier) {
+        return GeyserApi.api().provider(Builder.class, javaIdentifier, true);
     }
 
     /**

@@ -39,6 +39,7 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 
 public class CustomBiomeDefinitionTest {
@@ -66,6 +67,18 @@ public class CustomBiomeDefinitionTest {
                 .build();
             // Tag order must not depend on insertion order
             assertEquals(List.of("animal", "cold", "monster"), List.copyOf(definition.tags()));
+        });
+    }
+
+    @Test
+    void derivesBedrockIdentifier() {
+        GeyserMockContext.mockContext(() -> {
+            assertEquals(Identifier.of("test:biome"),
+                CustomBiomeDefinition.derivedBuilder(Identifier.of("test:biome")).build().bedrockIdentifier());
+
+            Identifier derived = CustomBiomeDefinition.derivedBuilder(Identifier.of("my_datapack:cave/deep_caves")).build().bedrockIdentifier();
+            assertEquals("geyser", derived.namespace());
+            assertTrue(derived.path().startsWith("auto_"));
         });
     }
 

@@ -61,7 +61,8 @@ public interface GeyserDefineCustomBiomesEvent extends Event {
 
     /**
      * Registers a custom biome definition for a Java biome; the definition must come from
-     * {@link CustomBiomeDefinition#builder(Identifier)}. Registering is only possible
+     * {@link CustomBiomeDefinition#builder(Identifier)} or
+     * {@link CustomBiomeDefinition#derivedBuilder(Identifier)}. Registering is only possible
      * while this event is being fired. Every registration needs its own Java biome and
      * its own Bedrock identifier; reusing either will throw an exception.
      *

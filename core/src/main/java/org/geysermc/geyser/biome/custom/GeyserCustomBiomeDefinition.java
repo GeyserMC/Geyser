@@ -65,7 +65,7 @@ public final class GeyserCustomBiomeDefinition implements CustomBiomeDefinition 
     }
 
     /**
-     * Creates the builder for a Java biome mapping that doesn't name a Bedrock identifier,
+     * Creates the builder for a Java biome that has no Bedrock identifier named for it,
      * deriving one from the Java identifier instead.
      */
     public static Builder derivedBuilder(Identifier javaIdentifier) {

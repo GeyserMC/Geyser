@@ -230,7 +230,9 @@ public class ProviderRegistryLoader implements RegistryLoader<Map<Class<?>, Prov
         providers.put(CustomWaypointStyle.VanillaBuilder.class, args -> new VanillaWaypoint.Builder((int) args[0], (int) args[1]));
 
         // custom biomes
-        providers.put(CustomBiomeDefinition.Builder.class, args -> new GeyserCustomBiomeDefinition.Builder((Identifier) args[0]));
+        providers.put(CustomBiomeDefinition.Builder.class, args -> (boolean) args[1]
+            ? GeyserCustomBiomeDefinition.derivedBuilder((Identifier) args[0])
+            : new GeyserCustomBiomeDefinition.Builder((Identifier) args[0]));
         providers.put(CustomBiomeAppearance.Builder.class, args -> new GeyserCustomBiomeAppearance.Builder());
         providers.put(CustomBiomePrecipitation.class, args -> new GeyserCustomBiomePrecipitation((CustomBiomePrecipitation.Type) args[0], (float) args[1]));
 
