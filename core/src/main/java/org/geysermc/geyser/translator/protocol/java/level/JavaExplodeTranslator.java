@@ -32,6 +32,7 @@ import org.cloudburstmc.protocol.bedrock.data.LevelEvent;
 import org.cloudburstmc.protocol.bedrock.packet.LevelEventGenericPacket;
 import org.cloudburstmc.protocol.bedrock.packet.SetEntityMotionPacket;
 import org.geysermc.geyser.entity.type.player.SessionPlayerEntity;
+import org.geysermc.geyser.level.particle.ParticleRandomization;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.level.particle.ParticleMapping;
 import org.geysermc.geyser.session.GeyserSession;
@@ -59,7 +60,7 @@ public class JavaExplodeTranslator extends PacketTranslator<ClientboundExplodePa
         // Not sure if the packet does anything - sending it just in case, because BDS still sends it.
         ParticleMapping particleMapping = Registries.PARTICLES.get(packet.getExplosionParticle().getType());
         if (particleMapping != null) {
-            session.sendUpstreamPacket(particleMapping.mapParticle(session, packet.getExplosionParticle().getData()).apply(vector));
+            session.sendUpstreamPacket(particleMapping.mapParticle(session, packet.getExplosionParticle().getData()).apply(ParticleRandomization.ofStatic(vector)));
         }
 
         levelEventPacket.setTag(builder.build());

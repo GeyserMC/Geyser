@@ -56,6 +56,8 @@ public final class ParticleHelper {
         createVariable(".z", FLOAT, vector.getZ())
     ));
 
+    public static final String DEFAULT_COLOR_VARIABLE = "variable.color";
+
     private static <T> ValueSerializer<T> createSerializer(String name, Function<T, ? extends JsonElement> serializer) {
         return new ValueSerializer<T>() {
             @Override
@@ -87,7 +89,7 @@ public final class ParticleHelper {
     }
 
     public static JsonElement serializeColor(int rgb) {
-        return serializeVariable("variable.color", RGB_COLOR, rgb);
+        return serializeVariable(DEFAULT_COLOR_VARIABLE, RGB_COLOR, rgb);
     }
 
     public interface ValueSerializer<T> {

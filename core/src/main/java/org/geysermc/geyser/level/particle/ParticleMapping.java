@@ -60,16 +60,15 @@ import org.geysermc.mcprotocollib.protocol.data.game.level.particle.positionsour
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
-import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.Function;
 
 public sealed interface ParticleMapping {
 
     Optional<ParticleType> particleType();
 
-    Function<Vector3f, BedrockPacket> mapParticle(GeyserSession session, @Nullable ParticleData particleData);
+    Function<ParticleRandomization, BedrockPacket> mapParticle(GeyserSession session, @Nullable ParticleData particleData);
 
-    record IdentifierBased(Key identifier) implements ParticleMapping {
+    record IdentifierBased(Key identifier, Optional<ParticleColor> color) implements ParticleMapping {
 
         @Override
         public Optional<ParticleType> particleType() {
@@ -82,8 +81,15 @@ public sealed interface ParticleMapping {
         }
 
         @Override
-        public Function<Vector3f, BedrockPacket> mapParticle(GeyserSession session, @Nullable ParticleData particleData) {
-            return position -> ParticleMapping.createParticleEffectPacket(session, identifier.toString(), position);
+        public Function<ParticleRandomization, BedrockPacket> mapParticle(GeyserSession session, @Nullable ParticleData particleData) {
+            return randomization -> {
+                if (color.isEmpty()) {
+                    return ParticleMapping.createParticleEffectPacket(session, identifier.toString(), randomization.position());
+                }
+                ParticleColor colorSettings = color.orElseThrow();
+                return ParticleMapping.createParticleEffectPacket(session, identifier.toString(), randomization.position(),
+                    ParticleHelper.serializeVariable(colorSettings.variable(), ParticleHelper.RGB_COLOR, colorSettings.apply(randomization)));
+            };
         }
     }
 
@@ -98,11 +104,11 @@ public sealed interface ParticleMapping {
         }
 
         @Override
-        public Function<Vector3f, BedrockPacket> mapParticle(GeyserSession session, @Nullable ParticleData particleData) {
-            return position -> {
+        public Function<ParticleRandomization, BedrockPacket> mapParticle(GeyserSession session, @Nullable ParticleData particleData) {
+            return randomization -> {
                 LevelEventPacket packet = new LevelEventPacket();
                 packet.setType(event);
-                packet.setPosition(position);
+                packet.setPosition(randomization.position());
                 return packet;
             };
         }
@@ -115,10 +121,18 @@ public sealed interface ParticleMapping {
         default Optional<ParticleType> particleType() {
             return Optional.empty();
         }
+
+        // None of the built-in mappings depend on randomization, so make them simpler by only passing the position
+        @Override
+        default Function<ParticleRandomization, BedrockPacket> mapParticle(GeyserSession session, @Nullable ParticleData particleData) {
+            return randomization -> map(session, particleData).apply(randomization.position());
+        }
+
+        Function<Vector3f, BedrockPacket> map(GeyserSession session, @Nullable ParticleData particleData);
     }
 
-    static ParticleMapping ofIdentifier(String identifier) {
-        return new IdentifierBased(MinecraftKey.key(identifier));
+    static ParticleMapping ofIdentifier(String identifier, Optional<ParticleColor> color) {
+        return new IdentifierBased(MinecraftKey.key(identifier), color);
     }
 
     static ParticleMapping ofEvent(LevelEventType event) {
@@ -240,27 +254,8 @@ public sealed interface ParticleMapping {
                     return packet;
                 };
             };
-            case FIREWORK -> (session, data) -> position
-                -> createParticleEffectPacket(session, "minecraft:sparkler_emitter", position, ParticleHelper.serializeColor(0xFFFFFF));
             case TINTED_LEAVES -> (session, data) -> position
                 -> createParticleEffectPacket(session, "minecraft:biome_tinted_leaves_particle", position, ParticleHelper.serializeColor(((ColorParticleData) data).getColor()));
-            case GLOW -> (session, data) -> {
-                // See https://mcsrc.dev/2/26.3/net/minecraft/client/particle/GlowParticle#L88-92
-                // TODO bedrock reports it wants xyz vars, but the particle shows anyways
-                int colour = ThreadLocalRandom.current().nextBoolean() ? 0x99FFCC : 0x146666;
-                return position -> createParticleEffectPacket(session, "minecraft:glow_particle", position, ParticleHelper.serializeColor(colour));
-            };
-            // See https://mcsrc.dev/2/26.3/net/minecraft/client/particle/GlowParticle#L188
-            case WAX_ON -> (session, data) -> position
-                -> createParticleEffectPacket(session, "minecraft:wax_particle", position, ParticleHelper.serializeColor(0xE88C14));
-            // See https://mcsrc.dev/2/26.3/net/minecraft/client/particle/GlowParticle#L159
-            case WAX_OFF -> (session, data) -> position
-                -> createParticleEffectPacket(session, "minecraft:wax_particle", position, ParticleHelper.serializeColor(0xFFE5FF));
-            case SCRAPE -> (session, data) -> {
-                // See https://mcsrc.dev/2/26.3/net/minecraft/client/particle/GlowParticle#L125-129
-                int colour = ThreadLocalRandom.current().nextBoolean() ? 0x499382 : 0x6DC49E;
-                return position -> createParticleEffectPacket(session, "minecraft:wax_particle", position, ParticleHelper.serializeColor(colour));
-            };
             case TRAIL -> (session, particleData) -> {
                 TrailParticleData data = (TrailParticleData) particleData;
                 Vector3f target = data.target().toFloat();
