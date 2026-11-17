@@ -28,6 +28,7 @@ package org.geysermc.geyser.registry.loader;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.event.lifecycle.GeyserLoadResourcePacksEvent;
@@ -56,7 +57,6 @@ import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.PathMatcher;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -65,7 +65,6 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
@@ -83,7 +82,8 @@ public class ResourcePackLoader implements RegistryLoader<Path, Map<UUID, Resour
             .expireAfterWrite(15, TimeUnit.MINUTES)
             .build();
 
-    static final PathMatcher PACK_MATCHER = FileSystems.getDefault().getPathMatcher("glob:**.{zip,mcpack}");
+    public static final String PACK_GLOB = "**.{zip,mcpack}";
+    static final PathMatcher PACK_MATCHER = FileSystems.getDefault().getPathMatcher("glob:" + PACK_GLOB);
 
     private static final boolean SHOW_RESOURCE_PACK_LENGTH_WARNING = Boolean.parseBoolean(System.getProperty("Geyser.ShowResourcePackLengthWarning", "true"));
 
@@ -94,17 +94,11 @@ public class ResourcePackLoader implements RegistryLoader<Path, Map<UUID, Resour
     public Map<UUID, ResourcePackHolder> load(Path directory) {
         Map<UUID, ResourcePackHolder> packMap = new Object2ObjectOpenHashMap<>();
 
-        List<Path> resourcePacks;
+        List<Path> resourcePacks = new ObjectArrayList<>();
         try (Stream<Path> stream = Files.list(directory)) {
-            resourcePacks = stream.filter(PACK_MATCHER::matches)
-                    .collect(Collectors.toCollection(ArrayList::new)); // toList() does not guarantee mutability
+            stream.filter(PACK_MATCHER::matches).forEach(resourcePacks::add);
         } catch (Exception e) {
             GeyserImpl.getInstance().getLogger().error("Could not list packs directory", e);
-
-            // Ensure the event is fired even if there was an issue reading
-            // from our own resource pack directory. External projects may have
-            // resource packs located at different locations.
-            resourcePacks = new ArrayList<>();
         }
 
         // Add custom skull pack
@@ -112,6 +106,9 @@ public class ResourcePackLoader implements RegistryLoader<Path, Map<UUID, Resour
         if (skullResourcePack != null) {
             resourcePacks.add(skullResourcePack);
         }
+
+        // Add packs from loaded GeyserAssetPacks
+        Registries.GEYSER_ASSET_PACKS.get().forEach(pack -> pack.resourcePacks(resourcePacks::add));
 
         //noinspection deprecation - we know
         GeyserLoadResourcePacksEvent event = new GeyserLoadResourcePacksEvent(resourcePacks);

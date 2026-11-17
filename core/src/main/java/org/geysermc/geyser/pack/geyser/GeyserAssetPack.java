@@ -33,10 +33,12 @@ import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.GeyserLogger;
 import org.geysermc.geyser.configuration.GeyserConfigDirectory;
 import org.geysermc.geyser.item.exception.InvalidCustomMappingsFileException;
+import org.geysermc.geyser.registry.loader.ResourcePackLoader;
 import org.geysermc.geyser.registry.mappings.util.MappingsUtil;
 import org.geysermc.geyser.registry.mappings.util.NodeReader;
 
 import java.io.IOException;
+import java.nio.file.DirectoryStream;
 import java.nio.file.FileSystem;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
@@ -45,12 +47,39 @@ import java.nio.file.ProviderNotFoundException;
 import java.util.Comparator;
 import java.util.List;
 import java.util.UUID;
+import java.util.function.Consumer;
 import java.util.stream.Stream;
 
-public record GeyserAssetPack(Manifest manifest, Path exportedRoot) {
+public record GeyserAssetPack(Manifest manifest, Path root) {
     public static final String EXTENSION = ".geyserpack";
 
     private static final String MANIFEST_PATH = "geyser_manifest.json";
+    private static final String JSON_GLOB = "**.json";
+
+    public void resourcePacks(Consumer<Path> consumer) {
+        listDirectory("packs", ResourcePackLoader.PACK_GLOB, consumer);
+    }
+
+    public void mappings(Consumer<Path> consumer) {
+        listDirectory("mappings", JSON_GLOB, consumer);
+    }
+
+    public void locales(Consumer<Path> consumer) {
+        listDirectory("locales", JSON_GLOB, consumer);
+    }
+
+    private void listDirectory(String directory, String glob, Consumer<Path> consumer) {
+        Path path = root.resolve(directory);
+        if (!Files.isDirectory(path)) {
+            return;
+        }
+
+        try (DirectoryStream<Path> files = Files.newDirectoryStream(path, glob)) {
+            files.forEach(consumer);
+        } catch (IOException exception) {
+            GeyserImpl.getInstance().getLogger().error("Failed to read files in " + path + "!", exception);
+        }
+    }
 
     public static List<GeyserAssetPack> load(GeyserImpl geyser) {
         return load(geyser.configDir(), geyser.getLogger());
@@ -142,7 +171,9 @@ public record GeyserAssetPack(Manifest manifest, Path exportedRoot) {
                 try (Stream<Path> files = Files.walk(packRoot)) {
                     files.filter(Files::isRegularFile).forEach(path -> {
                         try {
-                            Files.copy(path, exportedRoot.resolve(packRoot.relativize(path).toString()));
+                            Path destination = exportedRoot.resolve(packRoot.relativize(path).toString());
+                            Files.createDirectories(destination.getParent());
+                            Files.copy(path, destination);
                         } catch (IOException exception) {
                             logger.error("Failed to extract " + path + " from " + source + "!", exception);
                         }
