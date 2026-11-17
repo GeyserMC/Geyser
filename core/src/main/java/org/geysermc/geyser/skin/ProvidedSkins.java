@@ -27,6 +27,7 @@ package org.geysermc.geyser.skin;
 
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.skin.Skin;
+import org.geysermc.geyser.configuration.GeyserConfigDirectory;
 import org.geysermc.geyser.util.AssetUtils;
 
 import javax.imageio.ImageIO;
@@ -74,10 +75,8 @@ public final class ProvidedSkins {
         ProvidedSkin(String asset, boolean slim) {
             this.slim = slim;
 
-            Path folder = GeyserImpl.getInstance().getBootstrap().getConfigFolder()
-                    .resolve("cache")
-                    .resolve("default_player_skins")
-                    .resolve(slim ? "slim" : "wide");
+            Path folder = slim ? GeyserImpl.getInstance().configDir().resolve(GeyserConfigDirectory.CACHE_DEFAULT_PLAYER_SKINS_SLIM)
+                               : GeyserImpl.getInstance().configDir().resolve(GeyserConfigDirectory.CACHE_DEFAULT_PLAYER_SKINS_WIDE);
             String assetName = asset.substring(asset.lastIndexOf('/') + 1);
 
             Path location = folder.resolve(assetName);
@@ -117,12 +116,7 @@ public final class ProvidedSkins {
     }
 
     static {
-        Path folder = GeyserImpl.getInstance().getBootstrap().getConfigFolder()
-                .resolve("cache")
-                .resolve("default_player_skins");
-        folder.toFile().mkdirs();
-        // Two directories since there are two skins for each model: one slim, one wide
-        folder.resolve("slim").toFile().mkdir();
-        folder.resolve("wide").toFile().mkdir();
+        GeyserImpl.getInstance().configDir().createIfAbsent(GeyserConfigDirectory.CACHE_DEFAULT_PLAYER_SKINS_SLIM);
+        GeyserImpl.getInstance().configDir().createIfAbsent(GeyserConfigDirectory.CACHE_DEFAULT_PLAYER_SKINS_WIDE);
     }
 }

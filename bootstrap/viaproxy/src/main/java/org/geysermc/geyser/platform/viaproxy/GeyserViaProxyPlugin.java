@@ -51,6 +51,7 @@ import org.geysermc.geyser.command.CommandRegistry;
 import org.geysermc.geyser.command.standalone.StandaloneCloudCommandManager;
 import org.geysermc.geyser.configuration.ConfigLoader;
 import org.geysermc.geyser.configuration.GeyserConfig;
+import org.geysermc.geyser.configuration.GeyserConfigDirectory;
 import org.geysermc.geyser.configuration.GeyserPluginConfig;
 import org.geysermc.geyser.dump.BootstrapDumpInfo;
 import org.geysermc.geyser.ping.GeyserLegacyPingPassthrough;
@@ -73,6 +74,7 @@ public class GeyserViaProxyPlugin extends ViaProxyPlugin implements GeyserBootst
 
     private final GeyserViaProxyLogger logger = new GeyserViaProxyLogger(LogManager.getLogger("Geyser"));
     private GeyserPluginConfig geyserConfig;
+    private GeyserConfigDirectory configDirectory;
     private GeyserImpl geyser;
     private StandaloneCloudCommandManager cloud;
     private CommandRegistry commandRegistry;
@@ -91,6 +93,7 @@ public class GeyserViaProxyPlugin extends ViaProxyPlugin implements GeyserBootst
 
     @EventHandler
     private void onViaProxyLoaded(ViaProxyLoadedEvent event) {
+        configDirectory = new GeyserConfigDirectory(getConfigFolder());
         GeyserLocale.init(this);
         this.onGeyserInitialize();
     }
@@ -234,6 +237,11 @@ public class GeyserViaProxyPlugin extends ViaProxyPlugin implements GeyserBootst
     @Override
     public Path getConfigFolder() {
         return ROOT_FOLDER.toPath();
+    }
+
+    @Override
+    public GeyserConfigDirectory configDirectory() {
+        return configDirectory;
     }
 
     @Override

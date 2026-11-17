@@ -33,6 +33,7 @@ import org.geysermc.geyser.api.pack.ResourcePackManifest;
 import org.geysermc.geyser.api.pack.UrlPackCodec;
 import org.geysermc.geyser.api.pack.exception.ResourcePackException;
 import org.geysermc.geyser.api.pack.option.PriorityOption;
+import org.geysermc.geyser.configuration.GeyserConfigDirectory;
 import org.geysermc.geyser.event.type.GeyserDefineResourcePacksEventImpl;
 import org.geysermc.geyser.pack.GeyserResourcePack;
 import org.geysermc.geyser.pack.ResourcePackHolder;
@@ -48,7 +49,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 public interface GeyserIntegratedPackUtil {
 
-    Path CACHE = GeyserImpl.getInstance().getBootstrap().getConfigFolder().resolve("cache");
+    Path CACHE = GeyserImpl.getInstance().configDir().createIfAbsent(GeyserConfigDirectory.CACHE);
     Path PACK_PATH = CACHE.resolve("GeyserIntegratedPack.mcpack");
     UUID OPTIONAL_PACK_UUID = UUID.fromString("e5f5c938-a701-11eb-b2a3-047d7bb283ba");
     UUID INTEGRATED_PACK_UUID = UUID.fromString("2254393d-8430-45b0-838a-bd397828c765");
@@ -61,7 +62,6 @@ public interface GeyserIntegratedPackUtil {
         }
 
         try {
-            Files.createDirectories(CACHE);
             Files.copy(GeyserImpl.getInstance().getBootstrap().getResourceOrThrow("GeyserIntegratedPack.mcpack"),
                 PACK_PATH, StandardCopyOption.REPLACE_EXISTING);
         } catch (Exception e) {
@@ -139,7 +139,7 @@ public interface GeyserIntegratedPackUtil {
         if (codec instanceof PathPackCodec pathPackCodec) {
             try {
                 // try to create nicer /packs/xyz.mcpack path if possible
-                return "(found in: %s)".formatted(GeyserImpl.getInstance().getBootstrap().getConfigFolder().relativize(pathPackCodec.path()));
+                return "(found in: %s)".formatted(GeyserImpl.getInstance().configDirectory().relativize(pathPackCodec.path()));
             } catch (Exception e) {
                 return "(found in: %s)".formatted(pathPackCodec.path());
             }

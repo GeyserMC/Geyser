@@ -31,6 +31,7 @@ import com.google.gson.JsonParseException;
 import com.google.gson.JsonParser;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.configuration.GeyserConfigDirectory;
 import org.jetbrains.annotations.VisibleForTesting;
 
 import java.io.FileReader;
@@ -55,7 +56,7 @@ public final class MappingsConfigReader {
     }
 
     public static Optional<Path> getCustomMappingsDirectoryAndEnsureItExists() {
-        Path customMappingsDirectory = GeyserImpl.getInstance().getBootstrap().getConfigFolder().resolve("custom_mappings");
+        Path customMappingsDirectory = GeyserImpl.getInstance().configDir().resolve(GeyserConfigDirectory.CUSTOM_MAPPINGS);
         if (!ensureMappingsDirectory(customMappingsDirectory)) {
             return Optional.empty();
         }

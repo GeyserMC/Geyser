@@ -34,6 +34,7 @@ import io.netty.util.internal.SystemPropertyUtil;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.experimental.Accessors;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.raphimc.minecraftauth.msa.data.MsaConstants;
@@ -74,6 +75,7 @@ import org.geysermc.geyser.api.util.MinecraftVersion;
 import org.geysermc.geyser.api.util.PlatformType;
 import org.geysermc.geyser.command.CommandRegistry;
 import org.geysermc.geyser.configuration.GeyserConfig;
+import org.geysermc.geyser.configuration.GeyserConfigDirectory;
 import org.geysermc.geyser.configuration.GeyserPluginConfig;
 import org.geysermc.geyser.erosion.UnixSocketClientListener;
 import org.geysermc.geyser.event.GeyserEventBus;
@@ -788,10 +790,14 @@ public class GeyserImpl implements GeyserApi, EventRegistrar {
         return bootstrap.getConfigFolder();
     }
 
+    public GeyserConfigDirectory configDir() {
+        return bootstrap.configDirectory();
+    }
+
     @Override
     @NonNull
     public Path packDirectory() {
-        return bootstrap.getConfigFolder().resolve("packs");
+        return configDir().createIfAbsent(GeyserConfigDirectory.PACKS);
     }
 
     @Override

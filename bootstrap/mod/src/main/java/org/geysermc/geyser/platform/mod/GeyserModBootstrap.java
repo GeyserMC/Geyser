@@ -37,6 +37,7 @@ import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.GeyserLogger;
 import org.geysermc.geyser.api.util.PlatformType;
 import org.geysermc.geyser.command.CommandRegistry;
+import org.geysermc.geyser.configuration.GeyserConfigDirectory;
 import org.geysermc.geyser.configuration.GeyserPluginConfig;
 import org.geysermc.geyser.dump.BootstrapDumpInfo;
 import org.geysermc.geyser.level.WorldManager;
@@ -61,6 +62,7 @@ public abstract class GeyserModBootstrap implements GeyserBootstrap {
     @Getter
     private GeyserImpl geyser;
     private Path dataFolder;
+    private GeyserConfigDirectory configDirectory;
 
     @Setter @Getter
     private MinecraftServer server;
@@ -77,6 +79,7 @@ public abstract class GeyserModBootstrap implements GeyserBootstrap {
     public void onGeyserInitialize() {
         instance = this;
         dataFolder = this.platform.dataFolder(this.platform.configPath());
+        configDirectory = new GeyserConfigDirectory(dataFolder);
         GeyserLocale.init(this);
         geyserConfig = loadConfig(GeyserPluginConfig.class);
         if (geyserConfig == null) {
@@ -173,6 +176,11 @@ public abstract class GeyserModBootstrap implements GeyserBootstrap {
     @Override
     public Path getConfigFolder() {
         return dataFolder;
+    }
+
+    @Override
+    public GeyserConfigDirectory configDirectory() {
+        return configDirectory;
     }
 
     @Override

@@ -35,6 +35,7 @@ import org.geysermc.geyser.api.pack.PathPackCodec;
 import org.geysermc.geyser.api.pack.ResourcePack;
 import org.geysermc.geyser.api.pack.ResourcePackManifest;
 import org.geysermc.geyser.api.pack.UrlPackCodec;
+import org.geysermc.geyser.configuration.GeyserConfigDirectory;
 import org.geysermc.geyser.event.type.GeyserDefineResourcePacksEventImpl;
 import org.geysermc.geyser.pack.GeyserResourcePack;
 import org.geysermc.geyser.pack.GeyserResourcePackManifest;
@@ -92,14 +93,6 @@ public class ResourcePackLoader implements RegistryLoader<Path, Map<UUID, Resour
     @Override
     public Map<UUID, ResourcePackHolder> load(Path directory) {
         Map<UUID, ResourcePackHolder> packMap = new Object2ObjectOpenHashMap<>();
-
-        if (!Files.exists(directory)) {
-            try {
-                Files.createDirectory(directory);
-            } catch (IOException e) {
-                GeyserImpl.getInstance().getLogger().error("Could not create packs directory", e);
-            }
-        }
 
         List<Path> resourcePacks;
         try (Stream<Path> stream = Files.list(directory)) {
@@ -227,16 +220,7 @@ public class ResourcePackLoader implements RegistryLoader<Path, Map<UUID, Resour
     private void loadRemotePacks(GeyserDefineResourcePacksEventImpl event) {
         GeyserImpl instance = GeyserImpl.getInstance();
         // Unable to make this a static variable, as the test would fail
-        final Path cachedDirectory = instance.getBootstrap().getConfigFolder().resolve("cache").resolve("remote_packs");
-
-        if (!Files.exists(cachedDirectory)) {
-            try {
-                Files.createDirectories(cachedDirectory);
-            } catch (IOException e) {
-                instance.getLogger().error("Could not create remote pack cache directory", e);
-                return;
-            }
-        }
+        instance.configDir().createIfAbsent(GeyserConfigDirectory.CACHE_REMOTE_PACKS);
 
         List<String> remotePackUrls = instance.config().advanced().resourcePackUrls();
         for (String url : remotePackUrls) {
@@ -322,7 +306,7 @@ public class ResourcePackLoader implements RegistryLoader<Path, Map<UUID, Resour
     }
 
     public static void cleanupRemotePacks() {
-        File cacheFolder = GeyserImpl.getInstance().getBootstrap().getConfigFolder().resolve("cache").resolve("remote_packs").toFile();
+        File cacheFolder = GeyserImpl.getInstance().configDir().resolve(GeyserConfigDirectory.CACHE_REMOTE_PACKS).toFile();
         if (!cacheFolder.exists()) {
             return;
         }

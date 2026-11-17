@@ -109,14 +109,14 @@ public interface GeyserApi extends GeyserApiBase {
     BedrockListener bedrockListener();
 
     /**
-     * Gets the {@link Path} to the Geyser config directory.
+     * Gets the {@link Path} to the Geyser config directory. It will always exist as a directory.
      *
      * @return the path to the Geyser config directory
      */
     Path configDirectory();
 
     /**
-     * Gets the {@link Path} to the Geyser packs directory.
+     * Gets the {@link Path} to the Geyser packs directory. It will always exist as a directory.
      *
      * @return the path to the Geyser packs directory
      */

@@ -29,13 +29,13 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.configuration.GeyserConfigDirectory;
 import org.geysermc.geyser.util.AssetUtils;
 import org.geysermc.geyser.util.FileUtils;
 import org.geysermc.geyser.util.JsonUtils;
 import org.geysermc.geyser.util.WebUtils;
 
 import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -56,18 +56,12 @@ public class MinecraftLocale {
     // Check instance availability to avoid exception during testing
     private static final boolean IN_INSTANCE = GeyserImpl.getInstance() != null;
 
-    private static final Path LOCALE_FOLDER = (IN_INSTANCE) ? GeyserImpl.getInstance().getBootstrap().getConfigFolder().resolve("locales") : null;
+    private static final Path LOCALE_FOLDER = (IN_INSTANCE) ? GeyserImpl.getInstance().configDir().createIfAbsent(GeyserConfigDirectory.LOCALES) : null;
     private static final Path DEPRECATED = LOCALE_FOLDER == null ? null : getPath("deprecated");
 
     static {
         if (IN_INSTANCE) {
-            try {
-                // Create the locales folder
-                Files.createDirectories(LOCALE_FOLDER);
-                Files.createDirectories(LOCALE_FOLDER.resolve("overrides"));
-            } catch (IOException exception) {
-                throw new RuntimeException("Unable to create locale folders! " + exception.getMessage());
-            }
+            GeyserImpl.getInstance().configDir().createIfAbsent(GeyserConfigDirectory.LOCALES_OVERRIDES);
         }
     }
 

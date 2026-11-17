@@ -55,6 +55,7 @@ import org.geysermc.geyser.api.event.EventRegistrar;
 import org.geysermc.geyser.api.event.bedrock.SessionJoinEvent;
 import org.geysermc.geyser.api.network.BedrockListener;
 import org.geysermc.geyser.configuration.GeyserConfig;
+import org.geysermc.geyser.configuration.GeyserConfigDirectory;
 import org.geysermc.geyser.configuration.GeyserPluginConfig;
 import org.geysermc.geyser.event.type.SessionDisconnectEventImpl;
 import org.geysermc.geyser.network.BedrockPingHandler;
@@ -170,7 +171,7 @@ public final class NetherNetServer implements EventRegistrar {
         this.config = bedrock.signaling();
         this.webrtcPort = bedrock.webrtcPort() == 0 ? bedrock.port() : bedrock.webrtcPort();
         this.signalingPort = config.port();
-        this.dataFolder = geyser.getBootstrap().getConfigFolder().resolve("nethernet");
+        this.dataFolder = geyser.configDir().createIfAbsent(GeyserConfigDirectory.NETHERNET);
         this.pingResponder = new BedrockPingHandler(geyser);
     }
 
@@ -218,13 +219,6 @@ public final class NetherNetServer implements EventRegistrar {
 
         // Before either side starts, so their logs follow it from the first line
         applyLogLevel();
-
-        try {
-            Files.createDirectories(dataFolder);
-        } catch (IOException e) {
-            logger().error("NetherNet will not start! Could not create its data folder at " + dataFolder + ".", e);
-            return;
-        }
 
         geyser.eventBus().subscribe(this, SessionJoinEvent.class, this::onSessionJoin);
         geyser.eventBus().subscribe(this, SessionDisconnectEventImpl.class, event -> refreshProviderStatus());

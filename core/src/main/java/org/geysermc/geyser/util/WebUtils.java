@@ -32,6 +32,7 @@ import com.google.gson.stream.JsonReader;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.GeyserLogger;
+import org.geysermc.geyser.configuration.GeyserConfigDirectory;
 
 import javax.naming.directory.Attribute;
 import javax.naming.directory.InitialDirContext;
@@ -61,7 +62,7 @@ import java.util.zip.ZipFile;
 
 public class WebUtils {
 
-    private static final Path REMOTE_PACK_CACHE = GeyserImpl.getInstance().getBootstrap().getConfigFolder().resolve("cache").resolve("remote_packs");
+    private static final Path REMOTE_PACK_CACHE = GeyserImpl.getInstance().configDir().createIfAbsent(GeyserConfigDirectory.CACHE_REMOTE_PACKS);
 
     /**
      * Makes a web request to the given URL and returns the body as a string
@@ -167,9 +168,6 @@ public class WebUtils {
                 throw new IllegalArgumentException(String.format("Url %s tries to provide a resource pack using the %s content type, which is not supported by Bedrock edition! " +
                     "Bedrock Edition only supports the application/zip content type.", url, type));
             }
-
-            // Ensure remote pack cache dir exists
-            Files.createDirectories(REMOTE_PACK_CACHE);
 
             Path packMetadata = REMOTE_PACK_CACHE.resolve(url.hashCode() + ".metadata");
             Path downloadLocation;
