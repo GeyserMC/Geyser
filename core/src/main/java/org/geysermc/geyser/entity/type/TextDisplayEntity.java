@@ -308,7 +308,8 @@ public class TextDisplayEntity extends DisplayBaseEntity {
             text.setAttachedToEntityId(geyserId);
         }
         text.setUseRotation(!getBillboard().equals(Billboard.CENTER));
-        text.setMaximumRenderDistance(getViewDistance());
+        // Java's view range is a multiplier of 64 blocks, Bedrock wants the distance itself
+        text.setMaximumRenderDistance(getViewDistance() < 0 ? getViewDistance() : getViewDistance() * 64);
         text.setBackgroundColor(backgroundColor);
         text.setDepthTest(!seeThrough);
         text.setDimension(session.getBedrockDimension().bedrockId());
