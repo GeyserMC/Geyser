@@ -292,12 +292,14 @@ public class TextDisplayEntity extends DisplayBaseEntity {
         DebugText text = new DebugText();
         applyTransformation(text);
         text.setId(geyserId);
+        // Text opacity still has to apply when the colors come from legacy codes, -1 is the fully opaque default
+        Color baseColor = color == null && textOpacity != -1 ? Color.WHITE : color;
         text.setColor(
-            color == null ? null :
+            baseColor == null ? null :
                 new Color(
-                    color.getRed(),
-                    color.getGreen(),
-                    color.getBlue(),
+                    baseColor.getRed(),
+                    baseColor.getGreen(),
+                    baseColor.getBlue(),
                     textOpacity < 0 ? (textOpacity + 256) : textOpacity
                 )
         );
