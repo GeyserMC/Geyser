@@ -77,19 +77,19 @@ public interface CustomBiomePrecipitation {
      */
     enum Type {
         /**
-         * Ash particles, used by the vanilla soul sand valley
+         * Ash particles, used by the vanilla soul sand valley.
          */
         ASH,
         /**
-         * White ash particles, used by the vanilla basalt deltas
+         * White ash particles, used by the vanilla basalt deltas.
          */
         WHITE_ASH,
         /**
-         * Red spore particles, used by the vanilla crimson forest
+         * Red spore particles, used by the vanilla crimson forest.
          */
         RED_SPORES,
         /**
-         * Blue spore particles, used by the vanilla warped forest
+         * Blue spore particles, used by the vanilla warped forest.
          */
         BLUE_SPORES
     }

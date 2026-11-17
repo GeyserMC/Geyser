@@ -211,8 +211,8 @@ public class CustomBiomeResourcePackManager {
 
     /**
      * The client resolves fog per setting type, so only the blocks a value was supplied for
-     * are emitted, and each emitted block is complete: members the caller didn't set are
-     * filled in from the vanilla Bedrock default fog.
+     * are emitted, and each emitted block is complete: a water fog value the caller didn't
+     * set takes Java's default, as it would in a data pack.
      */
     private static String fogJson(CustomBiomeAppearance appearance, String assetKey) {
         JsonObject distance = new JsonObject();
@@ -234,10 +234,10 @@ public class CustomBiomeResourcePackManager {
             distance.add("weather", weather);
         }
         if (appearance.waterFogColor() != null || appearance.waterFogEndDistance() != null) {
-            String waterColor = appearance.waterFogColor() != null ? hex(appearance.waterFogColor()) : "#44AFF5";
+            String waterColor = appearance.waterFogColor() != null ? hex(appearance.waterFogColor()) : "#050533";
             JsonObject water = new JsonObject();
             water.addProperty("fog_start", 0.0);
-            water.addProperty("fog_end", appearance.waterFogEndDistance() != null ? appearance.waterFogEndDistance() : 60.0);
+            water.addProperty("fog_end", appearance.waterFogEndDistance() != null ? appearance.waterFogEndDistance() : 96.0);
             water.addProperty("fog_color", waterColor);
             water.addProperty("render_distance_type", "fixed");
             water.add("transition_fog", transitionFog(waterColor));

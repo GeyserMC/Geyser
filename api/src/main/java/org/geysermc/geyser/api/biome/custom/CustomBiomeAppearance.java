@@ -37,9 +37,7 @@ import java.awt.Color;
  * The visual appearance of a custom biome, delivered to Bedrock clients through a
  * generated resource pack. All values are optional, and at least one value must be set.
  *
- * <p>The alpha component of colors is ignored. When only one of the two water fog values
- * is set, the other is completed from the vanilla Bedrock default fog ({@code #44AFF5},
- * fully opaque at 60 blocks).</p>
+ * <p>The alpha component of colors is ignored.</p>
  *
  * @since 2.13.0
  */
@@ -86,9 +84,10 @@ public interface CustomBiomeAppearance {
     @Nullable Float waterSurfaceOpacity();
 
     /**
-     * The color of the fog seen underwater, or null when not set. The Vibrant Visuals
-     * renderer does not apply it to the underwater haze as of Bedrock 1.26.63, though
-     * nearby submerged surfaces still pick up the tint.
+     * The color of the fog seen underwater, or null when not set. When only
+     * {@link #waterFogEndDistance()} is set, Java's default color {@code #050533} is used.
+     * The Vibrant Visuals renderer does not apply it to the underwater haze as of Bedrock
+     * 1.26.63, though nearby submerged surfaces still pick up the tint.
      *
      * @return the underwater fog color
      * @since 2.13.0
@@ -97,7 +96,8 @@ public interface CustomBiomeAppearance {
 
     /**
      * The distance, in blocks, at which the underwater fog is fully opaque, or null when
-     * not set.
+     * not set. When only {@link #waterFogColor()} is set, Java's default distance of 96
+     * blocks is used.
      *
      * @return the underwater fog end distance
      * @since 2.13.0
@@ -148,6 +148,7 @@ public interface CustomBiomeAppearance {
 
     /**
      * The builder for a custom biome appearance.
+     *
      * @since 2.13.0
      */
     interface Builder extends GenericBuilder<CustomBiomeAppearance> {

@@ -122,6 +122,8 @@ public class CustomBiomeDefinitionTest {
                     .putString("argument", "#ffffff")
                     .build())
                 .putFloat("minecraft:visual/water_fog_end_distance", 24.0F)
+                // Java reads a name without a namespace as a minecraft one
+                .putString("visual/water_fog_color", "#050533")
                 .build())
             .build();
 
@@ -132,6 +134,7 @@ public class CustomBiomeDefinitionTest {
         assertEquals(new Color(0x78a7ff), appearance.skyColor());
         assertNull(appearance.fogColor());
         assertEquals(24.0F, appearance.waterFogEndDistance());
+        assertEquals(new Color(0x050533), appearance.waterFogColor());
 
         assertNull(GeyserCustomBiomeAppearance.fromJavaBiome(NbtMap.EMPTY));
     }

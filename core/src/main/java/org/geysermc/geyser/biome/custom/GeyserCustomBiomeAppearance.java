@@ -31,9 +31,11 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.nbt.NbtMap;
 import org.geysermc.geyser.api.biome.custom.CustomBiomeAppearance;
 import org.geysermc.geyser.api.biome.custom.CustomBiomePrecipitation;
+import org.geysermc.geyser.api.util.Identifier;
 
 import java.awt.Color;
 import java.util.Objects;
+import java.util.function.Predicate;
 
 @EqualsAndHashCode
 @ToString
@@ -83,15 +85,33 @@ public final class GeyserCustomBiomeAppearance implements CustomBiomeAppearance 
         builder.dryFoliageColor = color(effects.get("dry_foliage_color"));
 
         NbtMap attributes = data.getCompound("attributes");
-        builder.skyColor = color(attributes.get("minecraft:visual/sky_color"));
-        builder.fogColor = color(attributes.get("minecraft:visual/fog_color"));
-        builder.waterFogColor = color(attributes.get("minecraft:visual/water_fog_color"));
-        if (attributes.get("minecraft:visual/water_fog_end_distance") instanceof Number distance
+        builder.skyColor = color(attribute(attributes, "visual/sky_color"));
+        builder.fogColor = color(attribute(attributes, "visual/fog_color"));
+        builder.waterFogColor = color(attribute(attributes, "visual/water_fog_color"));
+        if (attribute(attributes, "visual/water_fog_end_distance") instanceof Number distance
                 && Float.isFinite(distance.floatValue()) && distance.floatValue() >= 0.0F) {
             builder.waterFogEndDistance = distance.floatValue();
         }
 
         return builder.isEmpty() ? null : builder.build();
+    }
+
+    /**
+     * The key an environment attribute is stored under, or null when it isn't set. Like Java,
+     * a name without a namespace is read as a minecraft one; the full name wins when both
+     * are present.
+     */
+    public static @Nullable String attributeKey(Predicate<String> contains, String path) {
+        String key = Identifier.DEFAULT_NAMESPACE + ":" + path;
+        if (contains.test(key)) {
+            return key;
+        }
+        return contains.test(path) ? path : null;
+    }
+
+    private static @Nullable Object attribute(NbtMap attributes, String path) {
+        String key = attributeKey(attributes::containsKey, path);
+        return key == null ? null : attributes.get(key);
     }
 
     // Java sends colors as #rrggbb strings

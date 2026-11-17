@@ -33,6 +33,7 @@ import org.geysermc.geyser.api.biome.custom.CustomBiomeDefinition;
 import org.geysermc.geyser.api.biome.custom.CustomBiomeDefinitionRegisterException;
 import org.geysermc.geyser.api.biome.custom.CustomBiomePrecipitation;
 import org.geysermc.geyser.api.util.Identifier;
+import org.geysermc.geyser.biome.custom.GeyserCustomBiomeAppearance;
 import org.geysermc.geyser.biome.custom.GeyserCustomBiomeDefinition;
 import org.geysermc.geyser.item.exception.InvalidCustomMappingsFileException;
 import org.geysermc.geyser.registry.mappings.MappingsReader;
@@ -108,10 +109,10 @@ public class BiomeMappingsReader_v1 implements MappingsReader<Identifier, Custom
             set |= readValue(effects, "dry_foliage_color", builder::dryFoliageColor, NodeReader.COLOR, context);
         }
         if (attributes != null) {
-            set |= readAttribute(attributes, "minecraft:visual/sky_color", builder::skyColor, NodeReader.COLOR, context);
-            set |= readAttribute(attributes, "minecraft:visual/fog_color", builder::fogColor, NodeReader.COLOR, context);
-            set |= readAttribute(attributes, "minecraft:visual/water_fog_color", builder::waterFogColor, NodeReader.COLOR, context);
-            set |= readAttribute(attributes, "minecraft:visual/water_fog_end_distance", builder::waterFogEndDistance, NodeReader.FLOAT, context);
+            set |= readAttribute(attributes, "visual/sky_color", builder::skyColor, NodeReader.COLOR, context);
+            set |= readAttribute(attributes, "visual/fog_color", builder::fogColor, NodeReader.COLOR, context);
+            set |= readAttribute(attributes, "visual/water_fog_color", builder::waterFogColor, NodeReader.COLOR, context);
+            set |= readAttribute(attributes, "visual/water_fog_end_distance", builder::waterFogEndDistance, NodeReader.FLOAT, context);
         }
 
         // The geyser values are read last, so they override the Java-shaped ones
@@ -141,8 +142,9 @@ public class BiomeMappingsReader_v1 implements MappingsReader<Identifier, Custom
      * Object-form attribute modifiers have no fixed result to translate, so they are
      * skipped rather than failing the biome.
      */
-    private <T> boolean readAttribute(JsonObject object, String key, Consumer<T> consumer, NodeReader<T> reader, String... context) throws InvalidCustomMappingsFileException {
-        if (object.get(key) instanceof JsonObject) {
+    private <T> boolean readAttribute(JsonObject object, String path, Consumer<T> consumer, NodeReader<T> reader, String... context) throws InvalidCustomMappingsFileException {
+        String key = GeyserCustomBiomeAppearance.attributeKey(object::has, path);
+        if (key == null || object.get(key) instanceof JsonObject) {
             return false;
         }
         return readValue(object, key, consumer, reader, context);

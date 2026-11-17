@@ -119,6 +119,8 @@ public class CustomBiomesLoaderTest {
         assertTrue(digest.bedrockIdentifier().path().startsWith("auto_"));
         // The geyser block still applies when it names no identifier
         assertEquals(Set.of("overworld"), digest.tags());
+        // Like Java, an attribute name without a namespace is a minecraft one
+        assertEquals(new Color(0x123456), Objects.requireNonNull(digest.appearance()).skyColor());
 
         CustomBiomeDefinition caves = biomes.get(Identifier.of("my_datapack:cave/crystal_caves"));
         assertNotNull(caves);

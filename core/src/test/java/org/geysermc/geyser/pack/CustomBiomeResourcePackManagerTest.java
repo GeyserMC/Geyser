@@ -147,14 +147,14 @@ public class CustomBiomeResourcePackManagerTest {
     }
 
     @Test
-    void fogBlocksAreCompletedFromVanillaDefaults() {
+    void fogBlocksAreCompletedFromJavaDefaults() {
         GeyserMockContext.mockContext(context -> {
             setup(context);
             catalogue(Map.of(
                 "test:java_end_only", definitionWithAppearance("test:end_only",
                     CustomBiomeAppearance.builder().waterFogEndDistance(12.0F)),
                 "test:java_color_only", definitionWithAppearance("test:color_only",
-                    CustomBiomeAppearance.builder().waterFogColor(new Color(0x050533))),
+                    CustomBiomeAppearance.builder().waterFogColor(new Color(0x2e8b57))),
                 "test:java_air_only", definitionWithAppearance("test:air_only",
                     CustomBiomeAppearance.builder().fogColor(new Color(0x808080)))));
 
@@ -176,8 +176,8 @@ public class CustomBiomeResourcePackManagerTest {
                     continue;
                 }
                 boolean endOnly = water.get("fog_end").getAsFloat() == 12.0F;
-                assertEquals(endOnly ? "#44AFF5" : "#050533", water.get("fog_color").getAsString());
-                assertEquals(endOnly ? 12.0F : 60.0F, water.get("fog_end").getAsFloat());
+                assertEquals(endOnly ? "#050533" : "#2E8B57", water.get("fog_color").getAsString());
+                assertEquals(endOnly ? 12.0F : 96.0F, water.get("fog_end").getAsFloat());
                 // The entry transition uses the block's own color and the vanilla timing
                 JsonObject transition = water.getAsJsonObject("transition_fog");
                 assertEquals(water.get("fog_color").getAsString(),

@@ -87,7 +87,8 @@ public interface CustomBiomeDefinition {
     /**
      * Creates a builder for a custom biome definition.
      *
-     * @param bedrockIdentifier the Bedrock identifier of the biome
+     * @param bedrockIdentifier the Bedrock identifier of the biome, following the rules
+     * described in {@link #bedrockIdentifier()}
      * @return a new definition builder
      * @throws IllegalArgumentException when the identifier is invalid
      * @since 2.13.0
@@ -99,8 +100,9 @@ public interface CustomBiomeDefinition {
     /**
      * Creates a builder for the definition of a Java biome, deriving the Bedrock identifier
      * from the Java identifier. A Java identifier that is also a valid custom Bedrock
-     * identifier is used as it is; any other gets an identifier with the reserved
-     * {@code geyser:auto_} prefix.
+     * identifier is used as it is. Any other is replaced by the reserved {@code geyser:auto_}
+     * prefix followed by the first 32 hexadecimal digits of the SHA-256 hash of the full Java
+     * identifier.
      *
      * @param javaIdentifier the identifier of the Java biome the definition is for
      * @return a new definition builder
@@ -112,6 +114,7 @@ public interface CustomBiomeDefinition {
 
     /**
      * The builder for a custom biome definition.
+     *
      * @since 2.13.0
      */
     interface Builder extends GenericBuilder<CustomBiomeDefinition> {
