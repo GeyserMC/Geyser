@@ -130,6 +130,7 @@ public class FormCache {
 
             //a delay is needed here, otherwise the dialogue wont open
             session.scheduleInEventLoop(() -> {
+                session.sendAdventureSettings();
                 session.sendUpstreamPacket(npcDialoguePacket);
             }, 200, TimeUnit.MILLISECONDS);
         } else {
