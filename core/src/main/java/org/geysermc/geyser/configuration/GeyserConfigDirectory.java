@@ -34,6 +34,7 @@ public record GeyserConfigDirectory(Path root) {
     public static final Path CACHE = Path.of("cache");
     public static final Path CACHE_DEFAULT_PLAYER_SKINS_SLIM = Path.of("cache/default_player_skins/slim");
     public static final Path CACHE_DEFAULT_PLAYER_SKINS_WIDE = Path.of("cache/default_player_skins/wide");
+    public static final Path CACHE_GEYSER_PACKS = Path.of("cache/geyser_packs");
     public static final Path CACHE_IMAGES = Path.of("cache/images");
     public static final Path CACHE_PLAYER_SKULLS = Path.of("cache/player_skulls");
     public static final Path CACHE_REMOTE_PACKS = Path.of("cache/remote_packs");

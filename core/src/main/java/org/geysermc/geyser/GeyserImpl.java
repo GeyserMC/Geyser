@@ -314,6 +314,8 @@ public class GeyserImpl implements GeyserApi, EventRegistrar {
 
         SkinProvider.registerCacheImageTask(this);
 
+        Registries.GEYSER_ASSET_PACKS.load();
+        System.out.println(Registries.GEYSER_ASSET_PACKS.get());
         Registries.RESOURCE_PACKS.load();
         Registries.WAYPOINT_STYLE_MAPPINGS.load();
 
@@ -699,6 +701,7 @@ public class GeyserImpl implements GeyserApi, EventRegistrar {
             legacyPingPassthrough.shutdown();
         }
 
+        Registries.GEYSER_ASSET_PACKS.get().clear();
         ResourcePackLoader.clear();
         if (Registries.WAYPOINT_STYLE_MAPPINGS.loaded()) {
             Registries.WAYPOINT_STYLE_MAPPINGS.get().clear();

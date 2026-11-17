@@ -43,6 +43,7 @@ import org.geysermc.geyser.level.BedrockMapIcon;
 import org.geysermc.geyser.level.gamerule.GameRule;
 import org.geysermc.geyser.level.gamerule.GameRules;
 import org.geysermc.geyser.pack.ResourcePackHolder;
+import org.geysermc.geyser.pack.geyser.GeyserAssetPack;
 import org.geysermc.geyser.registry.java.BuiltInJavaRegistries;
 import org.geysermc.geyser.registry.loader.BiomeIdentifierRegistryLoader;
 import org.geysermc.geyser.registry.loader.BlockEntityRegistryLoader;
@@ -156,6 +157,8 @@ public final class Registries {
      * data primarily for how Bedrock should handle the particle.
      */
     public static final SimpleMappedDeferredRegistry<ParticleType, ParticleMapping> PARTICLES = SimpleMappedDeferredRegistry.create("mappings/particles.json", ParticleTypesRegistryLoader::new);
+
+    public static final ListDeferredRegistry<GeyserAssetPack> GEYSER_ASSET_PACKS = ListDeferredRegistry.createFromLazyInput(GeyserImpl::getInstance, GeyserAssetPack::load);
 
     /**
      * A mapped registry holding {@link ResourcePackHolder}'s with the pack uuid as keys.

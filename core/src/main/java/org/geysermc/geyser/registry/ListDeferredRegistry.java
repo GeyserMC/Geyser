@@ -172,4 +172,8 @@ public class ListDeferredRegistry<V> extends DeferredRegistry<List<V>, ListRegis
     public static <I, V> ListDeferredRegistry<V> create(I input, Supplier<RegistryLoader<I, List<V>>> deferredLoader) {
         return create(input, ListRegistry::create, deferredLoader);
     }
+
+    public static <I, V> ListDeferredRegistry<V> createFromLazyInput(Supplier<I> input, RegistryLoader<I, List<V>> deferredLoader) {
+        return create(null, ListRegistry::create, $ -> deferredLoader.load(input.get()));
+    }
 }
