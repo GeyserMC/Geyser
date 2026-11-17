@@ -28,7 +28,6 @@ package org.geysermc.geyser.entity.type;
 import lombok.Getter;
 import net.kyori.adventure.text.Component;
 import org.checkerframework.checker.nullness.qual.NonNull;
-import org.cloudburstmc.math.imaginary.Quaternionf;
 import org.cloudburstmc.math.matrix.Matrix4f;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.math.vector.Vector4f;
@@ -156,27 +155,6 @@ public class TextDisplayEntity extends DisplayBaseEntity {
         // no-op
     }
 
-    @Override
-    public void setScale(EntityMetadata<Vector3f, ?> translationMeta) {
-        super.setScale(translationMeta);
-
-        updatePrimitiveText();
-    }
-
-    @Override
-    public void setLeftRotation(EntityMetadata<Quaternionf, ?> metadata) {
-        super.setLeftRotation(metadata);
-
-        updatePrimitiveText();
-    }
-
-    @Override
-    public void setRightRotation(EntityMetadata<Quaternionf, ?> metadata) {
-        super.setRightRotation(metadata);
-
-        updatePrimitiveText();
-    }
-
     public void setTextMetadata(EntityMetadata<Component, ?> metadata) {
         Component text = metadata.getValue();
 
@@ -196,7 +174,6 @@ public class TextDisplayEntity extends DisplayBaseEntity {
         this.color = color;
 
         processText();
-        updatePrimitiveText();
     }
 
     public void setLineWidth(IntEntityMetadata metadata) {
@@ -213,14 +190,10 @@ public class TextDisplayEntity extends DisplayBaseEntity {
         int b = value & 0xFF;
 
         this.backgroundColor = new Color(r, g, b, a);
-
-        updatePrimitiveText();
     }
 
     public void setTextOpacity(ByteEntityMetadata metadata) {
         this.textOpacity = metadata.getPrimitiveValue();
-
-        updatePrimitiveText();
     }
 
     public void setStyleFlags(ByteEntityMetadata metadata) {
@@ -229,8 +202,6 @@ public class TextDisplayEntity extends DisplayBaseEntity {
         this.defaultBackground = (flags & 0x01) == 1;
         this.shadow = ((flags >> 1) & 0x01) == 1;
         this.seeThrough = ((flags >> 2) & 0x01) == 1;
-
-        updatePrimitiveText();
     }
 
     private void processText() {
@@ -296,6 +267,9 @@ public class TextDisplayEntity extends DisplayBaseEntity {
                 secondEntity.updateBedrockMetadata();
             }
         }
+
+        // Metadata setters only store their values, so a whole metadata packet results in a single shape update
+        updatePrimitiveText();
     }
 
     @Override
