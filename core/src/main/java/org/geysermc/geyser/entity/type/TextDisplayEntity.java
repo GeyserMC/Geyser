@@ -27,6 +27,7 @@ package org.geysermc.geyser.entity.type;
 
 import lombok.Getter;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.TextComponent;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.cloudburstmc.math.matrix.Matrix4f;
 import org.cloudburstmc.math.vector.Vector3f;
@@ -163,7 +164,8 @@ public class TextDisplayEntity extends DisplayBaseEntity {
 
         Set<Color> colors = ColorUtils.extractAllColors(text);
 
-        if (colors.size() < 2) {
+        // Only tint the whole text when every part has the color, otherwise uncolored parts would get it too
+        if (colors.isEmpty() || (colors.size() == 1 && isFullyColored(text, false))) {
             message = MessageTranslator.convertNoColorMessage(text, session.locale());
             color = colors.isEmpty() ? null : colors.iterator().next();
         } else {
@@ -174,6 +176,21 @@ public class TextDisplayEntity extends DisplayBaseEntity {
         this.color = color;
 
         processText();
+    }
+
+    private static boolean isFullyColored(Component component, boolean inheritedColor) {
+        boolean colored = inheritedColor || component.color() != null;
+        if (!colored) {
+            if (!(component instanceof TextComponent textComponent) || !textComponent.content().isEmpty()) {
+                return false;
+            }
+        }
+        for (Component child : component.children()) {
+            if (!isFullyColored(child, colored)) {
+                return false;
+            }
+        }
+        return true;
     }
 
     public void setLineWidth(IntEntityMetadata metadata) {
