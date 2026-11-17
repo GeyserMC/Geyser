@@ -350,9 +350,11 @@ public class TextDisplayEntity extends DisplayBaseEntity {
         float sy = (float) Math.sqrt(m01*m01 + m11*m11 + m21*m21);
         float sz = (float) Math.sqrt(m02*m02 + m12*m12 + m22*m22);
 
-        float r00 = m00 / sx, r10 = m10 / sx, r20 = m20 / sx;
-        float r01 = m01 / sy, r11 = m11 / sy, r21 = m21 / sy;
-        float r02 = m02 / sz, r12 = m12 / sz, r22 = m22 / sz;
+        // A zero scale (often used to hide a display) would divide by zero and send NaN rotations to the client
+        float ix = sx == 0 ? 0 : 1 / sx, iy = sy == 0 ? 0 : 1 / sy, iz = sz == 0 ? 0 : 1 / sz;
+        float r00 = m00 * ix, r10 = m10 * ix, r20 = m20 * ix;
+        float r01 = m01 * iy, r11 = m11 * iy, r21 = m21 * iy;
+        float r02 = m02 * iz, r12 = m12 * iz, r22 = m22 * iz;
 
         float x = (float) Math.atan2(r21, r22);
         float y = (float) Math.atan2(-r20, Math.hypot(r00, r10));
@@ -369,7 +371,7 @@ public class TextDisplayEntity extends DisplayBaseEntity {
         translation = translation.add(anchor.getX(), anchor.getY(), anchor.getZ());
 
         // Bedrock moves the text up by half of an unscaled line for every extra line, so undo that along the text's up axis
-        if (lines > 1) {
+        if (lines > 1 && sy != 0) {
             Vector4f up = transform.transform(0, 1, 0, 0).normalize().mul(BEDROCK_LINE_HEIGHT * (lines - 1) / 2);
             translation = translation.sub(up.getX(), up.getY(), up.getZ());
         }
