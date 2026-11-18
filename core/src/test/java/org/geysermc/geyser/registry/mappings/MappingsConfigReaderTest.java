@@ -28,6 +28,8 @@ package org.geysermc.geyser.registry.mappings;
 import org.geysermc.geyser.GeyserBootstrap;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.event.lifecycle.GeyserDefineCustomSkullsEvent;
+import org.geysermc.geyser.configuration.GeyserConfigDirectory;
+import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.scoreboard.network.util.GeyserMockContext;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -78,10 +80,15 @@ public class MappingsConfigReaderTest {
         Map<GeyserDefineCustomSkullsEvent.SkullTextureType, List<String>> map = new EnumMap<>(GeyserDefineCustomSkullsEvent.SkullTextureType.class);
 
         GeyserMockContext.mockContext(context -> {
+            when(GeyserImpl.getInstance().configDir()).thenReturn(new GeyserConfigDirectory(configFolder));
+
             GeyserBootstrap bootstrap = context.mock(GeyserBootstrap.class);
             when(bootstrap.getConfigFolder()).thenReturn(configFolder);
+            when(bootstrap.configDirectory()).thenReturn(new GeyserConfigDirectory(configFolder));
             when(context.mockOrSpy(GeyserImpl.class).getBootstrap()).thenReturn(bootstrap);
 
+            // Required to read mappings - I don't like it because it's a global state, but fixing that requires a "little" more work
+            Registries.GEYSER_ASSET_PACKS.load();
             MappingsConfigReader.loadCustomMappingsFromJson(MappingsType.SKULLS, map::put);
         });
 
