@@ -611,32 +611,34 @@ public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommands
             String name = context.getServerSuggestionsName(paramID, node, typed);
             String text = typed + " ";
             Set<String> values = cache.suggestions(text);
-            if (values.isEmpty()) {
+            boolean players = cache.onlyPlayers(values);
+            Set<String> keywords = lowerCaseOnly(values);
+            if (!players && keywords.isEmpty()) {
                 return false;
             }
-            boolean players = cache.onlyPlayers(values);
             // Bedrock does not complete player names for an optional target
             children.add(new ParamInfo(node, serverParam(node.getName(), !players && this.paramNode.isExecutable(),
-                players ? CommandParam.TARGET : serverEnum(name, values)), null));
+                players ? CommandParam.TARGET : serverEnum(name, keywords)), null));
             if (players || node.getChildIndices().length > 0) {
                 return true;
             }
 
             // Values followed by a player share one overload
             Set<String> beforePlayer = new LinkedHashSet<>();
-            for (String value : values) {
+            for (String value : keywords) {
                 Set<String> next = cache.suggestionsAfter(text, value);
-                if (next.isEmpty()) {
-                    continue;
-                }
                 if (cache.onlyPlayers(next)) {
                     beforePlayer.add(value);
+                    continue;
+                }
+                Set<String> nextKeywords = lowerCaseOnly(next);
+                if (nextKeywords.isEmpty()) {
                     continue;
                 }
                 ParamInfo literal = new ParamInfo(node, serverParam(node.getName(), false,
                     serverEnum(context.uniqueServerEnumName(name + "_" + value), Set.of(value))), null);
                 literal.children.add(new ParamInfo(node, serverParam(value, true,
-                    serverEnum(context.uniqueServerEnumName(name + "_" + value + "_args"), next)), null));
+                    serverEnum(context.uniqueServerEnumName(name + "_" + value + "_args"), nextKeywords)), null));
                 children.add(literal);
             }
             if (!beforePlayer.isEmpty()) {
@@ -646,6 +648,20 @@ public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommands
                 children.add(literal);
             }
             return true;
+        }
+
+        /**
+         * Bedrock refuses enum values with upper case letters ("Keywords in commands need to be lower case"), and
+         * lower casing them could send a value the server does not accept, so they are left out.
+         */
+        private static Set<String> lowerCaseOnly(Set<String> values) {
+            Set<String> keywords = new LinkedHashSet<>();
+            for (String value : values) {
+                if (value.equals(value.toLowerCase(Locale.ROOT))) {
+                    keywords.add(value);
+                }
+            }
+            return keywords;
         }
 
         private static CommandParamData serverParam(String name, boolean optional, Object type) {
