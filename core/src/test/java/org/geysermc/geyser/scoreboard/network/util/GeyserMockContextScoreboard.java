@@ -32,6 +32,7 @@ import org.cloudburstmc.protocol.bedrock.packet.BedrockPacket;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.entity.VanillaEntities;
 import org.geysermc.geyser.entity.spawn.EntitySpawnContext;
+import org.geysermc.geyser.entity.type.TextDisplayEntity;
 import org.geysermc.geyser.entity.type.living.ArmorStandEntity;
 import org.geysermc.geyser.entity.type.player.PlayerEntity;
 import org.geysermc.geyser.entity.type.player.SessionPlayerEntity;
@@ -117,6 +118,19 @@ public class GeyserMockContextScoreboard {
 
         assertNextPacketType(context, AddEntityPacket.class);
         return armorStand;
+    }
+
+    public static TextDisplayEntity spawnTextDisplay(GeyserMockContext context, long geyserId) {
+        var entitySpawnContext = EntitySpawnContext.DUMMY_CONTEXT.apply(context.session(), UUID.randomUUID(), VanillaEntities.TEXT_DISPLAY);
+        entitySpawnContext.geyserId(geyserId);
+        entitySpawnContext.javaId((int) geyserId);
+        var textDisplay = spy(new TextDisplayEntity(entitySpawnContext));
+
+        var entityCache = context.mockOrSpy(EntityCache.class);
+        entityCache.spawnEntity(textDisplay);
+
+        assertNextPacketType(context, AddEntityPacket.class);
+        return textDisplay;
     }
 
     public static PlayerEntity spawnPlayer(GeyserMockContext context, String username, long geyserId) {

@@ -59,6 +59,7 @@ import static org.geysermc.geyser.scoreboard.network.util.AssertUtils.assertNoNe
 import static org.geysermc.geyser.scoreboard.network.util.GeyserMockContextScoreboard.mockContextScoreboard;
 import static org.geysermc.geyser.scoreboard.network.util.GeyserMockContextScoreboard.spawnArmorStand;
 import static org.geysermc.geyser.scoreboard.network.util.GeyserMockContextScoreboard.spawnPlayerSilently;
+import static org.geysermc.geyser.scoreboard.network.util.GeyserMockContextScoreboard.spawnTextDisplay;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class NameVisibilityScoreboardTest {
@@ -398,6 +399,24 @@ public class NameVisibilityScoreboardTest {
                 packet.getMetadata().put(EntityDataTypes.NAME, "");
                 return packet;
             });
+        });
+    }
+
+    @Test
+    void textDisplayPassengersKeepPlayerName() {
+        mockContextScoreboard(context -> {
+            PlayerEntity player = spawnPlayerSilently(context, "eclipseisoffline", 2L);
+            spawnTextDisplay(context, 3L);
+
+            context.translate(new JavaSetPassengersTranslator(), new ClientboundSetPassengersPacket(2, new int[]{3}));
+            // Passenger/vehicle link
+            assertNextPacketType(context, SetEntityLinkPacket.class);
+            // Passenger metadata
+            assertNextPacketType(context, SetEntityDataPacket.class);
+
+            // Java keeps showing the name when only text displays ride the entity
+            player.updateBedrockMetadata();
+            assertNoNextPacket(context);
         });
     }
 
