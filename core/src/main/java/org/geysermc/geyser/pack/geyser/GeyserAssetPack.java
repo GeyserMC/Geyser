@@ -29,6 +29,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
 import com.google.gson.JsonParser;
+import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.GeyserLogger;
 import org.geysermc.geyser.configuration.GeyserConfigDirectory;
@@ -46,6 +47,7 @@ import java.nio.file.Path;
 import java.nio.file.ProviderNotFoundException;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
@@ -89,17 +91,27 @@ public record GeyserAssetPack(Manifest manifest, Path root) {
         Path cache = configDir.createIfAbsent(GeyserConfigDirectory.CACHE_GEYSER_PACKS);
         Path packsDirectory = configDir.createIfAbsent(GeyserConfigDirectory.PACKS);
 
+        // This used to be a nice one stream statement, but we had to split it up to log stuff :(
+        // Maybe it'll be possible with Java 25's Gatherer system
+
+        Set<Pending> pendingPacks = new ObjectOpenHashSet<>();
         try (Stream<Path> packs = Files.list(packsDirectory)) {
-            return packs.filter(GeyserAssetPack::isGeyserAssetPack) // Iterate over all files in the packs directory, filtering for Geyser packs
+            packs.filter(GeyserAssetPack::isGeyserAssetPack) // Iterate over all files in the packs directory, filtering for Geyser packs
                 .flatMap(pack -> tryLoad(pack, logger)) // Try to load all Geyser packs - read their manifest to get their UUID and version
-                .sorted(Pending.VERSION_COMPARATOR) // Sort the packs by version - highest version first
-                .distinct() // Drop packs with equal UUID, stream is sorted so highest version always wins
-                .flatMap(pending -> pending.extract(cache, logger)) // Now extract the remaining packs into the cache folder
-                .toList(); // Profit
+                .sorted(Pending.COMPARATOR) // Sort the packs by version - highest version first, then compare by path
+                .forEach(pack -> {
+                    if (!pendingPacks.add(pack)) { // Drop packs with equal UUID, stream is sorted so highest version always wins
+                        logger.warning("Ignoring Geyser pack " + pack.source + " as another pack with a higher version is present!");
+                    }
+                });
         } catch (IOException exception) {
             logger.error("Failed to list packs directory when reading Geyser packs!" ,exception);
             return List.of();
         }
+
+        return pendingPacks.stream()
+            .flatMap(pending -> pending.extract(cache, logger)) // Now extract the remaining packs into the cache folder
+            .toList(); // Profit
     }
 
     private static Stream<GeyserAssetPack.Pending> tryLoad(Path pack, GeyserLogger logger) {
@@ -129,7 +141,9 @@ public record GeyserAssetPack(Manifest manifest, Path root) {
     }
 
     private record Pending(Manifest manifest, Path source) {
-        public static final Comparator<Pending> VERSION_COMPARATOR = Comparator.<Pending>comparingInt(pending -> pending.manifest.version).reversed();
+        public static final Comparator<Pending> COMPARATOR = Comparator.<Pending>comparingInt(pending -> pending.manifest.version)
+            .reversed()
+            .thenComparing(Pending::source);
 
         public Stream<GeyserAssetPack> extract(Path cache, GeyserLogger logger) {
             try (FileSystem system = FileSystems.newFileSystem(source)) {
@@ -208,7 +222,7 @@ public record GeyserAssetPack(Manifest manifest, Path root) {
             JsonObject root = readMappingsRootSafely(manifest);
             try {
                 UUID uuid = MappingsUtil.readOrThrow(root, "uuid", NodeReader.UUID, "reading pack manifest");
-                int version = MappingsUtil.readOrThrow(root, "version", NodeReader.NON_NEGATIVE_INT, "reading pack manifest");
+                int version = MappingsUtil.readOrThrow(root, "pack_version", NodeReader.NON_NEGATIVE_INT, "reading pack manifest");
                 return new Manifest(uuid, version);
             } catch (InvalidCustomMappingsFileException exception) {
                 throw new IOException("Malformed manifest: ", exception);
