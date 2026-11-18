@@ -117,6 +117,18 @@ public class ServerSuggestionCacheTest {
     }
 
     @Test
+    void asksUpToFourArguments() {
+        cache.setRequests(Set.of("/a "), () -> resends++);
+        cache.handleResponse(transactionOf("/a "), new String[] {"b"});
+        cache.handleResponse(transactionOf("/a b "), new String[] {"c"});
+        cache.handleResponse(transactionOf("/a b c "), new String[] {"d"});
+        cache.handleResponse(transactionOf("/a b c d "), new String[] {"e"});
+
+        assertEquals(List.of("/a ", "/a b ", "/a b c ", "/a b c d "), sentTexts());
+        assertEquals(Set.of("e"), cache.suggestionsAfter("/a b c ", "d"));
+    }
+
+    @Test
     void aliasesShareTheSecondLevel() {
         cache.setRequests(Set.of("/clan ", "/guild "), () -> resends++);
         cache.handleResponse(transactionOf("/clan "), new String[] {"invite"});

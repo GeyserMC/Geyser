@@ -441,15 +441,23 @@ public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommands
          */
         private String getServerSuggestionsName(int nodeIndex, CommandNode node, String typed) {
             return serverEnumNames.computeIfAbsent(nodeIndex, $ -> {
-                String name = uniqueServerEnumName(typed.substring(1) + "_" + node.getName());
+                String proposed = plainEnumName(typed.substring(1) + "_" + node.getName());
+                String name = proposed;
+                for (int i = 2; serverRequests.containsKey(name); i++) {
+                    name = proposed + i;
+                }
                 serverRequests.put(name, typed + " ");
                 return name;
             });
         }
 
-        private String uniqueServerEnumName(String proposed) {
+        private static String plainEnumName(String proposed) {
             // Bedrock shows the enum name in the command hint; keep it to plain characters
-            String plain = proposed.replaceAll("[^A-Za-z0-9_]", "_");
+            return proposed.replaceAll("[^A-Za-z0-9_]", "_");
+        }
+
+        private String uniqueServerEnumName(String proposed) {
+            String plain = plainEnumName(proposed);
             String unique = plain;
             for (int i = 2; !serverEnumNamesInUse.add(unique); i++) {
                 unique = plain + i;
@@ -602,52 +610,68 @@ public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommands
 
         /**
          * Adds an argument the Java server suggests itself. When Java takes the rest of the command as one string
-         * (most plugin commands), what the server suggests after each value becomes a second argument.
+         * (most plugin commands), what the server suggests after each value becomes the next argument.
          *
          * @return false until the server has answered; the argument then stays a plain string
          */
         private boolean addServerSuggestions(CommandBuilderContext context, int paramID, CommandNode node, String typed) {
-            ServerSuggestionCache cache = context.session.getServerSuggestionCache();
             String name = context.getServerSuggestionsName(paramID, node, typed);
             String text = typed + " ";
-            Set<String> values = cache.suggestions(text);
-            boolean players = cache.onlyPlayers(values);
-            Set<String> keywords = lowerCaseOnly(values);
-            if (!players && keywords.isEmpty()) {
-                return false;
-            }
-            // Bedrock does not complete player names for an optional target
-            children.add(new ParamInfo(node, serverParam(node.getName(), !players && this.paramNode.isExecutable(),
-                players ? CommandParam.TARGET : serverEnum(name, keywords)), null));
-            if (players || node.getChildIndices().length > 0) {
-                return true;
+            List<ParamInfo> params = serverArgument(context, node, node.getName(), name, text,
+                context.session.getServerSuggestionCache().suggestions(text), this.paramNode.isExecutable(),
+                node.getChildIndices().length == 0);
+            children.addAll(params);
+            return !params.isEmpty();
+        }
+
+        /**
+         * One argument suggested by the server, as overloads: values followed by more suggestions get their own,
+         * values followed by a player share one, and the rest share another. Each value is in a single overload,
+         * or Bedrock would list it more than once.
+         *
+         * @param following false when Java has its own nodes after this argument
+         */
+        private static List<ParamInfo> serverArgument(CommandBuilderContext context, CommandNode node, String paramName,
+                                                      String enumName, String text, Set<String> values,
+                                                      boolean optional, boolean following) {
+            ServerSuggestionCache cache = context.session.getServerSuggestionCache();
+            List<ParamInfo> params = new ArrayList<>();
+            if (cache.onlyPlayers(values)) {
+                // Bedrock does not complete player names for an optional target
+                params.add(new ParamInfo(node, serverParam(paramName, false, CommandParam.TARGET), null));
+                return params;
             }
 
-            // Values followed by a player share one overload
+            Set<String> rest = new LinkedHashSet<>();
             Set<String> beforePlayer = new LinkedHashSet<>();
-            for (String value : keywords) {
-                Set<String> next = cache.suggestionsAfter(text, value);
+            for (String value : lowerCaseOnly(values)) {
+                Set<String> next = following ? cache.suggestionsAfter(text, value) : Set.of();
                 if (cache.onlyPlayers(next)) {
                     beforePlayer.add(value);
                     continue;
                 }
-                Set<String> nextKeywords = lowerCaseOnly(next);
-                if (nextKeywords.isEmpty()) {
+                List<ParamInfo> after = serverArgument(context, node, value, enumName + "_" + value + "_args",
+                    text + value + " ", next, true, true);
+                if (after.isEmpty()) {
+                    rest.add(value);
                     continue;
                 }
-                ParamInfo literal = new ParamInfo(node, serverParam(node.getName(), false,
-                    serverEnum(context.uniqueServerEnumName(name + "_" + value), Set.of(value))), null);
-                literal.children.add(new ParamInfo(node, serverParam(value, true,
-                    serverEnum(context.uniqueServerEnumName(name + "_" + value + "_args"), nextKeywords)), null));
-                children.add(literal);
+                ParamInfo literal = new ParamInfo(node, serverParam(paramName, false,
+                    serverEnum(context.uniqueServerEnumName(enumName + "_" + value), Set.of(value))), null);
+                literal.children.addAll(after);
+                params.add(literal);
             }
             if (!beforePlayer.isEmpty()) {
-                ParamInfo literal = new ParamInfo(node, serverParam(node.getName(), false,
-                    serverEnum(context.uniqueServerEnumName(name + "_player"), beforePlayer)), null);
+                ParamInfo literal = new ParamInfo(node, serverParam(paramName, false,
+                    serverEnum(context.uniqueServerEnumName(enumName + "_player"), beforePlayer)), null);
                 literal.children.add(new ParamInfo(node, serverParam("player", false, CommandParam.TARGET), null));
-                children.add(literal);
+                params.add(literal);
             }
-            return true;
+            if (!rest.isEmpty()) {
+                params.add(0, new ParamInfo(node, serverParam(paramName, optional,
+                    serverEnum(context.uniqueServerEnumName(enumName), rest)), null));
+            }
+            return params;
         }
 
         /**

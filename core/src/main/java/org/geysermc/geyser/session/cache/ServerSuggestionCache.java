@@ -47,13 +47,13 @@ import java.util.concurrent.TimeUnit;
  * once the answers are in, with the answers as enums.
  * <p>
  * Plugin commands usually take all their arguments as one string, so the server is also asked what comes after each
- * suggested word ("/home " then "/home set "), one level deep.
+ * suggested word ("/home " then "/home set "), up to {@link #MAX_ARGUMENTS} arguments.
  */
 public final class ServerSuggestionCache {
     /**
      * Time between two suggestion requests, to not flood the server while a player joins.
      */
-    private static final long REQUEST_INTERVAL_MILLIS = 50;
+    private static final long REQUEST_INTERVAL_MILLIS = 40;
     /**
      * Running a command often changes what it suggests next time (deleting a home, leaving a team...), so its
      * suggestions are requested again shortly after the player runs it.
@@ -65,12 +65,17 @@ public final class ServerSuggestionCache {
      */
     private static final long RESEND_DELAY_MILLIS = 1000;
     /**
+     * While the next arguments are still asked, the commands are sent again at most this often so they show up early.
+     */
+    private static final long PROGRESS_RESEND_MILLIS = 3000;
+    private static final int MAX_ARGUMENTS = 4;
+    /**
      * Only short lists look like sub commands; asking what follows every entry of a long list (all commands for /help,
      * all items...) would cost many requests for little use.
      */
     private static final int MAX_FOLLOW_UP_VALUES = 32;
     /**
-     * Upper bound of second level requests for one command tree.
+     * Upper bound of requests after the first argument for one command tree.
      */
     private static final int MAX_FOLLOW_UPS = 256;
     /**
@@ -99,7 +104,7 @@ public final class ServerSuggestionCache {
     private final Set<String> refreshScheduled = new HashSet<>();
     private Runnable resendCommands = () -> {};
     private boolean resendScheduled;
-    private boolean resentWhileDraining;
+    private long lastResend;
 
     public ServerSuggestionCache(GeyserSession session) {
         this.session = session;
@@ -117,7 +122,31 @@ public final class ServerSuggestionCache {
      * @return the suggestions for the argument after {@code value}, e.g. "/home " and "set"
      */
     public Set<String> suggestionsAfter(String text, String value) {
-        return suggestions(sameAs.getOrDefault(text, text) + value + " ");
+        return suggestions(canonical(text + value + " "));
+    }
+
+    /**
+     * @return the text an alias' answers are kept under
+     */
+    private String canonical(String text) {
+        for (Map.Entry<String, String> alias : sameAs.entrySet()) {
+            if (text.startsWith(alias.getKey())) {
+                return alias.getValue() + text.substring(alias.getKey().length());
+            }
+        }
+        return text;
+    }
+
+    /**
+     * @return 1 for the first argument of a command, 2 for the one after it...
+     */
+    private int argument(String text) {
+        for (String request : requests) {
+            if (text.startsWith(request)) {
+                return 1 + (int) text.substring(request.length()).chars().filter(c -> c == ' ').count();
+            }
+        }
+        return MAX_ARGUMENTS;
     }
 
     /**
@@ -224,7 +253,6 @@ public final class ServerSuggestionCache {
         String text = queue.poll();
         if (text == null) {
             draining = false;
-            resentWhileDraining = false;
             return;
         }
         draining = true;
@@ -258,7 +286,7 @@ public final class ServerSuggestionCache {
                 break;
             }
         }
-        if (requests.contains(text)) {
+        if (argument(text) < MAX_ARGUMENTS) {
             askWhatFollows(text, newValues);
         }
         if (newValues.equals(values.getOrDefault(text, Set.of()))) {
@@ -273,11 +301,14 @@ public final class ServerSuggestionCache {
     }
 
     private void askWhatFollows(String text, Set<String> newValues) {
-        sameAs.remove(text);
+        boolean firstArgument = requests.contains(text);
+        if (firstArgument) {
+            sameAs.remove(text);
+        }
         if (newValues.size() > MAX_FOLLOW_UP_VALUES || onlyPlayers(newValues)) {
             return;
         }
-        for (String other : requests) {
+        for (String other : firstArgument ? requests : Set.<String>of()) {
             // shortcut: an alias is recognised by the same first answers, so two commands with the same sub commands
             // but different arguments after them share the second one. Good enough for suggestions.
             if (!other.equals(text) && !sameAs.containsKey(other) && newValues.equals(values.get(other))) {
@@ -298,16 +329,18 @@ public final class ServerSuggestionCache {
     }
 
     /**
-     * Sends the commands once the first arguments are all asked, then once more when the rest is.
+     * Sends the commands once the first arguments are all asked, then every few seconds while the next ones are,
+     * and once more when everything is.
      * Unanswered requests are not waited for: Paper does not answer when there is nothing to suggest.
      */
     private void resendWhenReady() {
         boolean firstLevelQueued = queue.stream().anyMatch(requests::contains);
-        if (draining && (firstLevelQueued || resentWhileDraining)) {
+        long now = System.currentTimeMillis();
+        if (draining && (firstLevelQueued || now - lastResend < PROGRESS_RESEND_MILLIS)) {
             session.scheduleInEventLoop(this::resendWhenReady, RESEND_DELAY_MILLIS, TimeUnit.MILLISECONDS);
             return;
         }
-        resentWhileDraining = draining;
+        lastResend = now;
         resendScheduled = false;
         resendCommands.run();
     }
