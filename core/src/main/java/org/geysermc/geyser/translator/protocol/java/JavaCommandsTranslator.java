@@ -270,7 +270,7 @@ public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommands
         // Finally, send the commands to the client
         session.sendUpstreamPacket(availableCommandsPacket);
 
-        session.getServerSuggestionCache().setRequests(context.serverRequests);
+        session.getServerSuggestionCache().setRequests(context.serverRequests, () -> translate(session, packet));
     }
 
     /**

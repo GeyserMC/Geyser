@@ -25,8 +25,6 @@
 
 package org.geysermc.geyser.session.cache;
 
-import org.cloudburstmc.protocol.bedrock.data.command.SoftEnumUpdateType;
-import org.cloudburstmc.protocol.bedrock.packet.UpdateSoftEnumPacket;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.ServerboundCommandSuggestionPacket;
 import org.junit.jupiter.api.BeforeEach;
@@ -44,13 +42,13 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 public class ServerSuggestionCacheTest {
     private GeyserSession session;
     private ServerSuggestionCache cache;
+    private int resends;
 
     @BeforeEach
     void setUp() {
@@ -75,51 +73,45 @@ public class ServerSuggestionCacheTest {
 
     @Test
     void asksTheServerForEveryArgument() {
-        cache.setRequests(Map.of("home_args", "/home ", "warp_args", "/warp "));
+        cache.setRequests(Map.of("home_args", "/home ", "warp_args", "/warp "), () -> resends++);
 
         List<String> texts = sentRequests(2).stream().map(ServerboundCommandSuggestionPacket::getText).sorted().toList();
         assertEquals(List.of("/home ", "/warp "), texts);
     }
 
     @Test
-    void answersFillTheSoftEnum() {
-        cache.setRequests(Map.of("home_args", "/home "));
+    void answersSendTheCommandsAgain() {
+        cache.setRequests(Map.of("home_args", "/home "), () -> resends++);
         int transactionId = sentRequests(1).get(0).getTransactionId();
 
         assertTrue(cache.handleResponse(transactionId, new String[] {"base", "farm", "two words"}));
 
-        ArgumentCaptor<UpdateSoftEnumPacket> captor = ArgumentCaptor.forClass(UpdateSoftEnumPacket.class);
-        verify(session).sendUpstreamPacket(captor.capture());
-        UpdateSoftEnumPacket packet = captor.getValue();
-        assertEquals(SoftEnumUpdateType.REPLACE, packet.getType());
-        assertEquals("home_args", packet.getSoftEnum().getName());
-        assertTrue(packet.getSoftEnum().isSoft());
-        assertEquals(Set.of("base", "farm"), packet.getSoftEnum().getValues().keySet());
+        assertEquals(1, resends);
         assertEquals(Set.of("base", "farm"), cache.knownValues("home_args").keySet());
     }
 
     @Test
     void unchangedAnswersAreNotSentAgain() {
-        cache.setRequests(Map.of("home_args", "/home "));
+        cache.setRequests(Map.of("home_args", "/home "), () -> resends++);
         cache.handleResponse(sentRequests(1).get(0).getTransactionId(), new String[] {"base"});
 
         cache.refreshSoon("home base");
         cache.handleResponse(sentRequests(2).get(1).getTransactionId(), new String[] {"base"});
 
-        verify(session, times(1)).sendUpstreamPacket(any());
+        assertEquals(1, resends);
     }
 
     @Test
     void sameCommandTreeIsNotRequestedAgain() {
-        cache.setRequests(Map.of("home_args", "/home "));
-        cache.setRequests(Map.of("home_args", "/home "));
+        cache.setRequests(Map.of("home_args", "/home "), () -> resends++);
+        cache.setRequests(Map.of("home_args", "/home "), () -> resends++);
 
         sentRequests(1);
     }
 
     @Test
     void runningACommandOnlyRefreshesThatCommand() {
-        cache.setRequests(Map.of("home_args", "/home ", "warp_args", "/warp "));
+        cache.setRequests(Map.of("home_args", "/home ", "warp_args", "/warp "), () -> resends++);
         cache.refreshSoon("HOME base");
 
         List<String> texts = sentRequests(3).stream().map(ServerboundCommandSuggestionPacket::getText).toList();
@@ -128,9 +120,9 @@ public class ServerSuggestionCacheTest {
 
     @Test
     void ignoresAnswersItDidNotAskFor() {
-        cache.setRequests(Map.of("home_args", "/home "));
+        cache.setRequests(Map.of("home_args", "/home "), () -> resends++);
 
         assertFalse(cache.handleResponse(12345, new String[] {"base"}));
-        verify(session, never()).sendUpstreamPacket(any());
+        assertEquals(0, resends);
     }
 }

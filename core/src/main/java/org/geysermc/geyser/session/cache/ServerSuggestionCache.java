@@ -28,14 +28,10 @@ package org.geysermc.geyser.session.cache;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import org.cloudburstmc.protocol.bedrock.data.command.CommandEnumConstraint;
-import org.cloudburstmc.protocol.bedrock.data.command.CommandEnumData;
-import org.cloudburstmc.protocol.bedrock.data.command.SoftEnumUpdateType;
-import org.cloudburstmc.protocol.bedrock.packet.UpdateSoftEnumPacket;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.ServerboundCommandSuggestionPacket;
 
 import java.util.ArrayDeque;
-import java.util.Collections;
 import java.util.Deque;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -50,7 +46,9 @@ import java.util.concurrent.TimeUnit;
  * Bedrock clients never ask the server for command suggestions, so arguments whose suggestions
  * are computed by the Java server (the "minecraft:ask_server" suggestion type, used by most plugin commands)
  * would show no options. Geyser asks the Java server on behalf of the player and keeps the answers
- * in soft enums, which Bedrock can update at any time.
+ * in soft enums.
+ * The client does not show values that arrive later through UpdateSoftEnumPacket, so the commands are sent again
+ * once the answers are in.
  */
 public final class ServerSuggestionCache {
     /**
@@ -63,6 +61,10 @@ public final class ServerSuggestionCache {
      */
     private static final long REFRESH_DELAY_MILLIS = 2000;
     private static final int MAX_VALUES = 200;
+    /**
+     * Answers come in one by one while the requests drain, so the commands are sent again once for all of them.
+     */
+    private static final long RESEND_DELAY_MILLIS = 1000;
 
     private final GeyserSession session;
     /**
@@ -75,6 +77,8 @@ public final class ServerSuggestionCache {
     private int nextTransactionId = 1;
     private boolean draining;
     private final Set<String> refreshScheduled = new HashSet<>();
+    private Runnable resendCommands = () -> {};
+    private boolean resendScheduled;
 
     public ServerSuggestionCache(GeyserSession session) {
         this.session = session;
@@ -95,9 +99,12 @@ public final class ServerSuggestionCache {
      * Replaces the arguments to fill with server suggestions and requests all of them.
      * Servers send the same command tree many times (joining, changing worlds, permission updates), so nothing is
      * requested when the arguments did not change.
+     *
+     * @param resendCommands sends the commands to the client again, with the values known at that time
      */
-    public void setRequests(Map<String, String> requests) {
+    public void setRequests(Map<String, String> requests, Runnable resendCommands) {
         session.ensureInEventLoop(() -> {
+            this.resendCommands = resendCommands;
             if (this.requests.equals(requests)) {
                 return;
             }
@@ -188,15 +195,19 @@ public final class ServerSuggestionCache {
             return true;
         }
         values.put(enumName, newValues);
-
-        Map<String, Set<CommandEnumConstraint>> enumValues = new LinkedHashMap<>();
-        for (String value : newValues) {
-            enumValues.put(value, Collections.emptySet());
+        if (!resendScheduled) {
+            resendScheduled = true;
+            session.scheduleInEventLoop(this::resendWhenDrained, RESEND_DELAY_MILLIS, TimeUnit.MILLISECONDS);
         }
-        UpdateSoftEnumPacket packet = new UpdateSoftEnumPacket();
-        packet.setType(SoftEnumUpdateType.REPLACE);
-        packet.setSoftEnum(new CommandEnumData(enumName, enumValues, true));
-        session.sendUpstreamPacket(packet);
         return true;
+    }
+
+    private void resendWhenDrained() {
+        if (draining) {
+            session.scheduleInEventLoop(this::resendWhenDrained, RESEND_DELAY_MILLIS, TimeUnit.MILLISECONDS);
+            return;
+        }
+        resendScheduled = false;
+        resendCommands.run();
     }
 }
