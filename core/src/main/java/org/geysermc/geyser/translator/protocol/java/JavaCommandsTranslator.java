@@ -544,7 +544,8 @@ public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommands
                 } else {
                     // Put the non-enum param into the list
                     Object mappedType = mapCommandType(context, paramNode);
-                    if (mappedType == CommandParam.STRING && typed != null
+                    // Namespaced labels ("plugin:command") repeat the plain ones, so they are not worth a request each
+                    if (mappedType == CommandParam.STRING && typed != null && typed.indexOf(':') < 0
                         && SuggestionType.ASK_SERVER.getResourceLocation().equals(paramNode.getSuggestionType())) {
                         mappedType = context.getServerSuggestions(paramID, paramNode, typed);
                     }
