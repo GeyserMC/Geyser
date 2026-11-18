@@ -256,6 +256,10 @@ public final class Registries {
     }
 
     public static void populate() {
+        // First, load Geyser asset packs - these can provide custom mappings, which are used in the methods immediately afterward
+        // to populate the other registries
+        GEYSER_ASSET_PACKS.load();
+
         // Both the block registries and the common registries depend on each other,
         // so maintaining this order is crucial for Geyser to load.
         BlockRegistries.populate();

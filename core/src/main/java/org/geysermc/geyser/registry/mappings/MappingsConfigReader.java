@@ -32,6 +32,7 @@ import com.google.gson.JsonParser;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.configuration.GeyserConfigDirectory;
+import org.geysermc.geyser.registry.Registries;
 import org.jetbrains.annotations.VisibleForTesting;
 
 import java.io.FileReader;
@@ -47,12 +48,15 @@ public final class MappingsConfigReader {
     private MappingsConfigReader() {}
 
     public static <K, V> void loadCustomMappingsFromJson(MappingsType<K, V> type, BiConsumer<K, V> consumer) {
+        // First, read the mappings added manually by the user
         getCustomMappingsDirectoryAndEnsureItExists().ifPresent(customMappingsDirectory -> {
             Path[] mappingsFiles = getCustomMappingsFiles(customMappingsDirectory);
             for (Path mappingsFile : mappingsFiles) {
                 readCustomMappings(type, mappingsFile, consumer);
             }
         });
+        // Then, read the mappings provided by Geyser packs
+        Registries.GEYSER_ASSET_PACKS.get().forEach(pack -> pack.mappings(mapping -> readCustomMappings(type, mapping, consumer)));
     }
 
     public static Optional<Path> getCustomMappingsDirectoryAndEnsureItExists() {

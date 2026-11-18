@@ -30,6 +30,7 @@ import com.google.gson.JsonObject;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.configuration.GeyserConfigDirectory;
+import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.util.AssetUtils;
 import org.geysermc.geyser.util.FileUtils;
 import org.geysermc.geyser.util.JsonUtils;
@@ -171,11 +172,6 @@ public class MinecraftLocale {
         Path localeFile = getPath(lowercaseLocale);
         Path localeOverride = getPath("overrides/" + lowercaseLocale);
 
-        if (lowercaseLocale.equals("no_no")) {
-            // Store this locale under the Bedrock locale, so we don't need to do this check over and over
-            lowercaseLocale = "nb_no";
-        }
-
         Map<String, String> langMap = new HashMap<>();
         if (Files.exists(localeFile) && Files.isReadable(localeFile)) {
             langMap.putAll(parseLangFile(localeFile, lowercaseLocale));
@@ -186,8 +182,18 @@ public class MinecraftLocale {
             langMap.putAll(parseLangFile(localeOverride, lowercaseLocale));
         }
 
+        // Load locale overrides provided by Geyser packs
+        Registries.GEYSER_ASSET_PACKS.get().forEach(pack -> pack.locale(lowercaseLocale,
+            path -> langMap.putAll(parseLangFile(path, lowercaseLocale))));
+
         if (!langMap.isEmpty()) {
-            LOCALE_MAPPINGS.put(lowercaseLocale, langMap);
+            String bedrockLocale = lowercaseLocale;
+            if (bedrockLocale.equals("no_no")) {
+                // Store this locale under the Bedrock locale, so we don't need to do this check over and over
+                bedrockLocale = "nb_no";
+            }
+
+            LOCALE_MAPPINGS.put(bedrockLocale, langMap);
             return true;
         } else {
             return false;

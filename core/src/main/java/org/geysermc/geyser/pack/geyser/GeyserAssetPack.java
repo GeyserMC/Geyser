@@ -66,8 +66,8 @@ public record GeyserAssetPack(Manifest manifest, Path root) {
         listDirectory("mappings", JSON_GLOB, consumer);
     }
 
-    public void locales(Consumer<Path> consumer) {
-        listDirectory("locales", JSON_GLOB, consumer);
+    public void locale(String locale, Consumer<Path> consumer) {
+        listDirectory("locales", locale + ".json", consumer);
     }
 
     private void listDirectory(String directory, String glob, Consumer<Path> consumer) {

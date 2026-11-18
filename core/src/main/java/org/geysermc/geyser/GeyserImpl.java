@@ -314,8 +314,10 @@ public class GeyserImpl implements GeyserApi, EventRegistrar {
 
         SkinProvider.registerCacheImageTask(this);
 
+        // Load the Geyser asset packs - a reload will have cleared them. If we're just starting up, this call will do nothing as the registry
+        // will already have been loaded in the initialize method
+        // Note that of course, custom mappings and locales provided by packs won't be reloaded, as they require a full restart
         Registries.GEYSER_ASSET_PACKS.load();
-        System.out.println(Registries.GEYSER_ASSET_PACKS.get());
         Registries.RESOURCE_PACKS.load();
         Registries.WAYPOINT_STYLE_MAPPINGS.load();
 
@@ -701,11 +703,11 @@ public class GeyserImpl implements GeyserApi, EventRegistrar {
             legacyPingPassthrough.shutdown();
         }
 
-        Registries.GEYSER_ASSET_PACKS.get().clear();
+        // Clear Geyser packs - the custom mappings and locales they provided will have already been registered, but the resource packs they
+        // provide are cleared, so they can be reloaded
+        Registries.GEYSER_ASSET_PACKS.clear();
         ResourcePackLoader.clear();
-        if (Registries.WAYPOINT_STYLE_MAPPINGS.loaded()) {
-            Registries.WAYPOINT_STYLE_MAPPINGS.get().clear();
-        }
+        Registries.WAYPOINT_STYLE_MAPPINGS.clear();
         CodeOfConductManager.trySave();
 
         this.setEnabled(false);
