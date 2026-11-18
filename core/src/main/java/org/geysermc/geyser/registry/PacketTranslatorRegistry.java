@@ -37,7 +37,6 @@ import org.geysermc.mcprotocollib.protocol.packet.common.clientbound.Clientbound
 import org.geysermc.mcprotocollib.protocol.packet.common.clientbound.ClientboundPostEffectsPacket;
 import org.geysermc.mcprotocollib.protocol.packet.common.clientbound.ClientboundResourcePackPopPacket;
 import org.geysermc.mcprotocollib.protocol.packet.configuration.clientbound.ClientboundResetChatPacket;
-import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.ClientboundCommandSuggestionsPacket;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.ClientboundCustomChatCompletionsPacket;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.ClientboundDeleteChatPacket;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.ClientboundDelimiterPacket;
@@ -113,7 +112,6 @@ public class PacketTranslatorRegistry<T> extends AbstractMappedRegistry<Class<? 
         IGNORED_PACKETS.add(ClientboundPlaceGhostRecipePacket.class);
         IGNORED_PACKETS.add(ClientboundRecipeBookSettingsPacket.class);
         IGNORED_PACKETS.add(ClientboundResetChatPacket.class); // I think
-        IGNORED_PACKETS.add(ClientboundCommandSuggestionsPacket.class); // I think
         IGNORED_PACKETS.add(ClientboundCustomChatCompletionsPacket.class); // I think
         IGNORED_PACKETS.add(ClientboundDeleteChatPacket.class); // I think
 
