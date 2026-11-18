@@ -103,10 +103,27 @@ public class ServerSuggestionCacheTest {
         cache.setRequests(Map.of("home_args", "/home "));
         cache.handleResponse(sentRequests(1).get(0).getTransactionId(), new String[] {"base"});
 
-        cache.refreshSoon();
+        cache.refreshSoon("home base");
         cache.handleResponse(sentRequests(2).get(1).getTransactionId(), new String[] {"base"});
 
         verify(session, times(1)).sendUpstreamPacket(any());
+    }
+
+    @Test
+    void sameCommandTreeIsNotRequestedAgain() {
+        cache.setRequests(Map.of("home_args", "/home "));
+        cache.setRequests(Map.of("home_args", "/home "));
+
+        sentRequests(1);
+    }
+
+    @Test
+    void runningACommandOnlyRefreshesThatCommand() {
+        cache.setRequests(Map.of("home_args", "/home ", "warp_args", "/warp "));
+        cache.refreshSoon("HOME base");
+
+        List<String> texts = sentRequests(3).stream().map(ServerboundCommandSuggestionPacket::getText).toList();
+        assertEquals("/home ", texts.get(2));
     }
 
     @Test

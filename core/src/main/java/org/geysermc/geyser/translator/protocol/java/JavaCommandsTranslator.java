@@ -436,7 +436,8 @@ public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommands
          */
         private CommandEnumData getServerSuggestions(int nodeIndex, CommandNode node, String typed) {
             String name = serverEnumNames.computeIfAbsent(nodeIndex, $ -> {
-                String proposed = typed.substring(1).replace(' ', '_') + "_" + node.getName();
+                // Bedrock shows the enum name in the command hint; keep it to plain characters
+                String proposed = (typed.substring(1) + "_" + node.getName()).replaceAll("[^A-Za-z0-9_]", "_");
                 String unique = proposed;
                 for (int i = 2; serverRequests.containsKey(unique); i++) {
                     unique = proposed + i;

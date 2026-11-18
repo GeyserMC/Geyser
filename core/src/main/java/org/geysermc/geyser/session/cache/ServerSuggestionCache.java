@@ -38,8 +38,10 @@ import java.util.ArrayDeque;
 import java.util.Collections;
 import java.util.Deque;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
@@ -56,8 +58,8 @@ public final class ServerSuggestionCache {
      */
     private static final long REQUEST_INTERVAL_MILLIS = 100;
     /**
-     * Commands often change what other commands suggest (setting a home, joining a team...), so the
-     * suggestions are requested again shortly after the player runs a command.
+     * Running a command often changes what it suggests next time (deleting a home, leaving a team...), so its
+     * suggestions are requested again shortly after the player runs it.
      */
     private static final long REFRESH_DELAY_MILLIS = 2000;
     private static final int MAX_VALUES = 200;
@@ -72,7 +74,7 @@ public final class ServerSuggestionCache {
     private final Deque<String> queue = new ArrayDeque<>();
     private int nextTransactionId = 1;
     private boolean draining;
-    private boolean refreshScheduled;
+    private final Set<String> refreshScheduled = new HashSet<>();
 
     public ServerSuggestionCache(GeyserSession session) {
         this.session = session;
@@ -91,9 +93,14 @@ public final class ServerSuggestionCache {
 
     /**
      * Replaces the arguments to fill with server suggestions and requests all of them.
+     * Servers send the same command tree many times (joining, changing worlds, permission updates), so nothing is
+     * requested when the arguments did not change.
      */
     public void setRequests(Map<String, String> requests) {
         session.ensureInEventLoop(() -> {
+            if (this.requests.equals(requests)) {
+                return;
+            }
             this.requests = Map.copyOf(requests);
             this.values.keySet().retainAll(this.requests.keySet());
             this.pending.clear();
@@ -103,17 +110,27 @@ public final class ServerSuggestionCache {
     }
 
     /**
-     * Requests every suggestion again in a moment, once for a burst of commands.
+     * Requests the suggestions of a command again in a moment, once for a burst of uses.
+     *
+     * @param command the command the player ran, without the leading slash
      */
-    public void refreshSoon() {
+    public void refreshSoon(String command) {
+        int space = command.indexOf(' ');
+        String prefix = "/" + (space < 0 ? command : command.substring(0, space)).toLowerCase(Locale.ROOT) + " ";
         session.ensureInEventLoop(() -> {
-            if (refreshScheduled || requests.isEmpty()) {
+            if (!refreshScheduled.add(prefix)) {
                 return;
             }
-            refreshScheduled = true;
             session.scheduleInEventLoop(() -> {
-                refreshScheduled = false;
-                requestAll();
+                refreshScheduled.remove(prefix);
+                for (Map.Entry<String, String> request : requests.entrySet()) {
+                    if (request.getValue().startsWith(prefix) && !queue.contains(request.getKey())) {
+                        queue.add(request.getKey());
+                    }
+                }
+                if (!draining) {
+                    drain();
+                }
             }, REFRESH_DELAY_MILLIS, TimeUnit.MILLISECONDS);
         });
     }

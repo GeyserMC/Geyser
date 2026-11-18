@@ -51,6 +51,6 @@ public class BedrockCommandRequestTranslator extends PacketTranslator<CommandReq
         }
 
         session.sendCommand(message.substring(1));
-        session.getServerSuggestionCache().refreshSoon();
+        session.getServerSuggestionCache().refreshSoon(message.substring(1));
     }
 }
