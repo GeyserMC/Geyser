@@ -27,7 +27,6 @@ package org.geysermc.geyser.session.cache;
 
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
-import org.cloudburstmc.protocol.bedrock.data.command.CommandEnumConstraint;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.ServerboundCommandSuggestionPacket;
 
@@ -35,7 +34,6 @@ import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.Locale;
 import java.util.Map;
@@ -47,6 +45,9 @@ import java.util.concurrent.TimeUnit;
  * are computed by the Java server (the "minecraft:ask_server" suggestion type, used by most plugin commands)
  * would show no options. Geyser asks the Java server on behalf of the player and sends the commands again
  * once the answers are in, with the answers as enums.
+ * <p>
+ * Plugin commands usually take all their arguments as one string, so the server is also asked what comes after each
+ * suggested word ("/home " then "/home set "), one level deep.
  */
 public final class ServerSuggestionCache {
     /**
@@ -63,34 +64,82 @@ public final class ServerSuggestionCache {
      * Answers come in one by one while the requests drain, so the commands are sent again once for all of them.
      */
     private static final long RESEND_DELAY_MILLIS = 1000;
+    /**
+     * Only short lists look like sub commands; asking what follows every entry of a long list (all commands for /help,
+     * all items...) would cost many requests for little use.
+     */
+    private static final int MAX_FOLLOW_UP_VALUES = 32;
+    /**
+     * Upper bound of second level requests for one command tree.
+     */
+    private static final int MAX_FOLLOW_UPS = 256;
+    /**
+     * Java names have up to 16 characters, plus the prefix proxies like Floodgate add to Bedrock players
+     */
+    private static final int MAX_NAME_LENGTH = 20;
 
     private final GeyserSession session;
     /**
-     * Soft enum name to the command text sent to the Java server, e.g. "/home ".
+     * Command texts whose suggestions fill the first argument, e.g. "/home "
      */
-    private Map<String, String> requests = Map.of();
+    private Set<String> requests = Set.of();
+    /**
+     * Command text sent to the Java server, for both levels, to the suggestions it answered
+     */
     private final Map<String, Set<String>> values = new HashMap<>();
+    /**
+     * Aliases answer the same as the command they point to; only the first one asks for the second level
+     */
+    private final Map<String, String> sameAs = new HashMap<>();
     private final Int2ObjectMap<String> pending = new Int2ObjectOpenHashMap<>();
     private final Deque<String> queue = new ArrayDeque<>();
     private int nextTransactionId = 1;
+    private int followUps;
     private boolean draining;
     private final Set<String> refreshScheduled = new HashSet<>();
     private Runnable resendCommands = () -> {};
     private boolean resendScheduled;
+    private boolean resentWhileDraining;
 
     public ServerSuggestionCache(GeyserSession session) {
         this.session = session;
     }
 
     /**
-     * @return the last suggestions received for this enum, to keep them when the commands are sent again
+     * @param text the command text up to the argument, e.g. "/home "
+     * @return the last suggestions received for it, empty when the server has not answered yet
      */
-    public Map<String, Set<CommandEnumConstraint>> knownValues(String enumName) {
-        Map<String, Set<CommandEnumConstraint>> known = new LinkedHashMap<>();
-        for (String value : values.getOrDefault(enumName, Set.of())) {
-            known.put(value, Set.of());
+    public Set<String> suggestions(String text) {
+        return values.getOrDefault(text, Set.of());
+    }
+
+    /**
+     * @return the suggestions for the argument after {@code value}, e.g. "/home " and "set"
+     */
+    public Set<String> suggestionsAfter(String text, String value) {
+        return suggestions(sameAs.getOrDefault(text, text) + value + " ");
+    }
+
+    /**
+     * Bedrock completes player names by itself and keeps them current, so a list of players is better sent
+     * as a target than as an enum that gets outdated as soon as someone joins.
+     * Plugins often suggest every player that ever joined, not only the online ones; such a list still has the
+     * player's own name.
+     */
+    public boolean onlyPlayers(Set<String> suggestions) {
+        if (suggestions.isEmpty()) {
+            return false;
         }
-        return known;
+        boolean hasOwnName = suggestions.contains(session.getPlayerEntity().getUsername());
+        for (String suggestion : suggestions) {
+            if (suggestion.length() > MAX_NAME_LENGTH) {
+                return false;
+            }
+            if (!hasOwnName && session.getEntityCache().getPlayersByName(suggestion).isEmpty()) {
+                return false;
+            }
+        }
+        return true;
     }
 
     /**
@@ -98,20 +147,40 @@ public final class ServerSuggestionCache {
      * Servers send the same command tree many times (joining, changing worlds, permission updates), so nothing is
      * requested when the arguments did not change.
      *
-     * @param resendCommands sends the commands to the client again, with the values known at that time
+     * @param requests command texts up to each argument, e.g. "/home "
+     * @param resendCommands sends the commands to the client again, with the suggestions known at that time
      */
-    public void setRequests(Map<String, String> requests, Runnable resendCommands) {
+    public void setRequests(Set<String> requests, Runnable resendCommands) {
         session.ensureInEventLoop(() -> {
             this.resendCommands = resendCommands;
             if (this.requests.equals(requests)) {
                 return;
             }
-            this.requests = Map.copyOf(requests);
-            this.values.keySet().retainAll(this.requests.keySet());
+            this.requests = Set.copyOf(requests);
+            this.values.keySet().removeIf(text -> !isWanted(text));
+            this.sameAs.clear();
             this.pending.clear();
             this.queue.clear();
-            requestAll();
+            this.followUps = 0;
+            for (String text : this.requests) {
+                queue.add(text);
+            }
+            if (!draining) {
+                drain();
+            }
         });
+    }
+
+    private boolean isWanted(String text) {
+        if (requests.contains(text)) {
+            return true;
+        }
+        for (String request : requests) {
+            if (text.startsWith(request)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
@@ -128,9 +197,20 @@ public final class ServerSuggestionCache {
             }
             session.scheduleInEventLoop(() -> {
                 refreshScheduled.remove(prefix);
-                for (Map.Entry<String, String> request : requests.entrySet()) {
-                    if (request.getValue().startsWith(prefix) && !queue.contains(request.getKey())) {
-                        queue.add(request.getKey());
+                Set<String> texts = new LinkedHashSet<>();
+                for (String request : requests) {
+                    if (request.startsWith(prefix)) {
+                        texts.add(request);
+                    }
+                }
+                for (String text : values.keySet()) {
+                    if (text.startsWith(prefix)) {
+                        texts.add(text);
+                    }
+                }
+                for (String text : texts) {
+                    if (!queue.contains(text)) {
+                        queue.add(text);
                     }
                 }
                 if (!draining) {
@@ -140,30 +220,17 @@ public final class ServerSuggestionCache {
         });
     }
 
-    private void requestAll() {
-        for (String enumName : requests.keySet()) {
-            if (!queue.contains(enumName)) {
-                queue.add(enumName);
-            }
-        }
-        if (!draining) {
-            drain();
-        }
-    }
-
     private void drain() {
-        String enumName = queue.poll();
-        if (enumName == null) {
+        String text = queue.poll();
+        if (text == null) {
             draining = false;
+            resentWhileDraining = false;
             return;
         }
         draining = true;
-        String text = requests.get(enumName);
-        if (text != null) {
-            int transactionId = nextTransactionId++;
-            pending.put(transactionId, enumName);
-            session.sendDownstreamGamePacket(new ServerboundCommandSuggestionPacket(transactionId, text));
-        }
+        int transactionId = nextTransactionId++;
+        pending.put(transactionId, text);
+        session.sendDownstreamGamePacket(new ServerboundCommandSuggestionPacket(transactionId, text));
         session.scheduleInEventLoop(this::drain, REQUEST_INTERVAL_MILLIS, TimeUnit.MILLISECONDS);
     }
 
@@ -171,11 +238,11 @@ public final class ServerSuggestionCache {
      * @return false if the response was not requested by this cache (a Java client behind Geyser never asks)
      */
     public boolean handleResponse(int transactionId, String[] matches) {
-        String enumName = pending.remove(transactionId);
-        if (enumName == null) {
+        String text = pending.remove(transactionId);
+        if (text == null) {
             return false;
         }
-        if (!requests.containsKey(enumName)) {
+        if (!isWanted(text)) {
             return true;
         }
 
@@ -189,22 +256,55 @@ public final class ServerSuggestionCache {
                 break;
             }
         }
-        if (newValues.equals(values.getOrDefault(enumName, Set.of()))) {
+        if (requests.contains(text)) {
+            askWhatFollows(text, newValues);
+        }
+        if (newValues.equals(values.getOrDefault(text, Set.of()))) {
             return true;
         }
-        values.put(enumName, newValues);
+        values.put(text, newValues);
         if (!resendScheduled) {
             resendScheduled = true;
-            session.scheduleInEventLoop(this::resendWhenDrained, RESEND_DELAY_MILLIS, TimeUnit.MILLISECONDS);
+            session.scheduleInEventLoop(this::resendWhenReady, RESEND_DELAY_MILLIS, TimeUnit.MILLISECONDS);
         }
         return true;
     }
 
-    private void resendWhenDrained() {
-        if (draining) {
-            session.scheduleInEventLoop(this::resendWhenDrained, RESEND_DELAY_MILLIS, TimeUnit.MILLISECONDS);
+    private void askWhatFollows(String text, Set<String> newValues) {
+        sameAs.remove(text);
+        if (newValues.size() > MAX_FOLLOW_UP_VALUES || onlyPlayers(newValues)) {
             return;
         }
+        for (String other : requests) {
+            // shortcut: an alias is recognised by the same first answers, so two commands with the same sub commands
+            // but different arguments after them share the second one. Good enough for suggestions.
+            if (!other.equals(text) && !sameAs.containsKey(other) && newValues.equals(values.get(other))) {
+                sameAs.put(text, other);
+                return;
+            }
+        }
+        for (String value : newValues) {
+            String next = text + value + " ";
+            if (followUps < MAX_FOLLOW_UPS && !values.containsKey(next) && !queue.contains(next)) {
+                followUps++;
+                queue.add(next);
+            }
+        }
+        if (!draining) {
+            drain();
+        }
+    }
+
+    /**
+     * Sends the commands once the first arguments are all answered, then once more when the rest is
+     */
+    private void resendWhenReady() {
+        boolean firstLevelPending = queue.stream().anyMatch(requests::contains) || pending.values().stream().anyMatch(requests::contains);
+        if (draining && (firstLevelPending || resentWhileDraining)) {
+            session.scheduleInEventLoop(this::resendWhenReady, RESEND_DELAY_MILLIS, TimeUnit.MILLISECONDS);
+            return;
+        }
+        resentWhileDraining = draining;
         resendScheduled = false;
         resendCommands.run();
     }
