@@ -45,10 +45,8 @@ import java.util.concurrent.TimeUnit;
 /**
  * Bedrock clients never ask the server for command suggestions, so arguments whose suggestions
  * are computed by the Java server (the "minecraft:ask_server" suggestion type, used by most plugin commands)
- * would show no options. Geyser asks the Java server on behalf of the player and keeps the answers
- * in soft enums.
- * The client does not show values that arrive later through UpdateSoftEnumPacket, so the commands are sent again
- * once the answers are in.
+ * would show no options. Geyser asks the Java server on behalf of the player and sends the commands again
+ * once the answers are in, with the answers as enums.
  */
 public final class ServerSuggestionCache {
     /**
@@ -85,7 +83,7 @@ public final class ServerSuggestionCache {
     }
 
     /**
-     * @return the last suggestions received for this soft enum, to keep them when the commands are sent again
+     * @return the last suggestions received for this enum, to keep them when the commands are sent again
      */
     public Map<String, Set<CommandEnumConstraint>> knownValues(String enumName) {
         Map<String, Set<CommandEnumConstraint>> known = new LinkedHashMap<>();

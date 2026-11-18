@@ -429,12 +429,14 @@ public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommands
         }
 
         /**
-         * Arguments the Java server suggests itself can't be completed by Bedrock, so they become a soft enum
-         * that {@link org.geysermc.geyser.session.cache.ServerSuggestionCache} fills by asking the server.
+         * Arguments the Java server suggests itself can't be completed by Bedrock, so
+         * {@link org.geysermc.geyser.session.cache.ServerSuggestionCache} asks the server and the commands are sent again
+         * with the answers as an enum. Soft enums are not offered in the Bedrock chat, so it is a regular enum.
          *
          * @param typed the command typed up to this argument, e.g. "/home"
+         * @return the enum, or a plain string until the server has answered (Bedrock does not accept an empty enum)
          */
-        private CommandEnumData getServerSuggestions(int nodeIndex, CommandNode node, String typed) {
+        private Object getServerSuggestions(int nodeIndex, CommandNode node, String typed) {
             String name = serverEnumNames.computeIfAbsent(nodeIndex, $ -> {
                 // Bedrock shows the enum name in the command hint; keep it to plain characters
                 String proposed = (typed.substring(1) + "_" + node.getName()).replaceAll("[^A-Za-z0-9_]", "_");
@@ -445,7 +447,8 @@ public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommands
                 serverRequests.put(unique, typed + " ");
                 return unique;
             });
-            return new CommandEnumData(name, session.getServerSuggestionCache().knownValues(name), true);
+            Map<String, Set<CommandEnumConstraint>> values = session.getServerSuggestionCache().knownValues(name);
+            return values.isEmpty() ? CommandParam.STRING : new CommandEnumData(name, values, false);
         }
 
         private CommandEnumData getTeams() {
