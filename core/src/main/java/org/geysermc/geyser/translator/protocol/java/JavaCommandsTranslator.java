@@ -615,7 +615,8 @@ public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommands
                 return false;
             }
             boolean players = cache.onlyPlayers(values);
-            children.add(new ParamInfo(node, serverParam(node.getName(), this.paramNode.isExecutable(),
+            // Bedrock does not complete player names for an optional target
+            children.add(new ParamInfo(node, serverParam(node.getName(), !players && this.paramNode.isExecutable(),
                 players ? CommandParam.TARGET : serverEnum(name, values)), null));
             if (players || node.getChildIndices().length > 0) {
                 return true;
@@ -641,7 +642,7 @@ public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommands
             if (!beforePlayer.isEmpty()) {
                 ParamInfo literal = new ParamInfo(node, serverParam(node.getName(), false,
                     serverEnum(context.uniqueServerEnumName(name + "_player"), beforePlayer)), null);
-                literal.children.add(new ParamInfo(node, serverParam("player", true, CommandParam.TARGET), null));
+                literal.children.add(new ParamInfo(node, serverParam("player", false, CommandParam.TARGET), null));
                 children.add(literal);
             }
             return true;

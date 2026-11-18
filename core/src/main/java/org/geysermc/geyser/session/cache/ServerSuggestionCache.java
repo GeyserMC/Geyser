@@ -51,9 +51,9 @@ import java.util.concurrent.TimeUnit;
  */
 public final class ServerSuggestionCache {
     /**
-     * Time between two suggestion requests. Servers rate limit them (Paper drops more than 15 per second by default).
+     * Time between two suggestion requests, to not flood the server while a player joins.
      */
-    private static final long REQUEST_INTERVAL_MILLIS = 100;
+    private static final long REQUEST_INTERVAL_MILLIS = 50;
     /**
      * Running a command often changes what it suggests next time (deleting a home, leaving a team...), so its
      * suggestions are requested again shortly after the player runs it.
@@ -229,6 +229,8 @@ public final class ServerSuggestionCache {
         }
         draining = true;
         int transactionId = nextTransactionId++;
+        // Paper does not answer when there is nothing to suggest, so an older request for the same text may still wait
+        pending.values().remove(text);
         pending.put(transactionId, text);
         session.sendDownstreamGamePacket(new ServerboundCommandSuggestionPacket(transactionId, text));
         session.scheduleInEventLoop(this::drain, REQUEST_INTERVAL_MILLIS, TimeUnit.MILLISECONDS);
@@ -296,11 +298,12 @@ public final class ServerSuggestionCache {
     }
 
     /**
-     * Sends the commands once the first arguments are all answered, then once more when the rest is
+     * Sends the commands once the first arguments are all asked, then once more when the rest is.
+     * Unanswered requests are not waited for: Paper does not answer when there is nothing to suggest.
      */
     private void resendWhenReady() {
-        boolean firstLevelPending = queue.stream().anyMatch(requests::contains) || pending.values().stream().anyMatch(requests::contains);
-        if (draining && (firstLevelPending || resentWhileDraining)) {
+        boolean firstLevelQueued = queue.stream().anyMatch(requests::contains);
+        if (draining && (firstLevelQueued || resentWhileDraining)) {
             session.scheduleInEventLoop(this::resendWhenReady, RESEND_DELAY_MILLIS, TimeUnit.MILLISECONDS);
             return;
         }
