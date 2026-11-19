@@ -64,11 +64,7 @@ public final class ServerSuggestionCache {
      * Answers come in one by one while the requests drain, so the commands are sent again once for all of them.
      */
     private static final long RESEND_DELAY_MILLIS = 1000;
-    /**
-     * While the next arguments are still asked, the commands are sent again at most this often so they show up early.
-     */
-    private static final long PROGRESS_RESEND_MILLIS = 3000;
-    private static final int MAX_ARGUMENTS = 4;
+    private static final int MAX_ARGUMENTS = 6;
     /**
      * Only short lists look like sub commands; asking what follows every entry of a long list (all commands for /help,
      * all items...) would cost many requests for little use.
@@ -104,7 +100,6 @@ public final class ServerSuggestionCache {
     private final Set<String> refreshScheduled = new HashSet<>();
     private Runnable resendCommands = () -> {};
     private boolean resendScheduled;
-    private long lastResend;
 
     public ServerSuggestionCache(GeyserSession session) {
         this.session = session;
@@ -329,18 +324,14 @@ public final class ServerSuggestionCache {
     }
 
     /**
-     * Sends the commands once the first arguments are all asked, then every few seconds while the next ones are,
-     * and once more when everything is.
+     * The command packet is large, so it is sent again only once everything has been asked.
      * Unanswered requests are not waited for: Paper does not answer when there is nothing to suggest.
      */
     private void resendWhenReady() {
-        boolean firstLevelQueued = queue.stream().anyMatch(requests::contains);
-        long now = System.currentTimeMillis();
-        if (draining && (firstLevelQueued || now - lastResend < PROGRESS_RESEND_MILLIS)) {
+        if (draining) {
             session.scheduleInEventLoop(this::resendWhenReady, RESEND_DELAY_MILLIS, TimeUnit.MILLISECONDS);
             return;
         }
-        lastResend = now;
         resendScheduled = false;
         resendCommands.run();
     }

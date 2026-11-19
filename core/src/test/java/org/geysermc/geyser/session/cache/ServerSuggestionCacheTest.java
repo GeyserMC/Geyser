@@ -117,15 +117,16 @@ public class ServerSuggestionCacheTest {
     }
 
     @Test
-    void asksUpToFourArguments() {
+    void asksUpToSixArguments() {
         cache.setRequests(Set.of("/a "), () -> resends++);
-        cache.handleResponse(transactionOf("/a "), new String[] {"b"});
-        cache.handleResponse(transactionOf("/a b "), new String[] {"c"});
-        cache.handleResponse(transactionOf("/a b c "), new String[] {"d"});
-        cache.handleResponse(transactionOf("/a b c d "), new String[] {"e"});
+        String text = "/a ";
+        for (String next : List.of("b", "c", "d", "e", "f", "g")) {
+            cache.handleResponse(transactionOf(text), new String[] {next});
+            text += next + " ";
+        }
 
-        assertEquals(List.of("/a ", "/a b ", "/a b c ", "/a b c d "), sentTexts());
-        assertEquals(Set.of("e"), cache.suggestionsAfter("/a b c ", "d"));
+        assertEquals(List.of("/a ", "/a b ", "/a b c ", "/a b c d ", "/a b c d e ", "/a b c d e f "), sentTexts());
+        assertEquals(Set.of("g"), cache.suggestionsAfter("/a b c d e ", "f"));
     }
 
     @Test
