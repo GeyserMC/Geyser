@@ -252,6 +252,26 @@ public final class Registries {
         Registries.populate();
     }
 
+    /**
+     * After startup only the sound mappings still resolve Java block state identifiers (PLACE sounds),
+     * so the ~35k entry identifier index is cut down to those few keys. Lookups cost the same.
+     */
+    private static void trimJavaBlockStateIds() {
+        it.unimi.dsi.fastutil.objects.Object2IntMap<String> ids = BlockRegistries.JAVA_BLOCK_STATE_IDENTIFIER_TO_ID.get();
+        it.unimi.dsi.fastutil.objects.Object2IntMap<String> kept = new it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap<>();
+        for (org.geysermc.geyser.registry.type.SoundMapping mapping : SOUNDS.get().values()) {
+            String identifier = mapping.identifier();
+            if (ids.containsKey(identifier)) {
+                kept.put(identifier, ids.getInt(identifier));
+            }
+        }
+        ids.clear();
+        ids.putAll(kept);
+        if (ids instanceof it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap<String> open) {
+            open.trim();
+        }
+    }
+
     public static void populate() {
         // Both the block registries and the common registries depend on each other,
         // so maintaining this order is crucial for Geyser to load.
@@ -261,6 +281,7 @@ public final class Registries {
         // The NbtMap -> definition indexes were only needed while the item registries were built
         BlockRegistries.BLOCKS.get().forEach((protocolVersion, mappings) -> mappings.releaseStateDefinitionMap());
         TagRegistryPopulator.populate();
+        trimJavaBlockStateIds();
 
         // Remove unneeded client generation data from NbtMapBuilder
         NbtMapBuilder biomesNbt = NbtMap.builder();
