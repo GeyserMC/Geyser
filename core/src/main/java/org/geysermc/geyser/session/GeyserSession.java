@@ -904,7 +904,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource, Jav
         this.componentCache = new ComponentCache(this.javaRegistries);
         this.skullCache = new SkullCache(this);
         this.structureBlockCache = new StructureBlockCache();
-        this.serverSuggestionCache = new ServerSuggestionCache(this);
+        this.serverSuggestionCache = new ServerSuggestionCache(this, geyser.config().advanced().commandSuggestionRequestInterval());
         this.waypointCache = new WaypointCache(this);
         this.worldCache = new WorldCache(this);
         this.cameraData = new GeyserCameraData(this);

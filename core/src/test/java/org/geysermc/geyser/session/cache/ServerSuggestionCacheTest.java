@@ -74,7 +74,7 @@ public class ServerSuggestionCacheTest {
         when(entityCache.getPlayersByName("Alex")).thenReturn(List.of(mock(PlayerEntity.class)));
         when(session.getEntityCache()).thenReturn(entityCache);
 
-        cache = new ServerSuggestionCache(session);
+        cache = new ServerSuggestionCache(session, 25);
     }
 
     private List<String> sentTexts() {

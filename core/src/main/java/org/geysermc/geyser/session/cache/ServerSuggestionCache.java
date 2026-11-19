@@ -51,10 +51,6 @@ import java.util.concurrent.TimeUnit;
  */
 public final class ServerSuggestionCache {
     /**
-     * Time between two suggestion requests, to not flood the server while a player joins.
-     */
-    private static final long REQUEST_INTERVAL_MILLIS = 40;
-    /**
      * Running a command often changes what it suggests next time (deleting a home, leaving a team...), so its
      * suggestions are requested again shortly after the player runs it.
      */
@@ -81,6 +77,10 @@ public final class ServerSuggestionCache {
 
     private final GeyserSession session;
     /**
+     * Time between two suggestion requests, to not flood the server while a player joins.
+     */
+    private final long requestIntervalMillis;
+    /**
      * Command texts whose suggestions fill the first argument, e.g. "/home "
      */
     private Set<String> requests = Set.of();
@@ -101,8 +101,9 @@ public final class ServerSuggestionCache {
     private Runnable resendCommands = () -> {};
     private boolean resendScheduled;
 
-    public ServerSuggestionCache(GeyserSession session) {
+    public ServerSuggestionCache(GeyserSession session, long requestIntervalMillis) {
         this.session = session;
+        this.requestIntervalMillis = requestIntervalMillis;
     }
 
     /**
@@ -256,7 +257,7 @@ public final class ServerSuggestionCache {
         pending.values().remove(text);
         pending.put(transactionId, text);
         session.sendDownstreamGamePacket(new ServerboundCommandSuggestionPacket(transactionId, text));
-        session.scheduleInEventLoop(this::drain, REQUEST_INTERVAL_MILLIS, TimeUnit.MILLISECONDS);
+        session.scheduleInEventLoop(this::drain, requestIntervalMillis, TimeUnit.MILLISECONDS);
     }
 
     /**
