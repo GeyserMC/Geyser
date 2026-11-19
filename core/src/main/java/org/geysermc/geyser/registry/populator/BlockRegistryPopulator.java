@@ -150,7 +150,9 @@ public final class BlockRegistryPopulator {
                     builder.remove("block_id"); // Added in 1.20.60
                     //noinspection UnstableApiUsage
                     builder.putCompound("states", statesInterner.intern((NbtMap) builder.remove("states")));
-                    vanillaBlockStates.set(i, builder.build());
+                    // Most blocks are identical in every palette version, so share the whole tag
+                    //noinspection UnstableApiUsage
+                    vanillaBlockStates.set(i, statesInterner.intern(builder.build()));
                 }
 
                 blockStates = new ArrayList<>(vanillaBlockStates);

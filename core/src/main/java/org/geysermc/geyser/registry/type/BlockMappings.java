@@ -30,6 +30,7 @@ import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
 import lombok.Builder;
 import lombok.Value;
+import lombok.experimental.NonFinal;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.protocol.bedrock.data.BlockPropertyData;
@@ -59,7 +60,12 @@ public class BlockMappings implements DefinitionRegistry<BlockDefinition> {
      */
     Int2ObjectMap<String> javaToBedrockIdentifiers;
 
-    Map<NbtMap, GeyserBedrockBlock> stateDefinitionMap;
+    /**
+     * Only needed while registries are populated (creative items); released afterwards to free
+     * the hash index, see {@link #releaseStateDefinitionMap()}.
+     */
+    @NonFinal
+    volatile Map<NbtMap, GeyserBedrockBlock> stateDefinitionMap;
     GeyserBedrockBlock[] bedrockRuntimeMap;
     int[] remappedVanillaIds;
 
@@ -134,7 +140,24 @@ public class BlockMappings implements DefinitionRegistry<BlockDefinition> {
             return null;
         }
 
-        return this.stateDefinitionMap.get(tag);
+        Map<NbtMap, GeyserBedrockBlock> map = this.stateDefinitionMap;
+        if (map != null) {
+            return map.get(tag);
+        }
+        // Index released after startup: a rare lookup scans the palette instead of keeping a hash index alive
+        for (GeyserBedrockBlock block : this.bedrockRuntimeMap) {
+            if (block != null && tag.equals(block.getState())) {
+                return block;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Drops the NbtMap-keyed index; {@link #getDefinition(NbtMap)} falls back to a scan.
+     */
+    public void releaseStateDefinitionMap() {
+        this.stateDefinitionMap = null;
     }
 
     @Override

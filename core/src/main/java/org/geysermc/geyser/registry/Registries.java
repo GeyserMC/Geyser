@@ -258,6 +258,8 @@ public final class Registries {
         BlockRegistries.populate();
         PacketRegistryPopulator.populate();
         ItemRegistryPopulator.populate();
+        // The NbtMap -> definition indexes were only needed while the item registries were built
+        BlockRegistries.BLOCKS.get().forEach((protocolVersion, mappings) -> mappings.releaseStateDefinitionMap());
         TagRegistryPopulator.populate();
 
         // Remove unneeded client generation data from NbtMapBuilder
