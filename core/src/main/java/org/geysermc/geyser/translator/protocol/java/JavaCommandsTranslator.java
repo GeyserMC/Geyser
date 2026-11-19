@@ -247,16 +247,18 @@ public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommands
 
             // Build the completed command and add it to the final list
             CommandData data = new CommandData(commandName, description, flags, CommandPermission.ANY, aliases, Collections.emptyList(), entry.getKey().paramData());
-            commandData.add(data);
-
             if (commandName.equals("help")) {
+                // Help goes first: the Bedrock client drops the parameters of every command sent before it
+                commandData.add(0, data);
                 helpAdded = true;
+            } else {
+                commandData.add(data);
             }
         }
 
         if (!helpAdded) {
             // https://github.com/GeyserMC/Geyser/issues/2573 if Brigadier does not send the help command.
-            commandData.add(createFakeHelpCommand());
+            commandData.add(0, createFakeHelpCommand());
         }
 
         if (session.getGeyser().platformType() == PlatformType.STANDALONE) {
