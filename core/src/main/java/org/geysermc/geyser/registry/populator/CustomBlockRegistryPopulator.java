@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2025 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2026 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -57,6 +57,7 @@ import org.geysermc.geyser.level.block.type.Block;
 import org.geysermc.geyser.level.block.type.BlockState;
 import org.geysermc.geyser.level.physics.BoundingBox;
 import org.geysermc.geyser.level.physics.PistonBehavior;
+import org.geysermc.geyser.network.bedrock.GameProtocol;
 import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.registry.java.BuiltInJavaRegistries;
 import org.geysermc.geyser.registry.mappings.MappingsConfigReader;
@@ -340,14 +341,15 @@ public class CustomBlockRegistryPopulator {
      * Generates and returns the block property data for the provided custom block
      *
      * @param customBlock the custom block to generate block property data for
+     * @param protocolVersion the Bedrock protocol version of the palette the data is for
      * @return the block property data for the provided custom block
      */
     @SuppressWarnings("unchecked")
-    static BlockPropertyData generateBlockPropertyData(CustomBlockData customBlock) {
+    static BlockPropertyData generateBlockPropertyData(CustomBlockData customBlock, int protocolVersion) {
         List<NbtMap> permutations = new ArrayList<>();
         for (CustomBlockPermutation permutation : customBlock.permutations()) {
             permutations.add(NbtMap.builder()
-                    .putCompound("components", CustomBlockRegistryPopulator.convertComponents(permutation.components()))
+                    .putCompound("components", CustomBlockRegistryPopulator.convertComponents(permutation.components(), protocolVersion))
                     .putString("condition", permutation.condition())
                     .build());
         }
@@ -370,7 +372,7 @@ public class CustomBlockRegistryPopulator {
         CreativeCategory creativeCategory = customBlock.creativeCategory() != null ? customBlock.creativeCategory() : CreativeCategory.NONE;
         String creativeGroup = customBlock.creativeGroup() != null ? customBlock.creativeGroup() : "";
         NbtMapBuilder propertyTag = NbtMap.builder()
-                .putCompound("components", CustomBlockRegistryPopulator.convertComponents(customBlock.components()))
+                .putCompound("components", CustomBlockRegistryPopulator.convertComponents(customBlock.components(), protocolVersion))
                 // this is required or the client will crash
                 // in the future, this can be used to replace items in the creative inventory
                 // this would require us to map https://wiki.bedrock.dev/documentation/creative-categories.html#for-blocks programatically
@@ -394,9 +396,10 @@ public class CustomBlockRegistryPopulator {
      * Converts the provided custom block components to an {@link NbtMap} to be sent to the client in the StartGame packet
      *
      * @param components the custom block components to convert
+     * @param protocolVersion the Bedrock protocol version the components are converted for
      * @return the NBT representation of the provided custom block components
      */
-    private static NbtMap convertComponents(CustomBlockComponents components) {
+    private static NbtMap convertComponents(CustomBlockComponents components, int protocolVersion) {
         if (components == null) {
             return NbtMap.EMPTY;
         }
@@ -415,7 +418,7 @@ public class CustomBlockRegistryPopulator {
 
         Set<BoxComponent> collisionBoxes = components.collisionBoxes();
         if (!collisionBoxes.isEmpty()) {
-            builder.putCompound("minecraft:collision_box", convertCollisionBoxes(components.collisionBoxes()));
+            builder.putCompound("minecraft:collision_box", convertCollisionBoxes(components.collisionBoxes(), protocolVersion));
         }
 
         GeometryComponent geometryComponent = components.geometry();
@@ -537,9 +540,13 @@ public class CustomBlockRegistryPopulator {
      * Converts the provided COLLISION box component to an {@link NbtMap}
      *
      * @param boxes the box component to convert
+     * @param protocolVersion the Bedrock protocol version the boxes are converted for
      * @return the NBT representation of the provided box component
      */
-    private static NbtMap convertCollisionBoxes(Set<BoxComponent> boxes) {
+    private static NbtMap convertCollisionBoxes(Set<BoxComponent> boxes, int protocolVersion) {
+        // From 26.60, BDS mirrors the box on the X axis around the block centre
+        boolean mirrorX = GameProtocol.is26_60orHigher(protocolVersion);
+
         List<NbtMap> boxesNbt = new ArrayList<>();
         boolean empty = true;
         for (BoxComponent boxComponent : boxes) {
@@ -548,7 +555,7 @@ public class CustomBlockRegistryPopulator {
             }
             empty = false;
 
-            float minX = 8f + boxComponent.originX();
+            float minX = mirrorX ? 8f - boxComponent.originX() - boxComponent.sizeX() : 8f + boxComponent.originX();
             float minY = boxComponent.originY();
             float minZ = 8f + boxComponent.originZ();
 
