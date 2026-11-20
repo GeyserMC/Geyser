@@ -76,6 +76,36 @@ public class ConfigLoaderTest {
         );
     }
 
+    @Test
+    void lanDiscoveryIsOptInAndHasSeparatePorts() throws Exception {
+        var file = tempDirectory.resolve("lan-default.yml").toFile();
+        GeyserConfig config = new ConfigLoader(file, PlatformType.STANDALONE).load0(GeyserRemoteConfig.class);
+        assertFalse(config.bedrock().signaling().lanDiscovery().enabled());
+        assertEquals("0.0.0.0", config.bedrock().signaling().lanDiscovery().address());
+        assertEquals(19134, config.bedrock().signaling().lanDiscovery().icePort());
+        assertTrue(Files.readString(file.toPath()).contains("lan-discovery:"));
+    }
+
+    @Test
+    void explicitLanConfigurationSurvivesReload() throws Exception {
+        var file = tempDirectory.resolve("lan-enabled.yml");
+        Files.writeString(file, """
+                config-version: 12
+                bedrock:
+                  signaling:
+                    lan-discovery:
+                      enabled: true
+                      address: 127.0.0.1
+                      ice-port: 19154
+                """);
+        for (int reload = 0; reload < 2; reload++) {
+            GeyserConfig config = new ConfigLoader(file.toFile(), PlatformType.STANDALONE).load0(GeyserRemoteConfig.class);
+            assertTrue(config.bedrock().signaling().lanDiscovery().enabled());
+            assertEquals("127.0.0.1", config.bedrock().signaling().lanDiscovery().address());
+            assertEquals(19154, config.bedrock().signaling().lanDiscovery().icePort());
+        }
+    }
+
     @ParameterizedTest
     @MethodSource("platformTypes")
     void testCreateNewConfig(PlatformType platformType, Class<? extends GeyserConfig> configClass) throws Exception {

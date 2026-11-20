@@ -53,6 +53,9 @@ import java.util.regex.Pattern;
 
 @Getter
 public final class BedrockClientData {
+    @SerializedName(value = "Nonce")
+    private String nonce;
+
     /**
      * Shape of the codes Bedrock sends, such as en_US.
      */

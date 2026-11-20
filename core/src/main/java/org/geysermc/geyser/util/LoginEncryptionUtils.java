@@ -25,6 +25,10 @@
 
 package org.geysermc.geyser.util;
 
+import io.netty.channel.Channel;
+import org.cloudburstmc.netty.channel.nethernet.AddressSource;
+import org.cloudburstmc.netty.channel.nethernet.NetherNetChannel;
+import org.geysermc.geyser.network.bedrock.nethernet.LanLoginPolicy;
 import net.raphimc.minecraftauth.msa.model.MsaDeviceCode;
 import org.cloudburstmc.protocol.bedrock.data.auth.AuthPayload;
 import org.cloudburstmc.protocol.bedrock.data.auth.AuthType;
@@ -111,8 +115,16 @@ public class LoginEncryptionUtils {
             // Every other transport binds the chain through the encryption handshake below instead.
             if (!geyser.config().advanced().bedrock().useWaterdogpeForwarding()
                     && session.getUpstream().getSession().getPeer() instanceof NetherNetPeer) {
-                if (refusedByBinding(geyser, session, TransportIdentityBinding.mismatch(
-                        session.getUpstream().getSession().getPeer().getChannel(), identityPublicKey))) {
+                Channel transport = session.getUpstream().getSession().getPeer().getChannel();
+                boolean lan = transport instanceof NetherNetChannel channel
+                        && channel.signaledAddress() != null
+                        && channel.signaledAddress().source() == AddressSource.SIGNALING_LAN;
+                boolean nonceMatches = geyser.getNetherNetServer() != null
+                        && geyser.getNetherNetServer().isLanNonce(data.getNonce());
+                boolean trustedLan = LanLoginPolicy.trusted(result.signed(), lan,
+                        TransportIdentityBinding.state(transport), nonceMatches);
+                if (!trustedLan && refusedByBinding(geyser, session,
+                        TransportIdentityBinding.mismatch(transport, identityPublicKey))) {
                     return false;
                 }
             }
