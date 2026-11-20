@@ -204,7 +204,17 @@ public class LivingEntity extends Entity implements Tickable {
     public void updateNametag(@Nullable Team team) {
         // Java hides the name tag when a living entity has any passengers
         // if name not visible, don't mark it as visible
-        updateNametag(team, passengers.isEmpty() && (team == null || team.isVisibleFor(session.getPlayerEntity().getUsername())));
+        updateNametag(team, !hasNameHidingPassengers() && (team == null || team.isVisibleFor(session.getPlayerEntity().getUsername())));
+    }
+
+    // Text displays riding an entity are the common way to add lines above its name, so they shouldn't remove the name on Bedrock
+    private boolean hasNameHidingPassengers() {
+        for (Entity passenger : passengers) {
+            if (!(passenger instanceof TextDisplayEntity)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     @Override
@@ -218,7 +228,7 @@ public class LivingEntity extends Entity implements Tickable {
         // Update custom name, but reset the nametag when there are passengers, or when this is the spectated
         // entity (its name shouldn't float in the spectator's own first-person view)
         super.setCustomName(entityMetadata);
-        if (!passengers.isEmpty() || this == session.getSpectatedEntity()) {
+        if (hasNameHidingPassengers() || this == session.getSpectatedEntity()) {
             setNametag("", false);
         }
     }
