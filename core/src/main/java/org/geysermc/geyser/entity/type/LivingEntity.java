@@ -113,6 +113,11 @@ public class LivingEntity extends Entity implements Tickable {
         this.lerpPosition = position;
     }
 
+    @Override
+    public boolean interpolatesTeleports() {
+        return true;
+    }
+
     public GeyserItemStack getItemInSlot(EquipmentSlot slot) {
         GeyserItemStack stack = equipment.get(slot);
         if (stack == null) {
