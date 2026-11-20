@@ -41,6 +41,7 @@ import org.geysermc.geyser.api.extension.ExtensionLogger;
 import org.geysermc.geyser.api.extension.ExtensionManager;
 import org.geysermc.geyser.api.extension.exception.InvalidDescriptionException;
 import org.geysermc.geyser.api.extension.exception.InvalidExtensionException;
+import org.geysermc.geyser.configuration.GeyserConfigDirectory;
 import org.geysermc.geyser.extension.event.GeyserExtensionEventBus;
 import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.util.ThrowingBiConsumer;
@@ -73,7 +74,7 @@ public class GeyserExtensionLoader extends ExtensionLoader {
     private final Object2ObjectMap<String, Class<?>> classes = new Object2ObjectOpenHashMap<>();
     private final Map<String, GeyserExtensionClassLoader> classLoaders = new HashMap<>();
     private final Map<Extension, GeyserExtensionContainer> extensionContainers = new HashMap<>();
-    private final Path extensionsDirectory = GeyserImpl.getInstance().getBootstrap().getConfigFolder().resolve("extensions");
+    private final Path extensionsDirectory = GeyserImpl.getInstance().configDir().createIfAbsent(GeyserConfigDirectory.EXTENSIONS);
 
     public GeyserExtensionContainer loadExtension(Path path, GeyserExtensionDescription description) throws Throwable {
         if (path == null) {
@@ -166,10 +167,6 @@ public class GeyserExtensionLoader extends ExtensionLoader {
     protected void loadAllExtensions(@NonNull ExtensionManager extensionManager) {
         GeyserLogger logger = GeyserImpl.getInstance().getLogger();
         try {
-            if (Files.notExists(extensionsDirectory)) {
-                Files.createDirectory(extensionsDirectory);
-            }
-
             Map<String, Path> extensions = new LinkedHashMap<>();
             Map<String, GeyserExtensionContainer> loadedExtensions = new LinkedHashMap<>();
             Map<String, GeyserExtensionDescription> descriptions = new LinkedHashMap<>();

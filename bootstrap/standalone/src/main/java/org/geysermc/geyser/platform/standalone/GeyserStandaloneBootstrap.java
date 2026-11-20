@@ -38,6 +38,7 @@ import org.geysermc.geyser.command.CommandRegistry;
 import org.geysermc.geyser.command.standalone.StandaloneCloudCommandManager;
 import org.geysermc.geyser.configuration.ConfigLoader;
 import org.geysermc.geyser.configuration.GeyserConfig;
+import org.geysermc.geyser.configuration.GeyserConfigDirectory;
 import org.geysermc.geyser.configuration.GeyserRemoteConfig;
 import org.geysermc.geyser.dump.BootstrapDumpInfo;
 import org.geysermc.geyser.ping.GeyserLegacyPingPassthrough;
@@ -61,6 +62,7 @@ public class GeyserStandaloneBootstrap implements GeyserBootstrap {
     private StandaloneCloudCommandManager cloud;
     private CommandRegistry commandRegistry;
     private GeyserConfig geyserConfig;
+    private final GeyserConfigDirectory configDirectory = new GeyserConfigDirectory(getConfigFolder());
     private final GeyserStandaloneLogger geyserLogger = new GeyserStandaloneLogger();
     private IGeyserPingPassthrough geyserPingPassthrough;
     private GeyserStandaloneGUI gui;
@@ -255,6 +257,11 @@ public class GeyserStandaloneBootstrap implements GeyserBootstrap {
     public Path getConfigFolder() {
         // Return the current working directory
         return Paths.get(System.getProperty("user.dir"));
+    }
+
+    @Override
+    public GeyserConfigDirectory configDirectory() {
+        return configDirectory;
     }
 
     @Override

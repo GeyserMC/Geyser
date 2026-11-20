@@ -41,6 +41,7 @@ import org.geysermc.geyser.api.util.PlatformType;
 import org.geysermc.geyser.command.CommandRegistry;
 import org.geysermc.geyser.command.CommandSourceConverter;
 import org.geysermc.geyser.command.GeyserCommandSource;
+import org.geysermc.geyser.configuration.GeyserConfigDirectory;
 import org.geysermc.geyser.configuration.GeyserPluginConfig;
 import org.geysermc.geyser.dump.BootstrapDumpInfo;
 import org.geysermc.geyser.network.bedrock.GameProtocol;
@@ -68,6 +69,7 @@ public class GeyserBungeePlugin extends Plugin implements GeyserBootstrap {
 
     private CommandRegistry commandRegistry;
     private GeyserPluginConfig geyserConfig;
+    private GeyserConfigDirectory configDirectory;
     private GeyserBungeeInjector geyserInjector;
     private final GeyserBungeeLogger geyserLogger = new GeyserBungeeLogger(getLogger());
     private IGeyserPingPassthrough geyserBungeePingPassthrough;
@@ -80,6 +82,7 @@ public class GeyserBungeePlugin extends Plugin implements GeyserBootstrap {
 
     @Override
     public void onGeyserInitialize() {
+        configDirectory = new GeyserConfigDirectory(getConfigFolder());
         GeyserLocale.init(this);
 
         try {
@@ -257,6 +260,11 @@ public class GeyserBungeePlugin extends Plugin implements GeyserBootstrap {
     @Override
     public Path getConfigFolder() {
         return getDataFolder().toPath();
+    }
+
+    @Override
+    public GeyserConfigDirectory configDirectory() {
+        return configDirectory;
     }
 
     @Override

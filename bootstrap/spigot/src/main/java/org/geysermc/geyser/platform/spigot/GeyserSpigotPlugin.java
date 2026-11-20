@@ -52,6 +52,7 @@ import org.geysermc.geyser.api.util.PlatformType;
 import org.geysermc.geyser.command.CommandRegistry;
 import org.geysermc.geyser.command.CommandSourceConverter;
 import org.geysermc.geyser.command.GeyserCommandSource;
+import org.geysermc.geyser.configuration.GeyserConfigDirectory;
 import org.geysermc.geyser.configuration.GeyserPluginConfig;
 import org.geysermc.geyser.dump.BootstrapDumpInfo;
 import org.geysermc.geyser.level.WorldManager;
@@ -80,6 +81,7 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
 
     private CommandRegistry commandRegistry;
     private GeyserPluginConfig geyserConfig;
+    private GeyserConfigDirectory configDirectory;
     private GeyserSpigotInjector geyserInjector;
     private final GeyserSpigotLogger geyserLogger = GeyserPaperLogger.supported() ?
             new GeyserPaperLogger(this, getLogger()) : new GeyserSpigotLogger(getLogger());
@@ -100,6 +102,7 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
 
     @Override
     public void onGeyserInitialize() {
+        configDirectory = new GeyserConfigDirectory(getConfigFolder());
         GeyserLocale.init(this);
 
         try {
@@ -394,6 +397,11 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
     @Override
     public Path getConfigFolder() {
         return getDataFolder().toPath();
+    }
+
+    @Override
+    public GeyserConfigDirectory configDirectory() {
+        return configDirectory;
     }
 
     @Override

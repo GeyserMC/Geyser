@@ -29,8 +29,13 @@ import it.unimi.dsi.fastutil.objects.ObjectArrays;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.GeyserBootstrap;
 import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.configuration.GeyserConfigDirectory;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -122,7 +127,7 @@ public class GeyserLocale {
         Properties localeProp = new Properties();
 
         File localLanguage;
-        Path localFolder = bootstrap.getConfigFolder().resolve("languages");
+        Path localFolder = bootstrap.configDirectory().resolve(GeyserConfigDirectory.LANGUAGES);
         if (Files.exists(localFolder)) {
             localLanguage = localFolder.resolve(locale + ".properties").toFile();
         } else {

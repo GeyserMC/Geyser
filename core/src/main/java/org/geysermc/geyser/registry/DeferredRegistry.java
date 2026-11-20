@@ -47,6 +47,7 @@ class DeferredRegistry<M, R extends IRegistry<M>> implements IRegistry<M> {
     private final R backingRegistry;
     private final Supplier<M> loader;
 
+    private M initialValue;
     private boolean loaded;
 
     protected <I> DeferredRegistry(Function<RegistryLoader<I, M>, R> registryLoader, RegistryLoader<I, M> deferredLoader) {
@@ -112,8 +113,21 @@ class DeferredRegistry<M, R extends IRegistry<M>> implements IRegistry<M> {
      * Loads the registry.
      */
     public void load() {
-        this.backingRegistry.set(this.loader.get());
-        this.loaded = true;
+        if (!this.loaded) {
+            this.initialValue = this.backingRegistry.get();
+            this.backingRegistry.set(this.loader.get());
+            this.loaded = true;
+        }
+    }
+
+    /**
+     * Clears the registry.
+     */
+    public void clear() {
+        if (this.loaded) {
+            this.backingRegistry.set(this.initialValue);
+            this.loaded = false;
+        }
     }
 
     /**
