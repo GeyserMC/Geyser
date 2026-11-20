@@ -47,7 +47,7 @@ class BannerItemTest {
         assertEquals(ChatColor.RESET + ChatColor.YELLOW + "Ominous Banner",
                 ItemTranslator.getCustomName(session, components, mapping, Rarity.UNCOMMON.getColor(), false, false));
         components.put(DataComponentTypes.ITEM_NAME, Component.text("Named Banner", NamedTextColor.RED));
-        assertEquals(ChatColor.RESET + ChatColor.YELLOW + ChatColor.RED + "Named Banner",
+        assertEquals(ChatColor.RESET + ChatColor.RED + "Named Banner",
                 ItemTranslator.getCustomName(session, components, mapping, Rarity.UNCOMMON.getColor(), false, false));
 
         DataComponents ordinaryBanner = new DataComponents(new HashMap<>());

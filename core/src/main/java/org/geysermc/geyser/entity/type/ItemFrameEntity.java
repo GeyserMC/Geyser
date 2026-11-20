@@ -26,6 +26,7 @@
 package org.geysermc.geyser.entity.type;
 
 import lombok.Getter;
+import net.kyori.adventure.text.format.NamedTextColor;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
@@ -116,7 +117,7 @@ public class ItemFrameEntity extends HangingEntity {
             if (itemDataTag != null) {
                 // Remove custom name that Geyser sets for items due to translating non-"custom_name" components
                 String customName = ItemTranslator.getCustomName(session, heldItem.getDataComponentsPatch(),
-                    session.getItemMappings().getMapping(heldItem), 'f', true, false);
+                    session.getItemMappings().getMapping(heldItem), NamedTextColor.WHITE, true, false);
                 if (customName == null) {
                     // No custom name found, must modify tag if custom name exists
                     NbtMapBuilder copy = itemDataTag.toBuilder();

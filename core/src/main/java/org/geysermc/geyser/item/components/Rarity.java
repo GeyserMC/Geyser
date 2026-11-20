@@ -26,19 +26,21 @@
 package org.geysermc.geyser.item.components;
 
 import lombok.Getter;
+import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.format.TextColor;
 import org.checkerframework.checker.nullness.qual.NonNull;
 
 @Getter
 public enum Rarity {
-    COMMON("common", 'f'),
-    UNCOMMON("uncommon", 'e'),
-    RARE("rare", 'b'),
-    EPIC("epic", 'd');
+    COMMON("common", NamedTextColor.WHITE),
+    UNCOMMON("uncommon", NamedTextColor.YELLOW),
+    RARE("rare", NamedTextColor.AQUA),
+    EPIC("epic", NamedTextColor.LIGHT_PURPLE);
 
     private final String name;
-    private final char color;
+    private final TextColor color;
 
-    Rarity(final String name, char chatColor) {
+    Rarity(final String name, TextColor chatColor) {
         this.name = name;
         this.color = chatColor;
     }
