@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import org.cloudburstmc.netty.signaling.ProviderClient;
 import org.geysermc.geyser.configuration.GeyserConfig;
 import org.geysermc.geyser.network.bedrock.nethernet.NetherNetServer.Advertised;
+import org.geysermc.geyser.network.bedrock.nethernet.NetherNetServer.PortConflict;
 import org.geysermc.geyser.text.AsteriskSerializer;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
@@ -114,13 +115,13 @@ class DumpSecretsTest {
         assertEquals("{\"builtin\":{\"advertised\":[],\"stunDiscovery\":true,\"discovered\":[\"***:40404\"]},"
                 + "\"nxs\":{\"confirmed\":true,\"instanceId\":\"srv_01HZX\",\"clockOffsetMillis\":-125000,\"addresses\":[\"***:19132\",\"[***]:19133\",\"192.168.1.5:19132\"],"
                 + "\"assistedFamilies\":[4,6]}}",
-            new Gson().toJson(DumpInfo.NetherNetInfo.of(ADVERTISED)));
+            new Gson().toJson(DumpInfo.NetherNetInfo.of(ADVERTISED, null)));
     }
 
     @Test
     void showsAddressesNetherNetAdvertisesInAFullDump() {
         AsteriskSerializer.showSensitive = true;
-        DumpInfo.NetherNetInfo info = DumpInfo.NetherNetInfo.of(ADVERTISED);
+        DumpInfo.NetherNetInfo info = DumpInfo.NetherNetInfo.of(ADVERTISED, null);
 
         assertEquals(List.of("198.51.100.1:40404"), info.builtin().discovered());
         assertEquals(List.of("198.51.100.1:19132", "[2001:db8::1]:19133", "192.168.1.5:19132"), info.nxs().addresses());
@@ -129,13 +130,20 @@ class DumpSecretsTest {
     @Test
     void keepsTheNxsInstanceIdReadableWithoutAFullDump() {
         // Support looks the server up by it, and registration already logs it
-        assertEquals("srv_01HZX", DumpInfo.NetherNetInfo.of(ADVERTISED).nxs().instanceId());
+        assertEquals("srv_01HZX", DumpInfo.NetherNetInfo.of(ADVERTISED, null).nxs().instanceId());
     }
 
     @Test
     void tellsNxsRunningWithoutConfirmedAddressesFromNotRunning() {
         assertEquals("{\"nxs\":{\"confirmed\":false,\"clockOffsetMillis\":0,\"addresses\":[],\"assistedFamilies\":[]}}",
-            new Gson().toJson(DumpInfo.NetherNetInfo.of(new Advertised(null, new Advertised.Nxs(null, null, 0)))));
-        assertEquals("{}", new Gson().toJson(DumpInfo.NetherNetInfo.of(new Advertised(null, null))));
+            new Gson().toJson(DumpInfo.NetherNetInfo.of(new Advertised(null, new Advertised.Nxs(null, null, 0)), null)));
+        assertEquals("{}", new Gson().toJson(DumpInfo.NetherNetInfo.of(new Advertised(null, null), null)));
+    }
+
+    @Test
+    void saysWhatHoldsTheBuiltinSignalingPort() {
+        assertEquals("{\"builtinPortConflict\":{\"holder\":\"JAVA_SERVER\",\"port\":25565}}",
+            new Gson().toJson(DumpInfo.NetherNetInfo.of(new Advertised(null, null),
+                new PortConflict(PortConflict.Holder.JAVA_SERVER, 25565))));
     }
 }
