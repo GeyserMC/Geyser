@@ -30,7 +30,6 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import org.checkerframework.checker.nullness.qual.Nullable;
-import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.item.custom.CustomItemData;
 import org.geysermc.geyser.api.item.custom.CustomItemOptions;
 import org.geysermc.geyser.api.item.custom.CustomRenderOffsets;
@@ -40,24 +39,22 @@ import org.geysermc.geyser.item.GeyserCustomItemData;
 import org.geysermc.geyser.item.exception.InvalidCustomMappingsFileException;
 import org.geysermc.geyser.registry.mappings.MappingsReader;
 
-import java.nio.file.Path;
 import java.util.Set;
-import java.util.function.BiConsumer;
 
 @Deprecated
 public class ItemMappingsReader_v1 implements MappingsReader<Identifier, CustomItemDefinition> {
 
     @Override
-    public void read(Path file, JsonObject mappings, BiConsumer<Identifier, CustomItemDefinition> consumer) {
-        mappings.entrySet().forEach(entry -> {
-            if (entry.getValue() instanceof JsonArray array) {
+    public void read(Context<Identifier, CustomItemDefinition> context) {
+        context.forEachMapping((key, value) -> {
+            if (value instanceof JsonArray array) {
                 array.forEach(data -> {
                     try {
-                        Identifier vanillaItemIdentifier = Identifier.of(entry.getKey());
+                        Identifier vanillaItemIdentifier = Identifier.of(key);
                         CustomItemDefinition customItemData = this.readItemMappingEntry(vanillaItemIdentifier, data);
-                        consumer.accept(vanillaItemIdentifier, customItemData);
+                        context.accept(vanillaItemIdentifier, customItemData);
                     } catch (InvalidCustomMappingsFileException e) {
-                        GeyserImpl.getInstance().getLogger().error("Error in registering items for custom mapping file: " + file.toString(), e);
+                        context.reportError("failed registering items: " + e.getMessage());
                     }
                 });
             }

@@ -26,35 +26,29 @@
 package org.geysermc.geyser.registry.mappings.versions.item;
 
 import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
-import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.item.custom.v2.CustomItemDefinition;
 import org.geysermc.geyser.api.util.Identifier;
 import org.geysermc.geyser.item.exception.InvalidCustomMappingsFileException;
 import org.geysermc.geyser.registry.mappings.MappingsReader;
 import org.geysermc.geyser.registry.mappings.definition.ItemDefinitionReaders;
 
-import java.nio.file.Path;
-import java.util.function.BiConsumer;
-
 public class ItemMappingsReader_v2 implements MappingsReader<Identifier, CustomItemDefinition> {
 
     @Override
-    public void read(Path file, JsonObject mappings, BiConsumer<Identifier, CustomItemDefinition> consumer) {
-        mappings.entrySet().forEach(entry -> {
-            if (entry.getValue() instanceof JsonArray array) {
+    public void read(Context<Identifier, CustomItemDefinition> context) {
+        context.forEachMapping((key, value) -> {
+            if (value instanceof JsonArray array) {
                 array.forEach(definition -> {
                     try {
-                        Identifier vanillaItem = Identifier.of(entry.getKey());
-                        ItemDefinitionReaders.readDefinition(definition, vanillaItem, null, consumer,
+                        Identifier vanillaItem = Identifier.of(key);
+                        ItemDefinitionReaders.readDefinition(definition, vanillaItem, null, context,
                             "item definition(s) for vanilla Java item " + vanillaItem);
                     } catch (InvalidCustomMappingsFileException exception) {
-                        GeyserImpl.getInstance().getLogger().error(
-                            "Error reading definition(s) for vanilla Java item " + entry.getKey() + " in custom mappings file: " + file.toString(), exception);
+                        context.reportError("failed reading definition(s) for vanilla Java item " + key + ": " + exception.getMessage());
                     }
                 });
             } else {
-                GeyserImpl.getInstance().getLogger().error("Item definitions key " + entry.getKey() + " was not an array!");
+                context.reportError("item definitions key " + key + " was not an array!");
             }
         });
     }

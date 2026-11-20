@@ -25,33 +25,29 @@
 
 package org.geysermc.geyser.registry.mappings.versions.skull;
 
-import com.google.gson.JsonObject;
-import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.event.lifecycle.GeyserDefineCustomSkullsEvent;
 import org.geysermc.geyser.item.exception.InvalidCustomMappingsFileException;
 import org.geysermc.geyser.registry.mappings.MappingsReader;
 import org.geysermc.geyser.registry.mappings.util.MappingsUtil;
 import org.geysermc.geyser.registry.mappings.util.NodeReader;
 
-import java.nio.file.Path;
 import java.util.List;
-import java.util.function.BiConsumer;
 
 public class SkullMappingsReader_v1 implements MappingsReader<GeyserDefineCustomSkullsEvent.SkullTextureType, List<String>> {
 
     @Override
-    public void read(Path file, JsonObject mappings, BiConsumer<GeyserDefineCustomSkullsEvent.SkullTextureType, List<String>> consumer) {
-        mappings.entrySet().forEach(entry -> {
-            if (entry.getValue().isJsonArray()) {
+    public void read(Context<GeyserDefineCustomSkullsEvent.SkullTextureType, List<String>> context) {
+        context.forEachMapping((key, value) -> {
+            if (value.isJsonArray()) {
                 try {
-                    GeyserDefineCustomSkullsEvent.SkullTextureType textureType = MappingsUtil.readOrThrowKey(entry.getKey(), NodeReader.SKULL_TEXTURE_TYPE, "skull mappings");
-                    List<String> textures = MappingsUtil.readArrayOrThrow(mappings, entry.getKey(), NodeReader.NON_EMPTY_STRING, "skull mappings");
-                    consumer.accept(textureType, textures);
+                    GeyserDefineCustomSkullsEvent.SkullTextureType textureType = MappingsUtil.readOrThrowKey(key, NodeReader.SKULL_TEXTURE_TYPE, "skull mappings");
+                    List<String> textures = MappingsUtil.readArrayOrThrow(context.mappings(), key, NodeReader.NON_EMPTY_STRING, "skull mappings");
+                    context.accept(textureType, textures);
                 } catch (InvalidCustomMappingsFileException | IllegalArgumentException exception) {
-                    GeyserImpl.getInstance().getLogger().error("Error reading skull mappings for " + entry.getKey() + " in custom mappings file: " + file.toString(), exception);
+                    context.reportError("failed reading skull mappings for " + key + ": " + exception.getMessage());
                 }
             } else {
-                GeyserImpl.getInstance().getLogger().error("Skull mappings key " + entry.getKey() + " in custom mappings file " + file.toString() + " was not an array!");
+                context.reportError("skull mappings key " + key + " was not an array!");
             }
         });
     }

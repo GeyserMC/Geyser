@@ -232,6 +232,13 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
             }
         }
 
+        boolean isViaVersion = Bukkit.getPluginManager().getPlugin("ViaVersion") != null;
+
+        // Created before Geyser starts, as starting reads the server's registries through it
+        if (!GeyserImpl.getInstance().isReloading()) {
+            createWorldManager(isViaVersion);
+        }
+
         GeyserImpl.start();
 
         if (!geyserConfig.motd().integratedPingPassthrough()) {
@@ -253,8 +260,6 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
             return;
         }
 
-        boolean isViaVersion = Bukkit.getPluginManager().getPlugin("ViaVersion") != null;
-
         // Check to ensure the current setup can support the protocol version Geyser uses
         GeyserSpigotVersionChecker.checkForSupportedProtocol(geyserLogger, isViaVersion);
 
@@ -263,6 +268,43 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
         this.geyserInjector = new GeyserSpigotInjector(isViaVersion);
         this.geyserInjector.initializeLocalChannel(this);
 
+        // Register permissions so they appear in, for example, LuckPerms' UI
+        // Re-registering permissions without removing it throws an error
+        PluginManager pluginManager = Bukkit.getPluginManager();
+        geyser.eventBus().fire((GeyserRegisterPermissionsEvent) (permission, def) -> {
+            Objects.requireNonNull(permission, "permission");
+            Objects.requireNonNull(def, "permission default for " + permission);
+
+            if (permission.isBlank()) {
+                return;
+            }
+            PermissionDefault permissionDefault = switch (def) {
+                case TRUE -> PermissionDefault.TRUE;
+                case FALSE -> PermissionDefault.FALSE;
+                case NOT_SET -> PermissionDefault.OP;
+            };
+
+            Permission existingPermission = pluginManager.getPermission(permission);
+            if (existingPermission != null) {
+                geyserLogger.debug("permission " + permission + " with default " +
+                        existingPermission.getDefault() + " is being overridden by " + permissionDefault);
+
+                pluginManager.removePermission(permission);
+            }
+
+            pluginManager.addPermission(new Permission(permission, permissionDefault));
+        });
+
+        // Events cannot be unregistered - re-registering results in duplicate firings
+        GeyserSpigotBlockPlaceListener blockPlaceListener = new GeyserSpigotBlockPlaceListener(geyser, this.geyserWorldManager);
+        pluginManager.registerEvents(blockPlaceListener, this);
+
+        pluginManager.registerEvents(new GeyserPistonListener(geyser, this.geyserWorldManager), this);
+
+        pluginManager.registerEvents(new GeyserSpigotUpdateListener(), this);
+    }
+
+    private void createWorldManager(boolean isViaVersion) {
         if (Boolean.parseBoolean(System.getProperty("Geyser.UseDirectAdapters", "true"))) {
             try {
                 boolean isPaper = false;
@@ -302,41 +344,6 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
             this.geyserWorldManager = new GeyserSpigotWorldManager(this);
             geyserLogger.debug("Using default world manager.");
         }
-
-        // Register permissions so they appear in, for example, LuckPerms' UI
-        // Re-registering permissions without removing it throws an error
-        PluginManager pluginManager = Bukkit.getPluginManager();
-        geyser.eventBus().fire((GeyserRegisterPermissionsEvent) (permission, def) -> {
-            Objects.requireNonNull(permission, "permission");
-            Objects.requireNonNull(def, "permission default for " + permission);
-
-            if (permission.isBlank()) {
-                return;
-            }
-            PermissionDefault permissionDefault = switch (def) {
-                case TRUE -> PermissionDefault.TRUE;
-                case FALSE -> PermissionDefault.FALSE;
-                case NOT_SET -> PermissionDefault.OP;
-            };
-
-            Permission existingPermission = pluginManager.getPermission(permission);
-            if (existingPermission != null) {
-                geyserLogger.debug("permission " + permission + " with default " +
-                        existingPermission.getDefault() + " is being overridden by " + permissionDefault);
-
-                pluginManager.removePermission(permission);
-            }
-
-            pluginManager.addPermission(new Permission(permission, permissionDefault));
-        });
-
-        // Events cannot be unregistered - re-registering results in duplicate firings
-        GeyserSpigotBlockPlaceListener blockPlaceListener = new GeyserSpigotBlockPlaceListener(geyser, this.geyserWorldManager);
-        pluginManager.registerEvents(blockPlaceListener, this);
-
-        pluginManager.registerEvents(new GeyserPistonListener(geyser, this.geyserWorldManager), this);
-
-        pluginManager.registerEvents(new GeyserSpigotUpdateListener(), this);
     }
 
     @Override
