@@ -28,6 +28,12 @@ dependencies {
 repositories {
     // mavenLocal()
 
+    // libdatachannel-java with the usrsctp T3-rtx restart fix (#6854), built by the libdatachannel-java-t3fix branch
+    maven("https://raw.githubusercontent.com/onebeastchris/Geyser/libdatachannel-maven/") {
+        name = "libdatachannelFork"
+        content { includeVersionByRegex("dev\\.opencollab", "libdatachannel-java(-arch-detect)?", ".*-fork-.*") }
+    }
+
     mavenCentral()
 
     // Floodgate, Cumulus etc.
