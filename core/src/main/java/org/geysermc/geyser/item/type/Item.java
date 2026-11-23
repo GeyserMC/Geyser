@@ -29,6 +29,7 @@ import lombok.Getter;
 import lombok.experimental.Accessors;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.nbt.NbtMap;
@@ -232,7 +233,7 @@ public class Item {
         if (loreComponents != null && tooltip.showInTooltip(DataComponentTypes.LORE)) {
             List<String> lore = builder.getOrCreateLore();
             for (Component loreComponent : loreComponents) {
-                lore.add(MessageTranslator.convertMessageRaw(loreComponent, session.locale()));
+                lore.add(MessageTranslator.convertMessageForItem(loreComponent, session.locale(), NamedTextColor.DARK_PURPLE));
             }
         }
 
