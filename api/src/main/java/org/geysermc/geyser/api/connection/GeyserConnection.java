@@ -149,13 +149,13 @@ public interface GeyserConnection extends Connection, CommandSource {
     int joinPort();
 
     /**
-     * Applies a skin to a player seen by this Geyser connection.
+     * Applies a skin to a player or mannequin seen by this Geyser connection.
      * If the uuid matches the {@link GeyserConnection#javaUuid()}, this
      * will update the skin of this Geyser connection.
-     * If the player uuid provided is not known to this connection, this method
+     * If the uuid provided is not known to this connection, this method
      * will silently return.
      *
-     * @param player which player this skin should be applied to
+     * @param player which player or mannequin this skin should be applied to
      * @param skinData the skin data to apply
      * @since 2.8.3
      */

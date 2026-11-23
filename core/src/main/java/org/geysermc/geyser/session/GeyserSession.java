@@ -139,6 +139,7 @@ import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.type.FishingHookEntity;
 import org.geysermc.geyser.entity.type.ItemFrameEntity;
 import org.geysermc.geyser.entity.type.Tickable;
+import org.geysermc.geyser.entity.type.player.AvatarEntity;
 import org.geysermc.geyser.entity.type.player.PlayerEntity;
 import org.geysermc.geyser.entity.type.player.SessionPlayerEntity;
 import org.geysermc.geyser.entity.vehicle.ClientVehicle;
@@ -1848,7 +1849,9 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource, Jav
         Objects.requireNonNull(player, "player uuid must not be null!");
         Objects.requireNonNull(skinData, "skinData must not be null!");
 
-        PlayerEntity entity = this.entityCache.getPlayerEntity(player);
+        // getEntityByUuid also finds the session's own player and spawned entities such as mannequins.
+        // Players in the tab list that are not currently spawned are only in the player cache.
+        AvatarEntity entity = this.entityCache.getEntityByUuid(player) instanceof AvatarEntity avatar ? avatar : this.entityCache.getPlayerEntity(player);
         if (entity == null) {
             return;
         }
