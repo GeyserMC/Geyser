@@ -37,16 +37,11 @@ import org.cloudburstmc.protocol.bedrock.data.debugshape.DebugShape;
 import org.cloudburstmc.protocol.bedrock.data.debugshape.DebugText;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.cloudburstmc.protocol.bedrock.packet.DebugDrawerPacket;
-import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.entity.VanillaEntities;
 import org.geysermc.geyser.entity.spawn.EntitySpawnContext;
 import org.geysermc.geyser.entity.type.living.ArmorStandEntity;
-import org.geysermc.geyser.text.ChatColor;
 import org.geysermc.geyser.translator.text.MessageTranslator;
 import org.geysermc.geyser.util.ColorUtils;
-import org.geysermc.geyser.util.EntityUtils;
-import org.geysermc.geyser.util.MathUtils;
-import org.geysermc.geyser.util.SignUtils;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.EntityMetadata;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.BooleanEntityMetadata;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.ByteEntityMetadata;
@@ -79,6 +74,8 @@ public class TextDisplayEntity extends DisplayBaseEntity {
      */
     private static final float BEDROCK_ANCHOR_OFFSET = JAVA_LINE_HEIGHT * 0.1f;
 
+    private static final Color DEFAULT_BACKGROUND = new Color(0, 0, 0, 64);
+
     /**
      * On Java Edition, armor stands can have a custom name shown additionally to
      * the text in the display. They are rendered separately, and can cross each other...
@@ -100,7 +97,7 @@ public class TextDisplayEntity extends DisplayBaseEntity {
     private int lineWidth = 200;
 
     @Getter
-    private @NonNull Color backgroundColor = new Color(0, 0, 0, 40);
+    private @NonNull Color backgroundColor = DEFAULT_BACKGROUND;
 
     @Getter
     private byte textOpacity = -1;
@@ -113,6 +110,8 @@ public class TextDisplayEntity extends DisplayBaseEntity {
 
     @Getter
     private boolean seeThrough = false;
+
+    private boolean hidden = false;
 
     public TextDisplayEntity(EntitySpawnContext context) {
         super(context);
@@ -216,9 +215,9 @@ public class TextDisplayEntity extends DisplayBaseEntity {
     public void setStyleFlags(ByteEntityMetadata metadata) {
         byte flags = metadata.getPrimitiveValue();
 
-        this.defaultBackground = (flags & 0x01) == 1;
-        this.shadow = ((flags >> 1) & 0x01) == 1;
-        this.seeThrough = ((flags >> 2) & 0x01) == 1;
+        this.shadow = (flags & 0x01) == 1;
+        this.seeThrough = ((flags >> 1) & 0x01) == 1;
+        this.defaultBackground = ((flags >> 2) & 0x01) == 1;
     }
 
     private void processText() {
@@ -230,13 +229,29 @@ public class TextDisplayEntity extends DisplayBaseEntity {
         super.spawnEntity();
 
         sendUpdates = true;
-        updatePrimitiveText();
+
+        if (!hidden) { // Only update if the display is shown
+            updatePrimitiveText();
+        }
     }
 
     @Override
     public void sendSpectateInvisible(boolean hidden) {
         super.sendSpectateInvisible(hidden);
-        // TODO handle this, we probably just wanna hide the primitive text?
+
+        boolean previousHidden = this.hidden;
+
+        this.hidden = hidden;
+
+        if (this.hidden != previousHidden && sendUpdates) {
+            if (hidden) { // Remove the display
+                DebugDrawerPacket packet = new DebugDrawerPacket();
+                packet.getShapes().add(new DebugShape(geyserId));
+                session.sendUpstreamPacket(packet);
+            } else { // Update the text for any changes and to show
+                updatePrimitiveText();
+            }
+        }
     }
 
     @Override
@@ -304,7 +319,7 @@ public class TextDisplayEntity extends DisplayBaseEntity {
     }
 
     public void updatePrimitiveText() {
-        if (!sendUpdates) return;
+        if (!sendUpdates || hidden) return;
 
         DebugText text = new DebugText();
         applyTransformation(text);
@@ -322,14 +337,14 @@ public class TextDisplayEntity extends DisplayBaseEntity {
         );
         if (getVehicle() != null) {
             text.setAttachedToEntityId(getVehicle().geyserId);
-            text.setPosition(text.getPosition().clone().add(0, getVehicle().getBoundingBoxHeight() - 0.2f, 0));
+            text.setPosition(text.getPosition().add(0, getVehicle().getBoundingBoxHeight() - 0.2f, 0));
         } else {
             text.setAttachedToEntityId(geyserId);
         }
         text.setUseRotation(!getBillboard().equals(Billboard.CENTER));
         // Java's view range is a multiplier of 64 blocks, Bedrock wants the distance itself
         text.setMaximumRenderDistance(getViewDistance() < 0 ? getViewDistance() : getViewDistance() * 64);
-        text.setBackgroundColor(backgroundColor);
+        text.setBackgroundColor(defaultBackground ? DEFAULT_BACKGROUND : backgroundColor);
         text.setDepthTest(!seeThrough);
         text.setDimension(session.getBedrockDimension().bedrockId());
 
@@ -380,7 +395,7 @@ public class TextDisplayEntity extends DisplayBaseEntity {
         float y = (float) Math.atan2(-r20, Math.hypot(r00, r10));
         float z = (float) Math.atan2(r10, r00);
 
-        float scale = MathUtils.average(new float[]{ sx, sy }) * BEDROCK_SCALE_FACTOR; // sz doesn't affect the java scale, so don't use it
+        float scale = ((sx + sy) / 2) * BEDROCK_SCALE_FACTOR; // sz doesn't affect the java scale with text displays, so don't use it
 
         // Move the bedrock anchor to where the top line sits within the java text, in the java text's local space
         int lines = this.text.split("\n", -1).length;
