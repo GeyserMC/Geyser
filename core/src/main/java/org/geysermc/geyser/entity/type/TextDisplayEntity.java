@@ -29,6 +29,7 @@ import lombok.Getter;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.cloudburstmc.math.imaginary.Quaternionf;
 import org.cloudburstmc.math.matrix.Matrix4f;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.math.vector.Vector4f;
@@ -375,12 +376,20 @@ public class TextDisplayEntity extends DisplayBaseEntity {
     }
 
     private void applyTransformation(DebugText text) {
+        // Create the matrix
         // Java's transformation is T * L * S * R. Cloudburst's translate/rotate/scale pre-multiply, so build it with mul()
         // instead. The translation is left out here and added at the end.
-        Matrix4f matrix = Matrix4f.createRotation(getLeftRotation())
+        Matrix4f LSR = Matrix4f.createRotation(getLeftRotation())
             .mul(Matrix4f.createScaling(Vector4f.from(getBaseScale(), 1)))
             .mul(Matrix4f.createRotation(getRightRotation()));
 
+        // Apply yaw, pitch, the LSR matrix then finally 180 on the Y axis, this is how java handles this
+        Matrix4f matrix = Matrix4f.createRotation(Quaternionf.fromAngleDegAxis(-getYaw(), Vector3f.UNIT_Y))
+            .mul(Matrix4f.createRotation(Quaternionf.fromAngleDegAxis(getPitch(), Vector3f.UNIT_X)))
+            .mul(LSR)
+            .mul(Matrix4f.createRotation(Quaternionf.fromAngleDegAxis(180, Vector3f.UNIT_Y)));
+
+        // Extract the matrix elements
         float m00, m01, m02, m10, m11, m12, m20, m21, m22;
         m00 = matrix.get(0, 0);
         m01 = matrix.get(0, 1);
@@ -392,22 +401,37 @@ public class TextDisplayEntity extends DisplayBaseEntity {
         m21 = matrix.get(2, 1);
         m22 = matrix.get(2, 2);
 
-        float sx = (float) Math.sqrt(m00*m00 + m10*m10 + m20*m20);
-        float sy = (float) Math.sqrt(m01*m01 + m11*m11 + m21*m21);
-        float sz = (float) Math.sqrt(m02*m02 + m12*m12 + m22*m22);
+        // Apply scale
+        double sx = Math.sqrt(m00*m00 + m10*m10 + m20*m20);
+        double sy = Math.sqrt(m01*m01 + m11*m11 + m21*m21);
+        double sz = Math.sqrt(m02*m02 + m12*m12 + m22*m22);
 
+        // sz doesn't affect the java scale with text displays, so don't use it
+        if (sx == 0 || sy == 0) {
+            // One of these 2 being 0 will hide the display, so let's skip the maths which could
+            // make the display visible when it shouldn't be!
+            text.setScale(0f);
+        } else {
+            float scale = (float) (((sx + sy) / 2) * BEDROCK_SCALE_FACTOR);
+
+            text.setScale(scale);
+        }
+
+        // Apply rotation
         // A zero scale (often used to hide a display) would divide by zero and send NaN rotations to the client
-        float ix = sx == 0 ? 0 : 1 / sx, iy = sy == 0 ? 0 : 1 / sy, iz = sz == 0 ? 0 : 1 / sz;
-        float r00 = m00 * ix, r10 = m10 * ix, r20 = m20 * ix;
-        float r01 = m01 * iy, r11 = m11 * iy, r21 = m21 * iy;
-        float r02 = m02 * iz, r12 = m12 * iz, r22 = m22 * iz;
+        // although this wouldn't be an issue (since a 0 scale hides it, so who cares), we'll account anyway
+        double ix = sx == 0 ? 0 : 1 / sx, iy = sy == 0 ? 0 : 1 / sy, iz = sz == 0 ? 0 : 1 / sz;
+        double r00 = m00 * ix, r10 = m10 * ix, r20 = m20 * ix;
+        double r01 = m01 * iy, r11 = m11 * iy, r21 = m21 * iy;
+        double r02 = m02 * iz, r12 = m12 * iz, r22 = m22 * iz;
 
-        float x = (float) Math.atan2(r21, r22);
-        float y = (float) Math.atan2(-r20, Math.hypot(r00, r10));
-        float z = (float) Math.atan2(r10, r00);
+        double x = Math.atan2(r21, r22);
+        double y = Math.atan2(-r20, Math.hypot(r00, r10));
+        double z = Math.atan2(r10, r00);
 
-        float scale = ((sx + sy) / 2) * BEDROCK_SCALE_FACTOR; // sz doesn't affect the java scale with text displays, so don't use it
+        text.setRotation(Vector3f.from(Math.toDegrees(x), Math.toDegrees(y), Math.toDegrees(z)));
 
+        // Apply translation
         // Move the bedrock anchor to where the top line sits within the java text, in the java text's local space
         int lines = this.text.split("\n", -1).length;
         Vector4f anchor = matrix.transform(0, JAVA_LINE_HEIGHT * lines - BEDROCK_ANCHOR_OFFSET, 0, 1);
@@ -420,20 +444,6 @@ public class TextDisplayEntity extends DisplayBaseEntity {
         }
 
         text.setPosition(translation.add(getBaseTranslation()));
-
-        // I'm not even gonna pretend I know why x needs to be negative, but it does, and it works
-        Vector3f rotation = Vector3f.from(-Math.toDegrees(x), Math.toDegrees(y), Math.toDegrees(z));
-
-        Vector3f outputRotation = Vector3f.from(
-            -getPitch(), (-getYaw()) + 180, 0
-        );
-
-        // Add rotation
-        outputRotation = outputRotation.add(rotation);
-
-        text.setRotation(outputRotation);
-
-        text.setScale(scale);
     }
 
     public void updateNameTag() {
