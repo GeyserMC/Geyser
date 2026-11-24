@@ -53,6 +53,8 @@ public class DisplayBaseEntity extends Entity {
 
     private float viewDistance = 1;
 
+    private boolean displayDataDirty = false;
+
     public DisplayBaseEntity(EntitySpawnContext context) {
         super(context);
     }
@@ -103,6 +105,14 @@ public class DisplayBaseEntity extends Entity {
     @Override
     public Vector3f bedrockPosition() {
         return super.bedrockPosition().add(baseTranslation);
+    }
+
+    protected void setDisplayDataDirty() {
+        displayDataDirty = true;
+    }
+
+    protected void clearDisplayDataDirty() {
+        displayDataDirty = false;
     }
 
     public enum Billboard {

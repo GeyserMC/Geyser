@@ -206,10 +206,12 @@ public class TextDisplayEntity extends DisplayBaseEntity {
         int b = value & 0xFF;
 
         this.backgroundColor = new Color(r, g, b, a);
+        setDisplayDataDirty();
     }
 
     public void setTextOpacity(ByteEntityMetadata metadata) {
         this.textOpacity = metadata.getPrimitiveValue();
+        setDisplayDataDirty();
     }
 
     public void setStyleFlags(ByteEntityMetadata metadata) {
@@ -218,10 +220,12 @@ public class TextDisplayEntity extends DisplayBaseEntity {
         this.shadow = (flags & 0x01) == 1;
         this.seeThrough = ((flags >> 1) & 0x01) == 1;
         this.defaultBackground = ((flags >> 2) & 0x01) == 1;
+        setDisplayDataDirty();
     }
 
     private void processText() {
         this.text = MessageTranslator.wrapLines(this.unprocessedText, this.lineWidth);
+        setDisplayDataDirty();
     }
 
     @Override
@@ -269,22 +273,28 @@ public class TextDisplayEntity extends DisplayBaseEntity {
 
     @Override
     public void moveRelativeRaw(double relX, double relY, double relZ, float yaw, float pitch, float headYaw, boolean isOnGround) {
+        float oldYaw = this.yaw;
+        float oldPitch = this.pitch;
         super.moveRelativeRaw(relX, relY, relZ, yaw, pitch, headYaw, isOnGround);
 
         if (secondEntity != null) {
             secondEntity.moveRelativeRaw(relX, relY, relZ, yaw, pitch, headYaw, isOnGround);
         }
-        updatePrimitiveText();
+
+        if (getBillboard() != Billboard.CENTER && (yaw != oldYaw || pitch != oldPitch)) updatePrimitiveText();
     }
 
     @Override
     public void moveAbsoluteRaw(Vector3f position, float yaw, float pitch, float headYaw, boolean isOnGround, boolean teleported) {
+        float oldYaw = this.yaw;
+        float oldPitch = this.pitch;
         super.moveAbsoluteRaw(position, yaw, pitch, headYaw, isOnGround, teleported);
 
         if (secondEntity != null) {
             secondEntity.moveAbsoluteRaw(position.down(LINE_HEIGHT_OFFSET), yaw, pitch, headYaw, isOnGround, teleported);
         }
-        updatePrimitiveText();
+
+        if (getBillboard() != Billboard.CENTER && (yaw != oldYaw || pitch != oldPitch)) updatePrimitiveText();
     }
 
     @Override
@@ -300,8 +310,11 @@ public class TextDisplayEntity extends DisplayBaseEntity {
             }
         }
 
-        // Metadata setters only store their values, so a whole metadata packet results in a single shape update
-        updatePrimitiveText();
+        if (isDisplayDataDirty()) {
+            // Metadata setters only store their values, so a whole metadata packet results in a single shape update
+            updatePrimitiveText();
+            clearDisplayDataDirty();
+        }
     }
 
     @Override
@@ -362,13 +375,11 @@ public class TextDisplayEntity extends DisplayBaseEntity {
     }
 
     private void applyTransformation(DebugText text) {
-        // Calculate a matrix then extract components
-        Matrix4f matrix = Matrix4f.IDENTITY.translate(getBaseTranslation())
-            .rotate(getLeftRotation())
-            .scale(Vector4f.from(getBaseScale(), 1))
-            .rotate(getRightRotation());
-
-        Vector3f translation = Vector3f.from(matrix.get(3, 0), matrix.get(3, 1), matrix.get(3, 2));
+        // Java's transformation is T * L * S * R. Cloudburst's translate/rotate/scale pre-multiply, so build it with mul()
+        // instead. The translation is left out here and added at the end.
+        Matrix4f matrix = Matrix4f.createRotation(getLeftRotation())
+            .mul(Matrix4f.createScaling(Vector4f.from(getBaseScale(), 1)))
+            .mul(Matrix4f.createRotation(getRightRotation()));
 
         float m00, m01, m02, m10, m11, m12, m20, m21, m22;
         m00 = matrix.get(0, 0);
@@ -399,15 +410,12 @@ public class TextDisplayEntity extends DisplayBaseEntity {
 
         // Move the bedrock anchor to where the top line sits within the java text, in the java text's local space
         int lines = this.text.split("\n", -1).length;
-        Matrix4f transform = Matrix4f.createRotation(getLeftRotation())
-            .mul(Matrix4f.createScaling(Vector4f.from(getBaseScale(), 1)))
-            .mul(Matrix4f.createRotation(getRightRotation()));
-        Vector4f anchor = transform.transform(0, JAVA_LINE_HEIGHT * lines - BEDROCK_ANCHOR_OFFSET, 0, 1);
-        translation = translation.add(anchor.getX(), anchor.getY(), anchor.getZ());
+        Vector4f anchor = matrix.transform(0, JAVA_LINE_HEIGHT * lines - BEDROCK_ANCHOR_OFFSET, 0, 1);
+        Vector3f translation = Vector3f.from(anchor.getX(), anchor.getY(), anchor.getZ());
 
         // Bedrock moves the text up by half of an unscaled line for every extra line, so undo that along the text's up axis
         if (lines > 1 && sy != 0) {
-            Vector4f up = transform.transform(0, 1, 0, 0).normalize().mul(BEDROCK_LINE_HEIGHT * (lines - 1) / 2);
+            Vector4f up = matrix.transform(0, 1, 0, 0).normalize().mul(BEDROCK_LINE_HEIGHT * (lines - 1) / 2);
             translation = translation.sub(up.getX(), up.getY(), up.getZ());
         }
 
@@ -417,7 +425,7 @@ public class TextDisplayEntity extends DisplayBaseEntity {
         Vector3f rotation = Vector3f.from(-Math.toDegrees(x), Math.toDegrees(y), Math.toDegrees(z));
 
         Vector3f outputRotation = Vector3f.from(
-            0, (-getYaw()) + 180, 0
+            -getPitch(), (-getYaw()) + 180, 0
         );
 
         // Add rotation
