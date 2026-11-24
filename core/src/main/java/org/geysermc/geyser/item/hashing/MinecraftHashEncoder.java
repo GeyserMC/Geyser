@@ -31,6 +31,7 @@ import com.google.common.hash.Hasher;
 import com.google.common.hash.Hashing;
 import org.cloudburstmc.nbt.NbtList;
 import org.cloudburstmc.nbt.NbtMap;
+import org.geysermc.adventure.text.serializer.nbt.HeterogeneousNbtList;
 import org.geysermc.geyser.registry.java.JavaRegistryProvider;
 
 import java.util.Comparator;
@@ -154,18 +155,7 @@ public class MinecraftHashEncoder {
     }
 
     public HashCode nbtList(NbtList<?> list) {
-        return list(list.stream()
-            .map(value -> {
-                if (value instanceof NbtMap map && map.size() == 1) {
-                    Object unwrapped = map.get("");
-                    if (unwrapped != null) {
-                        return unwrapped;
-                    }
-                }
-                return value;
-            })
-            .map(this::nbtValue)
-            .toList());
+        return list(HeterogeneousNbtList.tryUnwrap(list).stream().map(this::nbtValue).toList());
     }
 
     public HashCode byteArray(byte[] bytes) {
