@@ -25,6 +25,7 @@
 
 package org.geysermc.geyser.util;
 
+import org.cloudburstmc.protocol.bedrock.packet.SubClientLoginPacket;
 import net.raphimc.minecraftauth.msa.model.MsaDeviceCode;
 import org.cloudburstmc.protocol.bedrock.data.auth.AuthPayload;
 import org.cloudburstmc.protocol.bedrock.data.auth.AuthType;
@@ -66,12 +67,17 @@ public class LoginEncryptionUtils {
         return encryptConnectionWithCert(session, loginPacket.getAuthPayload(), loginPacket.getClientJwt());
     }
 
+    public static boolean encryptSubClientConnection(GeyserSession session, SubClientLoginPacket loginPacket) {
+        return encryptConnectionWithCert(session, loginPacket.getAuthPayload(), loginPacket.getClientJwt());
+    }
+
     private static boolean encryptConnectionWithCert(GeyserSession session, AuthPayload authPayload, String jwt) {
         try {
             GeyserImpl geyser = session.getGeyser();
 
             // Regardless of auth type, we don't support guest type accounts used for splitscreen
-            if (authPayload.getAuthType() == AuthType.GUEST) {
+            boolean isSubClient = session.getUpstream().getSession().isSubClient();
+            if (!isSubClient && authPayload.getAuthType() == AuthType.GUEST) {
                 session.disconnect(GeyserLocale.getLocaleStringLog("geyser.network.remote.invalid_xbox_account"));
                 return false;
             }
@@ -79,7 +85,8 @@ public class LoginEncryptionUtils {
             ChainValidationResult result = EncryptionUtils.validatePayload(authPayload);
 
             geyser.getLogger().debug("Is player data signed? %s", result.signed());
-            if (!result.signed() && session.getGeyser().config().advanced().bedrock().validateBedrockLogin()) {
+            boolean allowGuestSubClient = isSubClient && authPayload.getAuthType() == AuthType.GUEST;
+            if (!result.signed() && !allowGuestSubClient && session.getGeyser().config().advanced().bedrock().validateBedrockLogin()) {
                 session.disconnect(GeyserLocale.getLocaleStringLog("geyser.network.remote.invalid_xbox_account"));
                 return false;
             }
@@ -109,10 +116,10 @@ public class LoginEncryptionUtils {
 
             // A proxy re-signs the chain with its own key, so the two only line up for a direct client.
             // Every other transport binds the chain through the encryption handshake below instead.
-            if (!geyser.config().advanced().bedrock().useWaterdogpeForwarding()
-                    && session.getUpstream().getSession().getPeer() instanceof NetherNetPeer) {
+            if (!isSubClient && !geyser.config().advanced().bedrock().useWaterdogpeForwarding()
+                && session.getUpstream().getSession().getPeer() instanceof NetherNetPeer) {
                 if (refusedByBinding(geyser, session, TransportIdentityBinding.mismatch(
-                        session.getUpstream().getSession().getPeer().getChannel(), identityPublicKey))) {
+                    session.getUpstream().getSession().getPeer().getChannel(), identityPublicKey))) {
                     return false;
                 }
             }
@@ -140,7 +147,11 @@ public class LoginEncryptionUtils {
             session.setAuthData(new AuthData(extraData.displayName, extraData.identity, xuid, issuedAt, extraData.minecraftId));
 
             // Thanks 26.44, we love protocol bumps without protocol version bumps
-            CodecProcessor.updateCodec(session.getUpstream(), data.getGameVersion());
+            if (!isSubClient) {
+                CodecProcessor.updateCodec(session.getUpstream(), data.getGameVersion());
+            } else {
+                return false;
+            }
 
             try {
                 return startEncryptionHandshake(session, identityPublicKey);
@@ -155,6 +166,7 @@ public class LoginEncryptionUtils {
                 return false;
             }
         } catch (Exception ex) {
+            session.getGeyser().getLogger().error("Unable to complete login", ex);
             session.disconnect("disconnectionScreen.internalError.cantConnect");
             throw new RuntimeException("Unable to complete login", ex);
         }

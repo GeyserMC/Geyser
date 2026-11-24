@@ -49,7 +49,7 @@ public class SkullSkinManager extends SkinManager {
             .premium(true)
             .capeId(SkinProvider.EMPTY_CAPE.capeId())
             .fullSkinId(skinId)
-            .geometryDataEngineVersion(session.getClientData().getGameVersion())
+            .geometryDataEngineVersion(session.getClientData().getGameVersion() != null ? session.getClientData().getGameVersion() : "")
             .color(new Color(0, true))
             .trusted(true)
             .profileHash("")

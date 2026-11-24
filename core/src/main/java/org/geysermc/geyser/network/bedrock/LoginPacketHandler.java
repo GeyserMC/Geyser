@@ -25,6 +25,7 @@
 
 package org.geysermc.geyser.network.bedrock;
 
+import org.cloudburstmc.protocol.bedrock.packet.SubClientLoginPacket;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import org.checkerframework.checker.nullness.qual.Nullable;
@@ -76,6 +77,11 @@ public class LoginPacketHandler extends LoggingPacketHandler {
         ZlibCompression compression = new ZlibCompression(Zlib.RAW);
         compression.setLevel(this.geyser.config().advanced().bedrock().compressionLevel());
         this.compressionStrategy = new SimpleCompressionStrategy(compression);
+
+        if (session.getUpstream().getSession().isSubClient()) {
+            this.stage = Stage.SUB_CLIENT_LOGIN;
+            this.loginProtocolVersion = session.getUpstream().getProtocolVersion();
+        }
     }
 
     @Override
@@ -146,6 +152,24 @@ public class LoginPacketHandler extends LoggingPacketHandler {
     }
 
     @Override
+    public PacketSignal handle(SubClientLoginPacket loginPacket) {
+        if (geyser.isShuttingDown() || geyser.isReloading()) {
+            session.disconnect(GeyserLocale.getLocaleStringLog("geyser.core.shutdown.kick.message"));
+            return PacketSignal.HANDLED;
+        }
+
+        stage = Stage.DONE;
+        LoginEncryptionUtils.encryptSubClientConnection(session, loginPacket);
+
+        if (session.isClosed()) {
+            return PacketSignal.HANDLED;
+        }
+
+        finishLogin();
+        return PacketSignal.HANDLED;
+    }
+
+    @Override
     public PacketSignal handle(LoginPacket loginPacket) {
         if (geyser.isShuttingDown() || geyser.isReloading()) {
             // Don't allow new players in if we're no longer operating
@@ -198,7 +222,7 @@ public class LoginPacketHandler extends LoggingPacketHandler {
     }
 
     private void finishLogin() {
-        if (geyser.getSessionManager().isXuidAlreadyPending(session.xuid()) || geyser.getSessionManager().sessionByXuid(session.xuid()) != null) {
+        if (!session.getUpstream().getSession().isSubClient() && (geyser.getSessionManager().isXuidAlreadyPending(session.xuid()) || geyser.getSessionManager().sessionByXuid(session.xuid()) != null)) {
             session.disconnect(GeyserLocale.getLocaleStringLog("geyser.auth.already_loggedin", session.bedrockUsername()));
             return;
         }
@@ -218,7 +242,18 @@ public class LoginPacketHandler extends LoggingPacketHandler {
 
         UpstreamPacketHandler handler = new UpstreamPacketHandler(geyser, session);
         session.getUpstream().getSession().setPacketHandler(handler);
-        handler.sendResourcePacksInfo();
+
+        if (session.getUpstream().getSession().isSubClient()) {
+            if (geyser.config().java().authType() != org.geysermc.geyser.api.network.AuthType.ONLINE) {
+                session.authenticate(session.getAuthData().name());
+            } else {
+                session.connect();
+            }
+            geyser.getLogger().info(GeyserLocale.getLocaleStringLog("geyser.network.connect", session.getAuthData().name() +
+                " (" + session.protocolVersion() + ")"));
+        } else {
+            handler.sendResourcePacksInfo();
+        }
     }
 
     /**
@@ -227,6 +262,7 @@ public class LoginPacketHandler extends LoggingPacketHandler {
     private enum Stage {
         NETWORK_SETTINGS(RequestNetworkSettingsPacket.class),
         LOGIN(LoginPacket.class),
+        SUB_CLIENT_LOGIN(SubClientLoginPacket.class),
         /**
          * Accepts the handshake only once it is read through the decryptor.
          */
