@@ -92,7 +92,7 @@ public class DisplayBaseEntity extends Entity {
             this.billboard = Billboard.values()[metadata.getPrimitiveValue()];
         } catch (IndexOutOfBoundsException e) {
             GeyserImpl.getInstance().getLogger().warning("Billboard sent for display entity with an invalid value!");
-            this.billboard = Billboard.CENTER;
+            this.billboard = Billboard.FIXED;
         }
     }
 
