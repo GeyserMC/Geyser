@@ -597,10 +597,11 @@ public final class ItemTranslator {
             if (customName != null) {
                 String customNameString = MessageTranslator.convertMessage(customName
                         // Match Vanilla styles to fully normalize the text component
+                        .colorIfAbsent(translationColor)
                         .decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.TRUE),
                     session.locale());
                 // Filter the default custom name style in text prefixes to avoid it show in anvil UI
-                return customNameString.startsWith("§r§o") ? customNameString.substring(4) : customNameString;
+                return customNameString.startsWith("§r§f§o") ? customNameString.substring(6) : customNameString;
             }
 
             if (!customNameOnly) {
