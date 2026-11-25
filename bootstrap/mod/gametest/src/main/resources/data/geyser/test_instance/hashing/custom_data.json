@@ -11,6 +11,10 @@
       },
       "a list": [
         ["in a list"]
+      ],
+      "a heterogeneous list": [
+        {"with": "a"},
+        "string"
       ]
     },
     {
