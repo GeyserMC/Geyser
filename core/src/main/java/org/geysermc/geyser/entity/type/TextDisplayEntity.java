@@ -314,7 +314,6 @@ public class TextDisplayEntity extends DisplayBaseEntity {
         if (isDisplayDataDirty()) {
             // Metadata setters only store their values, so a whole metadata packet results in a single shape update
             updatePrimitiveText();
-            clearDisplayDataDirty();
         }
     }
 
@@ -334,6 +333,10 @@ public class TextDisplayEntity extends DisplayBaseEntity {
 
     public void updatePrimitiveText() {
         if (!sendUpdates || hidden) return;
+
+        // Called here as this method can be called without checking the dirty flag (#setVehicle(Entity)),
+        // *but* this method will **always** clear the dirty flag, so it should do so
+        clearDisplayDataDirty();
 
         DebugText text = new DebugText();
         applyTransformation(text);

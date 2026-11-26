@@ -29,7 +29,6 @@ import lombok.Getter;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.cloudburstmc.math.imaginary.Quaternionf;
 import org.cloudburstmc.math.vector.Vector3f;
-import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.entity.spawn.EntitySpawnContext;
 import org.geysermc.geyser.util.EntityUtils;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.EntityMetadata;
@@ -90,12 +89,7 @@ public class DisplayBaseEntity extends Entity {
     }
 
     public void setBillboard(ByteEntityMetadata metadata) {
-        try {
-            this.billboard = Billboard.values()[metadata.getPrimitiveValue()];
-        } catch (IndexOutOfBoundsException e) {
-            GeyserImpl.getInstance().getLogger().warning("Billboard sent for display entity with an invalid value!");
-            this.billboard = Billboard.FIXED;
-        }
+        this.billboard = Billboard.getById(metadata.getPrimitiveValue());
     }
 
     public void setViewDistance(FloatEntityMetadata metadata) {
@@ -120,5 +114,12 @@ public class DisplayBaseEntity extends Entity {
         VERTICAL,
         HORIZONTAL,
         CENTER;
+
+        // To prevent an array being created all the time
+        public static final Billboard[] VALUES = values();
+
+        public static Billboard getById(int id) {
+            return id < 0 || id >= VALUES.length ? Billboard.FIXED : VALUES[id];
+        }
     }
 }
