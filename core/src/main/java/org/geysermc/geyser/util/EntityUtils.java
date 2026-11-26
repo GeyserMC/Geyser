@@ -189,6 +189,14 @@ public final class EntityUtils {
             float xOffset = 0;
             float yOffset = mountedHeightOffset + heightOffset;
             float zOffset = 0;
+            if (passenger instanceof TextDisplayEntity textDisplay) {
+                xOffset = 0;
+                yOffset = 0.2f;
+                zOffset = 0;
+
+                // Update the primitive text to reseat the entity
+                textDisplay.updatePrimitiveText();
+            }
             switch (mount.getEntityType()) {
                 case CAMEL -> {
                     zOffset = 0.5f;
@@ -210,30 +218,6 @@ public final class EntityUtils {
                 }
                 case CHICKEN -> zOffset = -0.1f;
                 case TRADER_LLAMA, LLAMA -> zOffset = -0.3f;
-                case TEXT_DISPLAY -> {
-                    if (passenger instanceof TextDisplayEntity textDisplay) {
-                        Vector3f displayTranslation = textDisplay.getTranslation();
-                        if (displayTranslation == null) {
-                            return;
-                        }
-
-                        xOffset = displayTranslation.getX();
-                        yOffset = displayTranslation.getY() + 0.2f;
-                        zOffset = displayTranslation.getZ();
-                    }
-                }
-                case PLAYER -> {
-                    if (passenger instanceof TextDisplayEntity textDisplay) {
-                        Vector3f displayTranslation = textDisplay.getTranslation();
-                        int lines = textDisplay.getLineCount();
-                        if (displayTranslation != null && lines != 0) {
-                            float multiplier = .1414f;
-                            xOffset = displayTranslation.getX();
-                            yOffset += displayTranslation.getY() + multiplier * lines;
-                            zOffset = displayTranslation.getZ();
-                        }
-                    }
-                }
                 case HAPPY_GHAST -> {
                     int seatingIndex = Math.min(index, 4);
                     xOffset = HappyGhastEntity.X_OFFSETS[seatingIndex];

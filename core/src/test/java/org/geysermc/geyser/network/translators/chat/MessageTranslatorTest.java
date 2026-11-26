@@ -34,9 +34,13 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.stream.Stream;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class MessageTranslatorTest {
@@ -149,5 +153,46 @@ public class MessageTranslatorTest {
         Assertions.assertEquals("Strange", MessageTranslator.convertToPlainTextLenient("§rStrange", "en_US"), "Valid lenient JSON is not handled properly");
         Assertions.assertEquals("", MessageTranslator.convertToPlainTextLenient("", "en_US"), "Empty message is not handled properly");
         Assertions.assertEquals("     ", MessageTranslator.convertToPlainTextLenient("     ", "en_US"), "Whitespace is not preserved");
+    }
+
+    // Character widths come from SignUtils#getCharacterWidth: 'a'/'b'/'c' = 6, ' ' = 4; bold adds 1
+    private static Stream<Arguments> wrapLinesCases() {
+        return Stream.of(
+            // No wrapping needed
+            Arguments.of("", 100, ""),
+            Arguments.of("hello", 100, "hello"),
+            Arguments.of("aaa", 18, "aaa"),
+            // Breaks at the last space, dropping it
+            Arguments.of("aaa bbb", 30, "aaa\nbbb"),
+            Arguments.of("aaa bbb ccc", 50, "aaa bbb\nccc"),
+            // Breaks mid-word when there is no space to break at
+            Arguments.of("aaaaaa", 20, "aaa\naaa"),
+            // A single character wider than the limit still gets its own line (no infinite loop)
+            Arguments.of("aaa", 3, "a\na\na"),
+            // Formatting codes take no width and are carried onto wrapped lines
+            Arguments.of("§caaa bbb", 30, "§caaa\n§cbbb"),
+            Arguments.of("aaa §cbbb", 30, "aaa\n§cbbb"),
+            // Bold characters are one pixel wider
+            Arguments.of("aaa", 20, "aaa"),
+            Arguments.of("§laaa", 20, "§laa\n§la"),
+            Arguments.of("§c§laaa", 20, "§c§laa\n§c§la"),
+            Arguments.of("§Laaa", 20, "§Laa\n§la"),
+            // A color code resets bold
+            Arguments.of("§l§caaa", 20, "§l§caaa"),
+            // Existing newlines are kept and formatting is carried across them
+            Arguments.of("a\n\nb", 100, "a\n\nb"),
+            Arguments.of("§ca\nb", 100, "§ca\n§cb"),
+            // §r clears carried formatting
+            Arguments.of("§ca§rb\nc", 100, "§ca§rb\nc"),
+            // Lines containing only formatting codes get a trailing non-breaking space so they still render
+            Arguments.of("§c\nb", 100, "§c \n§cb"),
+            Arguments.of("§ca\n\nb", 100, "§ca\n§c \n§cb")
+        );
+    }
+
+    @ParameterizedTest
+    @MethodSource("wrapLinesCases")
+    public void wrapLines(String input, int width, String expected) {
+        Assertions.assertEquals(expected, MessageTranslator.wrapLines(input, width));
     }
 }
