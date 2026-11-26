@@ -194,8 +194,8 @@ public final class EntityUtils {
                 yOffset = 0.2f;
                 zOffset = 0;
 
-                // Update the primitive text to reseat the entity
-                textDisplay.updatePrimitiveText();
+                // Mark the text display as requiring an update
+                textDisplay.setDisplayDataDirty();
             }
             switch (mount.getEntityType()) {
                 case CAMEL -> {
