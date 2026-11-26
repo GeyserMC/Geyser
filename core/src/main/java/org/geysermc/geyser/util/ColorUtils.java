@@ -26,12 +26,14 @@
 package org.geysermc.geyser.util;
 
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.TranslatableComponent;
+import net.kyori.adventure.text.TranslationArgument;
 import net.kyori.adventure.text.format.TextColor;
 import net.kyori.adventure.util.HSVLike;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.inventory.item.DyeColor;
 
-import java.awt.*;
+import java.awt.Color;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -150,6 +152,12 @@ public final class ColorUtils {
 
         for (Component child : component.children()) {
             collectColors(child, colors);
+        }
+
+        if (component instanceof TranslatableComponent translatable) {
+            for (TranslationArgument arg : translatable.arguments()) {
+                collectColors(arg.asComponent(), colors);
+            }
         }
     }
 }
