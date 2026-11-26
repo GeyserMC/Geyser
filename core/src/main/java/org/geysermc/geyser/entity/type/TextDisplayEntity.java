@@ -49,13 +49,15 @@ import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.ByteEn
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.IntEntityMetadata;
 import org.jetbrains.annotations.Nullable;
 
-import java.awt.*;
+import java.awt.Color;
 import java.util.Optional;
 import java.util.Set;
 
 // Note: 1.19.4 requires that the billboard is set to something in order to show, on Java Edition
 @Getter
 public class TextDisplayEntity extends DisplayBaseEntity {
+
+    private static final boolean DEBUG = Boolean.getBoolean("Geyser.DebugTextDisplays");
 
     /**
      * The height offset per line of text in a text display entity when rendered
@@ -85,31 +87,22 @@ public class TextDisplayEntity extends DisplayBaseEntity {
     private boolean isInvisible = false;
     private boolean sendUpdates = false;
 
-    @Getter
     private @NonNull String unprocessedText = "";
 
-    @Getter
     private @NonNull String text = "";
 
-    @Getter
     private Color color = null;
 
-    @Getter
     private int lineWidth = 200;
 
-    @Getter
     private @NonNull Color backgroundColor = DEFAULT_BACKGROUND;
 
-    @Getter
     private byte textOpacity = -1;
 
-    @Getter
     private boolean defaultBackground = false;
 
-    @Getter
     private boolean shadow = false;
 
-    @Getter
     private boolean seeThrough = false;
 
     private boolean hidden = false;
@@ -326,9 +319,11 @@ public class TextDisplayEntity extends DisplayBaseEntity {
     @Override
     public void setVehicle(Entity vehicle) {
         super.setVehicle(vehicle);
-        // This is important, any vehicle update *needs* to update the text, since the offset
-        // applied may have changed due to a different hitbox
-        updatePrimitiveText();
+
+        // This is important, there are some cases where this method is called and
+        // EntityUtils#updateMountOffset isn't, so we'll mark here regardless in order
+        // to ensure an update is pushed
+        setDisplayDataDirty();
     }
 
     public void updatePrimitiveText() {
@@ -360,12 +355,12 @@ public class TextDisplayEntity extends DisplayBaseEntity {
         }
         text.setUseRotation(!getBillboard().equals(Billboard.CENTER));
         // Java's view range is a multiplier of 64 blocks, Bedrock wants the distance itself
-        text.setMaximumRenderDistance(getViewDistance() < 0 ? getViewDistance() : getViewDistance() * 64);
+        text.setMaximumRenderDistance(getViewDistance() < 0 ? null : getViewDistance() * 64);
         text.setBackgroundColor(defaultBackground ? DEFAULT_BACKGROUND : backgroundColor);
         text.setDepthTest(!seeThrough);
         text.setDimension(session.getBedrockDimension().bedrockId());
 
-        if (Boolean.getBoolean("Geyser.DebugTextDisplays")) {
+        if (DEBUG) {
             Vector3f position = bedrockPosition();
             Vector3f offset = text.getPosition();
             text.setText("ID: " + geyserId + ", Pos: " + position.getX() + ", " + position.getY() + ", " + position.getZ() + ", Off: " + offset.getX() + ", " + offset.getY() + ", " + offset.getZ());
