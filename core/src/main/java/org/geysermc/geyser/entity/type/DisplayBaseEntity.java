@@ -74,26 +74,32 @@ public class DisplayBaseEntity extends Entity {
             EntityUtils.updateMountOffset(this, this.vehicle, true, true, 0, 1);
             this.updateBedrockMetadata();
         }
+        setDisplayDataDirty();
     }
 
     public void setScale(EntityMetadata<Vector3f, ?> metadata) {
         this.baseScale = metadata.getValue();
+        setDisplayDataDirty();
     }
 
     public void setLeftRotation(EntityMetadata<Quaternionf, ?> metadata) {
         this.leftRotation = metadata.getValue();
+        setDisplayDataDirty();
     }
 
     public void setRightRotation(EntityMetadata<Quaternionf, ?> metadata) {
         this.rightRotation = metadata.getValue();
+        setDisplayDataDirty();
     }
 
     public void setBillboard(ByteEntityMetadata metadata) {
         this.billboard = Billboard.getById(metadata.getPrimitiveValue());
+        setDisplayDataDirty();
     }
 
     public void setViewDistance(FloatEntityMetadata metadata) {
         this.viewDistance = metadata.getPrimitiveValue();
+        setDisplayDataDirty();
     }
 
     @Override
@@ -101,7 +107,7 @@ public class DisplayBaseEntity extends Entity {
         return super.bedrockPosition().add(baseTranslation);
     }
 
-    protected void setDisplayDataDirty() {
+    public void setDisplayDataDirty() {
         displayDataDirty = true;
     }
 
