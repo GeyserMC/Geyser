@@ -37,6 +37,8 @@ public class GeyserMaterialInstance implements MaterialInstance {
     private final boolean faceDimming;
     private final float ambientOcclusionExponent;
     private final boolean isotropic;
+    private final boolean textureVariation;
+    private final boolean alphaMaskedTint;
 
     GeyserMaterialInstance(Builder builder) {
         this.texture = builder.texture;
@@ -45,6 +47,8 @@ public class GeyserMaterialInstance implements MaterialInstance {
         this.faceDimming = builder.faceDimming;
         this.ambientOcclusionExponent = builder.ambientOcclusionExponent;
         this.isotropic = builder.isotropic;
+        this.textureVariation = builder.textureVariation;
+        this.alphaMaskedTint = builder.alphaMaskedTint;
     }
 
     @Override
@@ -82,6 +86,16 @@ public class GeyserMaterialInstance implements MaterialInstance {
         return isotropic;
     }
 
+    @Override
+    public boolean textureVariation() {
+        return textureVariation;
+    }
+
+    @Override
+    public boolean alphaMaskedTint() {
+        return alphaMaskedTint;
+    }
+
     public static class Builder implements MaterialInstance.Builder {
         private String texture;
         private String renderMethod;
@@ -89,6 +103,8 @@ public class GeyserMaterialInstance implements MaterialInstance {
         private boolean faceDimming;
         private float ambientOcclusionExponent;
         private boolean isotropic;
+        private boolean textureVariation;
+        private boolean alphaMaskedTint;
 
         @Override
         public Builder texture(@Nullable String texture) {
@@ -129,8 +145,20 @@ public class GeyserMaterialInstance implements MaterialInstance {
         }
 
         @Override
-        public MaterialInstance.Builder isotropic(boolean isotropic) {
+        public Builder isotropic(boolean isotropic) {
             this.isotropic = isotropic;
+            return this;
+        }
+
+        @Override
+        public Builder textureVariation(boolean textureVariation) {
+            this.textureVariation = textureVariation;
+            return this;
+        }
+
+        @Override
+        public Builder alphaMaskedTint(boolean alphaMaskedTint) {
+            this.alphaMaskedTint = alphaMaskedTint;
             return this;
         }
 
