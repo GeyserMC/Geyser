@@ -27,7 +27,6 @@ package org.geysermc.geyser.session.cache;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
-import it.unimi.dsi.fastutil.Pair;
 import lombok.Getter;
 import lombok.Setter;
 import org.checkerframework.checker.nullness.qual.NonNull;
@@ -147,7 +146,7 @@ public class BlockBreakHandler {
      * See {@link JavaBlockDestructionTranslator} for usage and explanation
      */
     @Getter
-    private final Cache<Vector3i, Pair<Long, BlockBreakStage>> destructionStageCache = CacheBuilder.newBuilder()
+    private final Cache<Vector3i, DestructionProgress> destructionStageCache = CacheBuilder.newBuilder()
         .maximumSize(200)
         .expireAfterWrite(3, TimeUnit.MINUTES)
         .build();
@@ -644,6 +643,9 @@ public class BlockBreakHandler {
         clearCurrentVariables();
         this.lastMinedPosition = null;
         this.destructionStageCache.invalidateAll();
+    }
+
+    public record DestructionProgress(long tick, BlockBreakStage stage, double displayedProgress, int rate) {
     }
 
     private static class BlockPredicateCache {
