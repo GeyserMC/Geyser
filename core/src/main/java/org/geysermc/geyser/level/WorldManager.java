@@ -30,10 +30,14 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.geysermc.erosion.util.BlockPositionIterator;
 import org.geysermc.geyser.level.block.type.BlockState;
+import org.geysermc.geyser.registry.java.JavaRegistryProvider;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.cache.registry.JavaRegistryTagCache;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.GameMode;
 import org.geysermc.mcprotocollib.protocol.data.game.setting.Difficulty;
+import org.geysermc.mcprotocollib.protocol.packet.configuration.clientbound.ClientboundRegistryDataPacket;
 
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
@@ -47,6 +51,7 @@ import java.util.function.Consumer;
  * on the standalone version of Geyser.
  */
 public abstract class WorldManager {
+    private JavaRegistryTagCache globalRegistryCache = null;
 
     @NonNull
     public final BlockState blockAt(GeyserSession session, Vector3i vector) {
@@ -147,5 +152,25 @@ public abstract class WorldManager {
      * through the BlockEntityDataPacket.
      */
     public void getDecoratedPotData(GeyserSession session, Vector3i pos, Consumer<Map<String, String>> apply) {
+    }
+
+    protected Iterable<ClientboundRegistryDataPacket> encodeRegistryEntries() {
+        return List.of();
+    }
+
+    /**
+     * Returns a {@link JavaRegistryProvider}, loaded with the server's registry data.
+     *
+     * <p>Use this method as little as possible. The returned {@link JavaRegistryProvider} will be empty on proxies and standalone, and on
+     * other platforms, it may not necessarily represent the same registries a {@link GeyserSession} has. The method should only be used to <em>prepare</em>
+     * for registry data a {@link GeyserSession} <em>may</em> receive, for example to generate resource packs ahead of time.</p>
+     */
+    public final JavaRegistryProvider getGlobalJavaRegistries() {
+        if (globalRegistryCache == null) {
+            globalRegistryCache = new JavaRegistryTagCache();
+            encodeRegistryEntries().forEach(globalRegistryCache::loadRegistryData);
+            globalRegistryCache.freeze();
+        }
+        return globalRegistryCache;
     }
 }

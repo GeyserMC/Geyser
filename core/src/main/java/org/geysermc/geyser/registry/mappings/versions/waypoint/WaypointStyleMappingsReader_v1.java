@@ -26,7 +26,6 @@
 package org.geysermc.geyser.registry.mappings.versions.waypoint;
 
 import com.google.gson.JsonObject;
-import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.util.Identifier;
 import org.geysermc.geyser.api.waypoint.CustomWaypointStyle;
 import org.geysermc.geyser.item.exception.InvalidCustomMappingsFileException;
@@ -34,24 +33,22 @@ import org.geysermc.geyser.registry.mappings.MappingsReader;
 import org.geysermc.geyser.registry.mappings.util.MappingsUtil;
 import org.geysermc.geyser.registry.mappings.util.NodeReader;
 
-import java.nio.file.Path;
 import java.util.List;
-import java.util.function.BiConsumer;
 
 public class WaypointStyleMappingsReader_v1 implements MappingsReader<Identifier, CustomWaypointStyle> {
 
     @Override
-    public void read(Path file, JsonObject mappings, BiConsumer<Identifier, CustomWaypointStyle> consumer) {
-        mappings.entrySet().forEach(entry -> {
-            if (entry.getValue().isJsonObject()) {
+    public void read(Context<Identifier, CustomWaypointStyle> context) {
+        context.forEachMapping((key, value) -> {
+            if (value.isJsonObject()) {
                 try {
-                    Identifier identifier = Identifier.of(entry.getKey());
-                    consumer.accept(identifier, readStyle(entry.getValue().getAsJsonObject(), "waypoint style " + identifier));
+                    Identifier identifier = Identifier.of(key);
+                    context.accept(identifier, readStyle(value.getAsJsonObject(), "waypoint style " + identifier));
                 } catch (InvalidCustomMappingsFileException | IllegalArgumentException exception) {
-                    GeyserImpl.getInstance().getLogger().error("Error reading waypoint style " + entry.getKey() + " in custom mappings file: " + file.toString(), exception);
+                    context.reportError("failed to read waypoint style " + key + ": " + exception.getMessage());
                 }
             } else {
-                GeyserImpl.getInstance().getLogger().error("Waypoint style key " + entry.getKey() + " in custom mappings file " + file.toString() + " was not an object!");
+                context.reportError("waypoint style " + key + " was not an object!");
             }
         });
     }

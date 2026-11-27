@@ -37,6 +37,7 @@ import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.command.CommandRegistry;
 import org.geysermc.geyser.command.CommandSourceConverter;
 import org.geysermc.geyser.command.GeyserCommandSource;
+import org.geysermc.geyser.level.WorldManager;
 import org.geysermc.geyser.platform.mod.GeyserModBootstrap;
 import org.geysermc.geyser.platform.mod.GeyserModUpdateListener;
 import org.geysermc.geyser.platform.mod.command.ModCommandSource;
@@ -85,6 +86,12 @@ public class GeyserGameTestBootstrap extends GeyserModBootstrap implements ModIn
 
         // Have to manually start Geyser for game test environment
         GeyserImpl.start();
+    }
+
+    @Override
+    public WorldManager getWorldManager() {
+        // Geyser is started before the server exists here, so the mod world manager is never created
+        return DEFAULT_CHUNK_MANAGER;
     }
 
     @Override
