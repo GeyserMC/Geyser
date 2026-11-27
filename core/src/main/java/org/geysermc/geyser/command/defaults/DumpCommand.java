@@ -29,10 +29,6 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.util.TriState;
 import org.geysermc.geyser.command.GeyserCommand;
@@ -41,11 +37,16 @@ import org.geysermc.geyser.dump.DumpInfo;
 import org.geysermc.geyser.text.AsteriskSerializer;
 import org.geysermc.geyser.text.ChatColor;
 import org.geysermc.geyser.text.GeyserLocale;
+import org.geysermc.geyser.util.FancyHttpClient;
 import org.geysermc.geyser.util.JsonUtils;
-import org.geysermc.geyser.util.WebUtils;
 import org.incendo.cloud.CommandManager;
 import org.incendo.cloud.context.CommandContext;
 import org.incendo.cloud.suggestion.SuggestionProvider;
+
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 import static org.incendo.cloud.parser.standard.StringArrayParser.stringArrayParser;
 
@@ -144,7 +145,7 @@ public class DumpCommand extends GeyserCommand {
             String response = null;
             JsonObject responseNode;
             try {
-                response = WebUtils.post(DUMP_URL + "documents", dumpData);
+                response = FancyHttpClient.oneShot(client -> client.post(DUMP_URL + "documents", dumpData)).join();
                 responseNode = JsonUtils.parseJson(response);
             } catch (Throwable e) {
                 source.sendMessage(ChatColor.RED + GeyserLocale.getPlayerLocaleString("geyser.commands.dump.upload_error", source.locale()));
