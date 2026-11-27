@@ -154,6 +154,7 @@ public interface GeyserConfig {
             A host name is looked up when signaling starts, and signaling does not start if it does not resolve.
             You can list an address this machine does not have, such as your public IP, if your router forwards that port
             to this machine. You need to set up the port forwarding yourself.
+            With "webrtc-proxy-protocol-relays" set under "advanced.bedrock", list the relays here instead.
             Leave empty to use this machine's own addresses, plus the public address found with "stun-discovery".""")
         @AsteriskSerializer.Asterisk
         default List<String> advertiseAddresses() {
@@ -275,8 +276,7 @@ public interface GeyserConfig {
         @Comment("""
             How Bedrock players can connect. Changes require a restart.
             "nethernet": the new connection method for Bedrock Edition. It needs signaling, see "signaling" below.
-            "both": accepts NetherNet and RakNet. Each needs its own UDP port, see "port" and "webrtc-port".
-            "raknet": the old connection method. Bedrock Edition will stop supporting it in a future version.""")
+            "both": accepts NetherNet and RakNet. Each needs its own UDP port, see "port" and "webrtc-port".""")
         default Transport transport() {
             return Transport.NETHERNET;
         }
@@ -323,16 +323,10 @@ public interface GeyserConfig {
 
         enum Transport {
             NETHERNET,
-            BOTH,
-            // Deprecated, removed in Minecraft: Bedrock Edition 26.60
-            RAKNET;
+            BOTH;
 
             public boolean raknet() {
-                return this == BOTH || this == RAKNET;
-            }
-
-            public boolean nethernet() {
-                return this == BOTH || this == NETHERNET;
+                return this == BOTH;
             }
         }
     }
@@ -535,21 +529,13 @@ public interface GeyserConfig {
         int compressionLevel();
 
         @Comment("""
-                Whether to expect HAPROXY protocol for connecting Bedrock clients.
-                This is useful only when you are running a reverse proxy in front of your Geyser instance.
-                RakNet: clients that do not send a HAPROXY header are ignored.
-                Built-in signaling: HAPROXY headers are only read from proxies listed in "haproxy-protocol-whitelisted-ips".
-                Connections without one are still accepted.
-                IF YOU DON'T KNOW WHAT THIS IS, DON'T TOUCH IT!""")
-        @DefaultBoolean
-        boolean useHaproxyProtocol();
-
-        @Comment("""
-                A list of allowed HAPROXY protocol speaking proxy IP addresses/subnets. Only effective when "use-haproxy-protocol" is enabled.
-                Keeping this list empty means there is no IP address whitelist for HAPROXY header sending connections.
-                Built-in signaling only reads HAPROXY headers from proxies in this list, so it reads none while the list is empty.
+                A list of HAPROXY protocol speaking proxies in front of your Geyser instance.
+                Listing one turns HAPROXY protocol on, so leave this empty unless you run such a proxy.
+                Built-in signaling reads HAPROXY headers from these proxies, and still accepts their connections without one.
+                With the "both" transport, RakNet only accepts these proxies, and each connection has to start with a HAPROXY header.
                 Proxies in this list are also not affected by built-in signaling's per-address connection limit.
-                IP addresses, subnets, and links to plain text files are supported.""")
+                IP addresses, subnets, and links to plain text files are supported.
+                IF YOU DON'T KNOW WHAT THIS IS, DON'T TOUCH IT!""")
         @AsteriskSerializer.Asterisk
         default List<String> haproxyProtocolWhitelistedIps() {
             return Collections.emptyList();
@@ -559,11 +545,36 @@ public interface GeyserConfig {
                 A list of reverse proxy addresses (for example, an HTTP load balancer) in front of built-in signaling.
                 Built-in signaling reads the player's real address from the "X-Forwarded-For" header, and does not apply
                 its per-address connection limit to them for all listed proxies. This is separate from HAPROXY protocol.
-                IP addresses, subnets, and links to plain text files are supported.""")
+                With more than one proxy in front of signaling, such as a CDN in front of nginx, list every one of them,
+                or have the last one send only the player's address in "X-Forwarded-For".
+                IP addresses, subnets, and links to plain text files are supported.
+                IF YOU DON'T KNOW WHAT THIS IS, DON'T TOUCH IT!""")
         @AsteriskSerializer.Asterisk
         default List<String> signalingTrustedProxies() {
             return Collections.emptyList();
         }
+
+        @Comment("""
+                UDP relays in front of the NetherNet media (WebRTC) port that send a PROXY protocol v2 header with each
+                player's address, as IP addresses or subnets. Leave this empty unless you run such a relay.
+                While set, players can only reach the media port through these relays, so "advertise-addresses" under
+                "bedrock.signaling" should name the relays. Without any, the external signaling service does not start, and
+                built-in signaling only works if something in front of it rewrites its answers to name the relays.
+                This is separate from the two lists above, which only cover signaling, and RakNet with the "both" transport.
+                IP addresses, subnets, and links to plain text files are supported.
+                IF YOU DON'T KNOW WHAT THIS IS, DON'T TOUCH IT!""")
+        @AsteriskSerializer.Asterisk
+        default List<String> webrtcProxyProtocolRelays() {
+            return Collections.emptyList();
+        }
+
+        @Comment("""
+                Use the player address that built-in signaling's proxies send ("haproxy-protocol-whitelisted-ips" or
+                "signaling-trusted-proxies") instead of the one the WebRTC connection comes from. Enable this when the WebRTC
+                port is forwarded without PROXY protocol, so every player would otherwise show the forwarder's address.
+                IF YOU DON'T KNOW WHAT THIS IS, DON'T TOUCH IT!""")
+        @DefaultBoolean
+        boolean preferSignalingProxyAddress();
 
         @Comment("""
                Should be enabled if this Geyser instance is behind a WaterdogPE proxy. If enabled, Geyser will

@@ -37,6 +37,7 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.spongepowered.configurate.CommentedConfigurationNode;
 import org.spongepowered.configurate.ConfigurateException;
+import org.spongepowered.configurate.serialize.SerializationException;
 
 import java.io.File;
 import java.io.IOException;
@@ -179,7 +180,7 @@ public class ConfigLoaderTest {
         // Verify advanced bedrock subsection
         assertEquals(19133, config.advanced().bedrock().broadcastPort());
         assertEquals(5, config.advanced().bedrock().compressionLevel());
-        assertTrue(config.advanced().bedrock().useHaproxyProtocol());
+        // On with a list, which now turns HAProxy protocol on by itself
         assertEquals(List.of("127.0.0.1", "172.18.0.0/13"), config.advanced().bedrock().haproxyProtocolWhitelistedIps());
         assertTrue(config.advanced().bedrock().validateBedrockLogin());
         assertEquals(1399, config.advanced().bedrock().mtu());
@@ -245,6 +246,96 @@ public class ConfigLoaderTest {
         assertEquals(GeyserConfig.SignalingConfig.Mode.HYBRID, signaling.mode());
         assertTrue(config.advanced().nxs().assistedJoins());
         assertEquals(Constants.CONFIG_VERSION, config.configVersion());
+    }
+
+    @ParameterizedTest
+    @MethodSource("platformTypes")
+    void testHaproxySwitchMigration(PlatformType platformType, Class<? extends GeyserConfig> configClass) throws Exception {
+        // Listed while off, the proxies were ignored, and would turn it on now
+        GeyserConfig off = new ConfigLoader(copyResourceToTempFile("tests", "v11-haproxy-off.yml"), platformType)
+            .load0(configClass);
+        assertEquals(List.of(), off.advanced().bedrock().haproxyProtocolWhitelistedIps());
+
+        // On with no list took a header from anywhere, which no list says, so it is off until proxies are listed
+        GeyserConfig any = new ConfigLoader(copyResourceToTempFile("tests", "v11-haproxy-any.yml"), platformType)
+            .load0(configClass);
+        assertEquals(List.of(), any.advanced().bedrock().haproxyProtocolWhitelistedIps());
+        assertEquals(Constants.CONFIG_VERSION, any.configVersion());
+    }
+
+    @ParameterizedTest
+    @MethodSource("platformTypes")
+    void testHaproxyCommentMigration(PlatformType platformType, Class<? extends GeyserConfig> configClass) throws Exception {
+        // The old comment explains the removed switch, so the current one replaces it
+        CommentedConfigurationNode migrated = new ConfigLoader(copyResourceToTempFile("tests", "v11-haproxy-off.yml"), platformType)
+            .loadConfigurationNode(configClass);
+        CommentedConfigurationNode latest = new ConfigLoader(tempDirectory.resolve("haproxy-latest-" + platformType + ".yml").toFile(), platformType)
+            .loadConfigurationNode(configClass);
+        String comment = migrated.node("advanced", "bedrock", "haproxy-protocol-whitelisted-ips").comment();
+        assertEquals(latest.node("advanced", "bedrock", "haproxy-protocol-whitelisted-ips").comment(), comment);
+        assertFalse(comment.contains("use-haproxy-protocol"));
+    }
+
+    @ParameterizedTest
+    @MethodSource("platformTypes")
+    void testOldDefaultHaproxyCommentMigration(PlatformType platformType, Class<? extends GeyserConfig> configClass) throws Exception {
+        // The default before August 2026 named the switch "use-proxy-protocol"
+        CommentedConfigurationNode migrated = new ConfigLoader(copyResourceToTempFile("tests", "v11-haproxy-old-comment.yml"), platformType)
+            .loadConfigurationNode(configClass);
+        CommentedConfigurationNode latest = new ConfigLoader(tempDirectory.resolve("haproxy-old-latest-" + platformType + ".yml").toFile(), platformType)
+            .loadConfigurationNode(configClass);
+        assertEquals(latest.node("advanced", "bedrock", "haproxy-protocol-whitelisted-ips").comment(),
+            migrated.node("advanced", "bedrock", "haproxy-protocol-whitelisted-ips").comment());
+    }
+
+    @ParameterizedTest
+    @MethodSource("platformTypes")
+    void testRaknetOnlyRemovalMigration(PlatformType platformType, Class<? extends GeyserConfig> configClass) throws Exception {
+        CommentedConfigurationNode migrated = new ConfigLoader(copyResourceToTempFile("tests", "v11-raknet-only-removal.yml"), platformType)
+            .loadConfigurationNode(configClass);
+        CommentedConfigurationNode latest = new ConfigLoader(tempDirectory.resolve("raknet-only-latest-" + platformType + ".yml").toFile(), platformType)
+            .loadConfigurationNode(configClass);
+
+        // The comment no longer offers "raknet" either
+        assertEquals("nethernet", migrated.node("bedrock", "transport").getString());
+        assertEquals(latest.node("bedrock", "transport").comment(), migrated.node("bedrock", "transport").comment());
+    }
+
+    @Test
+    void testRaknetOnlyRemovalAfterUpgrading() throws Exception {
+        // A file edited by hand at the current version, and a command line argument, as standalone takes
+        File file = tempDirectory.resolve("raknet-current.yml").toFile();
+        Files.writeString(file.toPath(), "bedrock:\n  transport: raknet\nconfig-version: " + Constants.CONFIG_VERSION + "\n");
+        GeyserConfig edited = new ConfigLoader(file, PlatformType.STANDALONE).load0(GeyserRemoteConfig.class);
+        assertEquals(GeyserConfig.BedrockConfig.Transport.NETHERNET, edited.bedrock().transport());
+
+        GeyserConfig argument = new ConfigLoader(tempDirectory.resolve("raknet-argument.yml").toFile(), PlatformType.STANDALONE)
+            .transformer(root -> {
+                try {
+                    root.node("bedrock", "transport").set("raknet");
+                } catch (SerializationException e) {
+                    throw new IllegalStateException(e);
+                }
+            })
+            .load0(GeyserRemoteConfig.class);
+        assertEquals(GeyserConfig.BedrockConfig.Transport.NETHERNET, argument.bedrock().transport());
+    }
+
+    @Test
+    void testRaknetOnlyRemovalKeepsAnOwnComment() throws Exception {
+        // Any case loaded before, and a comment of the user's own that mentions it stays
+        File file = tempDirectory.resolve("raknet-own-comment.yml").toFile();
+        Files.writeString(file.toPath(), """
+            bedrock:
+              # Moved off "raknet" for the proxy
+              transport: RakNet
+            config-version: 11
+            """);
+        CommentedConfigurationNode migrated = new ConfigLoader(file, PlatformType.STANDALONE)
+            .loadConfigurationNode(GeyserRemoteConfig.class);
+
+        assertEquals("nethernet", migrated.node("bedrock", "transport").getString());
+        assertTrue(migrated.node("bedrock", "transport").comment().contains("Moved off \"raknet\" for the proxy"));
     }
 
     @ParameterizedTest

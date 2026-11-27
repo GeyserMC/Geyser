@@ -78,6 +78,23 @@ public abstract class AbstractMappedDeferredRegistry<K, V, M extends Map<K, V>, 
     }
 
     /**
+     * Returns and flat maps the value by the given key if present.
+     *
+     * @param key the key
+     * @param mapper the mapper
+     * @param <U> the type
+     * @return the flat mapped value from the given key if present
+     */
+    public <U> Optional<U> flatMap(K key, Function<? super V, ? extends Optional<? extends U>> mapper) {
+        V value = this.get(key);
+        if (value == null) {
+            return Optional.empty();
+        } else {
+            return Optional.of(value).flatMap(mapper);
+        }
+    }
+
+    /**
      * Returns the value registered by the given key or the default value
      * specified if null.
      *

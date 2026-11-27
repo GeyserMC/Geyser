@@ -39,6 +39,7 @@ import org.geysermc.geyser.ping.IGeyserPingPassthrough;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.net.InetSocketAddress;
+import java.net.SocketAddress;
 
 /**
  * This class is used if possible, so listeners listening for PaperServerListPingEvent exclusively have their changes
@@ -97,6 +98,12 @@ public final class GeyserPaperPingPassthrough implements IGeyserPingPassthrough 
     private record GeyserStatusClient(InetSocketAddress address) implements StatusClient {
         @Override
         public @NonNull InetSocketAddress getAddress() {
+            return address;
+        }
+
+        // Abstract in NetworkClient since Paper 26.3, and called by the PaperServerListPingEvent constructor.
+        // No @Override, as the API we compile against does not have it yet
+        public @NonNull SocketAddress getSocketAddress() {
             return address;
         }
 

@@ -25,6 +25,7 @@
 
 package org.geysermc.geyser.network;
 
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.netty.util.nethernet.IpRangeSet;
 import org.cloudburstmc.netty.util.nethernet.TrustedProxies;
 import io.netty.bootstrap.ServerBootstrap;
@@ -54,6 +55,7 @@ import org.geysermc.geyser.network.bedrock.raknet.RakServerInitializer;
 import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.mcprotocollib.network.helper.TransportHelper;
 
+import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -76,6 +78,8 @@ public final class RaknetServer {
     private final GeyserImpl geyser;
     /** Parsed once here: a URL entry is fetched on every parse, and a connection is not the time for that. */
     private final IpRangeSet trustedProxies;
+    /** Whether proxies are listed, which turns HAProxy protocol on even when none of them parsed. */
+    private final boolean proxied;
     private EventLoopGroup group;
     // Split childGroup may improve IO
     private EventLoopGroup childGroup;
@@ -94,7 +98,13 @@ public final class RaknetServer {
 
     public RaknetServer(GeyserImpl geyser, int threadCount) {
         this.geyser = geyser;
-        this.trustedProxies = TrustedProxies.parse(geyser.config().advanced().bedrock().haproxyProtocolWhitelistedIps());
+        List<String> listed = geyser.config().advanced().bedrock().haproxyProtocolWhitelistedIps();
+        this.trustedProxies = TrustedProxies.parse(listed);
+        this.proxied = listsProxies(listed);
+        if (this.proxied && this.trustedProxies.isEmpty()) {
+            geyser.getLogger().warning("None of the proxies in \"haproxy-protocol-whitelisted-ips\" could be read, "
+                + "so every RakNet connection is refused until the list is fixed.");
+        }
         this.listenCount = Bootstraps.isReusePortAvailable() ?  Integer.getInteger("Geyser.ListenCount", 1) : 1;
         GeyserImpl.getInstance().getLogger().debug("Listen thread count: " + listenCount);
         this.group = TRANSPORT.eventLoopGroupFactory().apply(listenCount, new DefaultThreadFactory("GeyserServer", true));
@@ -205,23 +215,27 @@ public final class RaknetServer {
             .option(RakChannelOption.RAK_PACKET_LIMIT, rakRateLimitingDisabled ? 0 : rakPacketLimit)
             .option(RakChannelOption.RAK_GLOBAL_PACKET_LIMIT, rakGlobalPacketLimit)
             .option(RakChannelOption.RAK_SERVER_COOKIE_MODE, rakSendCookie ? RakServerCookieMode.ACTIVE : RakServerCookieMode.INVALID)
-            .option(RakChannelOption.RAK_PROXY_PROTOCOL, this.geyser.config().advanced().bedrock().useHaproxyProtocol())
+            .option(RakChannelOption.RAK_PROXY_PROTOCOL, this.proxied)
             .option(RakChannelOption.RAK_THROTTLE, rakRateLimitingDisabled ? null : new DefaultRakServerThrottle(maxConnectionsPerAddress, 4_000, 3))
             .childHandler(serverInitializer);
     }
 
     public boolean onConnectionRequest(InetSocketAddress inetSocketAddress, InetSocketAddress clientAddress) {
-        List<String> allowedProxyIPs = geyser.config().advanced().bedrock().haproxyProtocolWhitelistedIps();
-        if (geyser.config().advanced().bedrock().useHaproxyProtocol() && !allowedProxyIPs.isEmpty()) {
-            if (!this.trustedProxies.contains(inetSocketAddress.getAddress())) {
-                connectionAttempts++;
-                return false;
-            }
-        }
-
         connectionAttempts++;
-        return ConnectionRequests.accept(geyser, clientAddress,
-            geyser.config().advanced().bedrock().useHaproxyProtocol() ? inetSocketAddress : null);
+        if (!admitsSender(this.proxied, this.trustedProxies, inetSocketAddress.getAddress())) {
+            return false;
+        }
+        return ConnectionRequests.accept(geyser, clientAddress, this.proxied ? inetSocketAddress : null);
+    }
+
+    /** Whether any proxy is listed, parsed or not, so a list of typos or unreachable URLs fails closed. */
+    static boolean listsProxies(@Nullable List<String> listed) {
+        return listed != null && listed.stream().anyMatch(entry -> entry != null && !entry.isBlank());
+    }
+
+    /** Listed proxies turn HAProxy protocol on, and then only they may connect. */
+    static boolean admitsSender(boolean proxied, IpRangeSet trustedProxies, InetAddress sender) {
+        return !proxied || trustedProxies.contains(sender);
     }
 
 

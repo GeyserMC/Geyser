@@ -58,6 +58,7 @@ import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.skin.FakeHeadProvider;
 import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.translator.item.ItemTranslator;
+import org.geysermc.geyser.util.GliderUtils;
 import org.geysermc.geyser.util.InventoryUtils;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.GameMode;
 import org.geysermc.mcprotocollib.protocol.data.game.inventory.ContainerType;
@@ -108,6 +109,9 @@ public class PlayerInventoryTranslator extends InventoryTranslator<PlayerInvento
         for (int i = 5; i < 9; i++) {
             GeyserItemStack item = inventory.getItem(i);
             contents[i - 5] = item.getItemData(session);
+            if (i == 6) {
+                contents[1] = GliderUtils.toBedrockChest(session, item, contents[1]);
+            }
             if (i == 5 && item.is(Items.PLAYER_HEAD) && item.hasNonBaseComponents()) {
                 FakeHeadProvider.setHead(session, session.getPlayerEntity(), item.getComponent(DataComponentTypes.PROFILE));
             }
@@ -156,6 +160,8 @@ public class PlayerInventoryTranslator extends InventoryTranslator<PlayerInvento
             } else {
                 FakeHeadProvider.restoreOriginalSkin(session, session.getPlayerEntity());
             }
+        } else if (slot == 6) {
+            bedrockItem = GliderUtils.toBedrockChest(session, javaItem, bedrockItem);
         }
 
         if (slot >= 1 && slot <= 44) {

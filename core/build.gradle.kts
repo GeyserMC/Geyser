@@ -17,10 +17,6 @@ plugins {
 }
 
 dependencies {
-    constraints {
-        implementation(libs.raknet) // Ensure protocol does not override the RakNet version
-    }
-
     api(projects.common)
     api(projects.api)
 
@@ -42,6 +38,8 @@ dependencies {
 
     api(libs.bundles.protocol) {
         exclude("com.fasterxml.jackson.core", "jackson-annotations")
+        // Declared below
+        exclude("org.cloudburstmc.netty", "netty-transport-raknet")
     }
 
     api(libs.minecraftauth) {

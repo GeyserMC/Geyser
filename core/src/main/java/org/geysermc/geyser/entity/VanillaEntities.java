@@ -450,12 +450,12 @@ public final class VanillaEntities {
                     .addTranslator(null) // Transformation interpolation duration
                     .addTranslator(null) // Position/Rotation interpolation duration
                     .addTranslator(MetadataTypes.VECTOR3, DisplayBaseEntity::setTranslation) // Translation
-                    .addTranslator(null) // Scale
-                    .addTranslator(null) // Left rotation
-                    .addTranslator(null) // Right rotation
-                    .addTranslator(null) // Billboard render constraints
+                    .addTranslator(MetadataTypes.VECTOR3, DisplayBaseEntity::setScale) // Scale
+                    .addTranslator(MetadataTypes.QUATERNION, DisplayBaseEntity::setLeftRotation) // Left rotation
+                    .addTranslator(MetadataTypes.QUATERNION, DisplayBaseEntity::setRightRotation) // Right rotation
+                    .addTranslator(MetadataTypes.BYTE, DisplayBaseEntity::setBillboard) // Billboard render constraints
                     .addTranslator(null) // Brightness override
-                    .addTranslator(null) // View range
+                    .addTranslator(MetadataTypes.FLOAT, DisplayBaseEntity::setViewDistance) // View range
                     .addTranslator(null) // Shadow radius
                     .addTranslator(null) // Shadow strength
                     .addTranslator(null) // Width
@@ -465,11 +465,11 @@ public final class VanillaEntities {
             TEXT_DISPLAY = VanillaEntityType.inherited(TextDisplayEntity::new, displayBase)
                     .type(EntityType.TEXT_DISPLAY)
                     .bedrockDefinition(BedrockEntityDefinitions.ARMOR_STAND)
-                    .addTranslator(MetadataTypes.COMPONENT, TextDisplayEntity::setText)
-                    .addTranslator(null) // Line width
-                    .addTranslator(null) // Background color
-                    .addTranslator(null) // Text opacity
-                    .addTranslator(null) // Bit mask
+                    .addTranslator(MetadataTypes.COMPONENT, TextDisplayEntity::setTextMetadata)
+                    .addTranslator(MetadataTypes.INT, TextDisplayEntity::setLineWidth) // Line width
+                    .addTranslator(MetadataTypes.INT, TextDisplayEntity::setBackgroundColor) // Background color
+                    .addTranslator(MetadataTypes.BYTE, TextDisplayEntity::setTextOpacity) // Text opacity
+                    .addTranslator(MetadataTypes.BYTE, TextDisplayEntity::setStyleFlags) // Bit mask
                     .build();
 
             INTERACTION = VanillaEntityType.inherited(InteractionEntity::new, entityBase)

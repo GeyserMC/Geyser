@@ -77,7 +77,7 @@ public class SingleDefinitionReader implements ItemDefinitionReader {
         JsonElement displayName = definition.get("display_name");
         if (displayName != null) {
             try {
-                builder.displayName(MessageTranslator.convertMessage(DefaultComponentSerializer.get().deserializeFromTree(displayName), GeyserLocale.getDefaultLocale()));
+                builder.displayName(MessageTranslator.convertMessageRaw(DefaultComponentSerializer.get().deserializeFromTree(displayName), GeyserLocale.getDefaultLocale()));
             } catch (Exception exception) {
                 throw new InvalidCustomMappingsFileException("reading display name", "error while reading: " + exception.getMessage(), context);
             }

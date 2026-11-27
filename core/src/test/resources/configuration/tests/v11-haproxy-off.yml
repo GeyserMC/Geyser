@@ -1,0 +1,9 @@
+advanced:
+  bedrock:
+    use-haproxy-protocol: false
+    # A list of allowed HAPROXY protocol speaking proxy IP addresses/subnets. Only effective when "use-haproxy-protocol" is enabled.
+    # Keeping this list empty means there is no IP address whitelist for HAPROXY header sending connections.
+    # IP addresses, subnets, and links to plain text files are supported.
+    haproxy-protocol-whitelisted-ips:
+    - 10.0.0.0/8
+config-version: 11

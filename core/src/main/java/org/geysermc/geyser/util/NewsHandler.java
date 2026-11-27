@@ -29,10 +29,6 @@ import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonSyntaxException;
-import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.event.ClickEvent;
-import net.kyori.adventure.text.format.NamedTextColor;
-import net.kyori.adventure.text.format.TextDecoration;
 import org.geysermc.floodgate.news.NewsItem;
 import org.geysermc.floodgate.news.NewsItemAction;
 import org.geysermc.floodgate.news.data.AnnouncementData;
@@ -41,7 +37,6 @@ import org.geysermc.floodgate.news.data.CheckAfterData;
 import org.geysermc.geyser.Constants;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.GeyserLogger;
-import org.geysermc.geyser.command.GeyserCommandSource;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.text.ChatColor;
 
@@ -184,21 +179,5 @@ public class NewsHandler {
 
     public void shutdown() {
         executorService.shutdown();
-    }
-
-    // Temp method, had to put it somewhere. Remove when RakNet is removed.
-    public static void sendRakNetDeprecationNotice(GeyserCommandSource source) {
-        source.sendMessage(
-            Component.text("[Geyser] WARNING! NetherNet support is NOT enabled. ")
-                .append(Component.text("Bedrock players will not be able to connect to your server!\n")
-                    .color(NamedTextColor.RED))
-                .append(Component.text("Please see our post over at "))
-                .append(Component.text("geysermc.org/blog")
-                    .color(NamedTextColor.BLUE)
-                    .decorate(TextDecoration.UNDERLINED)
-                    .clickEvent(ClickEvent.openUrl("https://geysermc.org/blog/preparing-for-nethernet")))
-                .append(Component.text(" on how to enable NetherNet support."))
-                .color(NamedTextColor.YELLOW)
-        );
     }
 }

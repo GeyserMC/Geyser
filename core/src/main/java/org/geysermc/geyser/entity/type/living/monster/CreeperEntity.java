@@ -63,7 +63,7 @@ public class CreeperEntity extends MonsterEntity {
     @Override
     protected InteractiveTag testMobInteraction(@NonNull Hand hand, @NonNull GeyserItemStack itemInHand) {
         if (itemInHand.is(session, ItemTag.CREEPER_IGNITERS)) {
-            return InteractiveTag.IGNITE_CREEPER;
+            return InteractiveTag.CREEPER;
         } else {
             return super.testMobInteraction(hand, itemInHand);
         }

@@ -168,7 +168,6 @@ public class VanillaEntityType<T extends Entity> extends EntityTypeDefinition<T>
 
             VanillaEntityType<T> definition = new VanillaEntityType<>(factory, type, width, height, offset, bedrockDefinition, translators);
             if (register && type != null) {
-                Registries.JAVA_ENTITY_TYPES.get().putIfAbsent(definition.entityType(), definition);
                 BuiltInJavaRegistries.ENTITY_TYPE.register(type.mcpl().ordinal(), MinecraftKey.identifierToKey(type.identifier()), definition);
             }
             return definition;

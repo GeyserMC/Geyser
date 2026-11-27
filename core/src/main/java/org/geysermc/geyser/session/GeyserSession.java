@@ -139,6 +139,7 @@ import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.type.FishingHookEntity;
 import org.geysermc.geyser.entity.type.ItemFrameEntity;
 import org.geysermc.geyser.entity.type.Tickable;
+import org.geysermc.geyser.entity.type.player.AvatarEntity;
 import org.geysermc.geyser.entity.type.player.PlayerEntity;
 import org.geysermc.geyser.entity.type.player.SessionPlayerEntity;
 import org.geysermc.geyser.entity.vehicle.ClientVehicle;
@@ -282,6 +283,8 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource, Jav
     @Setter
     private AuthData authData;
     private BedrockClientData clientData;
+    @Accessors(fluent = true)
+    private String locale = GeyserLocale.getDefaultLocale();
     /**
      * Used for Floodgate skin uploading
      */
@@ -821,6 +824,15 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource, Jav
      * Only used if {@link GeyserConfig.GameplayConfig#forwardPlayerPing()} is enabled.
      */
     private final Queue<Runnable> latencyPingCache = new ConcurrentLinkedQueue<>();
+
+    /**
+     * Counter for server switches (incremented in {@link org.geysermc.geyser.translator.protocol.java.JavaStartConfigurationTranslator})
+     * Used for latency ping stack callbacks, so they can return early if a packet was intended for the previous server...
+     * <p>
+     * We can't just nuke {@link #latencyPingCache} after all sadly, as the ordering in there matters... :(
+     */
+    @Setter
+    private int reconfigCount;
 
     /**
      * Queued packets to be sent immediately at the end of each tick.
@@ -1561,6 +1573,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource, Jav
 
     public void setClientData(BedrockClientData data) {
         this.clientData = data;
+        this.locale = data.getLanguageCode();
         this.inputCache.setInputMode(org.cloudburstmc.protocol.bedrock.data.InputMode.values()[data.getCurrentInputMode().ordinal()]);
     }
 
@@ -1767,11 +1780,6 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource, Jav
     }
 
     @Override
-    public String locale() {
-        return clientData != null ? clientData.getLanguageCode() : GeyserLocale.getDefaultLocale();
-    }
-
-    @Override
     public boolean hasPermission(String permission) {
         // for Geyser-Standalone, standalone's permission system will handle it.
         // for server platforms, the session will be mapped to a server command sender, and the server's api will be used.
@@ -1842,7 +1850,9 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource, Jav
         Objects.requireNonNull(player, "player uuid must not be null!");
         Objects.requireNonNull(skinData, "skinData must not be null!");
 
-        PlayerEntity entity = this.entityCache.getPlayerEntity(player);
+        // getEntityByUuid also finds the session's own player and spawned entities such as mannequins.
+        // Players in the tab list that are not currently spawned are only in the player cache.
+        AvatarEntity entity = this.entityCache.getEntityByUuid(player) instanceof AvatarEntity avatar ? avatar : this.entityCache.getPlayerEntity(player);
         if (entity == null) {
             return;
         }

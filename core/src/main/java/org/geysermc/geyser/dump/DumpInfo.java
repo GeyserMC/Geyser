@@ -27,7 +27,7 @@ package org.geysermc.geyser.dump;
 
 import com.google.common.hash.Hashing;
 import com.google.common.io.ByteSource;
-import com.google.common.io.Files;
+import com.google.common.io.MoreFiles;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonNull;
@@ -68,6 +68,7 @@ import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.UnknownHostException;
 import java.nio.charset.Charset;
+import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
@@ -133,7 +134,7 @@ public class DumpInfo {
         try {
             // https://stackoverflow.com/questions/320542/how-to-get-the-path-of-a-running-jar-file
             File file = new File(DumpInfo.class.getProtectionDomain().getCodeSource().getLocation().toURI());
-            ByteSource byteSource = Files.asByteSource(file);
+            ByteSource byteSource = MoreFiles.asByteSource(file.toPath());
             //noinspection UnstableApiUsage
             sha256Hash = byteSource.hash(Hashing.sha256()).toString();
         } catch (Exception e) {
@@ -232,11 +233,61 @@ public class DumpInfo {
             this.javaVersion = ManagementFactory.getRuntimeMXBean().getVmVersion(); // Gives a little more to the version we can use over the system property
             // Usually gives Java architecture but still may be helpful.
             this.architecture = System.getProperty("os.arch");
-            this.operatingSystem = System.getProperty("os.name");
+            this.operatingSystem = resolveOperatingSystemName();
             this.operatingSystemVersion = System.getProperty("os.version");
 
             this.network = new NetworkInfo();
             this.mcInfo = new MCInfo();
+        }
+
+        /**
+         * On Linux, includes the distro name and version (e.g. "Linux (Ubuntu 24.04)").
+         */
+        private static String resolveOperatingSystemName() {
+            String osName = System.getProperty("os.name");
+            if (osName == null || !osName.toLowerCase().contains("linux")) {
+                return osName;
+            }
+
+            for (String path : new String[]{"/etc/os-release", "/usr/lib/os-release"}) {
+                File file = new File(path);
+                if (!file.canRead()) {
+                    continue;
+                }
+                try {
+                    String name = null;
+                    String versionId = null;
+                    String prettyName = null;
+                    for (String line : Files.readAllLines(file.toPath())) {
+                        int split = line.indexOf('=');
+                        if (split < 0) {
+                            continue;
+                        }
+                        String key = line.substring(0, split).trim();
+                        String value = line.substring(split + 1).trim();
+                        if (value.length() >= 2 && (value.startsWith("\"") && value.endsWith("\"")
+                                || value.startsWith("'") && value.endsWith("'"))) {
+                            value = value.substring(1, value.length() - 1);
+                        }
+                        switch (key) {
+                            case "NAME" -> name = value;
+                            case "VERSION_ID" -> versionId = value;
+                            case "PRETTY_NAME" -> prettyName = value;
+                            default -> { }
+                        }
+                    }
+                    if (name != null && !name.isEmpty()) {
+                        String distro = versionId != null && !versionId.isEmpty() ? name + " " + versionId : name;
+                        return "Linux (" + distro + ")";
+                    }
+                    if (prettyName != null && !prettyName.isEmpty()) {
+                        return "Linux (" + prettyName + ")";
+                    }
+                } catch (IOException | RuntimeException ignored) {
+                    // Fall back to the generic name
+                }
+            }
+            return osName;
         }
     }
 
@@ -272,7 +323,7 @@ public class DumpInfo {
             try {
                 String OS = System.getProperty("os.name").toLowerCase();
                 if (OS.contains("nix") || OS.contains("nux") || OS.indexOf("aix") > 0) {
-                    String output = new String(java.nio.file.Files.readAllBytes(Paths.get("/proc/1/cgroup")));
+                    String output = new String(Files.readAllBytes(Paths.get("/proc/1/cgroup")));
 
                     if (output.contains("docker")) {
                         return true;

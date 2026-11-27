@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2026 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -105,11 +105,10 @@ public class PaintingEntity extends HangingEntity {
 
     private Vector3f fixOffset(PaintingType paintingName) {
         Vector3f position = super.position;
-        // ViaVersion already adds the offset for us on older versions,
-        // so no need to do it then otherwise it will be spaced
-        // TODO checkme?
-        if (session.isEmulatePost1_18Logic()) {
-            position = position.add(0.5, 0.5, 0.5);
+        // ViaVersion adds a 0.5 offset on pre-1.19 servers
+        // We have to undo this to have it line up correctly
+        if (!session.isEmulatePost1_18Logic()) {
+            position = position.sub(0.5, 0.5, 0.5);
         }
 
         // Yeah, I don't know either. I just did a lot of testing for this.

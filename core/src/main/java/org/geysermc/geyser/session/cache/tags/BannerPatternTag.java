@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
+ * Copyright (c) 2026 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,10 +23,22 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.registry.type;
+package org.geysermc.geyser.session.cache.tags;
 
-import org.checkerframework.checker.nullness.qual.Nullable;
-import org.cloudburstmc.protocol.bedrock.data.LevelEventType;
+import org.geysermc.geyser.inventory.item.BannerPattern;
+import org.geysermc.geyser.registry.java.JavaRegistries;
+import org.geysermc.geyser.util.MinecraftKey;
 
-public record ParticleMapping(@Nullable LevelEventType levelEventType, @Nullable String identifier) {
+/**
+ * Lists vanilla banner pattern tags.
+ */
+@SuppressWarnings("unused")
+public final class BannerPatternTag {
+    public static final Tag<BannerPattern> NO_ITEM_REQUIRED = create("no_item_required");
+
+    private BannerPatternTag() {}
+
+    private static Tag<BannerPattern> create(String name) {
+        return new Tag<>(JavaRegistries.BANNER_PATTERN, MinecraftKey.key(name));
+    }
 }

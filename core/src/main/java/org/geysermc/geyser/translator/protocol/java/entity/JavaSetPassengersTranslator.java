@@ -111,7 +111,7 @@ public class JavaSetPassengersTranslator extends PacketTranslator<ClientboundSet
                 linkPacket.setEntityLink(new EntityLinkData(entity.geyserId(), passenger.geyserId(), EntityLinkData.Type.REMOVE, false, false, 0f));
                 session.sendUpstreamPacket(linkPacket);
 
-                passenger.setVehicle(null);
+                passenger.stopRiding(entity);
                 EntityUtils.updateRiderRotationLock(passenger, entity, false);
                 EntityUtils.updateMountOffset(passenger, entity, false, false, i, packet.getPassengerIds().length);
                 // Force an update to the passenger metadata

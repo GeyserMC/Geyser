@@ -29,7 +29,6 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
-import it.unimi.dsi.fastutil.objects.Reference2ObjectOpenHashMap;
 import net.kyori.adventure.key.Key;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
@@ -39,15 +38,15 @@ import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.util.Identifier;
 import org.geysermc.geyser.api.waypoint.CustomWaypointStyle;
 import org.geysermc.geyser.entity.BedrockEntityDefinition;
-import org.geysermc.geyser.entity.EntityTypeDefinition;
-import org.geysermc.geyser.entity.GeyserEntityType;
 import org.geysermc.geyser.item.components.resolvable.ResolvableComponent;
+import org.geysermc.geyser.level.BedrockMapIcon;
 import org.geysermc.geyser.level.gamerule.GameRule;
 import org.geysermc.geyser.level.gamerule.GameRules;
 import org.geysermc.geyser.pack.ResourcePackHolder;
 import org.geysermc.geyser.registry.java.BuiltInJavaRegistries;
 import org.geysermc.geyser.registry.loader.BiomeIdentifierRegistryLoader;
 import org.geysermc.geyser.registry.loader.BlockEntityRegistryLoader;
+import org.geysermc.geyser.registry.loader.MapDecorationsLoader;
 import org.geysermc.geyser.registry.loader.ParticleTypesRegistryLoader;
 import org.geysermc.geyser.registry.loader.PotPatternRegistryLoader;
 import org.geysermc.geyser.registry.loader.ProviderRegistryLoader;
@@ -63,7 +62,7 @@ import org.geysermc.geyser.registry.populator.PacketRegistryPopulator;
 import org.geysermc.geyser.registry.populator.TagRegistryPopulator;
 import org.geysermc.geyser.registry.provider.ProviderSupplier;
 import org.geysermc.geyser.registry.type.ItemMappings;
-import org.geysermc.geyser.registry.type.ParticleMapping;
+import org.geysermc.geyser.level.particle.ParticleMapping;
 import org.geysermc.geyser.registry.type.SoundMapping;
 import org.geysermc.geyser.registry.type.UtilMappings;
 import org.geysermc.geyser.translator.level.block.entity.BlockEntityTranslator;
@@ -75,6 +74,7 @@ import org.geysermc.mcprotocollib.network.packet.Packet;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
 import org.geysermc.mcprotocollib.protocol.data.game.level.block.BlockEntityType;
 import org.geysermc.mcprotocollib.protocol.data.game.level.event.LevelEvent;
+import org.geysermc.mcprotocollib.protocol.data.game.level.map.MapIconType;
 import org.geysermc.mcprotocollib.protocol.data.game.level.particle.ParticleType;
 
 import java.util.ArrayList;
@@ -130,12 +130,6 @@ public final class Registries {
      */
     public static final SimpleMappedDeferredRegistry<BlockEntityType, BlockEntityTranslator> BLOCK_ENTITIES = SimpleMappedDeferredRegistry.create("org.geysermc.geyser.translator.level.block.entity.BlockEntity", BlockEntityRegistryLoader::new);
 
-    /**
-     * A map containing all entity types and their respective Geyser definitions
-     */
-    // Is a Reference2ObjectMap since GeyserEntityType, the implementation of JavaEntityType, only ever keeps one instance per registered entity type
-    public static final SimpleMappedRegistry<GeyserEntityType, EntityTypeDefinition<?>> JAVA_ENTITY_TYPES = SimpleMappedRegistry.create(RegistryLoaders.empty(Reference2ObjectOpenHashMap::new));
-
     public static final SimpleMappedRegistry<Identifier, BedrockEntityDefinition> BEDROCK_ENTITY_DEFINITIONS = SimpleMappedRegistry.create(RegistryLoaders.empty(Object2ObjectOpenHashMap::new));
 
     /**
@@ -166,7 +160,7 @@ public final class Registries {
     /**
      * A mapped registry holding {@link ResourcePackHolder}'s with the pack uuid as keys.
      */
-    public static final SimpleMappedDeferredRegistry<UUID, ResourcePackHolder> RESOURCE_PACKS = SimpleMappedDeferredRegistry.create(GeyserImpl.getInstance().packDirectory(), RegistryLoaders.RESOURCE_PACKS);
+    public static final SimpleMappedDeferredRegistry<UUID, ResourcePackHolder> RESOURCE_PACKS = SimpleMappedDeferredRegistry.createFromLazyInput(() -> GeyserImpl.getInstance().packDirectory(), RegistryLoaders.RESOURCE_PACKS);
 
     /**
      * A versioned registry holding most Bedrock tags, with the Java item list (sorted) being the key, and the tag name as the value.
@@ -211,6 +205,11 @@ public final class Registries {
     public static final SimpleMappedDeferredRegistry<Identifier, CustomWaypointStyle> WAYPOINT_STYLE_MAPPINGS = SimpleMappedDeferredRegistry.create(MappingsType.WAYPOINT_STYLES, WaypointStyleLoader::new);
 
     /**
+     * A registry mapping Java {@link MapIconType}s to {@link BedrockMapIcon}s.
+     */
+    public static final SimpleMappedDeferredRegistry<MapIconType, BedrockMapIcon> MAP_DECORATION_MAPPINGS = SimpleMappedDeferredRegistry.create("mappings/map_decorations.json", MapDecorationsLoader::new);
+
+    /**
      * A registry containing all the Java game rules.
      * Loaded through {@link GameRules}
      */
@@ -227,7 +226,7 @@ public final class Registries {
         // (by using the Items or Blocks class, which loads all the blocks)
 
         // Bootstrap registries holding hardcoded (built-in) Java Edition content
-        DataComponentRegistryPopulator.load();
+        DataComponentRegistryPopulator.load(GeyserImpl.getInstance().getBootstrap());
         BuiltInJavaRegistries.bootstrap();
 
         BEDROCK_ENTITY_IDENTIFIERS.load();
@@ -246,6 +245,7 @@ public final class Registries {
         DANGEROUS_BLOCK_ENTITIES.load();
         DANGEROUS_ENTITIES.load();
         SUSPICIOUS_EFFECT_HOLDERS.load();
+        MAP_DECORATION_MAPPINGS.load();
         GameRules.init();
 
         // Finally populate registries needing populating
