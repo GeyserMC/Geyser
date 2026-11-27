@@ -38,7 +38,9 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
 
@@ -142,6 +144,31 @@ public class MessageTranslatorTest {
             String bedrockMessage = MessageTranslator.convertMessage(entry.getKey(), "en_US");
             Assertions.assertEquals(entry.getValue(), bedrockMessage, "Translation of messages is incorrect");
         }
+    }
+
+    @Test
+    public void rejectExcessiveTranslationExpansion() {
+        Component message = Component.text("x");
+        for (int i = 0; i < 5; i++) {
+            message = Component.translatable("%1$s".repeat(10), message);
+        }
+        Assertions.assertEquals("", MessageTranslator.convertMessage(message, "en_US"));
+    }
+
+    @Test
+    public void allowWideTranslation() {
+        List<Component> arguments = Collections.nCopies(5_000, Component.text("x"));
+        Component message = Component.translatable("%s".repeat(arguments.size()), arguments);
+
+        Assertions.assertEquals("x".repeat(arguments.size()), MessageTranslator.convertMessageRaw(message, "en_US"));
+    }
+
+    @Test
+    public void allowDetailedTranslation() {
+        String name = "x".repeat(70_000);
+        Component message = Component.translatable("%1$s", Component.text(name));
+
+        Assertions.assertEquals(name, MessageTranslator.convertMessageRaw(message, "en_US"));
     }
 
     @Test
