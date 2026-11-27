@@ -39,6 +39,7 @@ import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import lombok.Getter;
 import org.checkerframework.checker.nullness.qual.Nullable;
+import org.cloudburstmc.netty.channel.nethernet.NetherNetChannel;
 import org.cloudburstmc.netty.signaling.ProviderClient;
 import org.geysermc.floodgate.util.DeviceOs;
 import org.geysermc.geyser.GeyserImpl;
@@ -48,6 +49,7 @@ import org.geysermc.geyser.api.extension.Extension;
 import org.geysermc.geyser.api.util.MinecraftVersion;
 import org.geysermc.geyser.network.bedrock.GameProtocol;
 import org.geysermc.geyser.network.bedrock.nethernet.NetherNetServer;
+import org.geysermc.geyser.network.bedrock.nethernet.NetherNetStats;
 import org.geysermc.geyser.pack.ResourcePackHolder;
 import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.registry.Registries;
@@ -181,7 +183,7 @@ public class DumpInfo {
         );
 
         NetherNetServer netherNet = geyser.getNetherNetServer();
-        this.netherNetInfo = netherNet == null ? null : NetherNetInfo.of(netherNet.advertised());
+        this.netherNetInfo = netherNet == null ? null : NetherNetInfo.of(netherNet.advertised(), geyser.getSessionManager().getAllSessions());
     }
 
     private JsonElement toGson(ConfigurationNode node) {
@@ -410,9 +412,14 @@ public class DumpInfo {
      *
      * @param builtin null when built-in signaling is not running
      * @param nxs null when the external signaling service is not running
+     * @param sessions connection stats of every player on NetherNet, with candidate types but no addresses; null when there are none
      */
-    public record NetherNetInfo(@Nullable Builtin builtin, @Nullable Nxs nxs) {
+    public record NetherNetInfo(@Nullable Builtin builtin, @Nullable Nxs nxs, @Nullable List<NetherNetStats.Snapshot> sessions) {
         static NetherNetInfo of(NetherNetServer.Advertised advertised) {
+            return of(advertised, List.of());
+        }
+
+        static NetherNetInfo of(NetherNetServer.Advertised advertised, List<GeyserSession> sessions) {
             NetherNetServer.Advertised.Builtin builtin = advertised.builtin();
             ProviderClient.PublishedEndpoints published = advertised.nxs() == null ? null : advertised.nxs().published();
             return new NetherNetInfo(
@@ -420,7 +427,21 @@ public class DumpInfo {
                 advertised.nxs() == null ? null : new Nxs(published != null, advertised.nxs().instanceId(),
                     advertised.nxs().clockOffsetMillis(),
                     published == null ? List.of() : censor(published.endpoints()),
-                    published == null ? List.of() : published.assistedFamilies().stream().sorted().toList()));
+                    published == null ? List.of() : published.assistedFamilies().stream().sorted().toList()),
+                sessionStats(sessions));
+        }
+
+        private static @Nullable List<NetherNetStats.Snapshot> sessionStats(List<GeyserSession> sessions) {
+            List<NetherNetStats.Snapshot> stats = new ArrayList<>();
+            for (GeyserSession session : sessions) {
+                if (session.getUpstream().getSession().getPeer().getChannel() instanceof NetherNetChannel channel) {
+                    NetherNetStats channelStats = channel.attr(NetherNetStats.ATTRIBUTE).get();
+                    if (channelStats != null) {
+                        stats.add(channelStats.snapshot(channel, false));
+                    }
+                }
+            }
+            return stats.isEmpty() ? null : stats;
         }
 
         private static List<String> censor(List<InetSocketAddress> addresses) {
