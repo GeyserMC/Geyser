@@ -49,11 +49,13 @@ import java.util.function.Consumer;
  * Timeouts that come evenly spaced while data stays in flight, with no loss, point at the sender's retransmission
  * timer rather than the network. game_rtt_ms is the last NetworkStackLatency round trip (see
  * {@link NetherNetStats.Snapshot#gameRoundTripMillis()}): when it grows far past rtt_ms while unacked chunks stay low,
- * the backlog is in the client, not the network.
+ * the backlog is in the client, not the network. send_queue_bytes is what SCTP accepted and the client has not
+ * acknowledged, queued_bytes what waits ahead of SCTP once that is full, and bytes_out what this connection sent in
+ * total, so a burst shows as a step in bytes_out and the congestion window it met is in cwnd beside it.
  */
 public final class NetherNetRecorder {
     public static final long INTERVAL_MILLIS = 20;
-    static final String HEADER = "t_ms,rtt_ms,rto_ms,cwnd,unacked_chunks,timeouts,game_rtt_ms";
+    static final String HEADER = "t_ms,rtt_ms,rto_ms,cwnd,unacked_chunks,timeouts,game_rtt_ms,send_queue_bytes,queued_bytes,bytes_out";
     private static final Set<Channel> RECORDING = ConcurrentHashMap.newKeySet();
 
     private final NetherNetChannel channel;
@@ -118,9 +120,11 @@ public final class NetherNetRecorder {
         long t = TimeUnit.NANOSECONDS.toMillis(now - startNanos);
         NetherNetStats stats = channel.attr(NetherNetStats.ATTRIBUTE).get();
         long gameRoundTrip = stats == null ? -1 : stats.lastGameRoundTripMillis();
+        long bytesOut = stats == null ? -1 : stats.bytesOutTotal();
         try {
             writer.write(t + "," + sctp.rtt().toMillis() + "," + sctp.rto().toMillis() + "," + sctp.congestionWindow()
-                + "," + sctp.unackedChunks() + "," + sctp.dataTimeouts() + "," + gameRoundTrip);
+                + "," + sctp.unackedChunks() + "," + sctp.dataTimeouts() + "," + gameRoundTrip
+                + "," + sctp.sendQueueBytes() + "," + NetherNetQueue.queuedBytes(channel) + "," + bytesOut);
             writer.newLine();
         } catch (IOException e) {
             finish("writing failed: " + e.getMessage());

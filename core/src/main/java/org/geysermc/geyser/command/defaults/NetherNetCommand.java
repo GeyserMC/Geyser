@@ -37,6 +37,8 @@ import org.geysermc.geyser.command.GeyserCommandSource;
 import org.geysermc.geyser.configuration.GeyserConfig;
 import org.cloudburstmc.netty.channel.nethernet.NetherNetChannel;
 import org.geysermc.geyser.network.bedrock.nethernet.NetherNetPacketCapture;
+import org.geysermc.geyser.network.bedrock.nethernet.NetherNetRecordFiles;
+import org.geysermc.geyser.network.bedrock.nethernet.NetherNetSctp;
 import org.geysermc.geyser.network.bedrock.nethernet.NetherNetRecorder;
 import org.geysermc.geyser.network.bedrock.nethernet.NetherNetServer;
 import org.geysermc.geyser.network.bedrock.nethernet.NetherNetStats;
@@ -48,8 +50,6 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.Base64;
 import java.util.List;
 import java.util.Locale;
@@ -63,7 +63,6 @@ public class NetherNetCommand extends GeyserCommand {
 
     private static final int MAX_RECORD_SECONDS = 600;
     private static final int MAX_CAPTURE_SECONDS = 30;
-    private static final DateTimeFormatter FILE_STAMP = DateTimeFormatter.ofPattern("yyyyMMdd-HHmmss-SSS", Locale.ROOT);
 
     private final GeyserImpl geyser;
 
@@ -267,7 +266,7 @@ public class NetherNetCommand extends GeyserCommand {
         Path file = recordFile(name, ".csv");
         NetherNetChannel.Path path = channel.selectedPath();
         List<String> header = List.of(
-            "Geyser " + GeyserImpl.VERSION + ", NetherNet recording every " + NetherNetRecorder.INTERVAL_MILLIS + " ms",
+            "Geyser " + GeyserImpl.VERSION + ", NetherNet recording every " + NetherNetRecorder.INTERVAL_MILLIS + " ms, " + NetherNetSctp.describe(),
             "player " + name + ", " + session.platform() + ", " + session.version()
                 + ", path " + (path == null ? "unknown" : path.localType() + " -> " + path.remoteType()));
         try {
@@ -352,9 +351,7 @@ public class NetherNetCommand extends GeyserCommand {
     }
 
     private Path recordFile(String name, String extension) {
-        String stamp = FILE_STAMP.format(LocalDateTime.now());
-        return geyser.configDirectory().resolve("nethernet-records")
-            .resolve(name.replaceAll("[^A-Za-z0-9_-]", "_") + "-" + stamp + extension);
+        return NetherNetRecordFiles.path(geyser.configDirectory(), name, extension);
     }
 
     /**
@@ -374,14 +371,20 @@ public class NetherNetCommand extends GeyserCommand {
             + " | out " + bytes(snapshot.bytesOutPerSecond()) + "/s, " + snapshot.messagesOutPerSecond() + " msg/s, "
             + snapshot.packetsOutPerSecond() + " pkt/s | in " + bytes(snapshot.bytesInPerSecond()) + "/s"
             + " | cwnd " + bytes(snapshot.congestionWindow()) + ", peer rwnd " + bytes(snapshot.peerReceiveWindow())
-            + " | queued " + bytes(snapshot.queuedBytes()) + ", unacked " + snapshot.unackedChunks() + " chunks"
-            + " | receive queue " + snapshot.receiveQueueChunks() + " chunks"
+            + " | queued " + bytes(snapshot.queuedBytes()) + " + " + bytes(snapshot.sendQueueBytes()) + " in SCTP (of "
+            + bytes(snapshot.sendBufferSize()) + ")" + backlog(snapshot) + ", unacked " + snapshot.unackedChunks() + " chunks"
+            + " | receive queue " + snapshot.receiveQueueChunks() + " chunks, " + bytes(snapshot.receiveQueueBytes())
             + " | timeouts " + snapshot.dataTimeouts() + timeoutsPerMinute(snapshot)
             + " | " + (snapshot.writable() ? "writable" : "UNWRITABLE for " + snapshot.unwritableMillis() + " ms")
             + " (" + snapshot.unwritableEvents() + "x)"
             + " | " + String.format(Locale.ROOT, "%.1f pkt/msg, %.0f%% compressed size", snapshot.averageBatchSize(), snapshot.compressionRatio() * 100)
             + (snapshot.topPacketTypes().isEmpty() ? "" : " | top " + String.join(", ", snapshot.topPacketTypes()))
             + " | " + (snapshot.path() == null ? "no path" : snapshot.path());
+    }
+
+    private static String backlog(NetherNetStats.Snapshot snapshot) {
+        long millis = snapshot.backlogMillis();
+        return millis < 0 ? "" : ", ~" + millis + " ms to send";
     }
 
     private static String bytes(long bytes) {

@@ -32,18 +32,23 @@ import io.netty.channel.ChannelOutboundHandlerAdapter;
 import io.netty.channel.ChannelPromise;
 import io.netty.util.concurrent.ScheduledFuture;
 import org.checkerframework.checker.nullness.qual.Nullable;
+import org.cloudburstmc.netty.channel.TransportDisconnectReason;
 import org.cloudburstmc.netty.channel.nethernet.NetherNetChannel;
 import org.cloudburstmc.protocol.bedrock.netty.BedrockBatchWrapper;
 import org.cloudburstmc.protocol.bedrock.netty.BedrockPacketWrapper;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.session.GeyserSession;
 
+import java.io.BufferedWriter;
+import java.io.IOException;
+import java.nio.file.Path;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 /**
  * Sits between compression and the NetherNet frame codec and counts the compressed size of outbound batches; the
  * {@link BatchCounter} ahead of compression counts their packets and uncompressed size. In debug mode, also logs when
- * a connection is falling behind.
+ * a connection is falling behind, and keeps the last two minutes of stats to write out if the connection drops.
  */
 public class NetherNetStatsHandler extends ChannelDuplexHandler {
     public static final String NAME = "geyser-nethernet-stats";
@@ -53,7 +58,11 @@ public class NetherNetStatsHandler extends ChannelDuplexHandler {
     private final GeyserImpl geyser;
     private final NetherNetStats stats;
     private @Nullable ScheduledFuture<?> check;
+    private @Nullable ScheduledFuture<?> historySample;
     private long lastDataTimeouts;
+    private final NetherNetHistory history = new NetherNetHistory();
+    private @Nullable TransportDisconnectReason disconnectReason;
+    private @Nullable String playerName;
 
     public NetherNetStatsHandler(GeyserImpl geyser, NetherNetStats stats) {
         this.geyser = geyser;
@@ -82,13 +91,29 @@ public class NetherNetStatsHandler extends ChannelDuplexHandler {
         if (ctx.channel() instanceof NetherNetChannel channel) {
             check = ctx.executor().scheduleAtFixedRate(() -> checkBacklog(channel),
                 CHECK_INTERVAL_SECONDS, CHECK_INTERVAL_SECONDS, TimeUnit.SECONDS);
+            historySample = ctx.executor().scheduleAtFixedRate(() -> sampleHistory(channel), 1, 1, TimeUnit.SECONDS);
         }
         super.channelActive(ctx);
     }
 
     @Override
+    public void userEventTriggered(ChannelHandlerContext ctx, Object evt) throws Exception {
+        // The channel says why the connection ended just before it closes
+        if (evt instanceof TransportDisconnectReason reason) {
+            disconnectReason = reason;
+        }
+        super.userEventTriggered(ctx, evt);
+    }
+
+    @Override
     public void channelInactive(ChannelHandlerContext ctx) throws Exception {
         cancelCheck();
+        // A client that quits closes the connection itself; anything else ended it under the player
+        if (disconnectReason != null && disconnectReason != TransportDisconnectReason.CLOSED_BY_REMOTE_PEER
+            && ctx.channel() instanceof NetherNetChannel channel) {
+            history.add(stats.snapshot(channel, false));
+            writeHistory();
+        }
         super.channelInactive(ctx);
     }
 
@@ -102,6 +127,41 @@ public class NetherNetStatsHandler extends ChannelDuplexHandler {
             check.cancel(false);
             check = null;
         }
+        if (historySample != null) {
+            historySample.cancel(false);
+            historySample = null;
+        }
+    }
+
+    private void sampleHistory(NetherNetChannel channel) {
+        if (!channel.isActive()) {
+            return;
+        }
+        if (playerName == null) {
+            // Looked up while the session still exists, as it may be gone once the connection closed
+            playerName = sessionName(channel);
+        }
+        history.add(stats.snapshot(channel, false));
+    }
+
+    private void writeHistory() {
+        List<String> rows = history.rows();
+        String name = playerName == null ? "unknown" : playerName;
+        Path file = NetherNetRecordFiles.path(geyser.configDirectory(), name + "-disconnect", ".csv");
+        try (BufferedWriter writer = NetherNetRecordFiles.open(file, List.of(
+            "Geyser " + GeyserImpl.VERSION + ", NetherNet stats once a second before the connection ended",
+            "player " + name + ", ended by " + disconnectReason + ", " + NetherNetSctp.describe()),
+            NetherNetHistory.HEADER)) {
+            for (String row : rows) {
+                writer.write(row);
+                writer.newLine();
+            }
+        } catch (IOException e) {
+            geyser.getLogger().warning("[NetherNet] Could not write the stats of " + name + "'s dropped connection to " + file + ": " + e.getMessage());
+            return;
+        }
+        geyser.getLogger().warning("[NetherNet] " + name + "'s connection ended (" + disconnectReason + "). Its last "
+            + rows.size() + " s of stats are in " + file + "; please attach that file when reporting this.");
     }
 
     /**
@@ -114,14 +174,16 @@ public class NetherNetStatsHandler extends ChannelDuplexHandler {
         NetherNetStats.Snapshot snapshot = stats.snapshot(channel, false);
         long newTimeouts = snapshot.dataTimeouts() - lastDataTimeouts;
         lastDataTimeouts = Math.max(lastDataTimeouts, snapshot.dataTimeouts());
-        // Queued bytes only appear once SCTP's own send buffer is full, so any at all means a real backlog
-        if (snapshot.writable() && snapshot.queuedBytes() <= 0 && newTimeouts <= 0) {
+        // Queued bytes only appear once SCTP's own send queue is full, so any at all means a real backlog. Below that,
+        // a send queue that takes over a second to go out already delays every packet that much
+        if (snapshot.writable() && snapshot.queuedBytes() <= 0 && snapshot.backlogMillis() < 1000 && newTimeouts <= 0) {
             return;
         }
 
         geyser.getLogger().debug("[NetherNet] " + name(channel) + " is falling behind: "
             + (snapshot.writable() ? "" : "unwritable for " + snapshot.unwritableMillis() + " ms, ")
-            + "queued " + snapshot.queuedBytes() + " B, unacked " + snapshot.unackedChunks() + " chunks"
+            + "queued " + snapshot.queuedBytes() + " B + " + snapshot.sendQueueBytes() + " B in SCTP"
+            + " (~" + snapshot.backlogMillis() + " ms to send), unacked " + snapshot.unackedChunks() + " chunks"
             + ", receive queue " + snapshot.receiveQueueChunks() + " chunks"
             + ", cwnd " + snapshot.congestionWindow() + " B, peer rwnd " + snapshot.peerReceiveWindow() + " B"
             + ", rtt " + snapshot.sctpRtt() + " ms, rto " + snapshot.sctpRto() + " ms"
@@ -160,11 +222,16 @@ public class NetherNetStatsHandler extends ChannelDuplexHandler {
     }
 
     private String name(NetherNetChannel channel) {
+        String name = sessionName(channel);
+        return name == null ? "A connection that has not logged in" : name;
+    }
+
+    private @Nullable String sessionName(NetherNetChannel channel) {
         for (GeyserSession session : geyser.getSessionManager().getAllSessions()) {
             if (session.getUpstream().getSession().getPeer().getChannel() == channel) {
                 return session.bedrockUsername();
             }
         }
-        return "A connection that has not logged in";
+        return null;
     }
 }

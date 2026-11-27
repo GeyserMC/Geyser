@@ -87,6 +87,8 @@ public class NetherNetChannelInitialiser extends GeyserServerInitializer {
                 .addLast(NetherNetFrameCodec.NAME, NetherNetFrameCodec.INSTANCE)
                 .addLast(CompressionCodec.NAME, new CompressionCodec(NOOP_STRATEGY, false));
 
+        NetherNetSctp.applyOverride(geyser);
+
         // Counts what is sent and received, for the nethernet stats command and backlog debug logging
         if (channel.config() instanceof DefaultNetherChannelConfig config) {
             NetherNetStats stats = new NetherNetStats();

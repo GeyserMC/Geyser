@@ -181,6 +181,10 @@ public final class NetherNetStats implements NetherChannelMetrics {
         return gameRoundTripMillis;
     }
 
+    long bytesOutTotal() {
+        return bytesOut.total();
+    }
+
     void writabilityChanged(boolean writable) {
         if (writable) {
             unwritableSinceNanos = 0;
@@ -225,7 +229,10 @@ public final class NetherNetStats implements NetherChannelMetrics {
             sctp == null ? -1 : sctp.unackedChunks(),
             sctp == null ? -1 : sctp.dataTimeouts(),
             NetherNetQueue.queuedBytes(channel),
+            sctp == null ? -1 : sctp.sendQueueBytes(),
+            sctp == null ? -1 : sctp.sendBufferSize(),
             sctp == null ? -1 : sctp.pendingChunks(),
+            sctp == null ? -1 : sctp.receiveQueueBytes(),
             channel.isWritable(),
             unwritableEvents.sum(),
             unwritableSince == 0 ? 0 : TimeUnit.NANOSECONDS.toMillis(now - unwritableSince),
@@ -258,9 +265,13 @@ public final class NetherNetStats implements NetherChannelMetrics {
      * @param unackedChunks chunks sent but not yet acknowledged, so at most about a congestion window's worth
      * @param dataTimeouts retransmission timeouts so far, which indicate loss
      * @param queuedBytes bytes waiting in the data channels for SCTP to take them, -1 if unknown. This only grows once
-     *                    SCTP's own send buffer (1 MiB) is full, and what that buffer holds can't be read yet
+     *                    SCTP's own send queue is full, see sendQueueBytes
+     * @param sendQueueBytes bytes SCTP accepted and the client has not acknowledged yet, sent or not. Together with
+     *                       queuedBytes, the whole send backlog
+     * @param sendBufferSize how many bytes SCTP's send queue may hold before data waits in queuedBytes instead
      * @param receiveQueueChunks chunks received from the client that SCTP holds for reassembly or until they are read
      *                           (usrsctp's sstat_penddata). Not the send backlog
+     * @param receiveQueueBytes the bytes in those chunks
      * @param unwritableMillis how long the channel has been over its write buffer high watermark, 0 if it is not
      * @param gameRoundTripMillis how long the last NetworkStackLatency packet took to come back, -1 if none has yet.
      *                            One is sent per Java keep-alive only with forward-player-ping enabled; otherwise
@@ -288,7 +299,10 @@ public final class NetherNetStats implements NetherChannelMetrics {
         long unackedChunks,
         long dataTimeouts,
         long queuedBytes,
+        long sendQueueBytes,
+        long sendBufferSize,
         long receiveQueueChunks,
+        long receiveQueueBytes,
         boolean writable,
         long unwritableEvents,
         long unwritableMillis,
@@ -313,6 +327,18 @@ public final class NetherNetStats implements NetherChannelMetrics {
         double compressionRatio,
         List<String> topPacketTypes
     ) {
+        /**
+         * @return how long the whole send backlog takes to go out at the current send rate, -1 if unknown or nothing
+         *         was sent in the last few seconds. When the game round trip exceeds the SCTP round trip by about this
+         *         much, the delay is in this server's queues; when by much more, it is on the way or in the client
+         */
+        public long backlogMillis() {
+            if (sendQueueBytes < 0 || bytesOutPerSecond <= 0) {
+                return -1;
+            }
+            return (Math.max(queuedBytes, 0) + sendQueueBytes) * 1000 / bytesOutPerSecond;
+        }
+
         /**
          * @return the last game round trip with its age and the connection's longest, or why it is unknown
          */

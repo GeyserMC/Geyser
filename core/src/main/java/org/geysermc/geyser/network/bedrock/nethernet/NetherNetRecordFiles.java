@@ -30,14 +30,26 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Locale;
 
 /**
- * Files written by the nethernet record and packets commands.
+ * Files written by the nethernet record and packets commands, and when a connection drops.
  */
-final class NetherNetRecordFiles {
+public final class NetherNetRecordFiles {
+    private static final DateTimeFormatter FILE_STAMP = DateTimeFormatter.ofPattern("yyyyMMdd-HHmmss-SSS", Locale.ROOT);
 
     private NetherNetRecordFiles() {
+    }
+
+    /**
+     * @return a new file in the nethernet-records folder next to the config, named after the player and the time
+     */
+    public static Path path(Path configDirectory, String name, String extension) {
+        return configDirectory.resolve("nethernet-records")
+            .resolve(name.replaceAll("[^A-Za-z0-9_-]", "_") + "-" + FILE_STAMP.format(LocalDateTime.now()) + extension);
     }
 
     /**
