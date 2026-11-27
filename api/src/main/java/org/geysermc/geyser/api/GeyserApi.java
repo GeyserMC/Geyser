@@ -35,6 +35,7 @@ import org.geysermc.geyser.api.event.EventRegistrar;
 import org.geysermc.geyser.api.extension.ExtensionManager;
 import org.geysermc.geyser.api.network.BedrockListener;
 import org.geysermc.geyser.api.network.RemoteServer;
+import org.geysermc.geyser.api.language.TranslationManager;
 import org.geysermc.geyser.api.util.MinecraftVersion;
 import org.geysermc.geyser.api.util.PlatformType;
 import org.jetbrains.annotations.ApiStatus;
@@ -149,6 +150,23 @@ public interface GeyserApi extends GeyserApiBase {
      * @return the console command source
      */
     CommandSource consoleCommandSource();
+
+    /**
+     * Gets the default locale used within Geyser.
+     * 
+     * @return the default locale
+     * @since 2.13.0
+     */
+    String defaultLocale();
+
+    /**
+     * Gets the translation manager used by Geyser.
+     * 
+     * @see TranslationManager
+     * @return Geyser's translation manager
+     * @since 2.13.0
+     */
+    TranslationManager translationManager();
 
     /**
      * Gets the current {@link GeyserApiBase} instance.
