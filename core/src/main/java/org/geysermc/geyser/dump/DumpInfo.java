@@ -181,7 +181,7 @@ public class DumpInfo {
         );
 
         NetherNetServer netherNet = geyser.getNetherNetServer();
-        this.netherNetInfo = netherNet == null ? null : NetherNetInfo.of(netherNet.advertised());
+        this.netherNetInfo = netherNet == null ? null : NetherNetInfo.of(netherNet.advertised(), netherNet.builtinPortConflict());
     }
 
     private JsonElement toGson(ConfigurationNode node) {
@@ -410,9 +410,11 @@ public class DumpInfo {
      *
      * @param builtin null when built-in signaling is not running
      * @param nxs null when the external signaling service is not running
+     * @param builtinPortConflict what holds the built-in signaling port when that keeps it from running, else null
      */
-    public record NetherNetInfo(@Nullable Builtin builtin, @Nullable Nxs nxs) {
-        static NetherNetInfo of(NetherNetServer.Advertised advertised) {
+    public record NetherNetInfo(@Nullable Builtin builtin, @Nullable Nxs nxs,
+                                NetherNetServer.@Nullable PortConflict builtinPortConflict) {
+        static NetherNetInfo of(NetherNetServer.Advertised advertised, NetherNetServer.@Nullable PortConflict portConflict) {
             NetherNetServer.Advertised.Builtin builtin = advertised.builtin();
             ProviderClient.PublishedEndpoints published = advertised.nxs() == null ? null : advertised.nxs().published();
             return new NetherNetInfo(
@@ -420,7 +422,8 @@ public class DumpInfo {
                 advertised.nxs() == null ? null : new Nxs(published != null, advertised.nxs().instanceId(),
                     advertised.nxs().clockOffsetMillis(),
                     published == null ? List.of() : censor(published.endpoints()),
-                    published == null ? List.of() : published.assistedFamilies().stream().sorted().toList()));
+                    published == null ? List.of() : published.assistedFamilies().stream().sorted().toList()),
+                portConflict);
         }
 
         private static List<String> censor(List<InetSocketAddress> addresses) {
