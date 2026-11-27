@@ -1477,7 +1477,9 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource, Jav
             this.dialogManager.tick();
             this.waypointCache.tick();
 
-            this.upstream.getSession().getPeer().sendPacketsImmediately(0, 0, queuedImmediatelyPackets.toArray(new BedrockPacket[0]));
+            for (BedrockPacket packet : queuedImmediatelyPackets) {
+                this.upstream.sendPacketImmediately(packet);
+            }
             queuedImmediatelyPackets.clear();
 
             CooldownUtils.tickCooldown(this);
@@ -1839,6 +1841,9 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource, Jav
     private JoinAddress parsedJoinAddress() {
         // NetherNet clients send the signaling URL they used, e.g. http://example.com:19132:19132
         String combined = Optional.ofNullable(clientData).orElseThrow().getServerAddress();
+        if (combined == null || combined.isBlank()) {
+            combined = "localhost:" + geyser.config().bedrock().port();
+        }
         return JoinAddress.parse(combined, geyser.config().bedrock().port());
     }
 
