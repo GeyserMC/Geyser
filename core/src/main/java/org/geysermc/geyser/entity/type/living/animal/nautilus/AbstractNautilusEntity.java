@@ -87,15 +87,15 @@ public abstract class AbstractNautilusEntity extends TameableEntity implements C
 
         if (getFlag(EntityFlag.TAMED)) {
             if (itemInHand.asItem().javaKey().value().endsWith("_nautilus_armor") && getItemInSlot(EquipmentSlot.BODY).isEmpty() && !getFlag(EntityFlag.BABY)) {
-                return InteractiveTag.EQUIP_NAUTILUS_ARMOR;
+                return InteractiveTag.EQUIPNAUTILUSARMOR;
             }
             if (itemInHand.is(Items.SHEARS) && !getItemInSlot(EquipmentSlot.BODY).isEmpty()
                     && (!isCurseOfBinding || session.getGameMode().equals(GameMode.CREATIVE))) {
-                return InteractiveTag.REMOVE_NAUTILUS_ARMOR;
+                return InteractiveTag.REMOVENAUTILUSARMOR;
             }
             if (itemInHand.is(session, repairableItems) &&
                     !getItemInSlot(EquipmentSlot.BODY).isEmpty() && getItemInSlot(EquipmentSlot.BODY).isDamaged()) {
-                return InteractiveTag.REPAIR_WOLF_ARMOR;
+                return InteractiveTag.REPAIRWOLFARMOR;
             }
             if (itemInHand.isEmpty()) {
                 return InteractiveTag.RIDE_HORSE; // Does not appear to be a specific interaction for Nautilus; needs ProxyPass verification

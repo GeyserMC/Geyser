@@ -158,7 +158,7 @@ public class BoatEntity extends Entity implements Tickable, Leashable, ClientVeh
         if (session.isSneaking()) {
             return InteractiveTag.NONE;
         } else if (passengers.size() < 2) {
-            return InteractiveTag.BOARD_BOAT;
+            return InteractiveTag.RIDE_BOAT;
         } else {
             return InteractiveTag.NONE;
         }

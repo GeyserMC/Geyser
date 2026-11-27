@@ -26,9 +26,9 @@
 package org.geysermc.geyser.translator.protocol.java.level;
 
 import org.cloudburstmc.protocol.bedrock.packet.BedrockPacket;
+import org.geysermc.geyser.level.particle.ParticleRandomization;
 import org.geysermc.mcprotocollib.protocol.data.game.level.particle.Particle;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.level.ClientboundLevelParticlesPacket;
-import org.cloudburstmc.math.vector.Vector3f;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.level.particle.ParticleMapping;
 import org.geysermc.geyser.session.GeyserSession;
@@ -49,21 +49,15 @@ public class JavaLevelParticlesTranslator extends PacketTranslator<ClientboundLe
         ParticleMapping particleMapping = Registries.PARTICLES.get(particle.getType());
 
         if (particleMapping != null) {
-            Function<Vector3f, BedrockPacket> packetConstructor = particleMapping.mapParticle(session, particle.getData());
+            Function<ParticleRandomization, BedrockPacket> packetConstructor = particleMapping.mapParticle(session, particle.getData());
+            Random random = ThreadLocalRandom.current();
             if (packet.getAmount() == 0) {
                 // 0 means don't apply the offset
-                Vector3f position = Vector3f.from(packet.getX(), packet.getY(), packet.getZ());
-                session.sendUpstreamPacket(packetConstructor.apply(position));
+                session.sendUpstreamPacket(packetConstructor.apply(ParticleRandomization.ofPacket(packet, random)));
             } else {
-                Random random = ThreadLocalRandom.current();
                 int amount = Math.min(MAX_PARTICLES, packet.getAmount());
                 for (int i = 0; i < amount; i++) {
-                    double offsetX = random.nextGaussian() * (double) packet.getOffsetX();
-                    double offsetY = random.nextGaussian() * (double) packet.getOffsetY();
-                    double offsetZ = random.nextGaussian() * (double) packet.getOffsetZ();
-                    Vector3f position = Vector3f.from(packet.getX() + offsetX, packet.getY() + offsetY, packet.getZ() + offsetZ);
-
-                    session.sendUpstreamPacket(packetConstructor.apply(position));
+                    session.sendUpstreamPacket(packetConstructor.apply(ParticleRandomization.ofPacket(packet, random)));
                 }
             }
         } else {

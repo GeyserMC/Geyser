@@ -390,9 +390,8 @@ public abstract class AvatarEntity extends LivingEntity implements GeyserAvatarE
         packet.setXuid("");
         packet.setPlatformId(""); // BDS sends empty
         packet.setEmoteId(emoteId);
-        if (getDisplayName(false) == null) { // The emote chat announcement will have no player name if the entity name is blank
-            packet.getFlags().add(EmoteFlag.MUTE_EMOTE_CHAT);
-        } else if (silent) {
+        // The emote chat announcement will have no player name if the entity name is blank
+        if (getDisplayName(false) == null || silent) {
             packet.getFlags().add(EmoteFlag.MUTE_EMOTE_CHAT);
         }
         session.sendUpstreamPacket(packet);

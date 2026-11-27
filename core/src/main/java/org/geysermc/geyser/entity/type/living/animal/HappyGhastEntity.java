@@ -128,12 +128,12 @@ public class HappyGhastEntity extends AnimalEntity implements ClientVehicle {
                 if (itemInHand.is(session, ItemTag.HARNESSES)) {
                     if (getItemInSlot(EquipmentSlot.BODY).isEmpty()) {
                         // Harnesses the ghast
-                        return InteractiveTag.EQUIP_HARNESS;
+                        return InteractiveTag.EQUIPHARNESS;
                     }
                 } else if (itemInHand.is(Items.SHEARS)) {
                     if (this.canShearEquipment() && !session.isSneaking()) {
                         // Shears the harness off of the ghast
-                        return InteractiveTag.REMOVE_HARNESS;
+                        return InteractiveTag.REMOVEHARNESS;
                     }
                 }
             }
