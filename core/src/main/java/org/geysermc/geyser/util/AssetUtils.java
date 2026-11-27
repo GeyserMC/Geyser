@@ -31,6 +31,7 @@ import com.google.gson.JsonParser;
 import com.google.gson.annotations.SerializedName;
 import lombok.Getter;
 import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.configuration.GeyserConfigDirectory;
 import org.geysermc.geyser.network.bedrock.GameProtocol;
 import org.geysermc.geyser.text.GeyserLocale;
 
@@ -149,7 +150,7 @@ public final class AssetUtils {
         if (!FORCE_DOWNLOAD_JAR) { // Don't bother checking the hash if we need to download new files anyway.
             String curHash = null;
             try {
-                File hashFile = GeyserImpl.getInstance().getBootstrap().getConfigFolder().resolve("cache").resolve(CLIENT_JAR_HASH_FILE).toFile();
+                File hashFile = GeyserImpl.getInstance().configDir().createIfAbsent(GeyserConfigDirectory.CACHE).resolve(CLIENT_JAR_HASH_FILE).toFile();
                 if (hashFile.exists()) {
                     try (BufferedReader br = new BufferedReader(new FileReader(hashFile))) {
                         curHash = br.readLine().trim();
@@ -172,7 +173,7 @@ public final class AssetUtils {
             GeyserImpl.getInstance().getLogger().info(GeyserLocale.getLocaleStringLog("geyser.locale.download.en_us"));
             GeyserImpl.getInstance().getLogger().debug("Download URL: " + CLIENT_JAR_INFO.getUrl());
 
-            Path tmpFilePath = GeyserImpl.getInstance().getBootstrap().getConfigFolder().resolve("tmp_locale.jar");
+            Path tmpFilePath = GeyserImpl.getInstance().configDirectory().resolve("tmp_locale.jar");
             WebUtils.downloadFile(CLIENT_JAR_INFO.getUrl(), tmpFilePath.toString());
 
             // Load in the JAR as a zip and extract the files
@@ -187,8 +188,7 @@ public final class AssetUtils {
             }
 
             // Store the latest jar hash
-            Path cache = GeyserImpl.getInstance().getBootstrap().getConfigFolder().resolve("cache");
-            Files.createDirectories(cache);
+            Path cache = GeyserImpl.getInstance().configDir().createIfAbsent(GeyserConfigDirectory.CACHE);
             FileUtils.writeFile(cache.resolve(CLIENT_JAR_HASH_FILE).toString(), CLIENT_JAR_INFO.getSha1().toCharArray());
 
             // Delete the nolonger needed client/server jar

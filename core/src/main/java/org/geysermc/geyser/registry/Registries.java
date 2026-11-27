@@ -43,6 +43,7 @@ import org.geysermc.geyser.level.BedrockMapIcon;
 import org.geysermc.geyser.level.gamerule.GameRule;
 import org.geysermc.geyser.level.gamerule.GameRules;
 import org.geysermc.geyser.pack.ResourcePackHolder;
+import org.geysermc.geyser.pack.geyser.GeyserAssetPack;
 import org.geysermc.geyser.registry.java.BuiltInJavaRegistries;
 import org.geysermc.geyser.registry.loader.BiomeIdentifierRegistryLoader;
 import org.geysermc.geyser.registry.loader.BlockEntityRegistryLoader;
@@ -157,6 +158,8 @@ public final class Registries {
      */
     public static final SimpleMappedDeferredRegistry<ParticleType, ParticleMapping> PARTICLES = SimpleMappedDeferredRegistry.create("mappings/particles.json", ParticleTypesRegistryLoader::new);
 
+    public static final ListDeferredRegistry<GeyserAssetPack> GEYSER_ASSET_PACKS = ListDeferredRegistry.createFromLazyInput(GeyserImpl::getInstance, GeyserAssetPack::load);
+
     /**
      * A mapped registry holding {@link ResourcePackHolder}'s with the pack uuid as keys.
      */
@@ -253,6 +256,10 @@ public final class Registries {
     }
 
     public static void populate() {
+        // First, load Geyser asset packs - these can provide custom mappings, which are used in the methods immediately afterward
+        // to populate the other registries
+        GEYSER_ASSET_PACKS.load();
+
         // Both the block registries and the common registries depend on each other,
         // so maintaining this order is crucial for Geyser to load.
         BlockRegistries.populate();

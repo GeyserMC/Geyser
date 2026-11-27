@@ -43,6 +43,7 @@ import org.geysermc.geyser.registry.mappings.predicate.ItemRangeDispatchProperty
 import java.util.Arrays;
 import java.util.Map;
 import java.util.Objects;
+import java.util.UUID;
 import java.util.function.Predicate;
 
 @FunctionalInterface
@@ -106,6 +107,14 @@ public interface NodeReader<T> {
     NodeReader<String> STRING = JsonPrimitive::getAsString;
 
     NodeReader<String> NON_EMPTY_STRING = STRING.validate(s -> !s.isEmpty(), "string must not be empty");
+
+    NodeReader<UUID> UUID = NON_EMPTY_STRING.andThen(s -> {
+        try {
+            return java.util.UUID.fromString(s);
+        } catch (IllegalArgumentException exception) {
+            throw new InvalidCustomMappingsFileException("expected a UUID such as 01234567-89ab-cdef-0123-456789abcdef");
+        }
+    });
 
     // General API readers
 

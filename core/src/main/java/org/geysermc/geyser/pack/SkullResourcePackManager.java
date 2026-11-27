@@ -31,6 +31,7 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.Constants;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.pack.ResourcePackManifest;
+import org.geysermc.geyser.configuration.GeyserConfigDirectory;
 import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.registry.type.CustomSkull;
 import org.geysermc.geyser.skin.SkinProvider;
@@ -61,19 +62,13 @@ public class SkullResourcePackManager {
 
     private static final long RESOURCE_PACK_VERSION = 8;
 
-    private static final Path SKULL_SKIN_CACHE_PATH = GeyserImpl.getInstance().getBootstrap().getConfigFolder().resolve("cache").resolve("player_skulls");
+    private static final Path SKULL_SKIN_CACHE_PATH = GeyserImpl.getInstance().configDir().createIfAbsent(GeyserConfigDirectory.CACHE_PLAYER_SKULLS);
 
     public static final Map<String, Path> SKULL_SKINS = new Object2ObjectOpenHashMap<>();
 
     @SuppressWarnings("ResultOfMethodCallIgnored")
     public static @Nullable Path createResourcePack() {
-        Path cachePath = GeyserImpl.getInstance().getBootstrap().getConfigFolder().resolve("cache");
-        try {
-            Files.createDirectories(cachePath);
-        } catch (IOException e) {
-            GeyserImpl.getInstance().getLogger().severe("Unable to create directories for player skull resource pack!", e);
-            return null;
-        }
+        Path cachePath = GeyserImpl.getInstance().configDir().createIfAbsent(GeyserConfigDirectory.CACHE);
         cleanSkullSkinCache();
 
         Path packPath = cachePath.resolve("player_skulls.mcpack");
@@ -111,7 +106,6 @@ public class SkullResourcePackManager {
             return;
         }
 
-        Files.createDirectories(SKULL_SKIN_CACHE_PATH);
         skinPath = SKULL_SKIN_CACHE_PATH.resolve(skinHash + ".png");
         if (Files.exists(skinPath)) {
             SKULL_SKINS.put(skinHash, skinPath);
