@@ -66,6 +66,7 @@ import org.geysermc.mcprotocollib.network.helper.TransportHelper;
 import tel.schich.libdatachannel.LibDataChannelArchDetect;
 
 import java.io.IOException;
+import java.net.BindException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.URI;
@@ -77,6 +78,7 @@ import java.time.Instant;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -163,6 +165,8 @@ public final class NetherNetServer implements EventRegistrar {
     private EventLoopGroup inbuiltEventLoopGroup;
     private volatile Channel inbuiltChannel;
     private NetherNetChannelInitialiser inbuiltInitialiser;
+    /** What holds the built-in signaling port, when that keeps built-in signaling from running. */
+    private volatile @Nullable PortConflict builtinPortConflict;
 
     public NetherNetServer(GeyserImpl geyser) {
         this.geyser = geyser;
@@ -196,6 +200,7 @@ public final class NetherNetServer implements EventRegistrar {
         if (inbuilt && geyser.config() instanceof GeyserPluginConfig pluginConfig && signalingPort == pluginConfig.java().port()) {
             // e.g. clone-remote-port: the Java server owns that TCP port
             inbuilt = false;
+            builtinPortConflict = new PortConflict(PortConflict.Holder.JAVA_SERVER, signalingPort);
             String reason = "Built-in signaling cannot use port " + signalingPort + " because the Java server already uses it. ";
             if (!provider) {
                 provider = true;
@@ -385,6 +390,9 @@ public final class NetherNetServer implements EventRegistrar {
         } catch (Throwable e) {
             // Throwable: the WebRTC natives are not available on every platform
             closeInbuiltResources();
+            if (isAddressInUse(e)) {
+                builtinPortConflict = new PortConflict(PortConflict.Holder.OTHER_PROCESS, signalingPort);
+            }
             logger().error("Built-in signaling could not start", e);
         }
     }
@@ -648,6 +656,45 @@ public final class NetherNetServer implements EventRegistrar {
                 .toList(), builtinStun, builtin.discoveredEndpoints()),
             client == null ? null : new Advertised.Nxs(client.publishedEndpoints().orElse(null), providerInstanceId,
                 client.clockOffsetMillis()));
+    }
+
+    /**
+     * @return what holds the built-in signaling port, when that keeps built-in signaling from running
+     */
+    public @Nullable PortConflict builtinPortConflict() {
+        return builtinPortConflict;
+    }
+
+    /**
+     * Another component holding the TCP port built-in signaling needs.
+     *
+     * @param holder what holds the port
+     * @param port the built-in signaling port
+     */
+    public record PortConflict(Holder holder, int port) {
+        public enum Holder {
+            /** The Java server listens on the same port, so built-in signaling was not started. */
+            JAVA_SERVER,
+            /** Binding failed as something else on this machine already uses the port. */
+            OTHER_PROCESS
+        }
+    }
+
+    /**
+     * Whether binding failed because the address is already in use. Netty's native transports report this as a plain
+     * {@link IOException}, so the message is checked as well.
+     */
+    static boolean isAddressInUse(Throwable failure) {
+        for (Throwable cause = failure; cause != null; cause = cause.getCause()) {
+            if (cause instanceof BindException) {
+                return true;
+            }
+            String message = cause.getMessage();
+            if (message != null && message.toLowerCase(Locale.ROOT).contains("address already in use")) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
