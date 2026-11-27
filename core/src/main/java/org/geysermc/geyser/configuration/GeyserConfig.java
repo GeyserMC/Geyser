@@ -696,6 +696,14 @@ public interface GeyserConfig {
         boolean addTeamSuggestions();
 
         @Comment("""
+            How many milliseconds Geyser waits between two command suggestion requests it sends to the Java server for a Bedrock player.
+            Lower values fill in the suggestions faster after joining, but Paper kicks players who send too many of these requests
+            in a short time (see spam-limiter in paper-global.yml), so very low values can kick players on servers with many commands.""")
+        @DefaultNumeric(25)
+        @NumericRange(from = 1, to = 1000)
+        int commandSuggestionRequestInterval();
+
+        @Comment("""
             A list of remote resource pack urls to send to the Bedrock client for downloading.
             The Bedrock client is very picky about how these are delivered - please see our wiki page for further info: https://geysermc.org/wiki/geyser/packs/
             """)

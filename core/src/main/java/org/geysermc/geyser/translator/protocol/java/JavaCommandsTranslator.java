@@ -37,6 +37,7 @@ import lombok.ToString;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.checkerframework.checker.nullness.qual.MonotonicNonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.protocol.bedrock.data.command.CommandData;
 import org.cloudburstmc.protocol.bedrock.data.command.CommandEnumConstraint;
 import org.cloudburstmc.protocol.bedrock.data.command.CommandEnumData;
@@ -51,12 +52,14 @@ import org.geysermc.geyser.api.util.PlatformType;
 import org.geysermc.geyser.command.CommandRegistry;
 import org.geysermc.geyser.registry.java.BuiltInJavaRegistries;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.cache.ServerSuggestionCache;
 import org.geysermc.geyser.registry.java.JavaRegistries;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 import org.geysermc.geyser.util.EntityUtils;
 import org.geysermc.mcprotocollib.protocol.data.game.command.CommandNode;
 import org.geysermc.mcprotocollib.protocol.data.game.command.CommandParser;
+import org.geysermc.mcprotocollib.protocol.data.game.command.SuggestionType;
 import org.geysermc.mcprotocollib.protocol.data.game.command.properties.ResourceProperties;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.attribute.AttributeType;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.ClientboundCommandsPacket;
@@ -65,8 +68,10 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.EnumSet;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -155,6 +160,7 @@ public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommands
 
         // Get the first node, it should be a root node
         CommandNode rootNode = nodes[packet.getFirstNodeIndex()];
+        CommandBuilderContext context = new CommandBuilderContext(session);
 
         List<String> knownCommands = new ArrayList<>();
         List<String> restrictedCommands = new ArrayList<>();
@@ -173,7 +179,7 @@ public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommands
             }
 
             // Get and parse all params
-            CommandOverloadData[] params = getParams(session, nodes[nodeIndex], nodes);
+            CommandOverloadData[] params = getParams(context, node.getName(), nodes[nodeIndex], nodes);
 
             // Insert the alias name into the command list
             String name = node.getName().toLowerCase(Locale.ROOT);
@@ -241,16 +247,18 @@ public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommands
 
             // Build the completed command and add it to the final list
             CommandData data = new CommandData(commandName, description, flags, CommandPermission.ANY, aliases, Collections.emptyList(), entry.getKey().paramData());
-            commandData.add(data);
-
             if (commandName.equals("help")) {
+                // Help goes first: the Bedrock client drops the parameters of every command sent before it
+                commandData.add(0, data);
                 helpAdded = true;
+            } else {
+                commandData.add(data);
             }
         }
 
         if (!helpAdded) {
             // https://github.com/GeyserMC/Geyser/issues/2573 if Brigadier does not send the help command.
-            commandData.add(createFakeHelpCommand());
+            commandData.add(0, createFakeHelpCommand());
         }
 
         if (session.getGeyser().platformType() == PlatformType.STANDALONE) {
@@ -265,17 +273,20 @@ public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommands
 
         // Finally, send the commands to the client
         session.sendUpstreamPacket(availableCommandsPacket);
+
+        session.getServerSuggestionCache().setRequests(new HashSet<>(context.serverRequests.values()), () -> translate(session, packet));
     }
 
     /**
      * Build the command parameter array for the given command
      *
-     * @param session the session
+     * @param context the session's command context
+     * @param commandName The name the command was registered with
      * @param commandNode The command to build the parameters for
      * @param allNodes    Every command node
      * @return An array of parameter option arrays
      */
-    private static CommandOverloadData[] getParams(GeyserSession session, CommandNode commandNode, CommandNode[] allNodes) {
+    private static CommandOverloadData[] getParams(CommandBuilderContext context, String commandName, CommandNode commandNode, CommandNode[] allNodes) {
         // Check if the command is an alias and redirect it
         if (commandNode.getRedirectIndex().isPresent()) {
             int redirectIndex = commandNode.getRedirectIndex().getAsInt();
@@ -285,8 +296,8 @@ public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommands
 
         if (commandNode.getChildIndices().length >= 1) {
             // Create the root param node and build all the children
-            ParamInfo rootParam = new ParamInfo(commandNode, null);
-            rootParam.buildChildren(new CommandBuilderContext(session), allNodes);
+            ParamInfo rootParam = new ParamInfo(commandNode, null, "/" + commandName);
+            rootParam.buildChildren(context, allNodes);
 
             List<CommandOverloadData> treeData = rootParam.getTree();
 
@@ -369,6 +380,15 @@ public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommands
         private String[] entityTypes;
         private String[] itemNames;
         private CommandEnumData teams;
+        /**
+         * Enum name of each argument node suggested by the Java server, so aliases share the same enum
+         */
+        private final Int2ObjectMap<String> serverEnumNames = new Int2ObjectOpenHashMap<>();
+        /**
+         * Enum name to the command text that asks the Java server for its values
+         */
+        private final Map<String, String> serverRequests = new HashMap<>();
+        private final Set<String> serverEnumNamesInUse = new HashSet<>();
 
         CommandBuilderContext(GeyserSession session) {
             this.session = session;
@@ -413,6 +433,40 @@ public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommands
             return (itemNames = BuiltInJavaRegistries.ITEM.keys().stream().map(Key::asString).toArray(String[]::new));
         }
 
+        /**
+         * Arguments the Java server suggests itself can't be completed by Bedrock, so
+         * {@link org.geysermc.geyser.session.cache.ServerSuggestionCache} asks the server and the commands are sent again
+         * with the answers as an enum. Soft enums are not offered in the Bedrock chat, so it is a regular enum.
+         *
+         * @param typed the command typed up to this argument, e.g. "/home"
+         * @return the enum name of this argument; aliases redirect to the same node and share it
+         */
+        private String getServerSuggestionsName(int nodeIndex, CommandNode node, String typed) {
+            return serverEnumNames.computeIfAbsent(nodeIndex, $ -> {
+                String proposed = plainEnumName(typed.substring(1) + "_" + node.getName());
+                String name = proposed;
+                for (int i = 2; serverRequests.containsKey(name); i++) {
+                    name = proposed + i;
+                }
+                serverRequests.put(name, typed + " ");
+                return name;
+            });
+        }
+
+        private static String plainEnumName(String proposed) {
+            // Bedrock shows the enum name in the command hint; keep it to plain characters
+            return proposed.replaceAll("[^A-Za-z0-9_]", "_");
+        }
+
+        private String uniqueServerEnumName(String proposed) {
+            String plain = plainEnumName(proposed);
+            String unique = plain;
+            for (int i = 2; !serverEnumNamesInUse.add(unique); i++) {
+                unique = plain + i;
+            }
+            return unique;
+        }
+
         private CommandEnumData getTeams() {
             if (teams != null) {
                 return teams;
@@ -429,17 +483,23 @@ public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommands
         private final CommandNode paramNode;
         private final CommandParamData paramData;
         private final List<ParamInfo> children;
+        /**
+         * The command typed up to and including this node, or null if an argument comes before it
+         */
+        private final @Nullable String typed;
 
         /**
          * Create a new parameter info object
          *
          * @param paramNode CommandNode the parameter is for
          * @param paramData The existing parameters for the command
+         * @param typed The command typed up to and including this node, if only literals lead to it
          */
-        public ParamInfo(CommandNode paramNode, CommandParamData paramData) {
+        public ParamInfo(CommandNode paramNode, CommandParamData paramData, @Nullable String typed) {
             this.paramNode = paramNode;
             this.paramData = paramData;
             this.children = new ArrayList<>();
+            this.typed = typed;
         }
 
         /**
@@ -479,7 +539,8 @@ public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommands
                             commandParamData.setOptional(this.paramNode.isExecutable());
                             commandParamData.setEnumData(enumData);
 
-                            children.set(i, new ParamInfo(enumParamInfo.getParamNode(), commandParamData));
+                            // The merged literals share one subtree, so it is unknown which of them was typed
+                            children.set(i, new ParamInfo(enumParamInfo.getParamNode(), commandParamData, null));
                             break;
                         }
                     }
@@ -498,11 +559,17 @@ public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommands
                         commandParamData.setOptional(this.paramNode.isExecutable());
                         commandParamData.setEnumData(enumData);
 
-                        children.add(new ParamInfo(paramNode, commandParamData));
+                        children.add(new ParamInfo(paramNode, commandParamData, typed == null ? null : typed + " " + paramNode.getName()));
                     }
                 } else {
                     // Put the non-enum param into the list
                     Object mappedType = mapCommandType(context, paramNode);
+                    // Namespaced labels ("plugin:command") repeat the plain ones, so they are not worth a request each
+                    if (mappedType == CommandParam.STRING && typed != null && typed.indexOf(':') < 0
+                        && SuggestionType.ASK_SERVER.getResourceLocation().equals(paramNode.getSuggestionType())
+                        && addServerSuggestions(context, paramID, paramNode, typed)) {
+                        continue;
+                    }
                     CommandEnumData enumData = null;
                     CommandParam type = null;
                     boolean optional = this.paramNode.isExecutable();
@@ -533,7 +600,7 @@ public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommands
                     commandParamData.setEnumData(enumData);
                     commandParamData.setType(type);
 
-                    children.add(new ParamInfo(paramNode, commandParamData));
+                    children.add(new ParamInfo(paramNode, commandParamData, null));
                 }
             }
 
@@ -541,6 +608,106 @@ public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommands
             for (ParamInfo child : children) {
                 child.buildChildren(context, allNodes);
             }
+        }
+
+        /**
+         * Adds an argument the Java server suggests itself. When Java takes the rest of the command as one string
+         * (most plugin commands), what the server suggests after each value becomes the next argument.
+         *
+         * @return false until the server has answered; the argument then stays a plain string
+         */
+        private boolean addServerSuggestions(CommandBuilderContext context, int paramID, CommandNode node, String typed) {
+            String name = context.getServerSuggestionsName(paramID, node, typed);
+            String text = typed + " ";
+            List<ParamInfo> params = serverArgument(context, node, node.getName(), name, text,
+                context.session.getServerSuggestionCache().suggestions(text), this.paramNode.isExecutable(),
+                node.getChildIndices().length == 0);
+            children.addAll(params);
+            return !params.isEmpty();
+        }
+
+        /**
+         * One argument suggested by the server, as overloads: values followed by more suggestions get their own,
+         * values followed by a player share one, and the rest share another. Each value is in a single overload,
+         * or Bedrock would list it more than once.
+         *
+         * @param following false when Java has its own nodes after this argument
+         */
+        private static List<ParamInfo> serverArgument(CommandBuilderContext context, CommandNode node, String paramName,
+                                                      String enumName, String text, Set<String> values,
+                                                      boolean optional, boolean following) {
+            ServerSuggestionCache cache = context.session.getServerSuggestionCache();
+            List<ParamInfo> params = new ArrayList<>();
+            if (cache.onlyPlayers(values)) {
+                // Bedrock does not complete player names for an optional target
+                params.add(new ParamInfo(node, serverParam(paramName, false, CommandParam.TARGET), null));
+                return params;
+            }
+
+            Set<String> rest = new LinkedHashSet<>();
+            Set<String> beforePlayer = new LinkedHashSet<>();
+            for (String value : lowerCaseOnly(values)) {
+                Set<String> next = following ? cache.suggestionsAfter(text, value) : Set.of();
+                if (cache.onlyPlayers(next)) {
+                    beforePlayer.add(value);
+                    continue;
+                }
+                List<ParamInfo> after = serverArgument(context, node, value, enumName + "_" + value + "_args",
+                    text + value + " ", next, true, true);
+                if (after.isEmpty()) {
+                    rest.add(value);
+                    continue;
+                }
+                ParamInfo literal = new ParamInfo(node, serverParam(paramName, false,
+                    serverEnum(context.uniqueServerEnumName(enumName + "_" + value), Set.of(value))), null);
+                literal.children.addAll(after);
+                params.add(literal);
+            }
+            if (!beforePlayer.isEmpty()) {
+                ParamInfo literal = new ParamInfo(node, serverParam(paramName, false,
+                    serverEnum(context.uniqueServerEnumName(enumName + "_player"), beforePlayer)), null);
+                literal.children.add(new ParamInfo(node, serverParam("player", false, CommandParam.TARGET), null));
+                params.add(literal);
+            }
+            if (!rest.isEmpty()) {
+                params.add(0, new ParamInfo(node, serverParam(paramName, optional,
+                    serverEnum(context.uniqueServerEnumName(enumName), rest)), null));
+            }
+            return params;
+        }
+
+        /**
+         * Bedrock refuses enum values with upper case letters ("Keywords in commands need to be lower case"), and
+         * lower casing them could send a value the server does not accept, so they are left out.
+         */
+        private static Set<String> lowerCaseOnly(Set<String> values) {
+            Set<String> keywords = new LinkedHashSet<>();
+            for (String value : values) {
+                if (value.equals(value.toLowerCase(Locale.ROOT))) {
+                    keywords.add(value);
+                }
+            }
+            return keywords;
+        }
+
+        private static CommandParamData serverParam(String name, boolean optional, Object type) {
+            CommandParamData paramData = new CommandParamData();
+            paramData.setName(name);
+            paramData.setOptional(optional);
+            if (type instanceof CommandEnumData enumData) {
+                paramData.setEnumData(enumData);
+            } else {
+                paramData.setType((CommandParam) type);
+            }
+            return paramData;
+        }
+
+        private static CommandEnumData serverEnum(String name, Set<String> values) {
+            Map<String, Set<CommandEnumConstraint>> map = new LinkedHashMap<>();
+            for (String value : values) {
+                map.put(value, Set.of());
+            }
+            return new CommandEnumData(name, map, false);
         }
 
         /**

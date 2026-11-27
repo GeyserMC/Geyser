@@ -186,6 +186,7 @@ import org.geysermc.geyser.session.cache.InputCache;
 import org.geysermc.geyser.session.cache.LodestoneCache;
 import org.geysermc.geyser.session.cache.PistonCache;
 import org.geysermc.geyser.session.cache.PreferencesCache;
+import org.geysermc.geyser.session.cache.ServerSuggestionCache;
 import org.geysermc.geyser.session.cache.SkullCache;
 import org.geysermc.geyser.session.cache.StructureBlockCache;
 import org.geysermc.geyser.session.cache.TeleportCache;
@@ -320,6 +321,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource, Jav
     private final ComponentCache componentCache;
     private final SkullCache skullCache;
     private final StructureBlockCache structureBlockCache;
+    private final ServerSuggestionCache serverSuggestionCache;
     private final WaypointCache waypointCache;
     private final WorldCache worldCache;
 
@@ -905,6 +907,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource, Jav
         this.componentCache = new ComponentCache(this.javaRegistries);
         this.skullCache = new SkullCache(this);
         this.structureBlockCache = new StructureBlockCache();
+        this.serverSuggestionCache = new ServerSuggestionCache(this, geyser.config().advanced().commandSuggestionRequestInterval());
         this.waypointCache = new WaypointCache(this);
         this.worldCache = new WorldCache(this);
         this.cameraData = new GeyserCameraData(this);
