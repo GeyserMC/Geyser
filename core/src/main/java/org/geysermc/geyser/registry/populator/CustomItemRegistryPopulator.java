@@ -401,7 +401,7 @@ public class CustomItemRegistryPopulator {
         }
 
         // Bedrock doesn't really use these otherwise
-        if (throwable != null || chargeable != null || consumableComponent.isPresent()) {
+        if (throwable != null || chargeable != null || consumableComponent.isPresent() || kineticWeapon != null) {
             computeUseEffectsProperties(itemProperties, componentBuilder,
                 context.components().getOrDefault(DataComponentTypes.USE_EFFECTS, DEFAULT_USE_EFFECTS),
                 consumableComponent.map(Consumable::consumeSeconds));
@@ -706,12 +706,17 @@ public class CustomItemRegistryPopulator {
         NbtMapBuilder component = NbtMap.builder()
             .putShort("delay", (short) weapon.delayTicks())
             .putFloat("damage_modifier", 0.0F)
-            .putFloat("damage_multiplier", 1.0F);
+            .putFloat("damage_multiplier", weapon.damageMultiplier());
 
         addAttackRangeProperties(component, attackRange);
         addKineticConditionMap(component, "dismount_conditions", weapon.dismountConditions());
+        addKineticConditionMap(component, "knockback_conditions", weapon.knockbackConditions());
+        addKineticConditionMap(component, "damage_conditions", weapon.damageConditions());
 
-        componentBuilder.putCompound("minecraft:kinetic_weapon", component.build());
+        // The vanilla spear definitions nest the component under its own name, and the client doesnt read flat kinetic-values
+        componentBuilder.putCompound("minecraft:kinetic_weapon", NbtMap.builder()
+            .putCompound("minecraft:kinetic_weapon", component.build())
+            .build());
     }
 
     private static void computePiercingWeaponProperties(NbtMapBuilder componentBuilder, AttackRange attackRange) {
