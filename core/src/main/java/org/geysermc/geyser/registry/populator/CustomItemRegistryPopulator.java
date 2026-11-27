@@ -214,6 +214,8 @@ public class CustomItemRegistryPopulator {
             GeyserImpl.getInstance().getLogger().warning("Custom item " + bedrockIdentifier + " overrides the vanilla item model " + vanillaIdentifier + " without additional predicates!");
         }
 
+        // Built-in vanilla tool replacements always give way to user-defined definitions
+        List<Map.Entry<Identifier, CustomItemDefinition>> overriddenBuiltIns = new ArrayList<>();
         for (Map.Entry<Identifier, CustomItemDefinition> entry : registered.entries()) {
             if (entry.getValue().bedrockIdentifier().equals(item.bedrockIdentifier())) {
                 throw new CustomItemDefinitionRegisterException("conflicts with another custom item definition with the same bedrock identifier");
@@ -221,8 +223,16 @@ public class CustomItemRegistryPopulator {
             try {
                 checkPredicate(entry, vanillaIdentifier, item);
             } catch (CustomItemDefinitionRegisterException exception) {
+                if (BuiltInMappings.isToolReplacement(entry.getValue()) && !BuiltInMappings.isRegistering()) {
+                    overriddenBuiltIns.add(entry);
+                    continue;
+                }
                 throw new CustomItemDefinitionRegisterException("conflicts with custom item definition (bedrock identifier=" + entry.getValue().bedrockIdentifier() + "): " + exception.getMessage());
             }
+        }
+
+        for (Map.Entry<Identifier, CustomItemDefinition> overridden : overriddenBuiltIns) {
+            registered.remove(overridden.getKey(), overridden.getValue());
         }
     }
 
