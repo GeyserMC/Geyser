@@ -230,6 +230,7 @@ sourceSets {
         blossom {
             javaSources {
                 property("version", finalVersion)
+                property("platformVersion", provider { platformVersion(project) })
                 property("gitVersion", gitVersion)
                 property("buildNumber", buildNumber)
                 property("branch", gitBranch)

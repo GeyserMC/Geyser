@@ -39,6 +39,7 @@ import com.velocitypowered.api.proxy.ProxyServer;
 import lombok.Getter;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
+import org.geysermc.geyser.BuildData;
 import org.geysermc.geyser.FloodgateKeyLoader;
 import org.geysermc.geyser.GeyserBootstrap;
 import org.geysermc.geyser.GeyserImpl;
@@ -65,7 +66,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Optional;
 
-@Plugin(id = "geyser", name = GeyserImpl.NAME + "-Velocity", version = GeyserImpl.VERSION, url = "https://geysermc.org", authors = "GeyserMC")
+@Plugin(id = "geyser", name = GeyserImpl.NAME + "-Velocity", version = BuildData.PLATFORM_VERSION, url = "https://geysermc.org", authors = "GeyserMC")
 public class GeyserVelocityPlugin implements GeyserBootstrap {
 
     private final ProxyServer proxyServer;

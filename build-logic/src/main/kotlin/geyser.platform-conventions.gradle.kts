@@ -9,18 +9,20 @@ val minecraftVersion = libs.minecraft.get().version as String
 val minecraftLine = Regex("^\\d+\\.\\d+").find(minecraftVersion)?.value ?: minecraftVersion
 val (minecraftMajor, minecraftMinor) = minecraftLine.split(".")
 val minecraftNext = "$minecraftMajor.${minecraftMinor.toInt() + 1}"
+val platformVersion = platformVersion(project)
 
 tasks {
     processResources {
+        inputs.property("platformVersion", platformVersion)
         // Spigot, BungeeCord, Velocity, Fabric, ViaProxy, NeoForge
         filesMatching(listOf("plugin.yml", "bungee.yml", "velocity-plugin.json", "fabric.mod.json", "viaproxy.yml", "META-INF/neoforge.mods.toml")) {
             expand(
                 "id" to "geyser",
                 "name" to "Geyser",
-                "version" to project.version,
+                "version" to platformVersion,
                 // Must be this for gradle :neoforge:runServer task to work
                 "file" to mapOf(
-                    "jarVersion" to project.version
+                    "jarVersion" to platformVersion
                 ),
                 "description" to project.description as String,
                 "url" to "https://geysermc.org",

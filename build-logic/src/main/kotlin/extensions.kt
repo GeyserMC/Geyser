@@ -144,6 +144,12 @@ private fun calcExclusion(section: String, bit: Int, excludedOn: Int): String =
 fun projectVersion(project: Project): String =
     project.version.toString().replace("SNAPSHOT", "b" + buildNumber())
 
+fun platformVersion(project: Project): String {
+    val version = if (buildNumber() >= 0) projectVersion(project) else project.version.toString()
+    val commit = project.the<IndraGitExtension>().commit().map { "+${it.name.take(7)}" }.orElse("")
+    return version + commit.get()
+}
+
 fun versionName(project: Project): String =
     "Geyser-" + project.name.replaceFirstChar { it.uppercase() } + "-" + projectVersion(project)
 
