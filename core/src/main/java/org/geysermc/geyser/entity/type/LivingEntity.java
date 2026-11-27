@@ -202,9 +202,9 @@ public class LivingEntity extends Entity implements Tickable {
 
     @Override
     public void updateNametag(@Nullable Team team) {
-        // Java hides the name tag when a living entity has any passengers
+        // Java applies the team visibility rule first, and only hides the name tag for passengers when there is no team
         // if name not visible, don't mark it as visible
-        updateNametag(team, passengers.isEmpty() && (team == null || team.isVisibleFor(session.getPlayerEntity().getUsername())));
+        updateNametag(team, team != null ? team.isVisibleFor(session.getPlayerEntity().getUsername()) : passengers.isEmpty());
     }
 
     @Override
@@ -215,10 +215,11 @@ public class LivingEntity extends Entity implements Tickable {
 
     @Override
     public void setCustomName(EntityMetadata<Optional<Component>, ?> entityMetadata) {
-        // Update custom name, but reset the nametag when there are passengers, or when this is the spectated
+        // Update custom name, but reset the nametag when there are passengers and no team, or when this is the spectated
         // entity (its name shouldn't float in the spectator's own first-person view)
         super.setCustomName(entityMetadata);
-        if (!passengers.isEmpty() || this == session.getSpectatedEntity()) {
+        if ((!passengers.isEmpty() && session.getWorldCache().getScoreboard().getTeamFor(teamIdentifier()) == null)
+            || this == session.getSpectatedEntity()) {
             setNametag("", false);
         }
     }

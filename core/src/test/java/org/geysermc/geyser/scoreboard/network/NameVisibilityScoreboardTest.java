@@ -402,6 +402,41 @@ public class NameVisibilityScoreboardTest {
     }
 
     @Test
+    void teamVisibilityOverridesPassengers() {
+        mockContextScoreboard(context -> {
+            PlayerEntity player = spawnPlayerSilently(context, "eclipseisoffline", 2L);
+            spawnArmorStand(context, 3L);
+
+            context.translate(
+                new JavaSetPlayerTeamTranslator(),
+                new ClientboundSetPlayerTeamPacket(
+                    "team1",
+                    Component.text("displayName"),
+                    Component.text("prefix"),
+                    Component.text("suffix"),
+                    false,
+                    false,
+                    NameTagVisibility.ALWAYS,
+                    CollisionRule.NEVER,
+                    TeamColor.DARK_RED,
+                    new String[]{"eclipseisoffline"}
+                )
+            );
+            assertNextPacketType(context, SetEntityDataPacket.class);
+
+            context.translate(new JavaSetPassengersTranslator(), new ClientboundSetPassengersPacket(2, new int[]{3}));
+            // Passenger/vehicle link
+            assertNextPacketType(context, SetEntityLinkPacket.class);
+            // Passenger metadata
+            assertNextPacketType(context, SetEntityDataPacket.class);
+
+            // Java checks the team visibility before passengers, so the name stays
+            player.updateBedrockMetadata();
+            assertNoNextPacket(context);
+        });
+    }
+
+    @Test
     void anyPassengersHideArmorStandName() {
         mockContextScoreboard(context -> {
             ArmorStandEntity vehicle = spawnArmorStand(context, 2L);
