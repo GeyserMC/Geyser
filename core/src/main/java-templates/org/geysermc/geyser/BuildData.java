@@ -29,6 +29,7 @@ package org.geysermc.geyser;
 public class BuildData {
     public static final String GIT_VERSION = "{{ gitVersion }}";
     public static final String VERSION = "{{ version }}";
+    public static final String PLATFORM_VERSION = "{{ platformVersion }}";
 
     public static final String BUILD_NUMBER = "{{ buildNumber }}";
     public static final String BRANCH = "{{ branch }}";
