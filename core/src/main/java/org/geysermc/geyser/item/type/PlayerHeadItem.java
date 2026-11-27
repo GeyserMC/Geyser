@@ -25,15 +25,16 @@
 
 package org.geysermc.geyser.item.type;
 
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.TextColor;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.item.TooltipOptions;
 import org.geysermc.geyser.item.components.Rarity;
 import org.geysermc.geyser.level.block.type.Block;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.skin.SkinManager;
-import org.geysermc.geyser.text.ChatColor;
-import org.geysermc.geyser.text.MinecraftLocale;
 import org.geysermc.geyser.translator.item.BedrockItemBuilder;
+import org.geysermc.geyser.translator.text.MessageTranslator;
 import org.geysermc.mcprotocollib.auth.GameProfile;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.ResolvableProfile;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentTypes;
@@ -49,7 +50,7 @@ public class PlayerHeadItem extends BlockItem {
         super.translateComponentsToBedrock(session, components, tooltip, builder);
 
         // Use the correct color, determined by the rarity of the item
-        char rarity = Rarity.fromId(components.getOrDefault(DataComponentTypes.RARITY, Rarity.COMMON.ordinal())).getColor();
+        TextColor rarity = Rarity.fromId(components.getOrDefault(DataComponentTypes.RARITY, Rarity.COMMON.ordinal())).getColor();
 
         ResolvableProfile profile = components.get(DataComponentTypes.PROFILE);
         if (profile != null) {
@@ -62,13 +63,9 @@ public class PlayerHeadItem extends BlockItem {
                 String name = resolved.getName();
                 if (name != null) {
                     // Add correct name of player skull
-                    String displayName = ChatColor.RESET + ChatColor.ESCAPE + rarity +
-                        MinecraftLocale.getLocaleString("block.minecraft.player_head.named", session.locale()).replace("%s", name);
-                    builder.setCustomName(displayName);
-                } else {
-                    // No name found so default to "Player Head"
-                    builder.setCustomName(ChatColor.RESET + ChatColor.ESCAPE + rarity +
-                        MinecraftLocale.getLocaleString("block.minecraft.player_head", session.locale()));
+                    builder.setCustomName(MessageTranslator.convertMessage(
+                        Component.translatable("block.minecraft.player_head.named", rarity, Component.text(name)),
+                        session.locale()));
                 }
             }
         }
