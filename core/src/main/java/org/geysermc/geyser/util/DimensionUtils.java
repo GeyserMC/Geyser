@@ -84,17 +84,6 @@ public class DimensionUtils {
         session.updateThunder(0);
 
         finalizeDimensionSwitch(session, player);
-
-        // If the bedrock nether height workaround is enabled, meaning the client is told it's in the end dimension,
-        // we check if the player is entering the nether and apply the nether fog to fake the fact that the client
-        // thinks they are in the end dimension.
-        if (BedrockDimension.isCustomBedrockNetherId()) {
-            if (javaDimension.isNetherLike()) {
-                session.camera().sendFog(BEDROCK_FOG_HELL);
-            } else if (previousDimension != null && previousDimension.isNetherLike()) {
-                session.camera().removeFog(BEDROCK_FOG_HELL);
-            }
-        }
     }
 
     /**

@@ -155,6 +155,8 @@ final class BedrockMovePlayer {
             session.setNoClip(!possibleOnGround);
         }
 
+        session.checkHeightLimit(packet.getPosition());
+
         session.getWorldBorder().spawnOrMoveBorderCollision(packet.getPosition().down(VanillaEntities.PLAYER_ENTITY_OFFSET));
 
         // This takes into account no movement sent from the client, but the player is trying to move anyway.
